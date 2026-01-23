@@ -59,22 +59,26 @@
                     wire:click="generate"
                     wire:loading.attr="disabled"
                     @if($isGenerating) disabled @endif
-                    class="w-full py-3.5 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold text-base transition-all duration-300 flex items-center justify-center gap-2 {{ $isGenerating ? 'opacity-60 cursor-wait' : 'hover:shadow-[0_8px_30px_rgba(168,85,247,0.5)] hover:-translate-y-0.5' }}">
-                    <span wire:loading.remove wire:target="generate">
-                        <i class="fa-solid fa-wand-magic-sparkles w-5 h-5"></i> Tạo ảnh
+                    class="w-full py-3.5 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold text-base transition-all duration-300 inline-flex items-center justify-center gap-2 {{ $isGenerating ? 'opacity-60 cursor-wait' : 'hover:shadow-[0_8px_30px_rgba(168,85,247,0.5)] hover:-translate-y-0.5' }}">
+                    <span wire:loading.remove wire:target="generate" class="inline-flex items-center gap-2">
+                        <i class="fa-solid fa-wand-magic-sparkles" style="font-size: 18px;"></i>
+                        <span>Tạo ảnh</span>
                     </span>
-                    <span wire:loading wire:target="generate">
-                        <i class="fa-solid fa-spinner w-5 h-5 animate-spin"></i> Đang tạo...
+                    <span wire:loading wire:target="generate" class="inline-flex items-center gap-2">
+                        <i class="fa-solid fa-spinner animate-spin" style="font-size: 18px;"></i>
+                        <span>Đang tạo...</span>
                     </span>
                 </button>
             @else
-                <a href="{{ route('wallet.index') }}" class="w-full py-3.5 rounded-xl bg-white/[0.05] border border-white/[0.1] text-white font-medium text-base flex items-center justify-center gap-2 hover:bg-white/[0.1] transition-all">
-                    <i class="fa-solid fa-coins w-5 h-5"></i> Nạp thêm Xu
+                <a href="{{ route('wallet.index') }}" class="w-full py-3.5 rounded-xl bg-white/[0.05] border border-white/[0.1] text-white font-medium text-base inline-flex items-center justify-center gap-2 hover:bg-white/[0.1] transition-all">
+                    <i class="fa-solid fa-coins" style="font-size: 18px;"></i>
+                    <span>Nạp thêm Xu</span>
                 </a>
             @endif
         @else
-            <a href="{{ route('login') }}" class="w-full py-3.5 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold text-base flex items-center justify-center gap-2 hover:shadow-[0_8px_30px_rgba(168,85,247,0.5)] transition-all">
-                <i class="fa-solid fa-right-to-bracket w-5 h-5"></i> Đăng nhập để tạo ảnh
+            <a href="{{ route('login') }}" class="w-full py-3.5 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold text-base inline-flex items-center justify-center gap-2 hover:shadow-[0_8px_30px_rgba(168,85,247,0.5)] transition-all">
+                <i class="fa-solid fa-right-to-bracket" style="font-size: 18px;"></i>
+                <span>Đăng nhập để tạo ảnh</span>
             </a>
         @endauth
 
@@ -124,8 +128,9 @@
                 <img src="{{ $generatedImageUrl }}" alt="Generated Image" class="w-full rounded-xl">
             </div>
             <div class="p-3 md:p-4 pt-0">
-                <a href="{{ $generatedImageUrl }}" target="_blank" download class="w-full py-3 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold flex items-center justify-center gap-2 hover:shadow-[0_8px_30px_rgba(168,85,247,0.5)] transition-all">
-                    <i class="fa-solid fa-download w-5 h-5"></i> Tải xuống
+                <a href="{{ $generatedImageUrl }}" target="_blank" download class="w-full py-3 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold inline-flex items-center justify-center gap-2 hover:shadow-[0_8px_30px_rgba(168,85,247,0.5)] transition-all">
+                    <i class="fa-solid fa-download" style="font-size: 18px;"></i>
+                    <span>Tải xuống</span>
                 </a>
             </div>
         </div>

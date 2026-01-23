@@ -24,11 +24,13 @@
                     </p>
                     <div class="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center lg:justify-start mb-8 sm:mb-0">
                         <a href="#styles" class="px-6 sm:px-8 py-3.5 sm:py-4 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold text-base sm:text-lg shadow-lg shadow-purple-500/30 hover:shadow-purple-500/50 transition-all inline-flex items-center justify-center gap-2">
-                            <i class="fa-solid fa-wand-magic-sparkles w-4 h-4 sm:w-5 sm:h-5"></i> Bắt đầu ngay
+                            <i class="fa-solid fa-wand-magic-sparkles" style="font-size: 18px;"></i>
+                            <span>Bắt đầu ngay</span>
                         </a>
                         @guest
                             <a href="{{ route('register') }}" class="px-6 sm:px-8 py-3.5 sm:py-4 rounded-xl bg-white/[0.05] border border-white/[0.1] text-white font-medium text-base sm:text-lg hover:bg-white/[0.1] transition-all inline-flex items-center justify-center gap-2">
-                                <i class="fa-solid fa-play w-3.5 h-3.5 sm:w-4 sm:h-4"></i> Xem demo
+                                <i class="fa-solid fa-play" style="font-size: 14px;"></i>
+                                <span>Xem demo</span>
                             </a>
                         @endguest
                     </div>
@@ -197,7 +199,8 @@
                     <h2 class="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-3 sm:mb-4">Nhận 5 Xu Miễn Phí!</h2>
                     <p class="text-white/70 mb-6 sm:mb-8 max-w-lg mx-auto text-sm sm:text-lg">Đăng ký ngay để nhận 5 Xu trải nghiệm</p>
                     <a href="{{ route('register') }}" class="w-full sm:w-auto px-8 sm:px-10 py-3.5 sm:py-4 rounded-xl bg-white text-gray-900 font-semibold text-base sm:text-lg hover:bg-gray-100 transition-colors inline-flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-crown w-4 h-4 sm:w-5 sm:h-5"></i> Đăng Ký Miễn Phí
+                        <i class="fa-solid fa-crown" style="font-size: 18px;"></i>
+                        <span>Đăng Ký Miễn Phí</span>
                     </a>
                 </div>
             </div>

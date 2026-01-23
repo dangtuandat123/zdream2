@@ -61,8 +61,9 @@
             @endif
         </div>
 
-        <button type="submit" class="w-full py-3.5 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold text-base flex items-center justify-center gap-2 hover:shadow-[0_8px_30px_rgba(168,85,247,0.5)] transition-all">
-            <i class="fa-solid fa-right-to-bracket w-4 h-4"></i> Đăng nhập
+        <button type="submit" class="w-full py-3.5 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold text-base inline-flex items-center justify-center gap-2 hover:shadow-[0_8px_30px_rgba(168,85,247,0.5)] transition-all">
+            <i class="fa-solid fa-right-to-bracket" style="font-size: 16px;"></i>
+            <span>Đăng nhập</span>
         </button>
     </form>
 

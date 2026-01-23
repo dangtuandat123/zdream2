@@ -137,11 +137,13 @@
                     </form>
                 @else
                     <div class="h-px bg-white/[0.05] my-4"></div>
-                    <a href="{{ route('register') }}" class="block w-full py-3 rounded-xl bg-white text-gray-900 font-medium text-center hover:bg-gray-100 transition-colors">
-                        <i class="fa-solid fa-crown w-4 h-4 mr-2"></i> Đăng ký miễn phí
+                    <a href="{{ route('register') }}" class="w-full py-3 rounded-xl bg-white text-gray-900 font-medium inline-flex items-center justify-center gap-2 hover:bg-gray-100 transition-colors">
+                        <i class="fa-solid fa-crown" style="font-size: 14px;"></i>
+                        <span>Đăng ký miễn phí</span>
                     </a>
-                    <a href="{{ route('login') }}" class="block w-full py-3 rounded-xl bg-white/[0.05] border border-white/[0.1] text-white/80 font-medium text-center hover:bg-white/[0.1] transition-colors">
-                        <i class="fa-solid fa-right-to-bracket w-4 h-4 mr-2"></i> Đăng nhập
+                    <a href="{{ route('login') }}" class="w-full py-3 rounded-xl bg-white/[0.05] border border-white/[0.1] text-white/80 font-medium inline-flex items-center justify-center gap-2 hover:bg-white/[0.1] transition-colors mt-2">
+                        <i class="fa-solid fa-right-to-bracket" style="font-size: 14px;"></i>
+                        <span>Đăng nhập</span>
                     </a>
                 @endauth
             </div>
