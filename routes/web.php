@@ -5,6 +5,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\StudioController;
 use App\Http\Controllers\WalletController;
 use App\Http\Controllers\Admin\StyleController as AdminStyleController;
+use App\Http\Controllers\Admin\StyleOptionController as AdminStyleOptionController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -56,6 +57,11 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
 
     // CRUD Styles
     Route::resource('styles', AdminStyleController::class);
+
+    // CRUD Style Options (nested)
+    Route::resource('styles.options', AdminStyleOptionController::class)
+        ->except(['show'])
+        ->parameters(['options' => 'option']);
 });
 
 // =============================================

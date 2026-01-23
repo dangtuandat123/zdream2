@@ -55,14 +55,19 @@
                                 <span class="text-xs text-white/40">{{ $style->slug }}</span>
                             </div>
                             <div class="flex items-center gap-2">
-                                <a href="{{ route('admin.styles.edit', $style) }}" class="flex-1 py-2 rounded-lg bg-white/[0.05] border border-white/[0.1] text-white/80 text-sm text-center hover:bg-white/[0.1] transition-colors">
-                                    <i class="fa-solid fa-pen w-3 h-3 mr-1"></i> Sửa
+                                <a href="{{ route('admin.styles.edit', $style) }}" class="flex-1 py-2 rounded-lg bg-white/[0.05] border border-white/[0.1] text-white/80 text-sm text-center hover:bg-white/[0.1] transition-colors inline-flex items-center justify-center gap-1">
+                                    <i class="fa-solid fa-pen" style="font-size: 10px;"></i>
+                                    <span>Sửa</span>
                                 </a>
-                                <form method="POST" action="{{ route('admin.styles.destroy', $style) }}" class="flex-1" onsubmit="return confirm('Xác nhận xóa?')">
+                                <a href="{{ route('admin.styles.options.index', $style) }}" class="flex-1 py-2 rounded-lg bg-purple-500/10 border border-purple-500/30 text-purple-400 text-sm text-center hover:bg-purple-500/20 transition-colors inline-flex items-center justify-center gap-1">
+                                    <i class="fa-solid fa-sliders" style="font-size: 10px;"></i>
+                                    <span>Options ({{ $style->options->count() }})</span>
+                                </a>
+                                <form method="POST" action="{{ route('admin.styles.destroy', $style) }}" onsubmit="return confirm('Xác nhận xóa?')">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="submit" class="w-full py-2 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-sm hover:bg-red-500/20 transition-colors">
-                                        <i class="fa-solid fa-trash w-3 h-3 mr-1"></i> Xóa
+                                    <button type="submit" class="w-9 h-9 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 hover:bg-red-500/20 transition-colors inline-flex items-center justify-center">
+                                        <i class="fa-solid fa-trash" style="font-size: 12px;"></i>
                                     </button>
                                 </form>
                             </div>
