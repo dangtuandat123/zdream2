@@ -45,12 +45,14 @@ class OpenRouterService
      * @param Style $style Style đã chọn
      * @param array $selectedOptionIds Danh sách ID của options đã chọn
      * @param string|null $userCustomInput Nội dung user tự gõ
+     * @param string|null $aspectRatio Aspect ratio được user chọn (override style default)
      * @return array ['success' => bool, 'image_base64' => string|null, 'openrouter_id' => string|null, 'error' => string|null]
      */
     public function generateImage(
         Style $style, 
         array $selectedOptionIds = [], 
-        ?string $userCustomInput = null
+        ?string $userCustomInput = null,
+        ?string $aspectRatio = null
     ): array {
         try {
             // Build final prompt
@@ -58,6 +60,17 @@ class OpenRouterService
             
             // Build OpenRouter payload
             $payload = $style->buildOpenRouterPayload($finalPrompt);
+            
+            // Override aspect ratio nếu user đã chọn khác
+            if ($aspectRatio) {
+                $payload['image_config'] = $payload['image_config'] ?? [];
+                $payload['image_config']['aspect_ratio'] = $aspectRatio;
+                
+                // Với Flux model, chèn aspect ratio vào prompt
+                if (str_contains($style->openrouter_model_id, 'flux')) {
+                    $payload['messages'][0]['content'] .= ", {$aspectRatio} aspect ratio";
+                }
+            }
 
             Log::info('OpenRouter request', [
                 'model' => $style->openrouter_model_id,

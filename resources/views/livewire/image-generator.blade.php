@@ -30,8 +30,9 @@
     <!-- Custom Input -->
     @if($style->allow_user_custom_prompt)
         <div class="bg-white/[0.03] border border-white/[0.08] rounded-xl p-4">
-            <label class="block text-sm font-medium text-white/60 mb-2 flex items-center gap-2">
-                <i class="fa-solid fa-pencil w-4 h-4"></i> Mô tả thêm
+            <label class="block text-sm font-medium text-white/60 mb-2 inline-flex items-center gap-2">
+                <i class="fa-solid fa-pencil" style="font-size: 14px;"></i>
+                <span>Mô tả thêm</span>
             </label>
             <textarea 
                 wire:model.defer="customInput"
@@ -41,6 +42,27 @@
             ></textarea>
         </div>
     @endif
+
+    <!-- Aspect Ratio Selector -->
+    <div class="bg-white/[0.03] border border-white/[0.08] rounded-xl p-4">
+        <label class="block text-sm font-medium text-white/60 mb-3 inline-flex items-center gap-2">
+            <i class="fa-solid fa-crop" style="font-size: 14px;"></i>
+            <span>Kích thước ảnh</span>
+        </label>
+        <div class="grid grid-cols-3 sm:grid-cols-5 gap-2">
+            @foreach($aspectRatios as $ratio => $label)
+                <button 
+                    wire:click="$set('selectedAspectRatio', '{{ $ratio }}')"
+                    class="py-2.5 px-2 text-xs sm:text-sm rounded-xl border cursor-pointer select-none transition-all duration-200 text-center
+                        {{ $selectedAspectRatio === $ratio 
+                            ? 'bg-purple-500/20 border-purple-500/50 text-purple-300 shadow-[0_0_20px_rgba(168,85,247,0.2)]' 
+                            : 'bg-white/[0.03] border-white/[0.08] text-white/70 hover:bg-white/[0.06] hover:border-white/[0.15]' 
+                        }}">
+                    {{ $label }}
+                </button>
+            @endforeach
+        </div>
+    </div>
 
     <!-- Generate Section -->
     <div class="bg-white/[0.03] border border-white/[0.08] rounded-xl p-4 md:p-5">

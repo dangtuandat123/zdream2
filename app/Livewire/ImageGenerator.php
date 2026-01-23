@@ -28,6 +28,18 @@ class ImageGenerator extends Component
     // User custom input (nếu được phép)
     public string $customInput = '';
     
+    // Aspect Ratio đã chọn
+    public string $selectedAspectRatio = '1:1';
+    
+    // Các aspect ratios hỗ trợ
+    public array $aspectRatios = [
+        '1:1' => 'Vuông (1:1)',
+        '16:9' => 'Ngang (16:9)',
+        '9:16' => 'Dọc (9:16)',
+        '4:3' => 'Chuẩn (4:3)',
+        '3:4' => 'Portrait (3:4)',
+    ];
+    
     // State
     public bool $isGenerating = false;
     public ?string $generatedImageUrl = null;
@@ -42,6 +54,9 @@ class ImageGenerator extends Component
     public function mount(Style $style): void
     {
         $this->style = $style;
+        
+        // Set default aspect ratio từ style config
+        $this->selectedAspectRatio = $style->aspect_ratio;
         
         // Pre-select default options
         foreach ($style->options as $option) {
@@ -116,7 +131,8 @@ class ImageGenerator extends Component
             $result = $openRouterService->generateImage(
                 $this->style,
                 $selectedOptionIds,
-                $this->customInput ?: null
+                $this->customInput ?: null,
+                $this->selectedAspectRatio
             );
 
             if (!$result['success']) {
