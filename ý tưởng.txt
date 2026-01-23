@@ -1,0 +1,115 @@
+Báo cáo này trình bày một bản thiết kế kỹ thuật toàn diện và chiến lược triển khai chi tiết cho EZShot AI, một nền tảng tạo ảnh Generative AI (Gen AI) được thiết kế riêng cho đối tượng người dùng GenZ. Hệ thống được xây dựng trên nền tảng Laravel 11 với kiến trúc Monolithic, sử dụng TALL Stack (Tailwind CSS, Alpine.js, Laravel, Livewire) để tối ưu hóa trải nghiệm người dùng và hiệu suất phát triển.
+Cốt lõi của EZShot AI là giải quyết bài toán "Zero-Prompt" – loại bỏ rào cản kỹ thuật trong việc viết câu lệnh (prompt engineering) cho người dùng cuối. Hệ thống sử dụng một lớp logic trung gian thông minh để tự động hóa việc tối ưu hóa prompt, kết nối với các mô hình Gen AI hàng đầu thông qua API OpenRouter (đặc biệt là Flux của Black Forest Labs và Gemini của Google). Hạ tầng lưu trữ được thiết kế trên MinIO, đảm bảo khả năng mở rộng và tương thích chuẩn S3 với chi phí tối ưu.
+Tài liệu này đóng vai trò là kim chỉ nam kỹ thuật (technical blueprint) cho đội ngũ phát triển, đi sâu vào từng khía cạnh từ phân tích tâm lý người dùng, thiết kế thuật toán ghép prompt, xử lý luồng dữ liệu nhị phân (binary streams), đến cấu hình chi tiết driver MinIO. Mục tiêu là đảm bảo mọi lập trình viên đều nắm bắt được 100% ngữ cảnh bài toán và tuân thủ các chuẩn mực code (coding standards) cao nhất.
+1. Phân tích Bài toán và Chiến lược Trải nghiệm Người dùng (UX)
+1.1 Chân dung Người dùng GenZ và "Nỗi đau" (Pain Points)
+Thế hệ Z (sinh từ cuối thập niên 1990 đến đầu thập niên 2010) là thế hệ "digital native" thực thụ đầu tiên. Họ lớn lên trong kỷ nguyên của Instagram, TikTok và Snapchat, nơi hình ảnh là ngôn ngữ giao tiếp chính. Tuy nhiên, khi tiếp cận với làn sóng Generative AI hiện tại (như MidJourney, Stable Diffusion), họ gặp phải những rào cản đáng kể.
+Nỗi đau 1: "Hội chứng Trang giấy trắng" và Rào cản Kỹ thuật Prompt
+Các công cụ Gen AI hiện nay đòi hỏi người dùng phải sở hữu kỹ năng "Prompt Engineering" – khả năng diễn đạt ý tưởng bằng các từ khóa kỹ thuật phức tạp (ví dụ: "volumetric lighting, octane render, 8k resolution, photorealistic, depth of field"). Đối với một người dùng GenZ thông thường muốn tạo nhanh một bức ảnh để chia sẻ lên mạng xã hội, việc phải học cú pháp kỹ thuật này là một rào cản lớn gây nản lòng (friction). Họ biết "cảm giác" (vibe) họ muốn, nhưng không biết từ vựng chuyên môn để mô tả nó cho máy. Đây là điểm gãy trong trải nghiệm người dùng (UX Breakpoint) mà EZShot AI cần giải quyết triệt để.
+Nỗi đau 2: Sự kiên nhẫn trong Kỷ nguyên Tức thì
+Nghiên cứu hành vi cho thấy khoảng chú ý (attention span) của GenZ rất ngắn. Trong khi đó, các mô hình khuếch tán (diffusion models) chất lượng cao như Flux.1 Pro thường mất từ 5 đến 20 giây để tạo ra một bức ảnh hoàn chỉnh. Trong ngữ cảnh của một ứng dụng di động hoặc web app, biểu tượng "loading spinner" quay đều trong 10 giây là một thảm họa UX, dễ dẫn đến việc người dùng rời bỏ ứng dụng (churn).
+Nỗi đau 3: Chi phí và Hiệu suất
+Việc tạo ảnh AI tiêu tốn tài nguyên tính toán lớn (GPU cost). Người dùng thường phải thử sai (trial-and-error) nhiều lần mới ra được bức ảnh ưng ý, làm tăng chi phí hạ tầng cho nền tảng và lãng phí "credits" của người dùng. Một hệ thống không tối ưu hóa prompt ngay từ lần thử đầu tiên sẽ thất bại về mặt kinh tế.
+1.2 Giải pháp Chiến lược: "Zero-Prompt" và Kiến trúc Phản hồi
+EZShot AI định nghĩa lại quy trình tạo ảnh thông qua cơ chế "Zero-Prompt". Thay vì yêu cầu người dùng nhập liệu chi tiết, hệ thống cung cấp các lựa chọn trực quan về phong cách (Style/Vibe), cảm xúc (Mood) và chỉ yêu cầu một từ khóa gợi ý đơn giản (Seed Keyword). Một thuật toán nội bộ (Prompt Expansion Engine) sẽ đảm nhận vai trò của một "kỹ sư prompt ảo", biến đổi đầu vào thô sơ thành một bản mô tả kỹ thuật chi tiết trước khi gửi đến OpenRouter.
+Để giải quyết vấn đề độ trễ, hệ thống áp dụng chiến lược Optimistic UI (Giao diện Lạc quan) và Asynchronous Polling (Cơ chế thăm dò bất đồng bộ) thông qua Livewire và Alpine.js. Ngay khi người dùng nhấn "Tạo", giao diện lập tức phản hồi, hiển thị các trạng thái "đang suy nghĩ", "đang vẽ phác thảo" để duy trì sự tương tác, trong khi các tiến trình nặng (heavy lifting) được xử lý ngầm qua Laravel Queue.
+2. Kiến trúc Hệ thống: Monolith trên Laravel 11
+2.1 Tại sao chọn Modular Monolith?
+Trong bối cảnh phát triển hiện đại, kiến trúc Microservices thường được đề cao quá mức. Tuy nhiên, đối với EZShot AI, kiến trúc Modular Monolith trên nền tảng Laravel 11 là sự lựa chọn tối ưu dựa trên các yếu tố sau:
+Tiêu chí
+Microservices
+Modular Monolith (Laravel)
+Nhận định cho EZShot AI
+Độ phức tạp triển khai
+Cao (Cần K8s, Service Mesh)
+Thấp (1 Server hoặc Docker Compose)
+Monolith giúp MVP ra mắt nhanh hơn, giảm overhead vận hành (DevOps).
+Độ trễ mạng (Latency)
+Cao (Giao tiếp qua HTTP/gRPC)
+Thấp (Gọi hàm nội bộ trong cùng Memory)
+Quan trọng cho việc xử lý logic Prompt trước khi gọi API ngoại vi.
+Tính nhất quán dữ liệu
+Phức tạp (Distributed Transactions)
+Đơn giản (ACID Transactions của DB)
+Đảm bảo trừ tiền (credits) và tạo ảnh là nguyên tử (atomic).
+Chia sẻ Code
+Khó (Cần thư viện chung)
+Dễ (Dùng chung Model, DTO, Service)
+Tăng tốc độ phát triển cho team size vừa và nhỏ.
+
+Hệ thống sẽ được chia thành các Module logic (Auth, Billing, Generation, Storage) nằm trong cùng một codebase, giúp dễ dàng refactor và debug.
+2.2 Sức mạnh của TALL Stack
+Sự kết hợp của Tailwind CSS, Alpine.js, Laravel và Livewire (TALL) tạo ra một hệ sinh thái phát triển "full-stack" liền mạch mà không cần tách rời Frontend (như React/Vue) và Backend.
+Tailwind CSS: Cho phép xây dựng giao diện tùy biến cao, đặc biệt là phong cách Glassmorphism (hiệu ứng kính mờ, gradient) đang thịnh hành trong thiết kế cho GenZ.1 Việc sử dụng utility-first classes giúp giảm dung lượng CSS và tăng tốc độ render.
+Alpine.js: Đóng vai trò như "chất keo" JavaScript nhẹ (lightweight) để xử lý các tương tác phía client (client-side interactivity) như mở modal, hiệu ứng chuyển cảnh, hoặc polling trạng thái API mà không cần tải lại trang hay điều hướng phức tạp.3
+Livewire 3: Là trái tim của sự tương tác thời gian thực. Livewire cho phép viết logic UI động bằng PHP. Nó tự động xử lý việc gửi request AJAX, cập nhật DOM và đồng bộ trạng thái, giúp việc xây dựng các tính năng như thanh tiến trình tạo ảnh (progress bar) trở nên đơn giản và bảo mật.
+3. Nghiên cứu Chuyên sâu: Tích hợp API OpenRouter
+OpenRouter đóng vai trò là cổng kết nối thống nhất (Unified Gateway) cho phép truy cập vào hàng loạt mô hình AI tốt nhất hiện nay. Tuy nhiên, việc tích hợp để tạo ảnh (Image Generation) có những đặc thù kỹ thuật phức tạp hơn so với tạo văn bản thuần túy.
+3.1 Giao thức Unified Chat Completions cho Hình ảnh
+Khác với OpenAI có endpoint riêng cho hình ảnh (/v1/images/generations), OpenRouter chuẩn hóa hầu hết các request qua endpoint Chat:
+POST https://openrouter.ai/api/v1/chat/completions
+Điều này đòi hỏi cấu trúc payload đặc biệt 5:
+Modalities: Đây là tham số bắt buộc. Developer phải khai báo modalities: ["image", "text"] (hoặc chỉ ["image"] tùy mô hình) để chỉ định mô hình trả về dữ liệu hình ảnh thay vì token văn bản.
+Mô hình (Models):
+Google Gemini (Nano Banana / Gemini 2.5 Flash Image): Mô hình này hỗ trợ native tham số image_config để điều chỉnh tỷ lệ khung hình (aspect ratio).6
+Black Forest Labs Flux (Schnell/Pro): Đây là mô hình khuếch tán (diffusion) hàng đầu hiện nay về chất lượng ảnh. Tuy nhiên, tài liệu cho thấy Flux trên OpenRouter có sự không nhất quán trong việc hỗ trợ tham số cấu hình qua API object. Việc điều khiển tỷ lệ khung hình thường phụ thuộc vào Prompt Engineering (chèn từ khóa vào nội dung prompt) hơn là tham số API.7
+3.2 Phân tích Payload và Schema
+Dưới đây là bảng so sánh cấu trúc JSON Payload cần thiết cho hai dòng mô hình chính:
+
+Đặc tính
+Google Gemini 2.5 Flash Image
+Black Forest Labs Flux (Schnell/Pro)
+Model ID
+google/gemini-2.5-flash-image-preview
+black-forest-labs/flux-1-schnell
+Cơ chế Aspect Ratio
+image_config: { aspect_ratio: "16:9" }
+Chèn vào prompt: "... --ar 16:9" hoặc "... wide angle 16:9" 8
+Định dạng Output
+Base64 trong message.images
+Base64 trong message.images hoặc URL (tùy provider)
+Độ nhạy Prompt
+Hiểu ngữ nghĩa tốt, tự suy luận
+Cần prompt mô tả chi tiết vật lý, ánh sáng
+Chi phí (Cost)
+Thấp (Tính theo request/token)
+Cao hơn (Tính theo megapixel hoặc step) 9
+
+Ví dụ Payload chuẩn cho Gemini:
+
+JSON
+
+
+{
+  "model": "google/gemini-2.5-flash-image-preview",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Một thành phố cyberpunk rực rỡ ánh đèn neon"
+    }
+  ],
+  "modalities": ["image", "text"],
+  "image_config": {
+    "aspect_ratio": "16:9"
+  }
+}
+
+
+Ví dụ Payload chuẩn cho Flux (Zero-Prompt Logic):
+
+JSON
+
+
+{
+  "model": "black-forest-labs/flux-1-schnell",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Một thành phố cyberpunk rực rỡ ánh đèn neon, wide angle shot, 16:9 aspect ratio, hyper-realistic, 8k resolution"
+    }
+  ],
+  "modalities": ["image", "text"]
+}
+
+
+Lưu ý: Đối với Flux, phần cấu hình tỷ lệ khung hình được đưa thẳng vào chuỗi content để đảm bảo mô hình hiểu lệnh, do việc hỗ trợ tham số image_config chưa đồng nhất giữa các provider cung cấp Flux trên OpenRouter.8

@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ZDream - Biến Ảnh Thường Thành Tác Phẩm AI</title>
+  <meta name="description" content="Chọn style → Upload ảnh → Nhận kết quả. Chỉ 3 bước, không cần prompt!">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <style>body { font-family: 'Inter', sans-serif; }</style>
+</head>
+<body class="min-h-screen text-white antialiased">
+
+  <!-- ========== HEADER ========== -->
+  <header id="header" class="fixed top-0 left-0 right-0 z-50 bg-[#0a0a0f]/80 backdrop-blur-[12px] border-b border-white/[0.03] transition-all duration-300">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <div class="flex items-center justify-between h-14 sm:h-16">
+        <!-- Left: Logo + Nav -->
+        <div class="flex items-center gap-6">
+          <a href="#" class="flex items-center gap-2 group flex-shrink-0">
+            <i class="fa-solid fa-wand-magic-sparkles w-5 h-5 text-purple-400 transition-transform duration-300 group-hover:rotate-12"></i>
+            <span class="text-lg sm:text-xl font-bold bg-gradient-to-r from-purple-400 to-pink-500 bg-clip-text text-transparent">ZDream</span>
+          </a>
+          <nav class="hidden md:flex items-center gap-1">
+            <a href="#" class="px-3 py-2 rounded-lg text-sm font-medium text-white/60 hover:text-white hover:bg-white/[0.05] transition-all inline-flex items-center gap-2">
+              <i class="fa-solid fa-house w-3.5 h-3.5"></i> Trang chủ
+            </a>
+            <a href="#styles" class="px-3 py-2 rounded-lg text-sm font-medium text-white/60 hover:text-white hover:bg-white/[0.05] transition-all inline-flex items-center gap-2">
+              <i class="fa-solid fa-palette w-3.5 h-3.5"></i> Styles
+            </a>
+            <a href="#" class="px-3 py-2 rounded-lg text-sm font-medium text-white/60 hover:text-white hover:bg-white/[0.05] transition-all inline-flex items-center gap-2">
+              <i class="fa-solid fa-clock-rotate-left w-3.5 h-3.5"></i> Lịch sử
+            </a>
+          </nav>
+        </div>
+        <!-- Right: Actions -->
+        <div class="flex items-center gap-2">
+          <div class="hidden sm:flex items-center bg-white/[0.03] rounded-full border border-white/[0.08] p-1">
+            <a href="#" class="px-3 h-8 rounded-full flex items-center gap-2 text-white/80 hover:bg-white/[0.05] transition-all">
+              <i class="fa-solid fa-gem w-4 h-4 text-cyan-400"></i>
+              <span class="font-semibold text-sm text-white/95">100</span>
+            </a>
+            <a href="#" class="h-8 px-4 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white font-medium text-sm flex items-center gap-1.5 hover:from-purple-400 hover:to-pink-400 transition-all">
+              <i class="fa-solid fa-plus w-3 h-3"></i> Nạp Xu
+            </a>
+          </div>
+          <a href="#" class="sm:hidden h-9 px-3 rounded-full bg-white/[0.03] border border-white/[0.08] flex items-center gap-2 text-white/80">
+            <i class="fa-solid fa-gem w-4 h-4 text-cyan-400"></i>
+            <span class="font-semibold text-sm text-white/95">100</span>
+          </a>
+          <a href="#" class="hidden sm:block h-9 px-4 rounded-full bg-white/[0.03] border border-white/[0.1] text-white/80 text-sm hover:bg-white/[0.06] transition-all">Đăng nhập</a>
+          <button id="menu-btn" class="md:hidden w-10 h-10 rounded-xl bg-white/[0.03] border border-white/[0.08] flex items-center justify-center text-white/80 hover:text-white hover:bg-white/[0.06] transition-all">
+            <i class="fa-solid fa-bars w-4 h-4"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ========== MOBILE MENU OVERLAY ========== -->
+  <div id="menu-overlay" class="fixed inset-0 z-40 md:hidden opacity-0 pointer-events-none transition-opacity duration-300">
+    <div class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
+    <div id="mobile-menu" class="mobile-menu closed absolute right-0 top-0 h-full w-72 max-w-[85vw] bg-[#0a0a0f]/98 backdrop-blur-[24px] border-l border-white/[0.08]">
+      <div class="p-4 border-b border-white/[0.05] flex items-center justify-between">
+        <span class="text-white/80 font-medium">Menu</span>
+        <button id="close-menu-btn" class="w-8 h-8 rounded-lg bg-white/[0.05] flex items-center justify-center text-white/60 hover:text-white">
+          <i class="fa-solid fa-xmark w-4 h-4"></i>
+        </button>
+      </div>
+      <div class="p-4 space-y-2">
+        <a href="#" class="block p-4 rounded-xl bg-gradient-to-br from-purple-500/10 to-pink-500/10 border border-purple-500/20">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-white/60 text-sm">Số dư</span>
+            <i class="fa-solid fa-gem w-4 h-4 text-cyan-400"></i>
+          </div>
+          <div class="text-2xl font-bold text-white mb-3">100 Xu</div>
+          <div class="w-full py-2.5 rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 text-white font-medium text-sm flex items-center justify-center gap-2 shadow-lg shadow-purple-500/25">
+            <i class="fa-solid fa-plus w-3.5 h-3.5"></i> Nạp thêm Xu
+          </div>
+        </a>
+        <div class="h-px bg-white/[0.05] my-4"></div>
+        <a href="#" class="flex items-center justify-between px-4 py-3 rounded-xl bg-white/[0.02] hover:bg-white/[0.05] border border-white/[0.05] text-white/80 hover:text-white transition-all">
+          <span class="flex items-center gap-3"><i class="fa-solid fa-house w-4 h-4 text-purple-400"></i> Trang chủ</span>
+          <i class="fa-solid fa-chevron-right w-3 h-3 text-white/30"></i>
+        </a>
+        <a href="#styles" class="flex items-center justify-between px-4 py-3 rounded-xl bg-white/[0.02] hover:bg-white/[0.05] border border-white/[0.05] text-white/80 hover:text-white transition-all">
+          <span class="flex items-center gap-3"><i class="fa-solid fa-palette w-4 h-4 text-purple-400"></i> Styles</span>
+          <i class="fa-solid fa-chevron-right w-3 h-3 text-white/30"></i>
+        </a>
+        <a href="#" class="flex items-center justify-between px-4 py-3 rounded-xl bg-white/[0.02] hover:bg-white/[0.05] border border-white/[0.05] text-white/80 hover:text-white transition-all">
+          <span class="flex items-center gap-3"><i class="fa-solid fa-clock-rotate-left w-4 h-4 text-purple-400"></i> Lịch sử</span>
+          <i class="fa-solid fa-chevron-right w-3 h-3 text-white/30"></i>
+        </a>
+        <div class="h-px bg-white/[0.05] my-4"></div>
+        <button class="w-full py-3 rounded-xl bg-white text-gray-900 font-medium flex items-center justify-center gap-2 hover:bg-gray-100 transition-colors">
+          <i class="fa-solid fa-crown w-4 h-4"></i> Đăng ký miễn phí
+        </button>
+        <button class="w-full py-3 rounded-xl bg-white/[0.05] border border-white/[0.1] text-white/80 font-medium flex items-center justify-center gap-2 hover:bg-white/[0.1] transition-colors">
+          <i class="fa-solid fa-right-to-bracket w-4 h-4"></i> Đăng nhập
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== HERO SECTION ========== -->
+  <section class="relative overflow-hidden pt-14 sm:pt-16">
+    <div class="absolute inset-0 pointer-events-none">
+      <div class="absolute top-0 left-1/4 w-64 sm:w-96 h-64 sm:h-96 bg-purple-600/20 rounded-full blur-[100px] sm:blur-[150px]"></div>
+      <div class="absolute bottom-0 right-0 w-48 sm:w-80 h-48 sm:h-80 bg-pink-600/15 rounded-full blur-[80px] sm:blur-[130px]"></div>
+    </div>
+    <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16 lg:py-20">
+      <div class="text-center lg:text-left lg:grid lg:grid-cols-2 lg:gap-12 lg:items-center">
+        <div>
+          <div class="inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-500/30 mb-4 sm:mb-6">
+            <i class="fa-solid fa-star w-3 h-3 sm:w-4 sm:h-4 text-yellow-400"></i>
+            <span class="text-xs sm:text-sm font-medium text-white/80">AI tiên tiến nhất</span>
+          </div>
+          <h1 class="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold mb-4 sm:mb-6 leading-tight">
+            <span class="text-white">Biến Ảnh Thường</span><br>
+            <span class="bg-gradient-to-r from-purple-400 via-pink-400 to-purple-400 bg-clip-text text-transparent">Thành Tác Phẩm</span>
+          </h1>
+          <p class="text-white/60 text-base sm:text-lg lg:text-xl max-w-lg mx-auto lg:mx-0 mb-6 sm:mb-8">
+            Chọn style → Upload ảnh → Nhận kết quả.
+            <span class="hidden sm:inline"> Chỉ 3 bước, không cần prompt!</span>
+          </p>
+          <div class="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center lg:justify-start mb-8 sm:mb-0">
+            <a href="#styles" class="px-6 sm:px-8 py-3.5 sm:py-4 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold text-base sm:text-lg shadow-lg shadow-purple-500/30 hover:shadow-purple-500/50 transition-all inline-flex items-center justify-center gap-2">
+              <i class="fa-solid fa-wand-magic-sparkles w-4 h-4 sm:w-5 sm:h-5"></i> Bắt đầu ngay
+            </a>
+            <button class="px-6 sm:px-8 py-3.5 sm:py-4 rounded-xl bg-white/[0.05] border border-white/[0.1] text-white font-medium text-base sm:text-lg hover:bg-white/[0.1] transition-all inline-flex items-center justify-center gap-2">
+              <i class="fa-solid fa-play w-3.5 h-3.5 sm:w-4 sm:h-4"></i> Xem demo
+            </button>
+          </div>
+          <div class="flex items-center justify-center lg:justify-start gap-6 sm:gap-8 mt-8 pt-6 sm:pt-8 border-t border-white/[0.05]">
+            <div class="text-center">
+              <p class="text-2xl sm:text-3xl font-bold text-white">8+</p>
+              <p class="text-white/50 text-xs sm:text-sm">Styles</p>
+            </div>
+            <div class="w-px h-8 sm:h-10 bg-white/10"></div>
+            <div class="text-center">
+              <p class="text-2xl sm:text-3xl font-bold text-white">10s</p>
+              <p class="text-white/50 text-xs sm:text-sm">Xử lý</p>
+            </div>
+            <div class="w-px h-8 sm:h-10 bg-white/10"></div>
+            <div class="text-center">
+              <p class="text-2xl sm:text-3xl font-bold text-white">2K</p>
+              <p class="text-white/50 text-xs sm:text-sm">Từ</p>
+            </div>
+          </div>
+        </div>
+        <!-- Preview Images - Desktop only -->
+        <div class="hidden lg:block relative mt-8 lg:mt-0">
+          <div class="relative w-full aspect-square max-w-md mx-auto">
+            <div class="absolute top-0 right-0 w-64 xl:w-72 h-80 xl:h-96 rounded-2xl overflow-hidden shadow-2xl shadow-purple-500/20 border border-white/[0.1] transform rotate-3 hover:rotate-0 transition-transform duration-500">
+              <img src="https://images.unsplash.com/photo-1549490349-8643362247b5?w=600&h=800&fit=crop" alt="AI Generated" class="w-full h-full object-cover">
+              <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+              <div class="absolute bottom-4 left-4 right-4">
+                <p class="text-white font-semibold">Tết 2026 🧧</p>
+              </div>
+            </div>
+            <div class="absolute bottom-0 left-0 w-48 xl:w-56 h-60 xl:h-72 rounded-2xl overflow-hidden shadow-2xl shadow-pink-500/20 border border-white/[0.1] transform -rotate-6 hover:rotate-0 transition-transform duration-500">
+              <img src="https://images.unsplash.com/photo-1578632767115-351597cf2477?w=600&h=800&fit=crop" alt="AI Generated" class="w-full h-full object-cover">
+            </div>
+            <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-16 h-16 xl:w-20 xl:h-20 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow-lg shadow-purple-500/50">
+              <i class="fa-solid fa-wand-magic-sparkles w-6 h-6 xl:w-8 xl:h-8 text-white"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== FEATURED CAROUSEL ========== -->
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12" id="featured">
+    <div class="flex items-center justify-between mb-4 sm:mb-6">
+      <div class="flex items-center gap-2 sm:gap-3">
+        <div class="p-1.5 sm:p-2 rounded-lg bg-gradient-to-br from-orange-500 to-red-500">
+          <i class="fa-solid fa-fire w-4 h-4 sm:w-5 sm:h-5 text-white"></i>
+        </div>
+        <div>
+          <h2 class="text-lg sm:text-2xl font-bold text-white">Style Nổi Bật</h2>
+          <p class="text-white/50 text-xs sm:text-sm">Được yêu thích nhất</p>
+        </div>
+      </div>
+      <div class="hidden sm:flex items-center gap-2">
+        <button id="carousel-prev" class="w-10 h-10 rounded-full bg-white/[0.05] border border-white/[0.1] flex items-center justify-center text-white/60 hover:text-white hover:bg-white/[0.1] transition-all">
+          <i class="fa-solid fa-chevron-left w-4 h-4"></i>
+        </button>
+        <button id="carousel-next" class="w-10 h-10 rounded-full bg-white/[0.05] border border-white/[0.1] flex items-center justify-center text-white/60 hover:text-white hover:bg-white/[0.1] transition-all">
+          <i class="fa-solid fa-chevron-right w-4 h-4"></i>
+        </button>
+      </div>
+    </div>
+    <div class="relative overflow-hidden rounded-2xl sm:rounded-3xl">
+      <div id="carousel-track" class="carousel-track flex">
+        <!-- Slide 1 -->
+        <a href="#" class="w-full flex-shrink-0">
+          <div class="relative bg-gradient-to-br from-purple-900/60 via-pink-900/40 to-purple-900/60 border border-white/[0.1] rounded-2xl sm:rounded-3xl overflow-hidden group">
+            <div class="absolute inset-0 opacity-20">
+              <img src="https://images.unsplash.com/photo-1549490349-8643362247b5?w=600&h=800&fit=crop" alt="" class="w-full h-full object-cover blur-sm">
+            </div>
+            <div class="absolute inset-0 bg-gradient-to-r from-[#0a0a0f]/90 via-[#0a0a0f]/70 to-transparent"></div>
+            <div class="relative flex flex-col sm:flex-row items-center gap-4 sm:gap-6 lg:gap-8 p-4 sm:p-6 lg:p-8">
+              <div class="relative w-full sm:w-40 lg:w-52 aspect-[4/5] sm:aspect-auto sm:h-52 lg:h-64 rounded-xl sm:rounded-2xl overflow-hidden flex-shrink-0 border border-white/[0.1] group-hover:border-purple-500/50 transition-all duration-300">
+                <img src="https://images.unsplash.com/photo-1549490349-8643362247b5?w=600&h=800&fit=crop" alt="Tết 2026" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                <div class="sm:hidden absolute top-2 right-2 px-3 py-1 rounded-full bg-black/50 backdrop-blur-sm text-white font-bold text-sm">2 Xu</div>
+              </div>
+              <div class="flex-1 text-center sm:text-left w-full">
+                <div class="flex items-center justify-center sm:justify-start gap-2 mb-2 sm:mb-3">
+                  <span class="px-2.5 sm:px-3 py-1 rounded-full bg-gradient-to-r from-orange-500 to-red-500 text-white text-[10px] sm:text-xs font-bold inline-flex items-center gap-1">
+                    <i class="fa-solid fa-fire w-2.5 h-2.5 sm:w-3 sm:h-3"></i> HOT
+                  </span>
+                  <span class="px-2.5 py-1 rounded-full bg-white/[0.1] text-white/60 text-[10px] sm:text-xs">#1 tuần này</span>
+                </div>
+                <h3 class="text-xl sm:text-2xl lg:text-3xl font-bold text-white mb-2">Tết 2026 🧧</h3>
+                <p class="text-white/60 text-sm sm:text-base mb-4 line-clamp-2">Diện áo dài, đón Tết sang với nền mai vàng rực rỡ</p>
+                <div class="hidden sm:flex flex-wrap gap-2 mb-4">
+                  <span class="px-3 py-1.5 rounded-full bg-white/[0.05] text-white/70 text-xs inline-flex items-center gap-1.5">
+                    <i class="fa-solid fa-bolt w-3 h-3 text-yellow-400"></i> 10 giây
+                  </span>
+                  <span class="px-3 py-1.5 rounded-full bg-white/[0.05] text-white/70 text-xs inline-flex items-center gap-1.5">
+                    <i class="fa-solid fa-star w-3 h-3 text-yellow-400"></i> HD Quality
+                  </span>
+                </div>
+                <div class="flex items-center gap-4 sm:gap-6 justify-center sm:justify-start">
+                  <span class="inline-flex items-center gap-2 px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold text-sm shadow-lg">
+                    Thử ngay <i class="fa-solid fa-arrow-right w-3.5 h-3.5"></i>
+                  </span>
+                  <div class="hidden sm:block">
+                    <p class="text-white/50 text-xs">Chỉ từ</p>
+                    <p class="text-xl font-bold text-white">2 <span class="text-purple-400 text-sm">Xu</span></p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </a>
+        <!-- Slide 2 -->
+        <a href="#" class="w-full flex-shrink-0">
+          <div class="relative bg-gradient-to-br from-purple-900/60 via-pink-900/40 to-purple-900/60 border border-white/[0.1] rounded-2xl sm:rounded-3xl overflow-hidden group">
+            <div class="absolute inset-0 opacity-20">
+              <img src="https://images.unsplash.com/photo-1578632767115-351597cf2477?w=600&h=800&fit=crop" alt="" class="w-full h-full object-cover blur-sm">
+            </div>
+            <div class="absolute inset-0 bg-gradient-to-r from-[#0a0a0f]/90 via-[#0a0a0f]/70 to-transparent"></div>
+            <div class="relative flex flex-col sm:flex-row items-center gap-4 sm:gap-6 lg:gap-8 p-4 sm:p-6 lg:p-8">
+              <div class="relative w-full sm:w-40 lg:w-52 aspect-[4/5] sm:aspect-auto sm:h-52 lg:h-64 rounded-xl sm:rounded-2xl overflow-hidden flex-shrink-0 border border-white/[0.1] group-hover:border-purple-500/50 transition-all duration-300">
+                <img src="https://images.unsplash.com/photo-1578632767115-351597cf2477?w=600&h=800&fit=crop" alt="Anime" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                <div class="sm:hidden absolute top-2 right-2 px-3 py-1 rounded-full bg-black/50 backdrop-blur-sm text-white font-bold text-sm">2 Xu</div>
+              </div>
+              <div class="flex-1 text-center sm:text-left w-full">
+                <div class="flex items-center justify-center sm:justify-start gap-2 mb-2 sm:mb-3">
+                  <span class="px-2.5 sm:px-3 py-1 rounded-full bg-gradient-to-r from-orange-500 to-red-500 text-white text-[10px] sm:text-xs font-bold inline-flex items-center gap-1">
+                    <i class="fa-solid fa-fire w-2.5 h-2.5 sm:w-3 sm:h-3"></i> HOT
+                  </span>
+                  <span class="px-2.5 py-1 rounded-full bg-white/[0.1] text-white/60 text-[10px] sm:text-xs">#2 tuần này</span>
+                </div>
+                <h3 class="text-xl sm:text-2xl lg:text-3xl font-bold text-white mb-2">Anime ✨</h3>
+                <p class="text-white/60 text-sm sm:text-base mb-4 line-clamp-2">Biến thành nhân vật anime với style Nhật Bản</p>
+                <div class="hidden sm:flex flex-wrap gap-2 mb-4">
+                  <span class="px-3 py-1.5 rounded-full bg-white/[0.05] text-white/70 text-xs inline-flex items-center gap-1.5">
+                    <i class="fa-solid fa-bolt w-3 h-3 text-yellow-400"></i> 10 giây
+                  </span>
+                  <span class="px-3 py-1.5 rounded-full bg-white/[0.05] text-white/70 text-xs inline-flex items-center gap-1.5">
+                    <i class="fa-solid fa-star w-3 h-3 text-yellow-400"></i> HD Quality
+                  </span>
+                </div>
+                <div class="flex items-center gap-4 sm:gap-6 justify-center sm:justify-start">
+                  <span class="inline-flex items-center gap-2 px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold text-sm shadow-lg">
+                    Thử ngay <i class="fa-solid fa-arrow-right w-3.5 h-3.5"></i>
+                  </span>
+                  <div class="hidden sm:block">
+                    <p class="text-white/50 text-xs">Chỉ từ</p>
+                    <p class="text-xl font-bold text-white">2 <span class="text-purple-400 text-sm">Xu</span></p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </a>
+        <!-- Slide 3 -->
+        <a href="#" class="w-full flex-shrink-0">
+          <div class="relative bg-gradient-to-br from-purple-900/60 via-pink-900/40 to-purple-900/60 border border-white/[0.1] rounded-2xl sm:rounded-3xl overflow-hidden group">
+            <div class="absolute inset-0 opacity-20">
+              <img src="https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=600&h=800&fit=crop" alt="" class="w-full h-full object-cover blur-sm">
+            </div>
+            <div class="absolute inset-0 bg-gradient-to-r from-[#0a0a0f]/90 via-[#0a0a0f]/70 to-transparent"></div>
+            <div class="relative flex flex-col sm:flex-row items-center gap-4 sm:gap-6 lg:gap-8 p-4 sm:p-6 lg:p-8">
+              <div class="relative w-full sm:w-40 lg:w-52 aspect-[4/5] sm:aspect-auto sm:h-52 lg:h-64 rounded-xl sm:rounded-2xl overflow-hidden flex-shrink-0 border border-white/[0.1] group-hover:border-purple-500/50 transition-all duration-300">
+                <img src="https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=600&h=800&fit=crop" alt="Cyberpunk" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                <div class="sm:hidden absolute top-2 right-2 px-3 py-1 rounded-full bg-black/50 backdrop-blur-sm text-white font-bold text-sm">3 Xu</div>
+              </div>
+              <div class="flex-1 text-center sm:text-left w-full">
+                <div class="flex items-center justify-center sm:justify-start gap-2 mb-2 sm:mb-3">
+                  <span class="px-2.5 sm:px-3 py-1 rounded-full bg-gradient-to-r from-orange-500 to-red-500 text-white text-[10px] sm:text-xs font-bold inline-flex items-center gap-1">
+                    <i class="fa-solid fa-fire w-2.5 h-2.5 sm:w-3 sm:h-3"></i> HOT
+                  </span>
+                  <span class="px-2.5 py-1 rounded-full bg-white/[0.1] text-white/60 text-[10px] sm:text-xs">#3 tuần này</span>
+                </div>
+                <h3 class="text-xl sm:text-2xl lg:text-3xl font-bold text-white mb-2">Cyberpunk 🤖</h3>
+                <p class="text-white/60 text-sm sm:text-base mb-4 line-clamp-2">Tương lai đô thị neon, phong cách sci-fi</p>
+                <div class="hidden sm:flex flex-wrap gap-2 mb-4">
+                  <span class="px-3 py-1.5 rounded-full bg-white/[0.05] text-white/70 text-xs inline-flex items-center gap-1.5">
+                    <i class="fa-solid fa-bolt w-3 h-3 text-yellow-400"></i> 10 giây
+                  </span>
+                  <span class="px-3 py-1.5 rounded-full bg-white/[0.05] text-white/70 text-xs inline-flex items-center gap-1.5">
+                    <i class="fa-solid fa-star w-3 h-3 text-yellow-400"></i> HD Quality
+                  </span>
+                </div>
+                <div class="flex items-center gap-4 sm:gap-6 justify-center sm:justify-start">
+                  <span class="inline-flex items-center gap-2 px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold text-sm shadow-lg">
+                    Thử ngay <i class="fa-solid fa-arrow-right w-3.5 h-3.5"></i>
+                  </span>
+                  <div class="hidden sm:block">
+                    <p class="text-white/50 text-xs">Chỉ từ</p>
+                    <p class="text-xl font-bold text-white">3 <span class="text-purple-400 text-sm">Xu</span></p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </a>
+        <!-- Slide 4 -->
+        <a href="#" class="w-full flex-shrink-0">
+          <div class="relative bg-gradient-to-br from-purple-900/60 via-pink-900/40 to-purple-900/60 border border-white/[0.1] rounded-2xl sm:rounded-3xl overflow-hidden group">
+            <div class="absolute inset-0 opacity-20">
+              <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=600&h=800&fit=crop" alt="" class="w-full h-full object-cover blur-sm">
+            </div>
+            <div class="absolute inset-0 bg-gradient-to-r from-[#0a0a0f]/90 via-[#0a0a0f]/70 to-transparent"></div>
+            <div class="relative flex flex-col sm:flex-row items-center gap-4 sm:gap-6 lg:gap-8 p-4 sm:p-6 lg:p-8">
+              <div class="relative w-full sm:w-40 lg:w-52 aspect-[4/5] sm:aspect-auto sm:h-52 lg:h-64 rounded-xl sm:rounded-2xl overflow-hidden flex-shrink-0 border border-white/[0.1] group-hover:border-purple-500/50 transition-all duration-300">
+                <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=600&h=800&fit=crop" alt="K-Pop Star" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                <div class="sm:hidden absolute top-2 right-2 px-3 py-1 rounded-full bg-black/50 backdrop-blur-sm text-white font-bold text-sm">4 Xu</div>
+              </div>
+              <div class="flex-1 text-center sm:text-left w-full">
+                <div class="flex items-center justify-center sm:justify-start gap-2 mb-2 sm:mb-3">
+                  <span class="px-2.5 sm:px-3 py-1 rounded-full bg-gradient-to-r from-orange-500 to-red-500 text-white text-[10px] sm:text-xs font-bold inline-flex items-center gap-1">
+                    <i class="fa-solid fa-fire w-2.5 h-2.5 sm:w-3 sm:h-3"></i> HOT
+                  </span>
+                  <span class="px-2.5 py-1 rounded-full bg-white/[0.1] text-white/60 text-[10px] sm:text-xs">#4 tuần này</span>
+                </div>
+                <h3 class="text-xl sm:text-2xl lg:text-3xl font-bold text-white mb-2">K-Pop Star ⭐</h3>
+                <p class="text-white/60 text-sm sm:text-base mb-4 line-clamp-2">Biến thành idol K-Pop với makeup lung linh</p>
+                <div class="hidden sm:flex flex-wrap gap-2 mb-4">
+                  <span class="px-3 py-1.5 rounded-full bg-white/[0.05] text-white/70 text-xs inline-flex items-center gap-1.5">
+                    <i class="fa-solid fa-bolt w-3 h-3 text-yellow-400"></i> 10 giây
+                  </span>
+                  <span class="px-3 py-1.5 rounded-full bg-white/[0.05] text-white/70 text-xs inline-flex items-center gap-1.5">
+                    <i class="fa-solid fa-star w-3 h-3 text-yellow-400"></i> HD Quality
+                  </span>
+                </div>
+                <div class="flex items-center gap-4 sm:gap-6 justify-center sm:justify-start">
+                  <span class="inline-flex items-center gap-2 px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold text-sm shadow-lg">
+                    Thử ngay <i class="fa-solid fa-arrow-right w-3.5 h-3.5"></i>
+                  </span>
+                  <div class="hidden sm:block">
+                    <p class="text-white/50 text-xs">Chỉ từ</p>
+                    <p class="text-xl font-bold text-white">4 <span class="text-purple-400 text-sm">Xu</span></p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </a>
+      </div>
+      <!-- Mobile Navigation -->
+      <button id="carousel-prev-mobile" class="sm:hidden absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center text-white/80 z-10">
+        <i class="fa-solid fa-chevron-left w-3 h-3"></i>
+      </button>
+      <button id="carousel-next-mobile" class="sm:hidden absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center text-white/80 z-10">
+        <i class="fa-solid fa-chevron-right w-3 h-3"></i>
+      </button>
+    </div>
+    <!-- Dots -->
+    <div class="flex items-center justify-center gap-2 mt-4">
+      <button class="carousel-dot h-2 w-6 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 transition-all duration-300"></button>
+      <button class="carousel-dot h-2 w-2 rounded-full bg-white/20 hover:bg-white/40 transition-all duration-300"></button>
+      <button class="carousel-dot h-2 w-2 rounded-full bg-white/20 hover:bg-white/40 transition-all duration-300"></button>
+      <button class="carousel-dot h-2 w-2 rounded-full bg-white/20 hover:bg-white/40 transition-all duration-300"></button>
+    </div>
+  </section>
+
+  <!-- ========== STYLES GRID ========== -->
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12" id="styles">
+    <div class="flex items-center justify-between mb-6 sm:mb-8">
+      <div class="flex items-center gap-3">
+        <div class="p-2 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500">
+          <i class="fa-solid fa-palette w-5 h-5 text-white"></i>
+        </div>
+        <div>
+          <h2 class="text-xl sm:text-2xl font-bold text-white">Styles Phổ Biến</h2>
+          <p class="text-white/50 text-sm">Chọn style yêu thích của bạn</p>
+        </div>
+      </div>
+      <a href="#" class="hidden sm:inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white/[0.05] border border-white/[0.08] text-white/70 hover:text-white hover:bg-white/[0.1] transition-all text-sm font-medium">
+        Xem tất cả <i class="fa-solid fa-arrow-right w-3.5 h-3.5"></i>
+      </a>
+    </div>
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-5">
+      <!-- Card 1 -->
+      <a href="#" class="group block h-full">
+        <div class="relative overflow-hidden h-full bg-gradient-to-b from-white/[0.05] to-white/[0.02] backdrop-blur-[8px] border border-white/[0.08] rounded-2xl sm:rounded-3xl transition-all duration-500 hover:border-purple-500/30 hover:shadow-[0_20px_60px_rgba(168,85,247,0.15)] hover:-translate-y-2 cursor-pointer flex flex-col shine-effect">
+          <div class="relative aspect-[3/4] overflow-hidden rounded-t-2xl sm:rounded-t-3xl">
+            <img src="https://images.unsplash.com/photo-1549490349-8643362247b5?w=600&h=800&fit=crop" alt="Tết 2026" class="w-full h-full object-cover transition-all duration-700 group-hover:scale-110">
+            <div class="absolute inset-0 bg-gradient-to-t from-[#0a0a0f] via-transparent to-transparent opacity-80"></div>
+            <div class="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-pink-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+            <div class="absolute top-2 sm:top-3 left-2 sm:left-3 right-2 sm:right-3 flex items-start justify-between">
+              <span class="inline-flex items-center gap-1 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full bg-gradient-to-r from-orange-500 to-red-500 text-white text-[9px] sm:text-xs font-bold shadow-lg">
+                <i class="fa-solid fa-fire w-2 h-2 sm:w-2.5 sm:h-2.5"></i> HOT
+              </span>
+              <div class="px-2 sm:px-3 py-0.5 sm:py-1.5 rounded-full bg-black/60 backdrop-blur-md border border-white/[0.15] shadow-lg">
+                <span class="text-white font-bold text-[9px] sm:text-xs flex items-center gap-0.5 sm:gap-1">
+                  <i class="fa-solid fa-star w-2 h-2 sm:w-3 sm:h-3 text-yellow-400"></i> 2 Xu
+                </span>
+              </div>
+            </div>
+            <div class="hidden sm:flex absolute inset-0 items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300">
+              <div class="transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
+                <div class="px-6 py-3 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold text-sm shadow-xl shadow-purple-500/30 flex items-center gap-2">
+                  Thử ngay <i class="fa-solid fa-arrow-right w-3.5 h-3.5"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="flex flex-col flex-1 p-2.5 sm:p-4">
+            <h3 class="font-bold text-white text-xs sm:text-base lg:text-lg line-clamp-1 group-hover:text-purple-300 transition-colors duration-300">Tết 2026 🧧</h3>
+            <p class="hidden sm:block text-white/40 text-[10px] sm:text-sm mt-1 sm:mt-1.5 line-clamp-2 flex-1">Diện áo dài, đón Tết sang với nền mai vàng rực rỡ</p>
+            <div class="flex items-center justify-between mt-2 sm:mt-3 pt-2 sm:pt-3 border-t border-white/[0.05]">
+              <div class="flex items-center gap-1 sm:gap-1.5 text-white/50 text-[10px] sm:text-xs">
+                <span class="w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full bg-green-500 animate-pulse"></span> Sẵn sàng
+              </div>
+              <div class="flex items-center gap-1 text-purple-400 text-[10px] sm:text-xs font-medium">
+                <i class="fa-solid fa-arrow-right w-2.5 h-2.5 sm:w-3 sm:h-3"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </a>
+      <!-- Card 2 -->
+      <a href="#" class="group block h-full">
+        <div class="relative overflow-hidden h-full bg-gradient-to-b from-white/[0.05] to-white/[0.02] backdrop-blur-[8px] border border-white/[0.08] rounded-2xl sm:rounded-3xl transition-all duration-500 hover:border-purple-500/30 hover:shadow-[0_20px_60px_rgba(168,85,247,0.15)] hover:-translate-y-2 cursor-pointer flex flex-col shine-effect">
+          <div class="relative aspect-[3/4] overflow-hidden rounded-t-2xl sm:rounded-t-3xl">
+            <img src="https://images.unsplash.com/photo-1560250097-0b93528c311a?w=600&h=800&fit=crop" alt="Doanh Nhân" class="w-full h-full object-cover transition-all duration-700 group-hover:scale-110">
+            <div class="absolute inset-0 bg-gradient-to-t from-[#0a0a0f] via-transparent to-transparent opacity-80"></div>
+            <div class="absolute top-2 sm:top-3 left-2 sm:left-3 right-2 sm:right-3 flex items-start justify-between">
+              <div></div>
+              <div class="px-2 sm:px-3 py-0.5 sm:py-1.5 rounded-full bg-black/60 backdrop-blur-md border border-white/[0.15] shadow-lg">
+                <span class="text-white font-bold text-[9px] sm:text-xs flex items-center gap-0.5 sm:gap-1">
+                  <i class="fa-solid fa-star w-2 h-2 sm:w-3 sm:h-3 text-yellow-400"></i> 3 Xu
+                </span>
+              </div>
+            </div>
+          </div>
+          <div class="flex flex-col flex-1 p-2.5 sm:p-4">
+            <h3 class="font-bold text-white text-xs sm:text-base lg:text-lg line-clamp-1 group-hover:text-purple-300 transition-colors duration-300">Doanh Nhân 💼</h3>
+            <p class="hidden sm:block text-white/40 text-[10px] sm:text-sm mt-1 sm:mt-1.5 line-clamp-2 flex-1">Phong cách CEO, chuyên nghiệp và đẳng cấp</p>
+            <div class="flex items-center justify-between mt-2 sm:mt-3 pt-2 sm:pt-3 border-t border-white/[0.05]">
+              <div class="flex items-center gap-1 sm:gap-1.5 text-white/50 text-[10px] sm:text-xs">
+                <span class="w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full bg-green-500 animate-pulse"></span> Sẵn sàng
+              </div>
+              <div class="flex items-center gap-1 text-purple-400 text-[10px] sm:text-xs font-medium">
+                <i class="fa-solid fa-arrow-right w-2.5 h-2.5 sm:w-3 sm:h-3"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </a>
+      <!-- Card 3 -->
+      <a href="#" class="group block h-full">
+        <div class="relative overflow-hidden h-full bg-gradient-to-b from-white/[0.05] to-white/[0.02] backdrop-blur-[8px] border border-white/[0.08] rounded-2xl sm:rounded-3xl transition-all duration-500 hover:border-purple-500/30 hover:shadow-[0_20px_60px_rgba(168,85,247,0.15)] hover:-translate-y-2 cursor-pointer flex flex-col shine-effect">
+          <div class="relative aspect-[3/4] overflow-hidden rounded-t-2xl sm:rounded-t-3xl">
+            <img src="https://images.unsplash.com/photo-1578632767115-351597cf2477?w=600&h=800&fit=crop" alt="Anime" class="w-full h-full object-cover transition-all duration-700 group-hover:scale-110">
+            <div class="absolute inset-0 bg-gradient-to-t from-[#0a0a0f] via-transparent to-transparent opacity-80"></div>
+            <div class="absolute top-2 sm:top-3 left-2 sm:left-3 right-2 sm:right-3 flex items-start justify-between">
+              <span class="inline-flex items-center gap-1 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full bg-gradient-to-r from-orange-500 to-red-500 text-white text-[9px] sm:text-xs font-bold shadow-lg">
+                <i class="fa-solid fa-fire w-2 h-2 sm:w-2.5 sm:h-2.5"></i> HOT
+              </span>
+              <div class="px-2 sm:px-3 py-0.5 sm:py-1.5 rounded-full bg-black/60 backdrop-blur-md border border-white/[0.15] shadow-lg">
+                <span class="text-white font-bold text-[9px] sm:text-xs flex items-center gap-0.5 sm:gap-1">
+                  <i class="fa-solid fa-star w-2 h-2 sm:w-3 sm:h-3 text-yellow-400"></i> 2 Xu
+                </span>
+              </div>
+            </div>
+          </div>
+          <div class="flex flex-col flex-1 p-2.5 sm:p-4">
+            <h3 class="font-bold text-white text-xs sm:text-base lg:text-lg line-clamp-1 group-hover:text-purple-300 transition-colors duration-300">Anime ✨</h3>
+            <p class="hidden sm:block text-white/40 text-[10px] sm:text-sm mt-1 sm:mt-1.5 line-clamp-2 flex-1">Biến thành nhân vật anime với style Nhật Bản</p>
+            <div class="flex items-center justify-between mt-2 sm:mt-3 pt-2 sm:pt-3 border-t border-white/[0.05]">
+              <div class="flex items-center gap-1 sm:gap-1.5 text-white/50 text-[10px] sm:text-xs">
+                <span class="w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full bg-green-500 animate-pulse"></span> Sẵn sàng
+              </div>
+              <div class="flex items-center gap-1 text-purple-400 text-[10px] sm:text-xs font-medium">
+                <i class="fa-solid fa-arrow-right w-2.5 h-2.5 sm:w-3 sm:h-3"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </a>
+      <!-- Card 4 -->
+      <a href="#" class="group block h-full">
+        <div class="relative overflow-hidden h-full bg-gradient-to-b from-white/[0.05] to-white/[0.02] backdrop-blur-[8px] border border-white/[0.08] rounded-2xl sm:rounded-3xl transition-all duration-500 hover:border-purple-500/30 hover:shadow-[0_20px_60px_rgba(168,85,247,0.15)] hover:-translate-y-2 cursor-pointer flex flex-col shine-effect">
+          <div class="relative aspect-[3/4] overflow-hidden rounded-t-2xl sm:rounded-t-3xl">
+            <img src="https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=600&h=800&fit=crop" alt="Nàng Thơ" class="w-full h-full object-cover transition-all duration-700 group-hover:scale-110">
+            <div class="absolute inset-0 bg-gradient-to-t from-[#0a0a0f] via-transparent to-transparent opacity-80"></div>
+            <div class="absolute top-2 sm:top-3 left-2 sm:left-3 right-2 sm:right-3 flex items-start justify-between">
+              <span class="inline-flex items-center gap-1 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full bg-gradient-to-r from-cyan-500 to-blue-500 text-white text-[9px] sm:text-xs font-bold shadow-lg">
+                <i class="fa-solid fa-bolt w-2 h-2 sm:w-2.5 sm:h-2.5"></i> MỚI
+              </span>
+              <div class="px-2 sm:px-3 py-0.5 sm:py-1.5 rounded-full bg-black/60 backdrop-blur-md border border-white/[0.15] shadow-lg">
+                <span class="text-white font-bold text-[9px] sm:text-xs flex items-center gap-0.5 sm:gap-1">
+                  <i class="fa-solid fa-star w-2 h-2 sm:w-3 sm:h-3 text-yellow-400"></i> 3 Xu
+                </span>
+              </div>
+            </div>
+          </div>
+          <div class="flex flex-col flex-1 p-2.5 sm:p-4">
+            <h3 class="font-bold text-white text-xs sm:text-base lg:text-lg line-clamp-1 group-hover:text-purple-300 transition-colors duration-300">Nàng Thơ 🌸</h3>
+            <p class="hidden sm:block text-white/40 text-[10px] sm:text-sm mt-1 sm:mt-1.5 line-clamp-2 flex-1">Phong cách thơ mộng, dịu dàng như tranh vẽ</p>
+            <div class="flex items-center justify-between mt-2 sm:mt-3 pt-2 sm:pt-3 border-t border-white/[0.05]">
+              <div class="flex items-center gap-1 sm:gap-1.5 text-white/50 text-[10px] sm:text-xs">
+                <span class="w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full bg-green-500 animate-pulse"></span> Sẵn sàng
+              </div>
+              <div class="flex items-center gap-1 text-purple-400 text-[10px] sm:text-xs font-medium">
+                <i class="fa-solid fa-arrow-right w-2.5 h-2.5 sm:w-3 sm:h-3"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </a>
+      <!-- Card 5 -->
+      <a href="#" class="group block h-full">
+        <div class="relative overflow-hidden h-full bg-gradient-to-b from-white/[0.05] to-white/[0.02] backdrop-blur-[8px] border border-white/[0.08] rounded-2xl sm:rounded-3xl transition-all duration-500 hover:border-purple-500/30 hover:shadow-[0_20px_60px_rgba(168,85,247,0.15)] hover:-translate-y-2 cursor-pointer flex flex-col shine-effect">
+          <div class="relative aspect-[3/4] overflow-hidden rounded-t-2xl sm:rounded-t-3xl">
+            <img src="https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=600&h=800&fit=crop" alt="Cyberpunk" class="w-full h-full object-cover transition-all duration-700 group-hover:scale-110">
+            <div class="absolute inset-0 bg-gradient-to-t from-[#0a0a0f] via-transparent to-transparent opacity-80"></div>
+            <div class="absolute top-2 sm:top-3 left-2 sm:left-3 right-2 sm:right-3 flex items-start justify-between">
+              <span class="inline-flex items-center gap-1 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full bg-gradient-to-r from-orange-500 to-red-500 text-white text-[9px] sm:text-xs font-bold shadow-lg">
+                <i class="fa-solid fa-fire w-2 h-2 sm:w-2.5 sm:h-2.5"></i> HOT
+              </span>
+              <div class="px-2 sm:px-3 py-0.5 sm:py-1.5 rounded-full bg-black/60 backdrop-blur-md border border-white/[0.15] shadow-lg">
+                <span class="text-white font-bold text-[9px] sm:text-xs flex items-center gap-0.5 sm:gap-1">
+                  <i class="fa-solid fa-star w-2 h-2 sm:w-3 sm:h-3 text-yellow-400"></i> 3 Xu
+                </span>
+              </div>
+            </div>
+          </div>
+          <div class="flex flex-col flex-1 p-2.5 sm:p-4">
+            <h3 class="font-bold text-white text-xs sm:text-base lg:text-lg line-clamp-1 group-hover:text-purple-300 transition-colors duration-300">Cyberpunk 🤖</h3>
+            <p class="hidden sm:block text-white/40 text-[10px] sm:text-sm mt-1 sm:mt-1.5 line-clamp-2 flex-1">Tương lai đô thị neon, phong cách sci-fi</p>
+            <div class="flex items-center justify-between mt-2 sm:mt-3 pt-2 sm:pt-3 border-t border-white/[0.05]">
+              <div class="flex items-center gap-1 sm:gap-1.5 text-white/50 text-[10px] sm:text-xs">
+                <span class="w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full bg-green-500 animate-pulse"></span> Sẵn sàng
+              </div>
+              <div class="flex items-center gap-1 text-purple-400 text-[10px] sm:text-xs font-medium">
+                <i class="fa-solid fa-arrow-right w-2.5 h-2.5 sm:w-3 sm:h-3"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </a>
+      <!-- Card 6 -->
+      <a href="#" class="group block h-full">
+        <div class="relative overflow-hidden h-full bg-gradient-to-b from-white/[0.05] to-white/[0.02] backdrop-blur-[8px] border border-white/[0.08] rounded-2xl sm:rounded-3xl transition-all duration-500 hover:border-purple-500/30 hover:shadow-[0_20px_60px_rgba(168,85,247,0.15)] hover:-translate-y-2 cursor-pointer flex flex-col shine-effect">
+          <div class="relative aspect-[3/4] overflow-hidden rounded-t-2xl sm:rounded-t-3xl">
+            <img src="https://images.unsplash.com/photo-1509631179647-0177331693ae?w=600&h=800&fit=crop" alt="Vintage" class="w-full h-full object-cover transition-all duration-700 group-hover:scale-110">
+            <div class="absolute inset-0 bg-gradient-to-t from-[#0a0a0f] via-transparent to-transparent opacity-80"></div>
+            <div class="absolute top-2 sm:top-3 left-2 sm:left-3 right-2 sm:right-3 flex items-start justify-between">
+              <div></div>
+              <div class="px-2 sm:px-3 py-0.5 sm:py-1.5 rounded-full bg-black/60 backdrop-blur-md border border-white/[0.15] shadow-lg">
+                <span class="text-white font-bold text-[9px] sm:text-xs flex items-center gap-0.5 sm:gap-1">
+                  <i class="fa-solid fa-star w-2 h-2 sm:w-3 sm:h-3 text-yellow-400"></i> 2 Xu
+                </span>
+              </div>
+            </div>
+          </div>
+          <div class="flex flex-col flex-1 p-2.5 sm:p-4">
+            <h3 class="font-bold text-white text-xs sm:text-base lg:text-lg line-clamp-1 group-hover:text-purple-300 transition-colors duration-300">Vintage 📷</h3>
+            <p class="hidden sm:block text-white/40 text-[10px] sm:text-sm mt-1 sm:mt-1.5 line-clamp-2 flex-1">Hoài cổ với tông màu film cũ thập niên 90</p>
+            <div class="flex items-center justify-between mt-2 sm:mt-3 pt-2 sm:pt-3 border-t border-white/[0.05]">
+              <div class="flex items-center gap-1 sm:gap-1.5 text-white/50 text-[10px] sm:text-xs">
+                <span class="w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full bg-green-500 animate-pulse"></span> Sẵn sàng
+              </div>
+              <div class="flex items-center gap-1 text-purple-400 text-[10px] sm:text-xs font-medium">
+                <i class="fa-solid fa-arrow-right w-2.5 h-2.5 sm:w-3 sm:h-3"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </a>
+      <!-- Card 7 -->
+      <a href="#" class="group block h-full">
+        <div class="relative overflow-hidden h-full bg-gradient-to-b from-white/[0.05] to-white/[0.02] backdrop-blur-[8px] border border-white/[0.08] rounded-2xl sm:rounded-3xl transition-all duration-500 hover:border-purple-500/30 hover:shadow-[0_20px_60px_rgba(168,85,247,0.15)] hover:-translate-y-2 cursor-pointer flex flex-col shine-effect">
+          <div class="relative aspect-[3/4] overflow-hidden rounded-t-2xl sm:rounded-t-3xl">
+            <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=600&h=800&fit=crop" alt="K-Pop Star" class="w-full h-full object-cover transition-all duration-700 group-hover:scale-110">
+            <div class="absolute inset-0 bg-gradient-to-t from-[#0a0a0f] via-transparent to-transparent opacity-80"></div>
+            <div class="absolute top-2 sm:top-3 left-2 sm:left-3 right-2 sm:right-3 flex items-start justify-between">
+              <span class="inline-flex items-center gap-1 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full bg-gradient-to-r from-orange-500 to-red-500 text-white text-[9px] sm:text-xs font-bold shadow-lg">
+                <i class="fa-solid fa-fire w-2 h-2 sm:w-2.5 sm:h-2.5"></i> HOT
+              </span>
+              <div class="px-2 sm:px-3 py-0.5 sm:py-1.5 rounded-full bg-black/60 backdrop-blur-md border border-white/[0.15] shadow-lg">
+                <span class="text-white font-bold text-[9px] sm:text-xs flex items-center gap-0.5 sm:gap-1">
+                  <i class="fa-solid fa-star w-2 h-2 sm:w-3 sm:h-3 text-yellow-400"></i> 4 Xu
+                </span>
+              </div>
+            </div>
+          </div>
+          <div class="flex flex-col flex-1 p-2.5 sm:p-4">
+            <h3 class="font-bold text-white text-xs sm:text-base lg:text-lg line-clamp-1 group-hover:text-purple-300 transition-colors duration-300">K-Pop Star ⭐</h3>
+            <p class="hidden sm:block text-white/40 text-[10px] sm:text-sm mt-1 sm:mt-1.5 line-clamp-2 flex-1">Biến thành idol K-Pop với makeup lung linh</p>
+            <div class="flex items-center justify-between mt-2 sm:mt-3 pt-2 sm:pt-3 border-t border-white/[0.05]">
+              <div class="flex items-center gap-1 sm:gap-1.5 text-white/50 text-[10px] sm:text-xs">
+                <span class="w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full bg-green-500 animate-pulse"></span> Sẵn sàng
+              </div>
+              <div class="flex items-center gap-1 text-purple-400 text-[10px] sm:text-xs font-medium">
+                <i class="fa-solid fa-arrow-right w-2.5 h-2.5 sm:w-3 sm:h-3"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </a>
+      <!-- Card 8 -->
+      <a href="#" class="group block h-full">
+        <div class="relative overflow-hidden h-full bg-gradient-to-b from-white/[0.05] to-white/[0.02] backdrop-blur-[8px] border border-white/[0.08] rounded-2xl sm:rounded-3xl transition-all duration-500 hover:border-purple-500/30 hover:shadow-[0_20px_60px_rgba(168,85,247,0.15)] hover:-translate-y-2 cursor-pointer flex flex-col shine-effect">
+          <div class="relative aspect-[3/4] overflow-hidden rounded-t-2xl sm:rounded-t-3xl">
+            <img src="https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=600&h=800&fit=crop" alt="Fantasy" class="w-full h-full object-cover transition-all duration-700 group-hover:scale-110">
+            <div class="absolute inset-0 bg-gradient-to-t from-[#0a0a0f] via-transparent to-transparent opacity-80"></div>
+            <div class="absolute top-2 sm:top-3 left-2 sm:left-3 right-2 sm:right-3 flex items-start justify-between">
+              <div></div>
+              <div class="px-2 sm:px-3 py-0.5 sm:py-1.5 rounded-full bg-black/60 backdrop-blur-md border border-white/[0.15] shadow-lg">
+                <span class="text-white font-bold text-[9px] sm:text-xs flex items-center gap-0.5 sm:gap-1">
+                  <i class="fa-solid fa-star w-2 h-2 sm:w-3 sm:h-3 text-yellow-400"></i> 3 Xu
+                </span>
+              </div>
+            </div>
+          </div>
+          <div class="flex flex-col flex-1 p-2.5 sm:p-4">
+            <h3 class="font-bold text-white text-xs sm:text-base lg:text-lg line-clamp-1 group-hover:text-purple-300 transition-colors duration-300">Fantasy 🧙</h3>
+            <p class="hidden sm:block text-white/40 text-[10px] sm:text-sm mt-1 sm:mt-1.5 line-clamp-2 flex-1">Thế giới phép thuật với yếu tố thần tiên</p>
+            <div class="flex items-center justify-between mt-2 sm:mt-3 pt-2 sm:pt-3 border-t border-white/[0.05]">
+              <div class="flex items-center gap-1 sm:gap-1.5 text-white/50 text-[10px] sm:text-xs">
+                <span class="w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full bg-green-500 animate-pulse"></span> Sẵn sàng
+              </div>
+              <div class="flex items-center gap-1 text-purple-400 text-[10px] sm:text-xs font-medium">
+                <i class="fa-solid fa-arrow-right w-2.5 h-2.5 sm:w-3 sm:h-3"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </a>
+    </div>
+    <div class="mt-6 sm:mt-8 text-center">
+      <a href="#" class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold shadow-lg shadow-purple-500/25 hover:shadow-purple-500/40 transition-all">
+        <i class="fa-solid fa-palette w-4 h-4"></i> Xem tất cả 8 Styles <i class="fa-solid fa-arrow-right w-4 h-4"></i>
+      </a>
+    </div>
+  </section>
+
+  <!-- ========== HOW IT WORKS ========== -->
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16">
+    <div class="text-center mb-8 sm:mb-12">
+      <h2 class="text-xl sm:text-2xl lg:text-3xl font-bold text-white mb-2">Cách sử dụng</h2>
+      <p class="text-white/50 text-sm sm:text-base">3 bước đơn giản</p>
+    </div>
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
+      <div class="flex sm:flex-col items-center sm:text-center gap-4 sm:gap-0 bg-white/[0.02] border border-white/[0.06] rounded-xl sm:rounded-2xl p-4 sm:p-6">
+        <div class="flex-shrink-0 w-12 h-12 sm:w-14 sm:h-14 sm:mb-4 rounded-xl sm:rounded-2xl bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center">
+          <i class="fa-solid fa-palette w-5 h-5 sm:w-6 sm:h-6 text-white"></i>
+        </div>
+        <div class="flex-1 sm:flex-none">
+          <h3 class="font-semibold text-white text-base sm:text-lg">Chọn Style</h3>
+          <p class="text-white/50 text-sm">Chọn style yêu thích</p>
+        </div>
+        <div class="sm:hidden w-8 h-8 rounded-full bg-white/[0.05] flex items-center justify-center text-white/40 text-sm font-mono">1</div>
+      </div>
+      <div class="flex sm:flex-col items-center sm:text-center gap-4 sm:gap-0 bg-white/[0.02] border border-white/[0.06] rounded-xl sm:rounded-2xl p-4 sm:p-6">
+        <div class="flex-shrink-0 w-12 h-12 sm:w-14 sm:h-14 sm:mb-4 rounded-xl sm:rounded-2xl bg-gradient-to-br from-pink-500 to-pink-600 flex items-center justify-center">
+          <i class="fa-solid fa-camera w-5 h-5 sm:w-6 sm:h-6 text-white"></i>
+        </div>
+        <div class="flex-1 sm:flex-none">
+          <h3 class="font-semibold text-white text-base sm:text-lg">Upload Ảnh</h3>
+          <p class="text-white/50 text-sm">Tải ảnh chân dung</p>
+        </div>
+        <div class="sm:hidden w-8 h-8 rounded-full bg-white/[0.05] flex items-center justify-center text-white/40 text-sm font-mono">2</div>
+      </div>
+      <div class="flex sm:flex-col items-center sm:text-center gap-4 sm:gap-0 bg-white/[0.02] border border-white/[0.06] rounded-xl sm:rounded-2xl p-4 sm:p-6">
+        <div class="flex-shrink-0 w-12 h-12 sm:w-14 sm:h-14 sm:mb-4 rounded-xl sm:rounded-2xl bg-gradient-to-br from-cyan-500 to-cyan-600 flex items-center justify-center">
+          <i class="fa-solid fa-wand-magic-sparkles w-5 h-5 sm:w-6 sm:h-6 text-white"></i>
+        </div>
+        <div class="flex-1 sm:flex-none">
+          <h3 class="font-semibold text-white text-base sm:text-lg">Nhận Kết Quả</h3>
+          <p class="text-white/50 text-sm">Nhận ảnh trong 10s</p>
+        </div>
+        <div class="sm:hidden w-8 h-8 rounded-full bg-white/[0.05] flex items-center justify-center text-white/40 text-sm font-mono">3</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== CTA ========== -->
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12 sm:pb-16">
+    <div class="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-r from-purple-900/60 to-pink-900/60 border border-white/[0.1] p-6 sm:p-10 lg:p-14 text-center">
+      <div class="absolute -top-20 -left-20 w-40 sm:w-60 h-40 sm:h-60 bg-purple-500/30 rounded-full blur-[80px]"></div>
+      <div class="absolute -bottom-20 -right-20 w-40 sm:w-60 h-40 sm:h-60 bg-pink-500/30 rounded-full blur-[80px]"></div>
+      <div class="relative">
+        <i class="fa-solid fa-gift w-10 h-10 sm:w-12 sm:h-12 text-purple-300 mb-4 sm:mb-6"></i>
+        <h2 class="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-3 sm:mb-4">Nhận 5 Xu Miễn Phí!</h2>
+        <p class="text-white/70 mb-6 sm:mb-8 max-w-lg mx-auto text-sm sm:text-lg">Đăng ký ngay để nhận 5 Xu trải nghiệm</p>
+        <button class="w-full sm:w-auto px-8 sm:px-10 py-3.5 sm:py-4 rounded-xl bg-white text-gray-900 font-semibold text-base sm:text-lg hover:bg-gray-100 transition-colors inline-flex items-center justify-center gap-2">
+          <i class="fa-solid fa-crown w-4 h-4 sm:w-5 sm:h-5"></i> Đăng Ký Miễn Phí
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== FOOTER ========== -->
+  <footer class="border-t border-white/[0.05]">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+      <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div class="flex items-center gap-2">
+          <i class="fa-solid fa-wand-magic-sparkles w-4 h-4 sm:w-5 sm:h-5 text-purple-400"></i>
+          <span class="font-bold text-sm sm:text-base bg-gradient-to-r from-purple-400 to-pink-500 bg-clip-text text-transparent">ZDream</span>
+        </div>
+        <p class="text-white/40 text-xs sm:text-sm">© 2026 ZDream.vn</p>
+        <div class="flex gap-4 text-white/40">
+          <a href="#" class="hover:text-white/80 text-xs sm:text-sm">Điều khoản</a>
+          <a href="#" class="hover:text-white/80 text-xs sm:text-sm">Liên hệ</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
