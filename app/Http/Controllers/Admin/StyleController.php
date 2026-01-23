@@ -162,6 +162,7 @@ class StyleController extends Controller
             'image_slots' => 'nullable|array',
             'image_slots.*.key' => 'required_with:image_slots|string|max:100',
             'image_slots.*.label' => 'required_with:image_slots|string|max:255',
+            'image_slots.*.description' => 'nullable|string|max:500',
             'image_slots.*.required' => 'nullable',
             
             'options' => 'nullable|array',
@@ -184,6 +185,7 @@ class StyleController extends Controller
                 return [
                     'key' => $slot['key'],
                     'label' => $slot['label'],
+                    'description' => $slot['description'] ?? '',
                     'required' => isset($slot['required']) && $slot['required'],
                 ];
             })->values()->toArray();

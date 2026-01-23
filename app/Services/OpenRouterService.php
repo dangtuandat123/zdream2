@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Setting;
 use App\Models\Style;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Support\Facades\Http;
@@ -12,6 +13,7 @@ use Illuminate\Support\Facades\Log;
  * 
  * Xử lý việc gọi OpenRouter API để tạo ảnh AI.
  * Hỗ trợ các model: Gemini, Flux, etc.
+ * API key được lấy từ database (Settings).
  */
 class OpenRouterService
 {
@@ -21,8 +23,9 @@ class OpenRouterService
 
     public function __construct()
     {
-        $this->apiKey = config('services_custom.openrouter.api_key');
-        $this->baseUrl = config('services_custom.openrouter.base_url');
+        // Lấy API key từ database Settings (có cache và decrypt)
+        $this->apiKey = Setting::get('openrouter_api_key', config('services_custom.openrouter.api_key', ''));
+        $this->baseUrl = Setting::get('openrouter_base_url', config('services_custom.openrouter.base_url', 'https://openrouter.ai/api/v1'));
         $this->timeout = config('services_custom.openrouter.timeout', 120);
     }
 

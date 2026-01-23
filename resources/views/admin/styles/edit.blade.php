@@ -132,6 +132,72 @@
                 </div>
             </div>
 
+            <!-- Image Slots Config -->
+            <div class="bg-white/[0.03] border border-white/[0.08] rounded-2xl p-6" x-data="{
+                slots: @js($style->image_slots ?? []),
+                addSlot() {
+                    this.slots.push({ key: 'slot_' + Date.now(), label: '', description: '', required: false });
+                },
+                removeSlot(index) {
+                    this.slots.splice(index, 1);
+                }
+            }">
+                <h2 class="text-lg font-semibold text-white mb-4 inline-flex items-center gap-2">
+                    <i class="fa-solid fa-images text-pink-400" style="font-size: 18px;"></i>
+                    <span>Cấu hình ô upload ảnh</span>
+                </h2>
+                <p class="text-white/40 text-sm mb-4">Mỗi ô có Label (hiển thị cho user) và Mô tả cho AI (để AI hiểu ảnh này dùng làm gì)</p>
+
+                <!-- Slots List -->
+                <div class="space-y-3 mb-4">
+                    <template x-for="(slot, index) in slots" :key="slot.key || index">
+                        <div class="p-4 bg-white/[0.02] border border-white/[0.05] rounded-xl space-y-3">
+                            <div class="flex items-center gap-3">
+                                <div class="flex-1">
+                                    <input 
+                                        type="text" 
+                                        x-model="slot.label"
+                                        :name="'image_slots[' + index + '][label]'"
+                                        placeholder="Label hiển thị (VD: Ảnh người 1)"
+                                        class="w-full px-3 py-2 rounded-lg bg-white/[0.03] border border-white/[0.08] text-white/90 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/40">
+                                    <input type="hidden" :name="'image_slots[' + index + '][key]'" :value="slot.key || 'slot_' + index">
+                                </div>
+                                <label class="flex items-center gap-2 text-xs text-white/60 cursor-pointer whitespace-nowrap">
+                                    <input type="checkbox" 
+                                           x-model="slot.required"
+                                           :name="'image_slots[' + index + '][required]'"
+                                           value="1"
+                                           class="w-4 h-4 rounded bg-white/[0.03] border-white/[0.15] text-purple-500">
+                                    <span>Bắt buộc</span>
+                                </label>
+                                <button type="button" @click="removeSlot(index)" class="w-8 h-8 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 hover:bg-red-500/20 inline-flex items-center justify-center transition-colors">
+                                    <i class="fa-solid fa-times" style="font-size: 12px;"></i>
+                                </button>
+                            </div>
+                            <div>
+                                <input 
+                                    type="text" 
+                                    x-model="slot.description"
+                                    :name="'image_slots[' + index + '][description]'"
+                                    placeholder="Mô tả cho AI (VD: This is the main person to be transformed into the style)"
+                                    class="w-full px-3 py-2 rounded-lg bg-white/[0.03] border border-white/[0.08] text-white/70 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-cyan-500/40">
+                            </div>
+                        </div>
+                    </template>
+                </div>
+
+                <!-- Empty State -->
+                <div x-show="slots.length === 0" class="text-center py-4 text-white/30 text-sm">
+                    Chưa có ô upload nào. Bấm nút bên dưới để thêm.
+                </div>
+
+                <!-- Add Button -->
+                <button type="button" @click="addSlot()" class="w-full py-2.5 rounded-xl border-2 border-dashed border-white/[0.1] hover:border-purple-500/50 text-white/50 hover:text-purple-400 text-sm inline-flex items-center justify-center gap-2 transition-colors">
+                    <i class="fa-solid fa-plus" style="font-size: 12px;"></i>
+                    <span>Thêm ô upload ảnh</span>
+                </button>
+            </div>
+
             <!-- Submit -->
             <div class="flex items-center gap-4">
                 <button type="submit" class="px-8 py-3 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold flex items-center gap-2 hover:shadow-[0_8px_30px_rgba(168,85,247,0.5)] transition-all">
