@@ -66,6 +66,13 @@ class StyleController extends Controller
             'allow_user_custom_prompt' => 'boolean',
             'is_active' => 'boolean',
             
+            // Image Slots (Dynamic array)
+            'image_slots' => 'nullable|array',
+            'image_slots.*.key' => 'required_with:image_slots|string|max:100',
+            'image_slots.*.label' => 'required_with:image_slots|string|max:255',
+            'image_slots.*.description' => 'nullable|string|max:500',
+            'image_slots.*.required' => 'nullable',
+            
             // Options (Dynamic array)
             'options' => 'nullable|array',
             'options.*.label' => 'required_with:options|string|max:255',
@@ -79,6 +86,19 @@ class StyleController extends Controller
             $configPayload = ['aspect_ratio' => $validated['aspect_ratio']];
         }
 
+        // Process image_slots
+        $imageSlots = null;
+        if (!empty($validated['image_slots'])) {
+            $imageSlots = collect($validated['image_slots'])->map(function ($slot) {
+                return [
+                    'key' => $slot['key'],
+                    'label' => $slot['label'],
+                    'description' => $slot['description'] ?? '',
+                    'required' => isset($slot['required']) && $slot['required'],
+                ];
+            })->values()->toArray();
+        }
+
         // Tạo Style
         $style = Style::create([
             'name' => $validated['name'],
@@ -89,6 +109,7 @@ class StyleController extends Controller
             'openrouter_model_id' => $validated['openrouter_model_id'],
             'base_prompt' => $validated['base_prompt'],
             'config_payload' => $configPayload,
+            'image_slots' => $imageSlots,
             'allow_user_custom_prompt' => $validated['allow_user_custom_prompt'] ?? false,
             'is_active' => $validated['is_active'] ?? true,
         ]);
@@ -138,6 +159,11 @@ class StyleController extends Controller
             'allow_user_custom_prompt' => 'boolean',
             'is_active' => 'boolean',
             
+            'image_slots' => 'nullable|array',
+            'image_slots.*.key' => 'required_with:image_slots|string|max:100',
+            'image_slots.*.label' => 'required_with:image_slots|string|max:255',
+            'image_slots.*.required' => 'nullable',
+            
             'options' => 'nullable|array',
             'options.*.id' => 'nullable|integer',
             'options.*.label' => 'required_with:options|string|max:255',
@@ -151,6 +177,18 @@ class StyleController extends Controller
             $configPayload = ['aspect_ratio' => $validated['aspect_ratio']];
         }
 
+        // Process image_slots
+        $imageSlots = null;
+        if (!empty($validated['image_slots'])) {
+            $imageSlots = collect($validated['image_slots'])->map(function ($slot) {
+                return [
+                    'key' => $slot['key'],
+                    'label' => $slot['label'],
+                    'required' => isset($slot['required']) && $slot['required'],
+                ];
+            })->values()->toArray();
+        }
+
         // Update Style
         $style->update([
             'name' => $validated['name'],
@@ -160,6 +198,7 @@ class StyleController extends Controller
             'openrouter_model_id' => $validated['openrouter_model_id'],
             'base_prompt' => $validated['base_prompt'],
             'config_payload' => $configPayload,
+            'image_slots' => $imageSlots,
             'allow_user_custom_prompt' => $validated['allow_user_custom_prompt'] ?? false,
             'is_active' => $validated['is_active'] ?? true,
         ]);

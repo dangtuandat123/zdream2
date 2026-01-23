@@ -67,10 +67,23 @@ class OpenRouterService
             
             // Nếu có input images (img2img), cập nhật message content
             if (!empty($inputImages)) {
+                // Lấy image_slots config từ style để có description
+                $imageSlots = $style->image_slots ?? [];
+                $slotDescriptions = collect($imageSlots)->keyBy('key')->map(fn($s) => $s['description'] ?? '')->toArray();
+                
+                // Build text prompt với image descriptions
+                $imageDescText = '';
+                foreach ($inputImages as $key => $imageBase64) {
+                    $desc = $slotDescriptions[$key] ?? '';
+                    if ($desc) {
+                        $imageDescText .= "\n[Image: {$desc}]";
+                    }
+                }
+                
                 $contentParts = [
                     [
                         'type' => 'text',
-                        'text' => $finalPrompt,
+                        'text' => $finalPrompt . $imageDescText,
                     ],
                 ];
                 
