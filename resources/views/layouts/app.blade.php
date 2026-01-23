@@ -57,23 +57,25 @@
                 <div class="flex items-center gap-2">
                     @auth
                         <div class="hidden sm:flex items-center bg-white/[0.03] rounded-full border border-white/[0.08] p-1">
-                            <a href="{{ route('wallet.index') }}" class="px-3 h-8 rounded-full flex items-center gap-2 text-white/80 hover:bg-white/[0.05] transition-all">
-                                <i class="fa-solid fa-gem w-4 h-4 text-cyan-400"></i>
-                                <span class="font-semibold text-sm text-white/95">{{ number_format(auth()->user()->credits, 0) }}</span>
+                            <a href="{{ route('wallet.index') }}" class="px-3 h-8 rounded-full inline-flex items-center justify-center gap-2 text-white/80 hover:bg-white/[0.05] transition-all">
+                                <i class="fa-solid fa-gem text-cyan-400" style="font-size: 14px;"></i>
+                                <span class="font-semibold text-sm text-white/95 leading-none">{{ number_format(auth()->user()->credits, 0) }}</span>
                             </a>
-                            <a href="{{ route('wallet.index') }}" class="h-8 px-4 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white font-medium text-sm flex items-center gap-1.5 hover:from-purple-400 hover:to-pink-400 transition-all">
-                                <i class="fa-solid fa-plus w-3 h-3"></i> Nạp Xu
+                            <a href="{{ route('wallet.index') }}" class="h-8 px-4 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white font-medium text-sm inline-flex items-center justify-center gap-1.5 hover:from-purple-400 hover:to-pink-400 transition-all leading-none">
+                                <i class="fa-solid fa-plus" style="font-size: 11px;"></i>
+                                <span>Nạp Xu</span>
                             </a>
                         </div>
+
                         <a href="{{ route('wallet.index') }}" class="sm:hidden h-9 px-3 rounded-full bg-white/[0.03] border border-white/[0.08] flex items-center gap-2 text-white/80">
                             <i class="fa-solid fa-gem w-4 h-4 text-cyan-400"></i>
                             <span class="font-semibold text-sm text-white/95">{{ number_format(auth()->user()->credits, 0) }}</span>
                         </a>
                         @if(auth()->user()->is_admin)
-                            <a href="{{ route('admin.dashboard') }}" class="hidden sm:block h-9 px-4 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 text-sm hover:bg-cyan-500/20 transition-all">Admin</a>
+                            <a href="{{ route('admin.dashboard') }}" class="hidden sm:inline-flex items-center justify-center h-9 px-4 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 text-sm font-medium hover:bg-cyan-500/20 transition-all leading-none">Admin</a>
                         @endif
                     @else
-                        <a href="{{ route('login') }}" class="hidden sm:block h-9 px-4 rounded-full bg-white/[0.03] border border-white/[0.1] text-white/80 text-sm hover:bg-white/[0.06] transition-all">Đăng nhập</a>
+                        <a href="{{ route('login') }}" class="hidden sm:inline-flex items-center justify-center h-9 px-4 rounded-full bg-white/[0.03] border border-white/[0.1] text-white/80 text-sm font-medium hover:bg-white/[0.06] transition-all leading-none">Đăng nhập</a>
                     @endauth
                     <button id="menu-btn" class="md:hidden w-10 h-10 rounded-xl bg-white/[0.03] border border-white/[0.08] flex items-center justify-center text-white/80 hover:text-white hover:bg-white/[0.06] transition-all">
                         <i class="fa-solid fa-bars w-4 h-4"></i>
