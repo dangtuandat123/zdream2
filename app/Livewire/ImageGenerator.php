@@ -10,6 +10,7 @@ use App\Services\StorageService;
 use App\Services\WalletService;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
+use Livewire\WithFileUploads;
 
 /**
  * Livewire Component: ImageGenerator
@@ -19,6 +20,8 @@ use Livewire\Component;
  */
 class ImageGenerator extends Component
 {
+    use WithFileUploads;
+    
     // Style đang sử dụng
     public Style $style;
     
@@ -31,19 +34,38 @@ class ImageGenerator extends Component
     // Aspect Ratio đã chọn
     public string $selectedAspectRatio = '1:1';
     
-    // Các aspect ratios hỗ trợ
+    // Image Size đã chọn (chỉ Gemini)
+    public string $selectedImageSize = '1K';
+    
+    // Các aspect ratios hỗ trợ (theo OpenRouter docs)
     public array $aspectRatios = [
         '1:1' => 'Vuông (1:1)',
-        '16:9' => 'Ngang (16:9)',
-        '9:16' => 'Dọc (9:16)',
-        '4:3' => 'Chuẩn (4:3)',
-        '3:4' => 'Portrait (3:4)',
+        '16:9' => 'Ngang Wide (16:9)',
+        '9:16' => 'Dọc Portrait (9:16)',
+        '4:3' => 'Ngang (4:3)',
+        '3:4' => 'Dọc (3:4)',
+        '3:2' => 'Photo (3:2)',
+        '2:3' => 'Photo Dọc (2:3)',
+        '5:4' => 'Vuông (5:4)',
+        '4:5' => 'Instagram (4:5)',
+        '21:9' => 'Cinematic (21:9)',
+    ];
+    
+    // Các image sizes (chỉ Gemini models)
+    public array $imageSizes = [
+        '1K' => '1K (Chuẩn)',
+        '2K' => '2K (Cao)',
+        '4K' => '4K (Rất cao)',
     ];
     
     // State
     public bool $isGenerating = false;
     public ?string $generatedImageUrl = null;
     public ?string $errorMessage = null;
+    
+    // Uploaded images for img2img (key => file)
+    public array $uploadedImages = [];
+    public array $uploadedImagePreviews = [];
     
     // Last generated image
     public ?int $lastImageId = null;
@@ -77,6 +99,47 @@ class ImageGenerator extends Component
         } else {
             $this->selectedOptions[$groupName] = $optionId;
         }
+    }
+
+    /**
+     * Xử lý khi upload ảnh xong (với slot key)
+     */
+    public function updatedUploadedImages($value, $key): void
+    {
+        $this->validate([
+            "uploadedImages.{$key}" => 'image|max:10240', // Max 10MB
+        ]);
+
+        if (isset($this->uploadedImages[$key]) && $this->uploadedImages[$key]) {
+            $this->uploadedImagePreviews[$key] = $this->uploadedImages[$key]->temporaryUrl();
+        }
+    }
+
+    /**
+     * Xóa ảnh đã upload theo key
+     */
+    public function removeUploadedImage(string $key): void
+    {
+        unset($this->uploadedImages[$key]);
+        unset($this->uploadedImagePreviews[$key]);
+    }
+
+    /**
+     * Convert all uploaded images to base64 array
+     */
+    protected function getUploadedImagesBase64(): array
+    {
+        $result = [];
+        
+        foreach ($this->uploadedImages as $key => $image) {
+            if ($image) {
+                $contents = file_get_contents($image->getRealPath());
+                $mimeType = $image->getMimeType();
+                $result[$key] = "data:{$mimeType};base64," . base64_encode($contents);
+            }
+        }
+        
+        return $result;
     }
 
     /**
@@ -128,11 +191,15 @@ class ImageGenerator extends Component
 
             // Gọi OpenRouter API
             $openRouterService = app(OpenRouterService::class);
+            $inputImagesBase64 = $this->getUploadedImagesBase64();
+            
             $result = $openRouterService->generateImage(
                 $this->style,
                 $selectedOptionIds,
                 $this->customInput ?: null,
-                $this->selectedAspectRatio
+                $this->selectedAspectRatio,
+                $this->selectedImageSize,
+                $inputImagesBase64
             );
 
             if (!$result['success']) {

@@ -41,12 +41,14 @@ class Style extends Model
         'config_payload',
         'is_active',
         'allow_user_custom_prompt',
+        'image_slots',
         'sort_order',
     ];
 
     protected $casts = [
         'price' => 'decimal:2',
         'config_payload' => 'array',
+        'image_slots' => 'array',
         'is_active' => 'boolean',
         'allow_user_custom_prompt' => 'boolean',
         'sort_order' => 'integer',

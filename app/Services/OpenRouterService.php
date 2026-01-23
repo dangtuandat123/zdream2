@@ -46,13 +46,17 @@ class OpenRouterService
      * @param array $selectedOptionIds Danh sách ID của options đã chọn
      * @param string|null $userCustomInput Nội dung user tự gõ
      * @param string|null $aspectRatio Aspect ratio được user chọn (override style default)
+     * @param string|null $imageSize Image size (1K/2K/4K) - chỉ cho Gemini models
+     * @param array $inputImages Array of base64 images cho img2img (key => base64)
      * @return array ['success' => bool, 'image_base64' => string|null, 'openrouter_id' => string|null, 'error' => string|null]
      */
     public function generateImage(
         Style $style, 
         array $selectedOptionIds = [], 
         ?string $userCustomInput = null,
-        ?string $aspectRatio = null
+        ?string $aspectRatio = null,
+        ?string $imageSize = null,
+        array $inputImages = []
     ): array {
         try {
             // Build final prompt
@@ -61,20 +65,53 @@ class OpenRouterService
             // Build OpenRouter payload
             $payload = $style->buildOpenRouterPayload($finalPrompt);
             
-            // Override aspect ratio nếu user đã chọn khác
+            // Nếu có input images (img2img), cập nhật message content
+            if (!empty($inputImages)) {
+                $contentParts = [
+                    [
+                        'type' => 'text',
+                        'text' => $finalPrompt,
+                    ],
+                ];
+                
+                // Thêm tất cả images vào content
+                foreach ($inputImages as $key => $imageBase64) {
+                    $contentParts[] = [
+                        'type' => 'image_url',
+                        'image_url' => [
+                            'url' => $imageBase64,
+                        ],
+                    ];
+                }
+                
+                $payload['messages'][0]['content'] = $contentParts;
+            }
+            
+            // Override aspect ratio nếu user đã chọn
             if ($aspectRatio) {
                 $payload['image_config'] = $payload['image_config'] ?? [];
                 $payload['image_config']['aspect_ratio'] = $aspectRatio;
                 
                 // Với Flux model, chèn aspect ratio vào prompt
                 if (str_contains($style->openrouter_model_id, 'flux')) {
-                    $payload['messages'][0]['content'] .= ", {$aspectRatio} aspect ratio";
+                    if (is_string($payload['messages'][0]['content'])) {
+                        $payload['messages'][0]['content'] .= ", {$aspectRatio} aspect ratio";
+                    } else {
+                        $payload['messages'][0]['content'][0]['text'] .= ", {$aspectRatio} aspect ratio";
+                    }
                 }
+            }
+            
+            // Override image size nếu user đã chọn (chỉ cho Gemini models)
+            if ($imageSize && str_contains($style->openrouter_model_id, 'gemini')) {
+                $payload['image_config'] = $payload['image_config'] ?? [];
+                $payload['image_config']['image_size'] = $imageSize;
             }
 
             Log::info('OpenRouter request', [
                 'model' => $style->openrouter_model_id,
                 'prompt_length' => strlen($finalPrompt),
+                'has_input_image' => !empty($inputImage),
             ]);
 
             // Gọi API

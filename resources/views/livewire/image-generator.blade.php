@@ -1,5 +1,67 @@
 <div class="space-y-4 md:space-y-6">
     
+    <!-- Image Upload Slots (Dynamic từ Admin config) -->
+    @php
+        $imageSlots = $style->image_slots ?? [['key' => 'default', 'label' => 'Ảnh mẫu (tùy chọn)', 'required' => false]];
+    @endphp
+    
+    @if(!empty($imageSlots))
+        <div class="space-y-3">
+            @foreach($imageSlots as $slot)
+                @php
+                    $slotKey = $slot['key'] ?? 'slot_' . $loop->index;
+                    $slotLabel = $slot['label'] ?? 'Ảnh ' . ($loop->index + 1);
+                    $isRequired = $slot['required'] ?? false;
+                @endphp
+                
+                <div class="bg-white/[0.03] border border-white/[0.08] rounded-xl p-4">
+                    <label class="block text-sm font-medium text-white/60 mb-3 inline-flex items-center gap-2">
+                        <i class="fa-solid fa-image" style="font-size: 14px;"></i>
+                        <span>{{ $slotLabel }}</span>
+                        @if($isRequired)
+                            <span class="text-red-400">*</span>
+                        @endif
+                    </label>
+                    
+                    @if(isset($uploadedImagePreviews[$slotKey]))
+                        <!-- Preview uploaded image -->
+                        <div class="relative">
+                            <img src="{{ $uploadedImagePreviews[$slotKey] }}" alt="{{ $slotLabel }}" class="w-full max-h-40 object-contain rounded-xl bg-black/20">
+                            <button 
+                                wire:click="removeUploadedImage('{{ $slotKey }}')" 
+                                class="absolute top-2 right-2 w-8 h-8 rounded-lg bg-red-500/80 hover:bg-red-500 text-white inline-flex items-center justify-center transition-colors">
+                                <i class="fa-solid fa-times" style="font-size: 14px;"></i>
+                            </button>
+                        </div>
+                    @else
+                        <!-- Upload area -->
+                        <div class="relative">
+                            <input 
+                                type="file" 
+                                wire:model="uploadedImages.{{ $slotKey }}" 
+                                accept="image/*"
+                                class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10">
+                            <div class="border-2 border-dashed border-white/[0.1] hover:border-purple-500/50 rounded-xl p-4 text-center transition-colors">
+                                <div wire:loading.remove wire:target="uploadedImages.{{ $slotKey }}">
+                                    <i class="fa-solid fa-cloud-arrow-up text-xl text-white/30 mb-1"></i>
+                                    <p class="text-white/50 text-xs">Kéo thả hoặc click để chọn</p>
+                                </div>
+                                <div wire:loading wire:target="uploadedImages.{{ $slotKey }}" class="inline-flex items-center gap-2 text-purple-400 text-sm">
+                                    <i class="fa-solid fa-spinner animate-spin" style="font-size: 14px;"></i>
+                                    <span>Đang tải...</span>
+                                </div>
+                            </div>
+                        </div>
+                    @endif
+                    
+                    @error("uploadedImages.{$slotKey}")
+                        <p class="text-red-400 text-xs mt-2">{{ $message }}</p>
+                    @enderror
+                </div>
+            @endforeach
+        </div>
+    @endif
+
     <!-- Options Selection -->
     @if($optionGroups->isNotEmpty())
         <div class="space-y-3 md:space-y-4">
@@ -47,13 +109,13 @@
     <div class="bg-white/[0.03] border border-white/[0.08] rounded-xl p-4">
         <label class="block text-sm font-medium text-white/60 mb-3 inline-flex items-center gap-2">
             <i class="fa-solid fa-crop" style="font-size: 14px;"></i>
-            <span>Kích thước ảnh</span>
+            <span>Tỉ lệ khung hình</span>
         </label>
-        <div class="grid grid-cols-3 sm:grid-cols-5 gap-2">
+        <div class="grid grid-cols-2 sm:grid-cols-5 gap-2">
             @foreach($aspectRatios as $ratio => $label)
                 <button 
                     wire:click="$set('selectedAspectRatio', '{{ $ratio }}')"
-                    class="py-2.5 px-2 text-xs sm:text-sm rounded-xl border cursor-pointer select-none transition-all duration-200 text-center
+                    class="py-2 px-2 text-xs rounded-xl border cursor-pointer select-none transition-all duration-200 text-center
                         {{ $selectedAspectRatio === $ratio 
                             ? 'bg-purple-500/20 border-purple-500/50 text-purple-300 shadow-[0_0_20px_rgba(168,85,247,0.2)]' 
                             : 'bg-white/[0.03] border-white/[0.08] text-white/70 hover:bg-white/[0.06] hover:border-white/[0.15]' 
@@ -63,6 +125,30 @@
             @endforeach
         </div>
     </div>
+
+    <!-- Image Size Selector (chỉ cho Gemini models) -->
+    @if(str_contains($style->openrouter_model_id, 'gemini'))
+        <div class="bg-white/[0.03] border border-white/[0.08] rounded-xl p-4">
+            <label class="block text-sm font-medium text-white/60 mb-3 inline-flex items-center gap-2">
+                <i class="fa-solid fa-expand" style="font-size: 14px;"></i>
+                <span>Chất lượng ảnh</span>
+            </label>
+            <div class="grid grid-cols-3 gap-2">
+                @foreach($imageSizes as $size => $label)
+                    <button 
+                        wire:click="$set('selectedImageSize', '{{ $size }}')"
+                        class="py-2.5 px-3 text-sm rounded-xl border cursor-pointer select-none transition-all duration-200 text-center
+                            {{ $selectedImageSize === $size 
+                                ? 'bg-cyan-500/20 border-cyan-500/50 text-cyan-300 shadow-[0_0_20px_rgba(6,182,212,0.2)]' 
+                                : 'bg-white/[0.03] border-white/[0.08] text-white/70 hover:bg-white/[0.06] hover:border-white/[0.15]' 
+                            }}">
+                        {{ $label }}
+                    </button>
+                @endforeach
+            </div>
+            <p class="text-xs text-white/30 mt-2">Ảnh 4K sẽ tốn thêm thời gian xử lý</p>
+        </div>
+    @endif
 
     <!-- Generate Section -->
     <div class="bg-white/[0.03] border border-white/[0.08] rounded-xl p-4 md:p-5">
