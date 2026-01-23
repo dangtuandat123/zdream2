@@ -1,45 +1,95 @@
 <x-app-layout>
-    <x-slot name="title">Admin Dashboard - EZShot AI</x-slot>
+    <x-slot name="title">Admin Dashboard - ZDream</x-slot>
 
-    <div class="container mx-auto px-4 py-8">
-        <h1 class="text-2xl font-bold text-white/90 mb-8">Admin Dashboard</h1>
-        
-        <div class="grid md:grid-cols-3 gap-6">
-            {{-- Styles Card --}}
-            <a href="{{ route('admin.styles.index') }}" 
-               class="group p-6 rounded-2xl bg-white/[0.03] border border-white/[0.08] hover:border-primary-500/30 transition-all">
-                <div class="w-12 h-12 mb-4 rounded-xl bg-primary-500/10 flex items-center justify-center">
-                    <svg class="w-6 h-6 text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                    </svg>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+        <div class="flex items-center justify-between mb-8">
+            <div>
+                <h1 class="text-2xl font-bold text-white flex items-center gap-3">
+                    <i class="fa-solid fa-crown w-6 h-6 text-cyan-400"></i>
+                    Admin Dashboard
+                </h1>
+                <p class="text-white/50 text-sm mt-1">Quản lý hệ thống ZDream</p>
+            </div>
+        </div>
+
+        <!-- Stats Grid -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            <div class="bg-white/[0.03] border border-white/[0.08] rounded-xl p-4">
+                <div class="flex items-center gap-3 mb-2">
+                    <div class="w-10 h-10 rounded-lg bg-purple-500/20 flex items-center justify-center">
+                        <i class="fa-solid fa-users w-5 h-5 text-purple-400"></i>
+                    </div>
+                    <span class="text-white/50 text-sm">Users</span>
                 </div>
-                <h3 class="text-lg font-semibold text-white/90 group-hover:text-primary-300 transition-colors">
-                    Quản lý Styles
-                </h3>
-                <p class="text-sm text-white/50 mt-1">Tạo và chỉnh sửa các Style AI</p>
+                <p class="text-2xl font-bold text-white">{{ \App\Models\User::count() }}</p>
+            </div>
+            <div class="bg-white/[0.03] border border-white/[0.08] rounded-xl p-4">
+                <div class="flex items-center gap-3 mb-2">
+                    <div class="w-10 h-10 rounded-lg bg-pink-500/20 flex items-center justify-center">
+                        <i class="fa-solid fa-palette w-5 h-5 text-pink-400"></i>
+                    </div>
+                    <span class="text-white/50 text-sm">Styles</span>
+                </div>
+                <p class="text-2xl font-bold text-white">{{ \App\Models\Style::count() }}</p>
+            </div>
+            <div class="bg-white/[0.03] border border-white/[0.08] rounded-xl p-4">
+                <div class="flex items-center gap-3 mb-2">
+                    <div class="w-10 h-10 rounded-lg bg-cyan-500/20 flex items-center justify-center">
+                        <i class="fa-solid fa-image w-5 h-5 text-cyan-400"></i>
+                    </div>
+                    <span class="text-white/50 text-sm">Ảnh đã tạo</span>
+                </div>
+                <p class="text-2xl font-bold text-white">{{ \App\Models\GeneratedImage::count() }}</p>
+            </div>
+            <div class="bg-white/[0.03] border border-white/[0.08] rounded-xl p-4">
+                <div class="flex items-center gap-3 mb-2">
+                    <div class="w-10 h-10 rounded-lg bg-green-500/20 flex items-center justify-center">
+                        <i class="fa-solid fa-coins w-5 h-5 text-green-400"></i>
+                    </div>
+                    <span class="text-white/50 text-sm">Tổng Xu</span>
+                </div>
+                <p class="text-2xl font-bold text-white">{{ number_format(\App\Models\User::sum('credits'), 0) }}</p>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <a href="{{ route('admin.styles.index') }}" class="group bg-white/[0.03] border border-white/[0.08] rounded-xl p-6 hover:border-purple-500/30 hover:bg-white/[0.05] transition-all">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
+                        <i class="fa-solid fa-palette w-6 h-6 text-white"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-semibold text-white group-hover:text-purple-300 transition-colors">Quản lý Styles</h3>
+                        <p class="text-white/50 text-sm">Thêm, sửa, xóa styles</p>
+                    </div>
+                    <i class="fa-solid fa-chevron-right w-4 h-4 text-white/30 ml-auto group-hover:text-purple-400 transition-colors"></i>
+                </div>
             </a>
-
-            {{-- Users Card --}}
-            <div class="p-6 rounded-2xl bg-white/[0.03] border border-white/[0.08] opacity-50 cursor-not-allowed">
-                <div class="w-12 h-12 mb-4 rounded-xl bg-accent-purple/10 flex items-center justify-center">
-                    <svg class="w-6 h-6 text-accent-purple" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m3 5.197v-1"/>
-                    </svg>
+            <a href="{{ route('admin.styles.create') }}" class="group bg-white/[0.03] border border-white/[0.08] rounded-xl p-6 hover:border-cyan-500/30 hover:bg-white/[0.05] transition-all">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-500 flex items-center justify-center">
+                        <i class="fa-solid fa-plus w-6 h-6 text-white"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-semibold text-white group-hover:text-cyan-300 transition-colors">Tạo Style mới</h3>
+                        <p class="text-white/50 text-sm">Thêm style AI mới</p>
+                    </div>
+                    <i class="fa-solid fa-chevron-right w-4 h-4 text-white/30 ml-auto group-hover:text-cyan-400 transition-colors"></i>
                 </div>
-                <h3 class="text-lg font-semibold text-white/90">Quản lý Users</h3>
-                <p class="text-sm text-white/50 mt-1">Sắp ra mắt...</p>
-            </div>
-
-            {{-- Stats Card --}}
-            <div class="p-6 rounded-2xl bg-white/[0.03] border border-white/[0.08] opacity-50 cursor-not-allowed">
-                <div class="w-12 h-12 mb-4 rounded-xl bg-accent-cyan/10 flex items-center justify-center">
-                    <svg class="w-6 h-6 text-accent-cyan" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
-                    </svg>
+            </a>
+            <a href="{{ route('home') }}" class="group bg-white/[0.03] border border-white/[0.08] rounded-xl p-6 hover:border-green-500/30 hover:bg-white/[0.05] transition-all">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center">
+                        <i class="fa-solid fa-eye w-6 h-6 text-white"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-semibold text-white group-hover:text-green-300 transition-colors">Xem trang chủ</h3>
+                        <p class="text-white/50 text-sm">Xem như người dùng</p>
+                    </div>
+                    <i class="fa-solid fa-chevron-right w-4 h-4 text-white/30 ml-auto group-hover:text-green-400 transition-colors"></i>
                 </div>
-                <h3 class="text-lg font-semibold text-white/90">Thống kê</h3>
-                <p class="text-sm text-white/50 mt-1">Sắp ra mắt...</p>
-            </div>
+            </a>
         </div>
     </div>
 </x-app-layout>
