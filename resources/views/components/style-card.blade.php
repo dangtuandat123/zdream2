@@ -1,50 +1,71 @@
-{{-- Style Card Component - Mobile First --}}
-@props(['style'])
+{{-- Style Card Component - ZDream Design --}}
+@props(['style', 'loop' => null])
 
-<a href="{{ route('studio.show', $style->slug) }}" 
-   class="group relative overflow-hidden rounded-2xl glass-card-hover">
-    
-    {{-- Image Container --}}
-    <div class="aspect-[3/4] overflow-hidden">
-        <img src="{{ $style->thumbnail }}" 
-             alt="{{ $style->name }}"
-             class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-             loading="lazy">
-        
-        {{-- Gradient Overlays --}}
-        <div class="absolute inset-0 bg-gradient-to-t from-dark-950 via-dark-950/40 to-transparent opacity-90"></div>
-        
-        {{-- Glow on hover --}}
-        <div class="absolute inset-0 bg-gradient-to-t from-primary-500/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-    </div>
+@php
+    $isHot = $loop && $loop->index < 3;
+    $isNew = $loop && $loop->index >= 3 && $loop->index < 5;
+@endphp
 
-    {{-- Content --}}
-    <div class="absolute bottom-0 left-0 right-0 p-3 md:p-4">
-        {{-- Title --}}
-        <h3 class="text-base md:text-lg font-semibold text-white mb-1 group-hover:text-primary-300 transition-colors line-clamp-2">
-            {{ $style->name }}
-        </h3>
-        
-        {{-- Description (Desktop only) --}}
-        @if($style->description)
-            <p class="hidden md:block text-sm text-white/40 line-clamp-2 mb-3">{{ $style->description }}</p>
-        @endif
-
-        {{-- Footer --}}
-        <div class="flex items-center justify-between mt-2">
-            {{-- Price Badge --}}
-            <div class="flex items-center gap-1 text-accent-cyan">
-                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.736 6.979C9.208 6.193 9.696 6 10 6c.304 0 .792.193 1.264.979a1 1 0 001.715-1.029C12.279 4.784 11.232 4 10 4s-2.279.784-2.979 1.95c-.285.475-.507 1-.67 1.55H6a1 1 0 000 2h.013a9.358 9.358 0 000 1H6a1 1 0 100 2h.351c.163.55.385 1.075.67 1.55C7.721 15.216 8.768 16 10 16s2.279-.784 2.979-1.95a1 1 0 10-1.715-1.029c-.472.786-.96.979-1.264.979-.304 0-.792-.193-1.264-.979a4.265 4.265 0 01-.264-.521H10a1 1 0 100-2H8.017a7.36 7.36 0 010-1H10a1 1 0 100-2H8.472c.08-.185.167-.36.264-.521z"/>
-                </svg>
-                <span class="text-sm font-bold">{{ number_format($style->price, 0) }}</span>
+<a href="{{ route('studio.show', $style->slug) }}" class="group block h-full">
+    <div class="style-card shine-effect h-full">
+        {{-- Image Container --}}
+        <div class="relative aspect-[3/4] overflow-hidden rounded-t-2xl sm:rounded-t-3xl">
+            <img src="{{ $style->thumbnail }}" 
+                 alt="{{ $style->name }}" 
+                 class="style-card-image"
+                 loading="lazy">
+            
+            {{-- Gradient Overlays --}}
+            <div class="absolute inset-0 bg-gradient-to-t from-[#0a0a0f] via-transparent to-transparent opacity-80"></div>
+            <div class="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-pink-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+            
+            {{-- Top Badges --}}
+            <div class="absolute top-2 sm:top-3 left-2 sm:left-3 right-2 sm:right-3 flex items-start justify-between">
+                @if($isHot)
+                    <span class="badge-hot">
+                        <i class="fa-solid fa-fire w-2 h-2 sm:w-2.5 sm:h-2.5"></i> HOT
+                    </span>
+                @elseif($isNew)
+                    <span class="badge-new">
+                        <i class="fa-solid fa-bolt w-2 h-2 sm:w-2.5 sm:h-2.5"></i> MỚI
+                    </span>
+                @else
+                    <div></div>
+                @endif
+                
+                {{-- Price Badge --}}
+                <div class="badge-price">
+                    <span class="text-white font-bold text-[9px] sm:text-xs flex items-center gap-0.5 sm:gap-1">
+                        <i class="fa-solid fa-star w-2 h-2 sm:w-3 sm:h-3 text-yellow-400"></i> {{ number_format($style->price, 0) }} Xu
+                    </span>
+                </div>
             </div>
-
-            {{-- Arrow Button --}}
-            <div class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center group-hover:bg-primary-500 group-hover:scale-110 transition-all duration-300">
-                <svg class="w-4 h-4 text-white/60 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-                </svg>
+            
+            {{-- Hover CTA (Desktop) --}}
+            <div class="style-card-cta absolute inset-0 items-center justify-center">
+                <div class="transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
+                    <div class="px-6 py-3 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold text-sm shadow-xl shadow-purple-500/30 flex items-center gap-2">
+                        Thử ngay <i class="fa-solid fa-arrow-right w-3.5 h-3.5"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        {{-- Content --}}
+        <div class="flex flex-col flex-1 p-2.5 sm:p-4">
+            <h3 class="style-card-title text-xs sm:text-base lg:text-lg line-clamp-1">{{ $style->name }}</h3>
+            @if($style->description)
+                <p class="hidden sm:block text-white/40 text-[10px] sm:text-sm mt-1 sm:mt-1.5 line-clamp-2 flex-1">{{ $style->description }}</p>
+            @endif
+            
+            {{-- Footer --}}
+            <div class="flex items-center justify-between mt-2 sm:mt-3 pt-2 sm:pt-3 border-t border-white/[0.05]">
+                <div class="flex items-center gap-1 sm:gap-1.5 text-white/50 text-[10px] sm:text-xs">
+                    <span class="w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full bg-green-500 animate-pulse"></span> Sẵn sàng
+                </div>
+                <div class="flex items-center gap-1 text-purple-400 text-[10px] sm:text-xs font-medium">
+                    <i class="fa-solid fa-arrow-right w-2.5 h-2.5 sm:w-3 sm:h-3"></i>
+                </div>
             </div>
         </div>
     </div>
