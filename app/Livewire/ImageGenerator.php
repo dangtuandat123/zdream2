@@ -18,6 +18,8 @@ use Livewire\WithFileUploads;
  * 
  * Component chính để tạo ảnh AI.
  * Xử lý: chọn options -> trừ credits -> gọi API -> lưu ảnh -> hiển thị
+ * 
+ * Production-grade với full validation và error handling
  */
 class ImageGenerator extends Component
 {
@@ -82,7 +84,16 @@ class ImageGenerator extends Component
         $this->selectedAspectRatio = $style->aspect_ratio ?? '1:1';
         
         // Pre-select default options
-        foreach ($style->options as $option) {
+        $this->preselectDefaultOptions();
+    }
+
+    /**
+     * Pre-select default options khi mount hoặc reset
+     */
+    protected function preselectDefaultOptions(): void
+    {
+        $this->selectedOptions = [];
+        foreach ($this->style->options as $option) {
             if ($option->is_default) {
                 $this->selectedOptions[$option->group_name] = $option->id;
             }
@@ -94,6 +105,12 @@ class ImageGenerator extends Component
      */
     public function selectOption(string $groupName, int $optionId): void
     {
+        // Validate optionId belongs to style
+        $validIds = $this->style->options->pluck('id')->all();
+        if (!in_array($optionId, $validIds, true)) {
+            return;
+        }
+
         // Nếu đã chọn rồi thì bỏ chọn
         if (isset($this->selectedOptions[$groupName]) && $this->selectedOptions[$groupName] === $optionId) {
             unset($this->selectedOptions[$groupName]);
@@ -107,12 +124,23 @@ class ImageGenerator extends Component
      */
     public function updatedUploadedImages($value, $key): void
     {
+        // Validate slot key exists
+        $slotKeys = $this->getImageSlotKeys();
+        if (!in_array($key, $slotKeys, true)) {
+            unset($this->uploadedImages[$key]);
+            return;
+        }
+
         $this->validate([
             "uploadedImages.{$key}" => 'image|max:10240', // Max 10MB
         ]);
 
         if (isset($this->uploadedImages[$key]) && $this->uploadedImages[$key]) {
-            $this->uploadedImagePreviews[$key] = $this->uploadedImages[$key]->temporaryUrl();
+            try {
+                $this->uploadedImagePreviews[$key] = $this->uploadedImages[$key]->temporaryUrl();
+            } catch (\Exception $e) {
+                Log::warning('Failed to get temporary URL', ['key' => $key, 'error' => $e->getMessage()]);
+            }
         }
     }
 
@@ -133,10 +161,17 @@ class ImageGenerator extends Component
         $result = [];
         
         foreach ($this->uploadedImages as $key => $image) {
-            if ($image) {
-                $contents = file_get_contents($image->getRealPath());
-                $mimeType = $image->getMimeType();
-                $result[$key] = "data:{$mimeType};base64," . base64_encode($contents);
+            if ($image && method_exists($image, 'getRealPath')) {
+                try {
+                    $realPath = $image->getRealPath();
+                    if ($realPath && file_exists($realPath)) {
+                        $contents = file_get_contents($realPath);
+                        $mimeType = $image->getMimeType() ?? 'image/jpeg';
+                        $result[$key] = "data:{$mimeType};base64," . base64_encode($contents);
+                    }
+                } catch (\Exception $e) {
+                    Log::warning('Failed to encode image to base64', ['key' => $key, 'error' => $e->getMessage()]);
+                }
             }
         }
         
@@ -144,10 +179,25 @@ class ImageGenerator extends Component
     }
 
     /**
-     * Generate image
+     * Lấy danh sách key của image slots
+     */
+    protected function getImageSlotKeys(): array
+    {
+        $imageSlots = $this->style->image_slots ?? [];
+
+        return collect($imageSlots)
+            ->pluck('key')
+            ->filter(fn($key) => !empty($key))
+            ->values()
+            ->all();
+    }
+
+    /**
+     * Generate image - MAIN FLOW
      */
     public function generate(): void
     {
+        // Prevent double-click
         if ($this->isGenerating) {
             return;
         }
@@ -157,31 +207,24 @@ class ImageGenerator extends Component
         $user = Auth::user();
         
         if (!$user) {
-            $this->errorMessage = 'Vui l?ng ??ng nh?p ?? t?o ?nh.';
+            $this->errorMessage = 'Vui lòng đăng nhập để tạo ảnh.';
             return;
         }
 
-        // Ki?m tra ?? credits
+        // Kiểm tra đủ credits
         if (!$user->hasEnoughCredits($this->style->price)) {
-            $this->errorMessage = "B?n kh?ng ?? credits. C?n: {$this->style->price}, Hi?n c?: {$user->credits}";
+            $this->errorMessage = "Bạn không đủ credits. Cần: {$this->style->price}, Hiện có: {$user->credits}";
             return;
         }
 
+        // Validate all inputs
         if (!$this->validateGenerationInputs()) {
             return;
         }
 
         // Validate required images
-        $imageSlots = $this->style->image_slots ?? [];
-        foreach ($imageSlots as $slot) {
-            $slotKey = $slot['key'] ?? '';
-            $isRequired = $slot['required'] ?? false;
-            $slotLabel = $slot['label'] ?? '?nh';
-            
-            if ($isRequired && empty($this->uploadedImages[$slotKey])) {
-                $this->errorMessage = "Vui l?ng upload ?nh: {$slotLabel}";
-                return;
-            }
+        if (!$this->validateRequiredImages()) {
+            return;
         }
 
         $this->isGenerating = true;
@@ -190,31 +233,31 @@ class ImageGenerator extends Component
         $walletService = app(WalletService::class);
 
         try {
-            // L?y danh s?ch option IDs ?? ch?n
+            // Lấy danh sách option IDs đã chọn
             $selectedOptionIds = array_values($this->selectedOptions);
 
-            // T?o record GeneratedImage tr??c (tr?ng th?i processing)
+            // Tạo record GeneratedImage trước (trạng thái processing)
             $generatedImage = GeneratedImage::create([
                 'user_id' => $user->id,
                 'style_id' => $this->style->id,
-                'final_prompt' => '', // S? c?p nh?t sau
+                'final_prompt' => '', // Sẽ cập nhật sau
                 'selected_options' => $selectedOptionIds,
                 'user_custom_input' => $this->customInput ?: null,
                 'status' => GeneratedImage::STATUS_PROCESSING,
                 'credits_used' => $this->style->price,
             ]);
 
-            // Tr? credits
+            // Trừ credits
             $walletService->deductCredits(
                 $user,
                 $this->style->price,
-                "T?o ?nh Style: {$this->style->name}",
+                "Tạo ảnh Style: {$this->style->name}",
                 'generation',
                 (string) $generatedImage->id
             );
             $creditsDeducted = true;
 
-            // G?i OpenRouter API
+            // Gọi OpenRouter API
             $openRouterService = app(OpenRouterService::class);
             $inputImagesBase64 = $this->getUploadedImagesBase64();
             
@@ -231,20 +274,9 @@ class ImageGenerator extends Component
                 $error = $result['error'] ?? 'OpenRouter error';
 
                 // Hoàn tiền nếu API thất bại
-                $refunded = false;
-                if ($creditsDeducted) {
-                    $refunded = $this->refundCreditsSafely(
-                        $walletService,
-                        $user,
-                        $this->style->price,
-                        "API error: {$error}",
-                        $generatedImage
-                    );
-                }
+                $refunded = $this->handleRefund($walletService, $user, $creditsDeducted, $error, $generatedImage);
 
-                if ($generatedImage) {
-                    $generatedImage->markAsFailed($error);
-                }
+                $generatedImage->markAsFailed($error);
 
                 $this->errorMessage = $refunded
                     ? 'Có lỗi khi tạo ảnh. Credits đã được hoàn lại.'
@@ -252,10 +284,10 @@ class ImageGenerator extends Component
                 return;
             }
 
-            // C?p nh?t final prompt
+            // Cập nhật final prompt
             $generatedImage->update(['final_prompt' => $result['final_prompt'] ?? '']);
 
-            // L?u ?nh v?o MinIO
+            // Lưu ảnh vào MinIO
             $storageService = app(StorageService::class);
             $storageResult = $storageService->saveBase64Image(
                 $result['image_base64'],
@@ -265,26 +297,17 @@ class ImageGenerator extends Component
             if (!$storageResult['success']) {
                 $storageError = $storageResult['error'] ?? 'Unknown storage error';
 
-                $refunded = false;
-                if ($creditsDeducted) {
-                    $refunded = $this->refundCreditsSafely(
-                        $walletService,
-                        $user,
-                        $this->style->price,
-                        'Storage error: ' . $storageError,
-                        $generatedImage
-                    );
-                }
+                $refunded = $this->handleRefund($walletService, $user, $creditsDeducted, 'Storage error: ' . $storageError, $generatedImage);
 
-                if ($generatedImage) {
-                    $generatedImage->markAsFailed('Storage error: ' . $storageError);
-                }
+                $generatedImage->markAsFailed('Storage error: ' . $storageError);
 
-                $this->errorMessage = 'C? l?i khi l?u ?nh. Credits ?? ???c ho?n l?i.';
+                $this->errorMessage = $refunded
+                    ? 'Có lỗi khi lưu ảnh. Credits đã được hoàn lại.'
+                    : 'Có lỗi khi lưu ảnh. Vui lòng liên hệ hỗ trợ để được hoàn tiền.';
                 return;
             }
 
-            // ??nh d?u ho?n th?nh
+            // Đánh dấu hoàn thành
             $generatedImage->markAsCompleted(
                 $storageResult['path'],
                 $result['openrouter_id'] ?? null
@@ -293,22 +316,26 @@ class ImageGenerator extends Component
             $this->generatedImageUrl = $storageResult['url'];
             $this->lastImageId = $generatedImage->id;
 
+            Log::info('Image generated successfully', [
+                'user_id' => $user->id,
+                'style_id' => $this->style->id,
+                'image_id' => $generatedImage->id,
+            ]);
+
         } catch (InsufficientCreditsException $e) {
             if ($generatedImage) {
-                $generatedImage->markAsFailed('Kh?ng ?? credits');
+                $generatedImage->markAsFailed('Không đủ credits');
             }
-            $this->errorMessage = 'B?n kh?ng ?? credits ?? t?o ?nh.';
+            $this->errorMessage = 'Bạn không đủ credits để tạo ảnh.';
+            
         } catch (\Throwable $e) {
-            $refunded = false;
-            if ($creditsDeducted) {
-                $refunded = $this->refundCreditsSafely(
-                    $walletService,
-                    $user,
-                    $this->style->price,
-                    'Lỗi hệ thống: ' . $e->getMessage(),
-                    $generatedImage
-                );
-            }
+            $refunded = $this->handleRefund(
+                $walletService,
+                $user,
+                $creditsDeducted,
+                'Lỗi hệ thống: ' . $e->getMessage(),
+                $generatedImage
+            );
 
             if ($generatedImage) {
                 $generatedImage->markAsFailed('Lỗi hệ thống: ' . $e->getMessage());
@@ -329,69 +356,34 @@ class ImageGenerator extends Component
             $this->errorMessage = config('app.debug')
                 ? 'Có lỗi xảy ra: ' . $e->getMessage() . $refundMsg
                 : 'Có lỗi xảy ra trong quá trình tạo ảnh.' . $refundMsg;
+                
         } finally {
             $this->isGenerating = false;
         }
     }
 
     /**
-     * Reset state
-     */
-    protected function resetState(): void
-    {
-        $this->errorMessage = null;
-        $this->generatedImageUrl = null;
-    }
-
-    /**
-     * Reset form để tạo ảnh mới
-     */
-    public function resetForm(): void
-    {
-        $this->resetState();
-        $this->customInput = '';
-        $this->selectedOptions = [];
-        $this->uploadedImages = [];
-        $this->uploadedImagePreviews = [];
-        $this->selectedAspectRatio = $this->style->aspect_ratio ?? '1:1';
-        $this->selectedImageSize = '1K';
-        $this->lastImageId = null;
-        
-        // Re-select defaults
-        foreach ($this->style->options as $option) {
-            if ($option->is_default) {
-                $this->selectedOptions[$option->group_name] = $option->id;
-            }
-        }
-    }
-
-    /**
-     * Lấy danh sách key của image slots
-     */
-    protected function getImageSlotKeys(): array
-    {
-        $imageSlots = $this->style->image_slots ?? [];
-
-        return collect($imageSlots)
-            ->pluck('key')
-            ->filter(fn($key) => !empty($key))
-            ->values()
-            ->all();
-    }
-
-    /**
-     * Kiểm tra dữ liệu trước khi tạo ảnh
+     * Validate tất cả inputs trước khi generate
      */
     protected function validateGenerationInputs(): bool
     {
-        // Validate aspect ratio
+        // 1. Validate customInput length (O5: tránh vượt context/cost)
+        if (mb_strlen($this->customInput) > 500) {
+            $this->errorMessage = 'Mô tả bổ sung không được vượt quá 500 ký tự.';
+            return false;
+        }
+
+        // 2. Sanitize customInput - remove dangerous characters
+        $this->customInput = strip_tags($this->customInput);
+
+        // 3. Validate aspect ratio
         $ratioKeys = array_keys($this->aspectRatios);
         if (!empty($ratioKeys) && !in_array($this->selectedAspectRatio, $ratioKeys, true)) {
             $this->errorMessage = 'Tỉ lệ khung hình không hợp lệ. Vui lòng chọn lại.';
             return false;
         }
 
-        // Validate image size (Gemini only)
+        // 4. Validate image size (Gemini only)
         if ($this->supportsImageConfig) {
             if (!array_key_exists($this->selectedImageSize, $this->imageSizes)) {
                 $this->errorMessage = 'Chất lượng ảnh không hợp lệ. Vui lòng chọn lại.';
@@ -402,7 +394,7 @@ class ImageGenerator extends Component
             $this->selectedImageSize = '1K';
         }
 
-        // Validate selected options thuộc style hiện tại
+        // 5. Validate selected options thuộc style hiện tại
         $validOptionIds = $this->style->options->pluck('id')->all();
         foreach ($this->selectedOptions as $optionId) {
             if (!in_array($optionId, $validOptionIds, true)) {
@@ -411,7 +403,7 @@ class ImageGenerator extends Component
             }
         }
 
-        // Validate uploaded image keys
+        // 6. Validate uploaded image keys
         $slotKeys = $this->getImageSlotKeys();
         $uploadedKeys = array_keys($this->uploadedImages);
         if (!empty($uploadedKeys)) {
@@ -420,34 +412,62 @@ class ImageGenerator extends Component
                 $this->errorMessage = 'Ảnh tải lên không hợp lệ. Vui lòng thử lại.';
                 return false;
             }
-        }
 
-        // Re-validate files server-side
-        if (!empty($uploadedKeys)) {
+            // Re-validate files server-side
             $rules = [];
             foreach ($uploadedKeys as $key) {
                 $rules["uploadedImages.{$key}"] = 'image|max:10240';
             }
-            $this->validate($rules);
+            try {
+                $this->validate($rules);
+            } catch (\Illuminate\Validation\ValidationException $e) {
+                $this->errorMessage = 'Ảnh tải lên không hợp lệ. Vui lòng chọn file ảnh (JPEG, PNG, GIF, WebP).';
+                return false;
+            }
         }
 
         return true;
     }
 
     /**
-     * Hoàn credits an toàn (không làm vỡ luồng chính nếu thất bại)
+     * Validate required images from slots
      */
-    protected function refundCreditsSafely(
+    protected function validateRequiredImages(): bool
+    {
+        $imageSlots = $this->style->image_slots ?? [];
+        
+        foreach ($imageSlots as $slot) {
+            $slotKey = $slot['key'] ?? '';
+            $isRequired = $slot['required'] ?? false;
+            $slotLabel = $slot['label'] ?? 'Ảnh';
+            
+            if ($isRequired && empty($this->uploadedImages[$slotKey])) {
+                $this->errorMessage = "Vui lòng upload ảnh: {$slotLabel}";
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Handle refund safely
+     */
+    protected function handleRefund(
         WalletService $walletService,
         $user,
-        float $amount,
+        bool $creditsDeducted,
         string $reason,
         ?GeneratedImage $generatedImage = null
     ): bool {
+        if (!$creditsDeducted) {
+            return false;
+        }
+
         try {
             $walletService->refundCredits(
                 $user,
-                $amount,
+                $this->style->price,
                 $reason,
                 $generatedImage?->id ? (string) $generatedImage->id : null
             );
@@ -457,14 +477,14 @@ class ImageGenerator extends Component
                 'error' => $e->getMessage(),
                 'user_id' => $user->id ?? null,
                 'generated_image_id' => $generatedImage?->id,
-                'amount' => $amount,
+                'amount' => $this->style->price,
             ]);
             return false;
         }
     }
 
     /**
-     * Reset state trước khi tạo ảnh mới (internal)
+     * Reset internal state trước khi tạo ảnh mới
      */
     protected function resetState(): void
     {
@@ -479,30 +499,14 @@ class ImageGenerator extends Component
     public function resetForm(): void
     {
         $this->resetState();
+        $this->customInput = '';
         $this->uploadedImages = [];
         $this->uploadedImagePreviews = [];
-        $this->customInput = '';
-        $this->selectedOptions = [];
-        $this->selectedAspectRatio = '1:1';
+        $this->selectedAspectRatio = $this->style->aspect_ratio ?? '1:1';
         $this->selectedImageSize = '1K';
-    }
-
-    /**
-     * Validate inputs trước khi generate
-     * O5: Giới hạn customInput để tránh vượt context/cost
-     */
-    protected function validateGenerationInputs(): bool
-    {
-        // Validate customInput length
-        if (strlen($this->customInput) > 500) {
-            $this->errorMessage = 'Mô tả bổ sung không được vượt quá 500 ký tự.';
-            return false;
-        }
-
-        // Sanitize customInput - remove dangerous characters
-        $this->customInput = strip_tags($this->customInput);
-
-        return true;
+        
+        // Re-select defaults
+        $this->preselectDefaultOptions();
     }
 
     /**

@@ -22,6 +22,13 @@
             </div>
         @endif
 
+        @if(session('error'))
+            <div class="mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 flex items-center gap-2">
+                <i class="fa-solid fa-exclamation-circle w-5 h-5"></i>
+                {{ session('error') }}
+            </div>
+        @endif
+
         @if($styles->isEmpty())
             <div class="bg-white/[0.03] border border-white/[0.08] rounded-2xl text-center py-16">
                 <i class="fa-solid fa-palette text-4xl text-white/20 mb-4"></i>
