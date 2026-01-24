@@ -400,9 +400,15 @@ class ImageGenerator extends Component
 
     /**
      * Poll image status (called by frontend via wire:poll)
+     * Release session lock để tránh blocking các requests khác
      */
     public function pollImageStatus(): void
     {
+        // Release session lock ngay lập tức để không block các requests khác
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_write_close();
+        }
+
         if (!$this->lastImageId) {
             return;
         }

@@ -131,7 +131,7 @@ class GeneratedImage extends Model
     /**
      * Lấy URL ảnh từ storage_path
      * Sử dụng temporaryUrl (pre-signed) để bypass bucket policy restrictions
-     * Expiry time được cấu hình trong Admin Settings (image_expiry_days)
+     * Note: AWS S3/MinIO giới hạn pre-signed URL max 7 ngày
      */
     public function getImageUrlAttribute(): ?string
     {
@@ -139,20 +139,17 @@ class GeneratedImage extends Model
             return null;
         }
 
-        // Nếu là URL đầy đủ (từ MinIO)
+        // Nếu là URL đầy đủ (đã có protocol)
         if (str_starts_with($this->storage_path, 'http')) {
             return $this->storage_path;
         }
 
-        // Lấy số ngày expiry từ Settings (mặc định 30 ngày)
-        $expiryDays = (int) Setting::get('image_expiry_days', 30);
-
-        // Sử dụng temporaryUrl (pre-signed URL) với expiry từ config
-        // Điều này bypass bucket policy và cho phép public access
+        // Pre-signed URL với expiry 7 ngày (max allowed by S3/MinIO)
+        // URL sẽ được generate mới mỗi lần load trang
         try {
             return Storage::disk('minio')->temporaryUrl(
                 $this->storage_path,
-                now()->addDays($expiryDays)
+                now()->addDays(7)  // Max 7 days for S3-compatible
             );
         } catch (\Exception $e) {
             // Fallback to regular URL nếu temporaryUrl không khả dụng

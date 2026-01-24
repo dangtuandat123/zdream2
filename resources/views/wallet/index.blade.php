@@ -1,5 +1,5 @@
 <x-app-layout>
-    <x-slot name="title">Ví tiền - ZDream</x-slot>
+    <x-slot name="title">Ví tiền - {{ App\Models\Setting::get('site_name', 'ZDream') }}</x-slot>
 
     <div class="max-w-lg mx-auto px-4 sm:px-6 py-6 sm:py-8">
         

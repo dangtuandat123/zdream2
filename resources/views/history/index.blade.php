@@ -120,13 +120,20 @@
                             <p class="text-sm font-medium text-white/80 truncate">{{ $image->style?->name ?? 'Style đã xóa' }}</p>
                             <div class="flex items-center justify-between mt-1">
                                 <span class="text-xs text-white/40">{{ $image->created_at->format('d/m/Y H:i') }}</span>
-                                <span class="text-xs px-2 py-0.5 rounded-full 
-                                    {{ $image->status === 'completed' ? 'bg-green-500/20 text-green-400' : '' }}
-                                    {{ $image->status === 'processing' ? 'bg-yellow-500/20 text-yellow-400' : '' }}
-                                    {{ $image->status === 'failed' ? 'bg-red-500/20 text-red-400' : '' }}
-                                ">
-                                    {{ $image->status === 'completed' ? 'Hoàn thành' : ($image->status === 'processing' ? 'Đang xử lý' : 'Thất bại') }}
-                                </span>
+                                <div class="flex items-center gap-1.5">
+                                    @if($image->status === 'completed' && $image->is_expiring)
+                                        <span class="text-xs px-2 py-0.5 rounded-full bg-orange-500/20 text-orange-400" title="Ảnh sẽ bị xóa sau {{ $image->days_until_expiry }} ngày">
+                                            <i class="fa-solid fa-clock mr-0.5"></i>{{ $image->days_until_expiry }}d
+                                        </span>
+                                    @endif
+                                    <span class="text-xs px-2 py-0.5 rounded-full 
+                                        {{ $image->status === 'completed' ? 'bg-green-500/20 text-green-400' : '' }}
+                                        {{ $image->status === 'processing' ? 'bg-yellow-500/20 text-yellow-400' : '' }}
+                                        {{ $image->status === 'failed' ? 'bg-red-500/20 text-red-400' : '' }}
+                                    ">
+                                        {{ $image->status === 'completed' ? 'Hoàn thành' : ($image->status === 'processing' ? 'Đang xử lý' : 'Thất bại') }}
+                                    </span>
+                                </div>
                             </div>
                         </div>
                     </div>

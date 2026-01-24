@@ -218,15 +218,34 @@
         </div>
     @endif
 
-    <!-- Loading State with Polling -->
+    <!-- Loading State with Polling (5s interval để giảm blocking) -->
     @if($isGenerating)
-        <div wire:poll.2s="pollImageStatus" class="bg-white/[0.03] border border-white/[0.08] rounded-xl p-6 md:p-8 text-center">
+        <div wire:poll.5s="pollImageStatus" class="bg-white/[0.03] border border-white/[0.08] rounded-xl p-6 md:p-8 text-center">
             <div class="inline-flex items-center justify-center w-16 h-16 mb-4 rounded-2xl bg-gradient-to-br from-purple-500/20 to-pink-500/20">
                 <i class="fa-solid fa-spinner w-8 h-8 text-purple-400 animate-spin"></i>
             </div>
             <p class="text-white/80 font-medium mb-1">AI đang sáng tạo... ✨</p>
-            <p class="text-sm text-white/40">Chờ khoảng 10-30 giây</p>
+            <p class="text-sm text-white/40 mb-4">Chờ khoảng 10-30 giây</p>
+            
+            <!-- Progress bar animation -->
+            <div class="w-full h-1.5 bg-white/[0.05] rounded-full overflow-hidden mb-3">
+                <div class="h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full animate-pulse" style="width: 60%; animation: progress 2s ease-in-out infinite;"></div>
+            </div>
+            
+            <!-- Expiry notice -->
+            <p class="text-xs text-white/30">
+                <i class="fa-solid fa-info-circle mr-1"></i>
+                Ảnh sẽ được lưu {{ \App\Models\Setting::get('image_expiry_days', 30) }} ngày
+            </p>
         </div>
+        
+        <style>
+            @keyframes progress {
+                0% { width: 10%; }
+                50% { width: 80%; }
+                100% { width: 10%; }
+            }
+        </style>
     @endif
 
     <!-- Result Image -->
