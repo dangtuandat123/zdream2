@@ -118,6 +118,10 @@
                     <i class="fa-solid fa-chevron-right w-3 h-3 text-white/30"></i>
                 </a>
                 @auth
+                    <a href="{{ route('history.index') }}" class="flex items-center justify-between px-4 py-3 rounded-xl bg-white/[0.02] hover:bg-white/[0.05] border border-white/[0.05] text-white/80 hover:text-white transition-all">
+                        <span class="flex items-center gap-3"><i class="fa-solid fa-clock-rotate-left w-4 h-4 text-purple-400"></i> Lịch sử</span>
+                        <i class="fa-solid fa-chevron-right w-3 h-3 text-white/30"></i>
+                    </a>
                     <a href="{{ route('profile.edit') }}" class="flex items-center justify-between px-4 py-3 rounded-xl bg-white/[0.02] hover:bg-white/[0.05] border border-white/[0.05] text-white/80 hover:text-white transition-all">
                         <span class="flex items-center gap-3"><i class="fa-solid fa-user w-4 h-4 text-purple-400"></i> Hồ sơ</span>
                         <i class="fa-solid fa-chevron-right w-3 h-3 text-white/30"></i>

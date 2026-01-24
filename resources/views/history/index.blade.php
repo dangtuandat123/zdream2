@@ -36,7 +36,7 @@
                         <!-- Image -->
                         <div class="aspect-[3/4] relative">
                             @if($image->status === 'completed' && $image->storage_path)
-                                <img src="{{ $image->full_url }}" alt="Generated Image" 
+                                <img src="{{ $image->image_url }}" alt="Generated Image" 
                                      class="w-full h-full object-cover" loading="lazy">
                             @elseif($image->status === 'processing')
                                 <div class="w-full h-full flex items-center justify-center bg-black/20">
@@ -57,8 +57,8 @@
                             <!-- Overlay on hover -->
                             <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
                                 <div class="absolute bottom-3 left-3 right-3">
-                                    @if($image->status === 'completed' && $image->full_url)
-                                        <a href="{{ $image->full_url }}" target="_blank" 
+                                    @if($image->status === 'completed' && $image->image_url)
+                                        <a href="{{ $image->image_url }}" target="_blank" 
                                            class="w-full py-2 rounded-lg bg-white/20 backdrop-blur-sm text-white text-xs font-medium text-center block hover:bg-white/30 transition-colors">
                                             <i class="fa-solid fa-download mr-1"></i> Tải xuống
                                         </a>

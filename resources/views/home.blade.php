@@ -29,8 +29,8 @@
                         </a>
                         @guest
                             <a href="{{ route('register') }}" class="px-6 sm:px-8 py-3.5 sm:py-4 rounded-xl bg-white/[0.05] border border-white/[0.1] text-white font-medium text-base sm:text-lg hover:bg-white/[0.1] transition-all inline-flex items-center justify-center gap-2">
-                                <i class="fa-solid fa-play" style="font-size: 14px;"></i>
-                                <span>Xem demo</span>
+                                <i class="fa-solid fa-gift" style="font-size: 14px;"></i>
+                                <span>Đăng ký ngay</span>
                             </a>
                         @endguest
                     </div>
