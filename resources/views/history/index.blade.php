@@ -96,8 +96,8 @@
                             <!-- Overlay on hover -->
                             <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
                                 <div class="absolute bottom-3 left-3 right-3 flex gap-2">
-                                    @if($image->status === 'completed' && $image->image_url)
-                                        <a href="{{ $image->image_url }}" target="_blank" download
+                                    @if($image->status === 'completed' && $image->storage_path)
+                                        <a href="{{ route('history.download', $image) }}"
                                            class="flex-1 py-2 rounded-lg bg-white/20 backdrop-blur-sm text-white text-xs font-medium text-center hover:bg-white/30 transition-colors inline-flex items-center justify-center gap-1">
                                             <i class="fa-solid fa-download"></i> Tải
                                         </a>

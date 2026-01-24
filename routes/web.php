@@ -42,6 +42,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // History - Lịch sử ảnh đã tạo
     Route::get('/history', [HistoryController::class, 'index'])->name('history.index');
+    Route::get('/history/{image}/download', [HistoryController::class, 'download'])->name('history.download');
     Route::delete('/history/{image}', [HistoryController::class, 'destroy'])->name('history.destroy');
 
     // Profile (từ Breeze)

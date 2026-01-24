@@ -169,8 +169,8 @@
                 </div>
                 <p class="text-white/40 text-xs sm:text-sm">© {{ date('Y') }} ZDream.vn</p>
                 <div class="flex gap-4 text-white/40">
-                    <a href="#" class="hover:text-white/80 text-xs sm:text-sm">Điều khoản</a>
-                    <a href="#" class="hover:text-white/80 text-xs sm:text-sm">Liên hệ</a>
+                    <a href="javascript:void(0)" class="hover:text-white/80 text-xs sm:text-sm" title="Sắp ra mắt">Điều khoản</a>
+                    <a href="mailto:support@zdream.vn" class="hover:text-white/80 text-xs sm:text-sm">Liên hệ</a>
                 </div>
             </div>
         </div>

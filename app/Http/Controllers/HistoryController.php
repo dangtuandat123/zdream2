@@ -108,4 +108,64 @@ class HistoryController extends Controller
                 ->with('error', 'Không thể xóa ảnh. Vui lòng thử lại.');
         }
     }
+
+    /**
+     * Download ảnh (proxy để bypass cross-origin)
+     */
+    public function download(GeneratedImage $image)
+    {
+        $user = Auth::user();
+
+        // Authorization: Chỉ cho phép download ảnh của chính mình
+        if ($image->user_id !== $user->id) {
+            abort(403, 'Bạn không có quyền tải ảnh này.');
+        }
+
+        // Kiểm tra ảnh hoàn thành và có storage_path
+        if ($image->status !== GeneratedImage::STATUS_COMPLETED || empty($image->storage_path)) {
+            abort(404, 'Ảnh không tồn tại hoặc chưa hoàn thành.');
+        }
+
+        try {
+            $path = $image->storage_path;
+
+            // Nếu là full URL, cần fetch nội dung
+            if (str_starts_with($path, 'http')) {
+                $content = file_get_contents($path);
+                $filename = basename(parse_url($path, PHP_URL_PATH));
+            } else {
+                // Lấy từ MinIO storage
+                if (!Storage::disk('minio')->exists($path)) {
+                    abort(404, 'File không tồn tại trên storage.');
+                }
+                $content = Storage::disk('minio')->get($path);
+                $filename = basename($path);
+            }
+
+            // Xác định mime type
+            $extension = pathinfo($filename, PATHINFO_EXTENSION);
+            $mimeTypes = [
+                'png' => 'image/png',
+                'jpg' => 'image/jpeg',
+                'jpeg' => 'image/jpeg',
+                'webp' => 'image/webp',
+                'gif' => 'image/gif',
+            ];
+            $mimeType = $mimeTypes[strtolower($extension)] ?? 'application/octet-stream';
+
+            return response($content)
+                ->header('Content-Type', $mimeType)
+                ->header('Content-Disposition', 'attachment; filename="' . $filename . '"')
+                ->header('Content-Length', strlen($content));
+
+        } catch (\Exception $e) {
+            Log::error('Failed to download image', [
+                'user_id' => $user->id,
+                'image_id' => $image->id,
+                'error' => $e->getMessage(),
+            ]);
+
+            abort(500, 'Không thể tải ảnh. Vui lòng thử lại.');
+        }
+    }
 }
