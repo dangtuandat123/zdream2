@@ -68,6 +68,22 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
         ->except(['show'])
         ->parameters(['options' => 'option']);
 
+    // User Management
+    Route::get('users', [App\Http\Controllers\Admin\UserController::class, 'index'])->name('users.index');
+    Route::get('users/{user}', [App\Http\Controllers\Admin\UserController::class, 'show'])->name('users.show');
+    Route::get('users/{user}/edit', [App\Http\Controllers\Admin\UserController::class, 'edit'])->name('users.edit');
+    Route::put('users/{user}', [App\Http\Controllers\Admin\UserController::class, 'update'])->name('users.update');
+    Route::post('users/{user}/toggle-status', [App\Http\Controllers\Admin\UserController::class, 'toggleStatus'])->name('users.toggle-status');
+    Route::post('users/{user}/adjust-credits', [App\Http\Controllers\Admin\UserController::class, 'adjustCredits'])->name('users.adjust-credits');
+
+    // Transaction History (All)
+    Route::get('transactions', [App\Http\Controllers\Admin\TransactionController::class, 'index'])->name('transactions.index');
+
+    // Generated Images (All)  
+    Route::get('images', [App\Http\Controllers\Admin\GeneratedImageController::class, 'index'])->name('images.index');
+    Route::get('images/{image}', [App\Http\Controllers\Admin\GeneratedImageController::class, 'show'])->name('images.show');
+    Route::delete('images/{image}', [App\Http\Controllers\Admin\GeneratedImageController::class, 'destroy'])->name('images.destroy');
+
     // Settings
     Route::get('settings', [AdminSettingsController::class, 'index'])->name('settings.index');
     Route::put('settings', [AdminSettingsController::class, 'update'])->name('settings.update');
