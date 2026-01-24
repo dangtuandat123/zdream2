@@ -92,52 +92,53 @@
                     <!-- Options Selection với Thumbnails -->
                     @if($optionGroups->isNotEmpty())
                         @foreach($optionGroups as $groupName => $options)
-                            <div>
+                            <div wire:key="group-{{ Str::slug($groupName) }}">
                                 <h3 class="text-sm font-medium text-white/60 mb-3 flex items-center gap-2">
                                     <span class="w-1 h-4 bg-gradient-to-b from-purple-400 to-pink-500 rounded-full"></span>
                                     {{ $groupName }}
                                 </h3>
-                                <div class="flex flex-wrap gap-3">
-                                    <!-- Option: Mặc định (không hiệu ứng) -->
+                                <div class="flex flex-wrap gap-4 pb-2">
+                                    {{-- Default option --}}
                                     <button 
+                                        type="button"
                                         wire:click="selectOption('{{ $groupName }}', null)"
+                                        wire:key="option-{{ Str::slug($groupName) }}-default"
                                         class="flex flex-col items-center gap-2 group cursor-pointer select-none">
                                         <!-- Collage Container -->
-                                        <div class="relative w-16 h-16 sm:w-20 sm:h-20 transition-transform duration-200 group-hover:scale-105
+                                        <div class="relative w-16 h-16 sm:w-20 sm:h-20 transition-all duration-200 group-hover:scale-105
                                             {{ !isset($selectedOptions[$groupName]) || $selectedOptions[$groupName] === null ? 'ring-2 ring-cyan-400 ring-offset-2 ring-offset-[#0a0a0f]' : '' }}">
-                                            <div class="absolute inset-0 rounded-lg bg-[#1a1a2e] border border-white/10 flex items-center justify-center">
+                                            <div class="absolute inset-0 rounded-lg bg-[#1a1a2e] border border-white/10 flex items-center justify-center z-10">
                                                 <i class="fa-solid fa-ban text-white/30" style="font-size: 24px;"></i>
                                             </div>
                                         </div>
                                         <span class="text-xs font-medium {{ !isset($selectedOptions[$groupName]) || $selectedOptions[$groupName] === null ? 'text-cyan-400' : 'text-white/50' }}">Mặc định</span>
                                     </button>
 
+                                    {{-- Style options --}}
                                     @foreach($options as $option)
                                         <button 
+                                            type="button"
                                             wire:click="selectOption('{{ $groupName }}', {{ $option->id }})"
+                                            wire:key="option-{{ $option->id }}"
                                             class="flex flex-col items-center gap-2 group cursor-pointer select-none">
                                             <!-- Collage Container with Stacked Photos -->
-                                            <div class="relative w-16 h-16 sm:w-20 sm:h-20 transition-transform duration-200 group-hover:scale-105
+                                            <div class="relative w-16 h-16 sm:w-20 sm:h-20 transition-all duration-200 group-hover:scale-105
                                                 {{ isset($selectedOptions[$groupName]) && $selectedOptions[$groupName] === $option->id ? 'ring-2 ring-cyan-400 ring-offset-2 ring-offset-[#0a0a0f]' : '' }}">
-                                                @if($option->thumbnail_url)
-                                                    <!-- Single thumbnail as main image with shadow effect -->
-                                                    <div class="absolute inset-0 rounded-lg overflow-hidden shadow-lg">
+                                                
+                                                <!-- Main Image Layer -->
+                                                <div class="absolute inset-0 rounded-lg overflow-hidden shadow-lg border border-white/10 z-10 bg-[#1a1a2e] flex items-center justify-center">
+                                                    @if($option->thumbnail_url)
                                                         <img src="{{ $option->thumbnail_url }}" alt="{{ $option->label }}" class="w-full h-full object-cover">
-                                                    </div>
-                                                    <!-- Decorative stacked effect (pseudo layers behind) -->
-                                                    <div class="absolute -bottom-1 -right-1 w-12 h-12 sm:w-14 sm:h-14 rounded-lg bg-white/5 border border-white/10 -z-10 rotate-6"></div>
-                                                    <div class="absolute -bottom-2 -right-2 w-10 h-10 sm:w-12 sm:h-12 rounded-lg bg-white/3 border border-white/5 -z-20 rotate-12"></div>
-                                                @else
-                                                    <!-- Placeholder with stacked effect -->
-                                                    <div class="absolute inset-0 rounded-lg bg-[#1a1a2e] border border-white/10 flex items-center justify-center">
-                                                        @if($option->icon)
-                                                            <i class="{{ $option->icon }} text-white/40" style="font-size: 20px;"></i>
-                                                        @else
-                                                            <i class="fa-solid fa-wand-magic-sparkles text-white/30" style="font-size: 18px;"></i>
-                                                        @endif
-                                                    </div>
-                                                    <div class="absolute -bottom-1 -right-1 w-12 h-12 sm:w-14 sm:h-14 rounded-lg bg-white/5 border border-white/10 -z-10 rotate-6"></div>
-                                                @endif
+                                                    @elseif($option->icon)
+                                                        <i class="{{ $option->icon }} text-white/40" style="font-size: 20px;"></i>
+                                                    @else
+                                                        <i class="fa-solid fa-wand-magic-sparkles text-white/30" style="font-size: 18px;"></i>
+                                                    @endif
+                                                </div>
+
+                                                <!-- Decorative stacked effect (pseudo layers behind) -->
+                                                <div class="absolute -bottom-1 -right-1 w-full h-full rounded-lg bg-white/5 border border-white/10 rotate-3 pointer-events-none z-0"></div>
+                                                <div class="absolute -bottom-2 -right-2 w-full h-full rounded-lg bg-white/3 border border-white/5 rotate-6 pointer-events-none -z-10"></div>
                                             </div>
                                             <span class="text-xs font-medium {{ isset($selectedOptions[$groupName]) && $selectedOptions[$groupName] === $option->id ? 'text-cyan-400' : 'text-white/50' }}">{{ $option->label }}</span>
                                         </button>
@@ -211,14 +212,16 @@
                         <i class="fa-solid fa-crop" style="font-size: 14px;"></i>
                         <span>Tỉ lệ khung hình</span>
                     </label>
-                    <div class="grid grid-cols-2 sm:grid-cols-5 gap-2">
+                    <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
                         @foreach($aspectRatios as $ratio => $label)
                             <button 
+                                type="button"
                                 wire:click="$set('selectedAspectRatio', '{{ $ratio }}')"
-                                class="py-2 px-2 text-xs rounded-xl border cursor-pointer select-none transition-all duration-200 text-center
+                                wire:key="ratio-{{ Str::slug($ratio) }}"
+                                class="py-2.5 px-2 text-[10px] sm:text-xs rounded-xl border transition-all duration-200 text-center font-medium
                                     {{ $selectedAspectRatio === $ratio 
-                                        ? 'bg-purple-500/20 border-purple-500/50 text-purple-300 shadow-[0_0_20px_rgba(168,85,247,0.2)]' 
-                                        : 'bg-white/[0.03] border-white/[0.08] text-white/70 hover:bg-white/[0.06] hover:border-white/[0.15]' 
+                                        ? 'bg-cyan-500/10 border-cyan-500/50 text-cyan-400 shadow-[0_0_15px_rgba(6,182,212,0.15)] ring-1 ring-cyan-500/30' 
+                                        : 'bg-white/[0.03] border-white/[0.08] text-white/50 hover:bg-white/[0.06] hover:border-white/[0.15]' 
                                     }}">
                                 {{ $label }}
                             </button>
@@ -233,14 +236,16 @@
                             <i class="fa-solid fa-expand" style="font-size: 14px;"></i>
                             <span>Chất lượng ảnh</span>
                         </label>
-                        <div class="grid grid-cols-3 gap-2">
+                        <div class="grid grid-cols-3 gap-3">
                             @foreach($imageSizes as $size => $label)
                                 <button 
+                                    type="button"
                                     wire:click="$set('selectedImageSize', '{{ $size }}')"
-                                    class="py-2.5 px-3 text-sm rounded-xl border cursor-pointer select-none transition-all duration-200 text-center
+                                    wire:key="size-{{ Str::slug($size) }}"
+                                    class="py-2.5 px-3 text-xs rounded-xl border transition-all duration-200 text-center font-medium
                                         {{ $selectedImageSize === $size 
-                                            ? 'bg-cyan-500/20 border-cyan-500/50 text-cyan-300 shadow-[0_0_20px_rgba(6,182,212,0.2)]' 
-                                            : 'bg-white/[0.03] border-white/[0.08] text-white/70 hover:bg-white/[0.06] hover:border-white/[0.15]' 
+                                            ? 'bg-cyan-500/10 border-cyan-500/50 text-cyan-400 shadow-[0_0_15px_rgba(6,182,212,0.15)] ring-1 ring-cyan-500/30' 
+                                            : 'bg-white/[0.03] border-white/[0.08] text-white/50 hover:bg-white/[0.06] hover:border-white/[0.15]' 
                                         }}">
                                     {{ $label }}
                                 </button>

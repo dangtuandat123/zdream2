@@ -19,8 +19,8 @@
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
-    <!-- Vite Assets -->
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <!-- Vite Assets (CSS only to avoid Alpine conflict) -->
+    @vite(['resources/css/app.css'])
     
     <!-- Livewire Styles -->
     @livewireStyles
@@ -175,9 +175,6 @@
             </div>
         </div>
     </footer>
-
-    <!-- Livewire Scripts -->
-    @livewireScripts
     
     <!-- Custom Scripts -->
     <script>
@@ -218,5 +215,8 @@
             });
         });
     </script>
+    
+    <!-- Livewire Scripts (REQUIRED for wire:click) -->
+    @livewireScripts
 </body>
 </html>
