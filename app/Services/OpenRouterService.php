@@ -33,6 +33,7 @@ class OpenRouterService
 
     /**
      * Tạo HTTP client với headers chuẩn
+     * Thêm retry/backoff để xử lý 429/5xx errors
      */
     protected function client(): PendingRequest
     {
@@ -41,7 +42,10 @@ class OpenRouterService
             'Content-Type' => 'application/json',
             'HTTP-Referer' => config('app.url'),
             'X-Title' => config('app.name'),
-        ])->timeout($this->timeout);
+        ])->acceptJson()
+          ->timeout($this->timeout)
+          ->connectTimeout(10)
+          ->retry(2, 500);
     }
 
     /**
@@ -57,53 +61,17 @@ class OpenRouterService
             if (!$response->successful()) {
                 Log::error('OpenRouter balance check failed', [
                     'status' => $response->status(),
-                    'body' => $response->body(),
+                    'body' => substr($response->body(), 0, 500),
                 ]);
-                return ['error' => 'Failed to check balance'];
+                return ['error' => 'Failed to check balance', 'status' => $response->status()];
             }
             
-            $data = $response->json();
+            $data = $response->json()['data'] ?? [];
             
-            // DEBUG: Log response structure ?? debug c?c model kh?c nhau
-            $choices = $data['choices'] ?? [];
-            $firstMessage = $choices[0]['message'] ?? [];
-            Log::debug('OpenRouter API response structure', [
-                'model' => $style->openrouter_model_id,
-                'has_choices' => !empty($choices),
-                'choices_count' => is_array($choices) ? count($choices) : 0,
-                'message_keys' => is_array($firstMessage) ? array_keys($firstMessage) : [],
-                'has_images' => isset($firstMessage['images']),
-                'images_count' => isset($firstMessage['images']) && is_array($firstMessage['images']) ? count($firstMessage['images']) : 0,
-                'content_type' => isset($firstMessage['content']) ? gettype($firstMessage['content']) : null,
-            ]);
-            
-            // Parse response ?? l?y Base64 image
-            $imageBase64 = $this->extractImageFromResponse($data);
-            
-            if (empty($imageBase64)) {
-                // Log th?m chi ti?t khi kh?ng extract ???c
-                Log::error('Failed to extract image from response', [
-                    'model' => $style->openrouter_model_id,
-                    'response_preview' => substr(json_encode($data), 0, 2000),
-                ]);
-                
-                return [
-                    'success' => false,
-                    'error' => 'No image data in response',
-                    'final_prompt' => $finalPrompt,
-                ];
-
             return [
-                    'success' => false,
-                    'error' => 'No image data in response',
-                    'final_prompt' => $finalPrompt,
-                ];
-            }
-
-            return [
-                'balance' => $data['data']['credit_balance'] ?? 0,
-                'usage' => $data['data']['usage'] ?? [],
-                'rate_limit' => $data['data']['rate_limit'] ?? [],
+                'balance' => (float) ($data['credit_balance'] ?? 0),
+                'usage' => $data['usage'] ?? [],
+                'rate_limit' => $data['rate_limit'] ?? [],
             ];
             
         } catch (\Exception $e) {
@@ -522,27 +490,27 @@ class OpenRouterService
             
             // Format theo docs: { image_url: { url: "data:image/..." } }
             if (is_array($image) && isset($image['image_url']['url'])) {
-                return $image['image_url']['url'];
+                return $this->normalizeImageValue($image['image_url']['url']);
             }
             
-            // M?t s? SDK tr? v? imageUrl thay v? image_url
+            // Một số SDK trả về imageUrl thay vì image_url
             if (is_array($image) && isset($image['imageUrl']['url'])) {
-                return $image['imageUrl']['url'];
+                return $this->normalizeImageValue($image['imageUrl']['url']);
             }
 
             // Format: { url: "data:image/..." }
             if (is_array($image) && isset($image['url'])) {
-                return $image['url'];
+                return $this->normalizeImageValue($image['url']);
             }
             
             // Format: { data: "base64..." }
             if (is_array($image) && isset($image['data'])) {
-                return $image['data'];
+                return $this->normalizeImageValue($image['data']);
             }
             
             // Format: base64 string direct
             if (is_string($image)) {
-                return $image;
+                return $this->normalizeImageValue($image);
             }
         }
 
@@ -554,22 +522,41 @@ class OpenRouterService
             if (is_array($content)) {
                 foreach ($content as $part) {
                     if (isset($part['type']) && $part['type'] === 'image_url') {
-                        return $part['image_url']['url'] ?? ($part['imageUrl']['url'] ?? null);
+                        $url = $part['image_url']['url'] ?? ($part['imageUrl']['url'] ?? null);
+                        return $url ? $this->normalizeImageValue($url) : null;
                     }
                 }
             }
             
-            // Nếu là base64 string thuần
-            if (is_string($content) && $this->isBase64Image($content)) {
-                return $content;
-            }
-            
-            // Nếu là URL
-            if (is_string($content) && filter_var($content, FILTER_VALIDATE_URL)) {
-                return $this->downloadImageAsBase64($content);
+            // Nếu là string, normalize nó
+            if (is_string($content)) {
+                return $this->normalizeImageValue($content);
             }
         }
 
+        return null;
+    }
+
+    /**
+     * Normalize image value: convert URL to base64 if needed
+     */
+    protected function normalizeImageValue(string $value): ?string
+    {
+        // Already base64 data URL
+        if (str_starts_with($value, 'data:image/')) {
+            return $value;
+        }
+        
+        // HTTP(S) URL -> download and convert
+        if (filter_var($value, FILTER_VALIDATE_URL)) {
+            return $this->downloadImageAsBase64($value);
+        }
+        
+        // Raw base64 string (no prefix)
+        if ($this->isBase64Image($value)) {
+            return $value;
+        }
+        
         return null;
     }
 
@@ -590,6 +577,7 @@ class OpenRouterService
 
     /**
      * Download ảnh từ URL và convert sang base64
+     * Có SSRF protection: block private/local IP addresses
      */
     protected function downloadImageAsBase64(string $url): ?string
     {
@@ -603,6 +591,13 @@ class OpenRouterService
 
         $scheme = parse_url($url, PHP_URL_SCHEME);
         if (!in_array($scheme, ['http', 'https'], true)) {
+            return null;
+        }
+
+        // SSRF Protection: Block private/local addresses
+        $host = parse_url($url, PHP_URL_HOST);
+        if ($host && $this->isPrivateOrLocalHost($host)) {
+            Log::warning('Blocked SSRF attempt to private/local address', ['url' => $url, 'host' => $host]);
             return null;
         }
 
@@ -639,6 +634,31 @@ class OpenRouterService
         }
 
         return null;
+    }
+
+    /**
+     * Check if host is private or local (SSRF protection)
+     */
+    protected function isPrivateOrLocalHost(string $host): bool
+    {
+        // Block localhost
+        if (in_array(strtolower($host), ['localhost', '127.0.0.1', '::1', '0.0.0.0'], true)) {
+            return true;
+        }
+        
+        // Resolve hostname to IP and check if private
+        $ip = gethostbyname($host);
+        if ($ip === $host) {
+            // Could not resolve, allow (might be external domain)
+            return false;
+        }
+        
+        // Check for private IP ranges
+        return filter_var(
+            $ip,
+            FILTER_VALIDATE_IP,
+            FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE
+        ) === false;
     }
 
     /**

@@ -70,7 +70,7 @@ class StyleController extends Controller
             
             // Image Slots (Dynamic array)
             'image_slots' => 'nullable|array',
-            'image_slots.*.key' => 'required_with:image_slots|string|max:100',
+            'image_slots.*.key' => ['required_with:image_slots', 'string', 'max:100', 'regex:/^[a-zA-Z0-9_-]+$/'],
             'image_slots.*.label' => 'required_with:image_slots|string|max:255',
             'image_slots.*.description' => 'nullable|string|max:500',
             'image_slots.*.required' => 'nullable',

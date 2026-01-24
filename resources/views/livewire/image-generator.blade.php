@@ -127,7 +127,7 @@
     </div>
 
     <!-- Image Size Selector (chỉ cho Gemini models) -->
-    @if(str_contains($style->openrouter_model_id, 'gemini'))
+    @if($supportsImageConfig)
         <div class="bg-white/[0.03] border border-white/[0.08] rounded-xl p-4">
             <label class="block text-sm font-medium text-white/60 mb-3 inline-flex items-center gap-2">
                 <i class="fa-solid fa-expand" style="font-size: 14px;"></i>

@@ -230,9 +230,10 @@ class ImageGenerator extends Component
             if (!$result['success']) {
                 $error = $result['error'] ?? 'OpenRouter error';
 
-                // Ho?n ti?n n?u API th?t b?i
+                // Hoàn tiền nếu API thất bại
+                $refunded = false;
                 if ($creditsDeducted) {
-                    $this->refundCreditsSafely(
+                    $refunded = $this->refundCreditsSafely(
                         $walletService,
                         $user,
                         $this->style->price,
@@ -245,7 +246,9 @@ class ImageGenerator extends Component
                     $generatedImage->markAsFailed($error);
                 }
 
-                $this->errorMessage = 'C? l?i khi t?o ?nh. Credits ?? ???c ho?n l?i.';
+                $this->errorMessage = $refunded
+                    ? 'Có lỗi khi tạo ảnh. Credits đã được hoàn lại.'
+                    : 'Có lỗi khi tạo ảnh. Vui lòng liên hệ hỗ trợ để được hoàn tiền.';
                 return;
             }
 
@@ -262,8 +265,9 @@ class ImageGenerator extends Component
             if (!$storageResult['success']) {
                 $storageError = $storageResult['error'] ?? 'Unknown storage error';
 
+                $refunded = false;
                 if ($creditsDeducted) {
-                    $this->refundCreditsSafely(
+                    $refunded = $this->refundCreditsSafely(
                         $walletService,
                         $user,
                         $this->style->price,
@@ -295,18 +299,19 @@ class ImageGenerator extends Component
             }
             $this->errorMessage = 'B?n kh?ng ?? credits ?? t?o ?nh.';
         } catch (\Throwable $e) {
+            $refunded = false;
             if ($creditsDeducted) {
-                $this->refundCreditsSafely(
+                $refunded = $this->refundCreditsSafely(
                     $walletService,
                     $user,
                     $this->style->price,
-                    'L?i h? th?ng: ' . $e->getMessage(),
+                    'Lỗi hệ thống: ' . $e->getMessage(),
                     $generatedImage
                 );
             }
 
             if ($generatedImage) {
-                $generatedImage->markAsFailed('L?i h? th?ng: ' . $e->getMessage());
+                $generatedImage->markAsFailed('Lỗi hệ thống: ' . $e->getMessage());
             }
 
             Log::error('Image generation failed', [
@@ -317,9 +322,13 @@ class ImageGenerator extends Component
                 'generated_image_id' => $generatedImage?->id,
             ]);
 
+            $refundMsg = $refunded
+                ? ' Credits đã được hoàn lại.'
+                : ' Vui lòng liên hệ hỗ trợ để được hoàn tiền.';
+
             $this->errorMessage = config('app.debug')
-                ? 'C? l?i x?y ra: ' . $e->getMessage()
-                : 'C? l?i x?y ra trong qu? tr?nh t?o ?nh. Vui l?ng th? l?i.';
+                ? 'Có lỗi xảy ra: ' . $e->getMessage() . $refundMsg
+                : 'Có lỗi xảy ra trong quá trình tạo ảnh.' . $refundMsg;
         } finally {
             $this->isGenerating = false;
         }
@@ -434,7 +443,7 @@ class ImageGenerator extends Component
         float $amount,
         string $reason,
         ?GeneratedImage $generatedImage = null
-    ): void {
+    ): bool {
         try {
             $walletService->refundCredits(
                 $user,
@@ -442,12 +451,15 @@ class ImageGenerator extends Component
                 $reason,
                 $generatedImage?->id ? (string) $generatedImage->id : null
             );
+            return true;
         } catch (\Throwable $e) {
             Log::error('Refund credits failed', [
                 'error' => $e->getMessage(),
                 'user_id' => $user->id ?? null,
                 'generated_image_id' => $generatedImage?->id,
+                'amount' => $amount,
             ]);
+            return false;
         }
     }
 

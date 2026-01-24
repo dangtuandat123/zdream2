@@ -32,9 +32,11 @@ class InternalApiController extends Controller
      */
     public function adjustWallet(Request $request): JsonResponse
     {
-        // Validate API Secret
+        // Validate API Secret (fail-close: reject if secret not configured)
+        $secret = config('services_custom.internal_api_secret');
         $apiSecret = $request->header('X-API-Secret');
-        if ($apiSecret !== config('services_custom.internal_api_secret')) {
+        
+        if (empty($secret) || !hash_equals($secret, (string) $apiSecret)) {
             return response()->json(['error' => 'Unauthorized'], 401);
         }
 
@@ -93,9 +95,11 @@ class InternalApiController extends Controller
      */
     public function paymentCallback(Request $request): JsonResponse
     {
-        // Validate API Secret
+        // Validate API Secret (fail-close: reject if secret not configured)
+        $secret = config('services_custom.internal_api_secret');
         $apiSecret = $request->header('X-API-Secret');
-        if ($apiSecret !== config('services_custom.internal_api_secret')) {
+        
+        if (empty($secret) || !hash_equals($secret, (string) $apiSecret)) {
             return response()->json(['error' => 'Unauthorized'], 401);
         }
 

@@ -16,6 +16,7 @@ class StorageService
 {
     protected string $disk;
     protected string $basePath;
+    protected int $maxBytes = 20971520; // 20MB max image size
 
     public function __construct()
     {
@@ -37,13 +38,21 @@ class StorageService
             // Remove data:image/xxx;base64, prefix nếu có
             $imageData = $this->cleanBase64($base64Image);
             
-            // Decode base64
-            $decodedImage = base64_decode($imageData);
+            // Decode base64 with strict mode
+            $decodedImage = base64_decode($imageData, true);
             
             if ($decodedImage === false) {
                 return [
                     'success' => false,
                     'error' => 'Invalid base64 data',
+                ];
+            }
+
+            // Validate size limit
+            if (strlen($decodedImage) > $this->maxBytes) {
+                return [
+                    'success' => false,
+                    'error' => 'Image too large. Maximum size: ' . round($this->maxBytes / 1024 / 1024, 1) . 'MB',
                 ];
             }
 
