@@ -13,6 +13,12 @@
             </div>
         @endif
 
+        @if(session('error'))
+            <div class="mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400">
+                {{ session('error') }}
+            </div>
+        @endif
+
         <form method="POST" action="{{ route('admin.settings.update') }}" class="space-y-6">
             @csrf
             @method('PUT')

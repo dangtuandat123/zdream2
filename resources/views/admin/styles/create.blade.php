@@ -12,6 +12,13 @@
             </div>
         </div>
 
+        @if(session('error'))
+            <div class="mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 flex items-center gap-2">
+                <i class="fa-solid fa-exclamation-circle" style="font-size: 16px;"></i>
+                {{ session('error') }}
+            </div>
+        @endif
+
         <form method="POST" action="{{ route('admin.styles.store') }}" class="space-y-6" enctype="multipart/form-data">
             @csrf
 

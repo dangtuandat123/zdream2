@@ -91,17 +91,26 @@
 
     <!-- Custom Input -->
     @if($style->allow_user_custom_prompt)
-        <div class="bg-white/[0.03] border border-white/[0.08] rounded-xl p-4">
+        <div class="bg-white/[0.03] border border-white/[0.08] rounded-xl p-4" x-data="{ charCount: 0 }">
             <label class="block text-sm font-medium text-white/60 mb-2 inline-flex items-center gap-2">
                 <i class="fa-solid fa-pencil" style="font-size: 14px;"></i>
                 <span>Mô tả thêm</span>
+                <span class="text-white/30 text-xs font-normal">(tùy chọn)</span>
             </label>
             <textarea 
-                wire:model.defer="customInput"
+                wire:model.blur="customInput"
+                x-on:input="charCount = $event.target.value.length"
+                maxlength="500"
                 rows="2"
                 placeholder="VD: tóc dài, đeo kính, áo trắng..."
                 class="w-full px-4 py-3 rounded-xl bg-white/[0.03] border border-white/[0.08] text-white/90 placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-purple-500/40 focus:border-purple-500/40 transition-all duration-200 resize-none"
             ></textarea>
+            <div class="flex items-center justify-between mt-2">
+                <span class="text-xs text-white/30">Mô tả chi tiết giúp AI hiểu ý bạn hơn</span>
+                <span class="text-xs" :class="charCount > 450 ? 'text-orange-400' : 'text-white/30'">
+                    <span x-text="charCount">0</span>/500
+                </span>
+            </div>
         </div>
     @endif
 
