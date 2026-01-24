@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\Exceptions\InsufficientCreditsException;
+use App\Jobs\GenerateImageJob;
 use App\Models\GeneratedImage;
 use App\Models\Style;
 use App\Services\OpenRouterService;
@@ -10,6 +11,7 @@ use App\Services\StorageService;
 use App\Services\WalletService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Livewire\Attributes\On;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 
@@ -17,7 +19,7 @@ use Livewire\WithFileUploads;
  * Livewire Component: ImageGenerator
  * 
  * Component chính để tạo ảnh AI.
- * Xử lý: chọn options -> trừ credits -> gọi API -> lưu ảnh -> hiển thị
+ * Hỗ trợ cả sync và async mode (queue job).
  * 
  * Production-grade với full validation và error handling
  */
@@ -64,6 +66,12 @@ class ImageGenerator extends Component
     
     // Last generated image
     public ?int $lastImageId = null;
+    
+    // Async mode: Use queue job for generation
+    public bool $useAsyncMode = true;
+    
+    // Polling interval (ms) for async mode
+    public int $pollingInterval = 2000;
 
     /**
      * Mount component với Style
@@ -257,9 +265,34 @@ class ImageGenerator extends Component
             );
             $creditsDeducted = true;
 
-            // Gọi OpenRouter API
-            $openRouterService = app(OpenRouterService::class);
+            // Lấy base64 images trước khi dispatch (vì UploadedFile không serialize được)
             $inputImagesBase64 = $this->getUploadedImagesBase64();
+
+            // ASYNC MODE: Dispatch job và bắt đầu polling
+            if ($this->useAsyncMode) {
+                GenerateImageJob::dispatch(
+                    $generatedImage,
+                    $selectedOptionIds,
+                    $this->customInput ?: null,
+                    $this->selectedAspectRatio,
+                    $this->selectedImageSize,
+                    $inputImagesBase64
+                );
+
+                $this->lastImageId = $generatedImage->id;
+                
+                Log::info('Image generation job dispatched', [
+                    'image_id' => $generatedImage->id,
+                    'user_id' => $user->id,
+                ]);
+
+                // Không set isGenerating = false, để UI biết đang chờ
+                // Component sẽ dùng polling hoặc Livewire event để cập nhật
+                return;
+            }
+
+            // SYNC MODE: Gọi trực tiếp (legacy, for testing)
+            $openRouterService = app(OpenRouterService::class);
             
             $result = $openRouterService->generateImage(
                 $this->style,
@@ -316,7 +349,7 @@ class ImageGenerator extends Component
             $this->generatedImageUrl = $storageResult['url'];
             $this->lastImageId = $generatedImage->id;
 
-            Log::info('Image generated successfully', [
+            Log::info('Image generated successfully (sync)', [
                 'user_id' => $user->id,
                 'style_id' => $this->style->id,
                 'image_id' => $generatedImage->id,
@@ -358,8 +391,40 @@ class ImageGenerator extends Component
                 : 'Có lỗi xảy ra trong quá trình tạo ảnh.' . $refundMsg;
                 
         } finally {
-            $this->isGenerating = false;
+            // Chỉ tắt isGenerating nếu SYNC mode
+            if (!$this->useAsyncMode) {
+                $this->isGenerating = false;
+            }
         }
+    }
+
+    /**
+     * Poll image status (called by frontend via wire:poll)
+     */
+    public function pollImageStatus(): void
+    {
+        if (!$this->lastImageId) {
+            return;
+        }
+
+        $image = GeneratedImage::find($this->lastImageId);
+        
+        if (!$image) {
+            $this->isGenerating = false;
+            $this->errorMessage = 'Không tìm thấy ảnh.';
+            return;
+        }
+
+        // Check status
+        if ($image->status === GeneratedImage::STATUS_COMPLETED) {
+            $this->isGenerating = false;
+            $this->generatedImageUrl = $image->image_url;
+            
+        } elseif ($image->status === GeneratedImage::STATUS_FAILED) {
+            $this->isGenerating = false;
+            $this->errorMessage = 'Tạo ảnh thất bại. Credits đã được hoàn lại.';
+        }
+        // STATUS_PROCESSING: keep polling
     }
 
     /**
