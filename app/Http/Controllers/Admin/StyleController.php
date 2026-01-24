@@ -337,6 +337,15 @@ class StyleController extends Controller
      */
     public function destroy(Style $style): RedirectResponse
     {
+        // Cleanup system_images files từ MinIO
+        if (!empty($style->system_images)) {
+            foreach ($style->system_images as $img) {
+                if (!empty($img['path'])) {
+                    \Illuminate\Support\Facades\Storage::disk('minio')->delete($img['path']);
+                }
+            }
+        }
+
         $style->delete();
 
         return redirect()
