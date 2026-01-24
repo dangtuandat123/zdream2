@@ -44,7 +44,7 @@ class StyleController extends Controller
      */
     public function create(): View
     {
-        $models = $this->openRouterService->getAvailableModels();
+        $models = $this->openRouterService->fetchImageModels();
         $aspectRatios = $this->openRouterService->getAspectRatios();
 
         return view('admin.styles.create', compact('models', 'aspectRatios'));
@@ -137,7 +137,7 @@ class StyleController extends Controller
     public function edit(Style $style): View
     {
         $style->load('options');
-        $models = $this->openRouterService->getAvailableModels();
+        $models = $this->openRouterService->fetchImageModels();
         $aspectRatios = $this->openRouterService->getAspectRatios();
 
         return view('admin.styles.edit', compact('style', 'models', 'aspectRatios'));

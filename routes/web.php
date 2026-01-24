@@ -22,6 +22,48 @@ use Illuminate\Support\Facades\Route;
 // Home - Gallery Styles
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
+// DEBUG: Test OpenRouter models API
+Route::get('/debug/models', function () {
+    $apiKey = \App\Models\Setting::get('openrouter_api_key');
+    $baseUrl = \App\Models\Setting::get('openrouter_base_url', 'https://openrouter.ai/api/v1');
+    
+    // Direct API call
+    $response = \Illuminate\Support\Facades\Http::withHeaders([
+        'Authorization' => 'Bearer ' . $apiKey,
+    ])->timeout(30)->get($baseUrl . '/models');
+    
+    $data = $response->json();
+    $allModels = $data['data'] ?? [];
+    
+    // Filter image models
+    $imageModels = [];
+    foreach ($allModels as $model) {
+        $outputModalities = $model['output_modalities'] ?? [];
+        if (in_array('image', $outputModalities)) {
+            $imageModels[] = [
+                'id' => $model['id'],
+                'name' => $model['name'] ?? $model['id'],
+                'modalities' => $outputModalities,
+            ];
+        }
+    }
+    
+    // Also show first 5 models with their modalities for debug
+    $sample = array_slice(array_map(fn($m) => [
+        'id' => $m['id'],
+        'modalities' => $m['output_modalities'] ?? [],
+    ], $allModels), 0, 10);
+    
+    return response()->json([
+        'api_key_exists' => !empty($apiKey),
+        'api_key_prefix' => substr($apiKey ?? '', 0, 20) . '...',
+        'total_models' => count($allModels),
+        'image_models_count' => count($imageModels),
+        'image_models' => $imageModels,
+        'sample_modalities' => $sample,
+    ]);
+});
+
 // =============================================
 // AUTHENTICATED USER ROUTES
 // =============================================

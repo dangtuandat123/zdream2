@@ -91,10 +91,19 @@
 
                 <div class="space-y-4">
                     <div>
-                        <label for="openrouter_model_id" class="block text-sm font-medium text-white/70 mb-2">OpenRouter Model ID *</label>
-                        <input id="openrouter_model_id" type="text" name="openrouter_model_id" value="{{ old('openrouter_model_id') }}" 
-                               class="w-full px-4 py-3 rounded-xl bg-white/[0.03] border border-white/[0.08] text-white/90 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/40 focus:border-purple-500/40 transition-all"
-                               placeholder="openai/dall-e-3" required>
+                        <label for="openrouter_model_id" class="block text-sm font-medium text-white/70 mb-2">
+                            OpenRouter Model *
+                            <span class="text-white/40 font-normal">({{ count($models) }} models có khả năng tạo ảnh)</span>
+                        </label>
+                        <select id="openrouter_model_id" name="openrouter_model_id" required
+                                class="w-full px-4 py-3 rounded-xl bg-white/[0.03] border border-white/[0.08] text-white/90 focus:outline-none focus:ring-2 focus:ring-purple-500/40 focus:border-purple-500/40 transition-all">
+                            <option value="">Chọn model...</option>
+                            @foreach($models as $model)
+                                <option value="{{ $model['id'] }}" {{ old('openrouter_model_id') == $model['id'] ? 'selected' : '' }}>
+                                    {{ $model['name'] }}
+                                </option>
+                            @endforeach
+                        </select>
                         @error('openrouter_model_id')
                             <p class="mt-1 text-sm text-red-400">{{ $message }}</p>
                         @enderror

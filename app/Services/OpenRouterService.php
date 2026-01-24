@@ -43,6 +43,101 @@ class OpenRouterService
     }
 
     /**
+     * Fetch danh sách models có khả năng tạo ảnh từ OpenRouter API
+     * 
+     * @param bool $forceRefresh Bỏ qua cache và fetch mới
+     * @return array Danh sách models [['id' => ..., 'name' => ..., 'description' => ...], ...]
+     */
+    public function fetchImageModels(bool $forceRefresh = false): array
+    {
+        $cacheKey = 'openrouter_image_models';
+        
+        // Clear cache if force refresh
+        if ($forceRefresh) {
+            \Illuminate\Support\Facades\Cache::forget($cacheKey);
+        }
+        
+        // Cache for 1 hour
+        return \Illuminate\Support\Facades\Cache::remember($cacheKey, 3600, function () {
+            try {
+                $response = $this->client()->get($this->baseUrl . '/models');
+                
+                if (!$response->successful()) {
+                    Log::error('OpenRouter models fetch failed', [
+                        'status' => $response->status(),
+                        'body' => $response->body(),
+                    ]);
+                    return $this->getFallbackModels();
+                }
+                
+                $data = $response->json();
+                $models = [];
+                
+                // Keywords để nhận dạng image generation models
+                $imageKeywords = [
+                    'gemini', 'flux', 'dall-e', 'dalle', 'stable-diffusion', 
+                    'midjourney', 'imagen', 'ideogram', 'playground', 
+                    'recraft', 'leonardo', 'image'
+                ];
+                
+                foreach ($data['data'] ?? [] as $model) {
+                    $modelId = strtolower($model['id'] ?? '');
+                    $modelName = strtolower($model['name'] ?? '');
+                    
+                    // Check nếu model ID hoặc name chứa keywords
+                    $isImageModel = false;
+                    foreach ($imageKeywords as $keyword) {
+                        if (str_contains($modelId, $keyword) || str_contains($modelName, $keyword)) {
+                            $isImageModel = true;
+                            break;
+                        }
+                    }
+                    
+                    // Hoặc check output_modalities nếu có
+                    $outputModalities = $model['output_modalities'] ?? [];
+                    if (in_array('image', $outputModalities)) {
+                        $isImageModel = true;
+                    }
+                    
+                    if ($isImageModel) {
+                        $models[] = [
+                            'id' => $model['id'],
+                            'name' => $model['name'] ?? $model['id'],
+                            'description' => $model['description'] ?? '',
+                            'pricing' => $model['pricing'] ?? [],
+                            'context_length' => $model['context_length'] ?? 0,
+                        ];
+                    }
+                }
+                
+                // Sort by name
+                usort($models, fn($a, $b) => strcmp($a['name'], $b['name']));
+                
+                Log::info('OpenRouter models fetched', ['count' => count($models)]);
+                
+                return $models;
+                
+            } catch (\Exception $e) {
+                Log::error('OpenRouter models fetch exception', ['error' => $e->getMessage()]);
+                return $this->getFallbackModels();
+            }
+        });
+    }
+
+    /**
+     * Fallback models nếu API không khả dụng
+     */
+    protected function getFallbackModels(): array
+    {
+        return [
+            ['id' => 'google/gemini-2.0-flash-exp:free', 'name' => 'Gemini 2.0 Flash (Free)', 'description' => 'Google Gemini 2.0 Flash - Free tier'],
+            ['id' => 'google/gemini-2.5-flash-preview-05-20', 'name' => 'Gemini 2.5 Flash Preview', 'description' => 'Google Gemini 2.5 Flash'],
+            ['id' => 'black-forest-labs/flux-1.1-pro', 'name' => 'Flux 1.1 Pro', 'description' => 'Black Forest Labs Flux 1.1 Pro'],
+            ['id' => 'black-forest-labs/flux-schnell', 'name' => 'Flux Schnell', 'description' => 'Black Forest Labs Flux Schnell'],
+        ];
+    }
+
+    /**
      * Tạo ảnh từ Style và options
      * 
      * @param Style $style Style đã chọn
