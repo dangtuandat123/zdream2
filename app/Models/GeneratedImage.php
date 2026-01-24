@@ -131,6 +131,7 @@ class GeneratedImage extends Model
     /**
      * Lấy URL ảnh từ storage_path
      * Sử dụng temporaryUrl (pre-signed) để bypass bucket policy restrictions
+     * Expiry time được cấu hình trong Admin Settings (image_expiry_days)
      */
     public function getImageUrlAttribute(): ?string
     {
@@ -143,17 +144,40 @@ class GeneratedImage extends Model
             return $this->storage_path;
         }
 
-        // Sử dụng temporaryUrl (pre-signed URL) với expiry 24h
+        // Lấy số ngày expiry từ Settings (mặc định 30 ngày)
+        $expiryDays = (int) Setting::get('image_expiry_days', 30);
+
+        // Sử dụng temporaryUrl (pre-signed URL) với expiry từ config
         // Điều này bypass bucket policy và cho phép public access
         try {
             return Storage::disk('minio')->temporaryUrl(
                 $this->storage_path,
-                now()->addHours(24)
+                now()->addDays($expiryDays)
             );
         } catch (\Exception $e) {
             // Fallback to regular URL nếu temporaryUrl không khả dụng
             return Storage::disk('minio')->url($this->storage_path);
         }
+    }
+
+    /**
+     * Lấy số ngày còn lại trước khi ảnh hết hạn
+     */
+    public function getDaysUntilExpiryAttribute(): int
+    {
+        $expiryDays = (int) Setting::get('image_expiry_days', 30);
+        $expiryDate = $this->created_at->addDays($expiryDays);
+        $daysLeft = now()->diffInDays($expiryDate, false);
+        
+        return max(0, (int) $daysLeft);
+    }
+
+    /**
+     * Kiểm tra ảnh sắp hết hạn (còn dưới 7 ngày)
+     */
+    public function getIsExpiringAttribute(): bool
+    {
+        return $this->days_until_expiry <= 7 && $this->days_until_expiry > 0;
     }
 
     /**

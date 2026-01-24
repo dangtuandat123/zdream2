@@ -36,6 +36,7 @@ class SettingsController extends Controller
             'openrouter_base_url' => 'nullable|url|max:500',
             'site_name' => 'nullable|string|max:255',
             'default_credits' => 'nullable|integer|min:0',
+            'image_expiry_days' => 'nullable|integer|min:1|max:365',
         ]);
 
         // Update API Key (encrypted)
@@ -68,6 +69,15 @@ class SettingsController extends Controller
                 'type' => 'integer',
                 'group' => 'general',
                 'label' => 'Xu mặc định',
+            ]);
+        }
+
+        // Update Image Expiry Days
+        if (isset($validated['image_expiry_days'])) {
+            Setting::set('image_expiry_days', $validated['image_expiry_days'], [
+                'type' => 'integer',
+                'group' => 'general',
+                'label' => 'Số ngày lưu ảnh',
             ]);
         }
 

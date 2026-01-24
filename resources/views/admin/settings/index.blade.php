@@ -113,6 +113,27 @@
                             <p class="mt-1 text-sm text-red-400">{{ $message }}</p>
                         @enderror
                     </div>
+
+                    <div>
+                        <label for="image_expiry_days" class="block text-sm font-medium text-white/70 mb-2">
+                            Số ngày lưu ảnh (trước khi tự động xóa)
+                        </label>
+                        <input 
+                            id="image_expiry_days" 
+                            type="number" 
+                            name="image_expiry_days" 
+                            value="{{ \App\Models\Setting::get('image_expiry_days', 30) }}"
+                            min="1"
+                            max="365"
+                            class="w-full px-4 py-3 rounded-xl bg-white/[0.03] border border-white/[0.08] text-white/90 focus:outline-none focus:ring-2 focus:ring-purple-500/40 transition-all">
+                        <p class="mt-1 text-sm text-white/40">
+                            <i class="fa-solid fa-info-circle mr-1"></i>
+                            Ảnh sẽ bị xóa tự động sau số ngày này. Mặc định: 30 ngày.
+                        </p>
+                        @error('image_expiry_days')
+                            <p class="mt-1 text-sm text-red-400">{{ $message }}</p>
+                        @enderror
+                    </div>
                 </div>
             </div>
 
