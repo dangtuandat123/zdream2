@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Style;
 use App\Models\StyleOption;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 /**
  * Admin Controller: Quản lý Style Options
@@ -53,12 +54,19 @@ class StyleOptionController extends Controller
             'group_name' => 'required|string|max:100',
             'prompt_fragment' => 'required|string|max:500',
             'icon' => 'nullable|string|max:100',
+            'thumbnail' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:1024',
             'sort_order' => 'nullable|integer|min:0',
             'is_default' => 'boolean',
         ]);
 
         $validated['sort_order'] = $validated['sort_order'] ?? 0;
         $validated['is_default'] = $request->boolean('is_default');
+
+        // Upload thumbnail to local storage (public disk)
+        if ($request->hasFile('thumbnail')) {
+            $path = $request->file('thumbnail')->store('option-thumbnails', 'public');
+            $validated['thumbnail'] = $path;
+        }
 
         // L6: Nếu option mới là default, bỏ is_default của các option khác trong cùng group
         if ($validated['is_default']) {
@@ -106,11 +114,29 @@ class StyleOptionController extends Controller
             'group_name' => 'required|string|max:100',
             'prompt_fragment' => 'required|string|max:500',
             'icon' => 'nullable|string|max:100',
+            'thumbnail' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:1024',
+            'remove_thumbnail' => 'boolean',
             'sort_order' => 'nullable|integer|min:0',
             'is_default' => 'boolean',
         ]);
 
         $validated['is_default'] = $request->boolean('is_default');
+
+        // Handle thumbnail upload/removal
+        if ($request->boolean('remove_thumbnail') && $option->thumbnail) {
+            Storage::disk('public')->delete($option->thumbnail);
+            $validated['thumbnail'] = null;
+        } elseif ($request->hasFile('thumbnail')) {
+            // Delete old thumbnail if exists
+            if ($option->thumbnail) {
+                Storage::disk('public')->delete($option->thumbnail);
+            }
+            $path = $request->file('thumbnail')->store('option-thumbnails', 'public');
+            $validated['thumbnail'] = $path;
+        } else {
+            unset($validated['thumbnail']);
+        }
+        unset($validated['remove_thumbnail']);
 
         // L6: Nếu option này được set default, bỏ is_default của các option khác trong cùng group
         if ($validated['is_default']) {

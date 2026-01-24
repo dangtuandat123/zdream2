@@ -31,6 +31,7 @@ class StyleOption extends Model
         'group_name',
         'prompt_fragment',
         'icon',
+        'thumbnail',
         'sort_order',
         'is_default',
     ];
@@ -47,6 +48,22 @@ class StyleOption extends Model
         'sort_order' => 0,
         'is_default' => false,
     ];
+
+    // =========================================
+    // ACCESSORS
+    // =========================================
+
+    /**
+     * Lấy URL của thumbnail (local storage)
+     */
+    public function getThumbnailUrlAttribute(): ?string
+    {
+        if (empty($this->thumbnail)) {
+            return null;
+        }
+        
+        return asset('storage/' . $this->thumbnail);
+    }
 
     // =========================================
     // RELATIONSHIPS

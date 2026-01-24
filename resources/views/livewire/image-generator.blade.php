@@ -62,102 +62,149 @@
         </div>
     @endif
 
-    <!-- Options Selection -->
-    @if($optionGroups->isNotEmpty())
-        <div class="space-y-3 md:space-y-4">
-            @foreach($optionGroups as $groupName => $options)
-                <div class="bg-white/[0.03] border border-white/[0.08] rounded-xl p-4">
-                    <h3 class="text-sm font-medium text-white/60 mb-3 flex items-center gap-2">
-                        <span class="w-1 h-4 bg-gradient-to-b from-purple-400 to-pink-500 rounded-full"></span>
-                        {{ $groupName }}
-                    </h3>
-                    <div class="flex flex-wrap gap-2">
-                        @foreach($options as $option)
+    <!-- ========== DROPDOWN: Option thêm ========== -->
+    @if($optionGroups->isNotEmpty() || $style->allow_user_custom_prompt)
+        <div class="bg-white/[0.03] border border-white/[0.08] rounded-xl overflow-hidden" x-data="{ open: false }">
+            <button 
+                @click="open = !open" 
+                class="w-full flex items-center justify-between p-4 text-left hover:bg-white/[0.02] transition-colors">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center">
+                        <i class="fa-solid fa-sliders text-purple-400" style="font-size: 14px;"></i>
+                    </div>
+                    <div>
+                        <span class="text-white font-medium">Option thêm</span>
+                        <p class="text-xs text-white/40">Style & mô tả tùy chỉnh</p>
+                    </div>
+                </div>
+                <i class="fa-solid fa-chevron-down text-white/40 transition-transform duration-200" :class="{ 'rotate-180': open }"></i>
+            </button>
+            
+            <div x-show="open" x-collapse class="border-t border-white/[0.05]">
+                <div class="p-4 space-y-4">
+                    <!-- Options Selection -->
+                    @if($optionGroups->isNotEmpty())
+                        @foreach($optionGroups as $groupName => $options)
+                            <div>
+                                <h3 class="text-sm font-medium text-white/60 mb-3 flex items-center gap-2">
+                                    <span class="w-1 h-4 bg-gradient-to-b from-purple-400 to-pink-500 rounded-full"></span>
+                                    {{ $groupName }}
+                                </h3>
+                                <div class="flex flex-wrap gap-2">
+                                    @foreach($options as $option)
+                                        <button 
+                                            wire:click="selectOption('{{ $groupName }}', {{ $option->id }})"
+                                            class="px-4 py-2.5 text-sm rounded-xl border cursor-pointer select-none transition-all duration-200
+                                                {{ isset($selectedOptions[$groupName]) && $selectedOptions[$groupName] === $option->id 
+                                                    ? 'bg-purple-500/20 border-purple-500/50 text-purple-300 shadow-[0_0_20px_rgba(168,85,247,0.2)]' 
+                                                    : 'bg-white/[0.03] border-white/[0.08] text-white/70 hover:bg-white/[0.06] hover:border-white/[0.15]' 
+                                                }}">
+                                            {{ $option->label }}
+                                        </button>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endforeach
+                    @endif
+
+                    <!-- Custom Input -->
+                    @if($style->allow_user_custom_prompt)
+                        <div x-data="{ charCount: 0 }">
+                            <label class="block text-sm font-medium text-white/60 mb-2 inline-flex items-center gap-2">
+                                <i class="fa-solid fa-pencil" style="font-size: 14px;"></i>
+                                <span>Mô tả thêm</span>
+                                <span class="text-white/30 text-xs font-normal">(tùy chọn)</span>
+                            </label>
+                            <textarea 
+                                wire:model.blur="customInput"
+                                x-on:input="charCount = $event.target.value.length"
+                                maxlength="500"
+                                rows="2"
+                                placeholder="VD: tóc dài, đeo kính, áo trắng..."
+                                class="w-full px-4 py-3 rounded-xl bg-white/[0.03] border border-white/[0.08] text-white/90 placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-purple-500/40 focus:border-purple-500/40 transition-all duration-200 resize-none"
+                            ></textarea>
+                            <div class="flex items-center justify-between mt-2">
+                                <span class="text-xs text-white/30">Mô tả chi tiết giúp AI hiểu ý bạn hơn</span>
+                                <span class="text-xs" :class="charCount > 450 ? 'text-orange-400' : 'text-white/30'">
+                                    <span x-text="charCount">0</span>/500
+                                </span>
+                            </div>
+                        </div>
+                    @endif
+                </div>
+            </div>
+        </div>
+    @endif
+
+    <!-- ========== DROPDOWN: Tùy chọn nâng cao ========== -->
+    <div class="bg-white/[0.03] border border-white/[0.08] rounded-xl overflow-hidden" x-data="{ open: false }">
+        <button 
+            @click="open = !open" 
+            class="w-full flex items-center justify-between p-4 text-left hover:bg-white/[0.02] transition-colors">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg bg-cyan-500/20 flex items-center justify-center">
+                    <i class="fa-solid fa-gear text-cyan-400" style="font-size: 14px;"></i>
+                </div>
+                <div>
+                    <span class="text-white font-medium">Tùy chọn nâng cao</span>
+                    <p class="text-xs text-white/40">Kích thước & chất lượng</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-3">
+                <span class="text-xs text-white/40 hidden sm:block">{{ $selectedAspectRatio }}</span>
+                <i class="fa-solid fa-chevron-down text-white/40 transition-transform duration-200" :class="{ 'rotate-180': open }"></i>
+            </div>
+        </button>
+        
+        <div x-show="open" x-collapse class="border-t border-white/[0.05]">
+            <div class="p-4 space-y-4">
+                <!-- Aspect Ratio Selector -->
+                <div>
+                    <label class="block text-sm font-medium text-white/60 mb-3 inline-flex items-center gap-2">
+                        <i class="fa-solid fa-crop" style="font-size: 14px;"></i>
+                        <span>Tỉ lệ khung hình</span>
+                    </label>
+                    <div class="grid grid-cols-2 sm:grid-cols-5 gap-2">
+                        @foreach($aspectRatios as $ratio => $label)
                             <button 
-                                wire:click="selectOption('{{ $groupName }}', {{ $option->id }})"
-                                class="px-4 py-2.5 text-sm rounded-xl border cursor-pointer select-none transition-all duration-200
-                                    {{ isset($selectedOptions[$groupName]) && $selectedOptions[$groupName] === $option->id 
+                                wire:click="$set('selectedAspectRatio', '{{ $ratio }}')"
+                                class="py-2 px-2 text-xs rounded-xl border cursor-pointer select-none transition-all duration-200 text-center
+                                    {{ $selectedAspectRatio === $ratio 
                                         ? 'bg-purple-500/20 border-purple-500/50 text-purple-300 shadow-[0_0_20px_rgba(168,85,247,0.2)]' 
                                         : 'bg-white/[0.03] border-white/[0.08] text-white/70 hover:bg-white/[0.06] hover:border-white/[0.15]' 
                                     }}">
-                                {{ $option->label }}
+                                {{ $label }}
                             </button>
                         @endforeach
                     </div>
                 </div>
-            @endforeach
-        </div>
-    @endif
 
-    <!-- Custom Input -->
-    @if($style->allow_user_custom_prompt)
-        <div class="bg-white/[0.03] border border-white/[0.08] rounded-xl p-4" x-data="{ charCount: 0 }">
-            <label class="block text-sm font-medium text-white/60 mb-2 inline-flex items-center gap-2">
-                <i class="fa-solid fa-pencil" style="font-size: 14px;"></i>
-                <span>Mô tả thêm</span>
-                <span class="text-white/30 text-xs font-normal">(tùy chọn)</span>
-            </label>
-            <textarea 
-                wire:model.blur="customInput"
-                x-on:input="charCount = $event.target.value.length"
-                maxlength="500"
-                rows="2"
-                placeholder="VD: tóc dài, đeo kính, áo trắng..."
-                class="w-full px-4 py-3 rounded-xl bg-white/[0.03] border border-white/[0.08] text-white/90 placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-purple-500/40 focus:border-purple-500/40 transition-all duration-200 resize-none"
-            ></textarea>
-            <div class="flex items-center justify-between mt-2">
-                <span class="text-xs text-white/30">Mô tả chi tiết giúp AI hiểu ý bạn hơn</span>
-                <span class="text-xs" :class="charCount > 450 ? 'text-orange-400' : 'text-white/30'">
-                    <span x-text="charCount">0</span>/500
-                </span>
+                <!-- Image Size Selector (chỉ cho Gemini models) -->
+                @if($supportsImageConfig)
+                    <div>
+                        <label class="block text-sm font-medium text-white/60 mb-3 inline-flex items-center gap-2">
+                            <i class="fa-solid fa-expand" style="font-size: 14px;"></i>
+                            <span>Chất lượng ảnh</span>
+                        </label>
+                        <div class="grid grid-cols-3 gap-2">
+                            @foreach($imageSizes as $size => $label)
+                                <button 
+                                    wire:click="$set('selectedImageSize', '{{ $size }}')"
+                                    class="py-2.5 px-3 text-sm rounded-xl border cursor-pointer select-none transition-all duration-200 text-center
+                                        {{ $selectedImageSize === $size 
+                                            ? 'bg-cyan-500/20 border-cyan-500/50 text-cyan-300 shadow-[0_0_20px_rgba(6,182,212,0.2)]' 
+                                            : 'bg-white/[0.03] border-white/[0.08] text-white/70 hover:bg-white/[0.06] hover:border-white/[0.15]' 
+                                        }}">
+                                    {{ $label }}
+                                </button>
+                            @endforeach
+                        </div>
+                        <p class="text-xs text-white/30 mt-2">Ảnh 4K sẽ tốn thêm thời gian xử lý</p>
+                    </div>
+                @endif
             </div>
-        </div>
-    @endif
-
-    <!-- Aspect Ratio Selector -->
-    <div class="bg-white/[0.03] border border-white/[0.08] rounded-xl p-4">
-        <label class="block text-sm font-medium text-white/60 mb-3 inline-flex items-center gap-2">
-            <i class="fa-solid fa-crop" style="font-size: 14px;"></i>
-            <span>Tỉ lệ khung hình</span>
-        </label>
-        <div class="grid grid-cols-2 sm:grid-cols-5 gap-2">
-            @foreach($aspectRatios as $ratio => $label)
-                <button 
-                    wire:click="$set('selectedAspectRatio', '{{ $ratio }}')"
-                    class="py-2 px-2 text-xs rounded-xl border cursor-pointer select-none transition-all duration-200 text-center
-                        {{ $selectedAspectRatio === $ratio 
-                            ? 'bg-purple-500/20 border-purple-500/50 text-purple-300 shadow-[0_0_20px_rgba(168,85,247,0.2)]' 
-                            : 'bg-white/[0.03] border-white/[0.08] text-white/70 hover:bg-white/[0.06] hover:border-white/[0.15]' 
-                        }}">
-                    {{ $label }}
-                </button>
-            @endforeach
         </div>
     </div>
-
-    <!-- Image Size Selector (chỉ cho Gemini models) -->
-    @if($supportsImageConfig)
-        <div class="bg-white/[0.03] border border-white/[0.08] rounded-xl p-4">
-            <label class="block text-sm font-medium text-white/60 mb-3 inline-flex items-center gap-2">
-                <i class="fa-solid fa-expand" style="font-size: 14px;"></i>
-                <span>Chất lượng ảnh</span>
-            </label>
-            <div class="grid grid-cols-3 gap-2">
-                @foreach($imageSizes as $size => $label)
-                    <button 
-                        wire:click="$set('selectedImageSize', '{{ $size }}')"
-                        class="py-2.5 px-3 text-sm rounded-xl border cursor-pointer select-none transition-all duration-200 text-center
-                            {{ $selectedImageSize === $size 
-                                ? 'bg-cyan-500/20 border-cyan-500/50 text-cyan-300 shadow-[0_0_20px_rgba(6,182,212,0.2)]' 
-                                : 'bg-white/[0.03] border-white/[0.08] text-white/70 hover:bg-white/[0.06] hover:border-white/[0.15]' 
-                            }}">
-                        {{ $label }}
-                    </button>
-                @endforeach
-            </div>
-            <p class="text-xs text-white/30 mt-2">Ảnh 4K sẽ tốn thêm thời gian xử lý</p>
-        </div>
-    @endif
 
     <!-- Generate Section -->
     <div class="bg-white/[0.03] border border-white/[0.08] rounded-xl p-4 md:p-5">

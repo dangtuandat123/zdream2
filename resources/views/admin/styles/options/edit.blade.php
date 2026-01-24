@@ -12,7 +12,7 @@
             </div>
         </div>
 
-        <form method="POST" action="{{ route('admin.styles.options.update', [$style, $option]) }}" class="space-y-6">
+        <form method="POST" action="{{ route('admin.styles.options.update', [$style, $option]) }}" class="space-y-6" enctype="multipart/form-data">
             @csrf
             @method('PUT')
 
@@ -59,6 +59,35 @@
                         @enderror
                     </div>
 
+                    <!-- Thumbnail Upload -->
+                    <div>
+                        <label for="thumbnail" class="block text-sm font-medium text-white/70 mb-2">Thumbnail (ảnh vuông nhỏ)</label>
+                        <div class="flex items-center gap-4">
+                            <div class="w-16 h-16 rounded-xl bg-white/[0.05] border border-white/[0.1] flex items-center justify-center overflow-hidden" id="thumbnail-preview">
+                                @if($option->thumbnail_url)
+                                    <img src="{{ $option->thumbnail_url }}" class="w-full h-full object-cover">
+                                @else
+                                    <i class="fa-solid fa-image text-white/30" style="font-size: 20px;"></i>
+                                @endif
+                            </div>
+                            <div class="flex-1">
+                                <input id="thumbnail" type="file" name="thumbnail" accept="image/jpeg,image/png,image/webp"
+                                       class="w-full text-sm text-white/70 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-purple-500/20 file:text-purple-300 file:cursor-pointer hover:file:bg-purple-500/30 transition-all"
+                                       onchange="previewThumbnail(this)">
+                                @if($option->thumbnail)
+                                    <label class="inline-flex items-center gap-2 mt-2 cursor-pointer">
+                                        <input type="checkbox" name="remove_thumbnail" value="1" class="w-4 h-4 rounded bg-white/[0.03] border-white/[0.15] text-red-500">
+                                        <span class="text-xs text-red-400">Xóa thumbnail hiện tại</span>
+                                    </label>
+                                @endif
+                                <p class="mt-1 text-xs text-white/40">PNG, JPG, WebP - max 1MB</p>
+                            </div>
+                        </div>
+                        @error('thumbnail')
+                            <p class="mt-1 text-sm text-red-400">{{ $message }}</p>
+                        @enderror
+                    </div>
+
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <label for="icon" class="block text-sm font-medium text-white/70 mb-2">Icon</label>
@@ -81,6 +110,19 @@
                     </div>
                 </div>
             </div>
+
+            <script>
+                function previewThumbnail(input) {
+                    const preview = document.getElementById('thumbnail-preview');
+                    if (input.files && input.files[0]) {
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            preview.innerHTML = '<img src="' + e.target.result + '" class="w-full h-full object-cover">';
+                        };
+                        reader.readAsDataURL(input.files[0]);
+                    }
+                }
+            </script>
 
             <!-- Submit -->
             <div class="flex items-center gap-4">
