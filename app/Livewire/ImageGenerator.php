@@ -464,6 +464,30 @@ class ImageGenerator extends Component
     }
 
     /**
+     * Reset state trước khi tạo ảnh mới (internal)
+     */
+    protected function resetState(): void
+    {
+        $this->generatedImageUrl = null;
+        $this->errorMessage = null;
+        $this->lastImageId = null;
+    }
+
+    /**
+     * Reset form để tạo ảnh mới (public - từ nút "Tạo lại")
+     */
+    public function resetForm(): void
+    {
+        $this->resetState();
+        $this->uploadedImages = [];
+        $this->uploadedImagePreviews = [];
+        $this->customInput = '';
+        $this->selectedOptions = [];
+        $this->selectedAspectRatio = '1:1';
+        $this->selectedImageSize = '1K';
+    }
+
+    /**
      * Render component
      */
     public function render()
