@@ -1,5 +1,5 @@
 <x-app-layout>
-    <x-slot name="title">{{ $style->name }} - Studio | ZDream</x-slot>
+    <x-slot name="title">{{ $style->name }} - Studio | {{ App\Models\Setting::get('site_name', 'ZDream') }}</x-slot>
 
     <div class="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
         <!-- Back Button (Mobile) -->
@@ -12,7 +12,10 @@
             <!-- Left: Style Preview (2/5) -->
             <div class="lg:col-span-2 space-y-4">
                 <div class="relative rounded-2xl overflow-hidden bg-white/[0.03] border border-white/[0.08]">
-                    <img src="{{ $style->thumbnail }}" alt="{{ $style->name }}" class="w-full aspect-[3/4] md:aspect-[4/5] object-cover">
+                    <img src="{{ $style->thumbnail }}" 
+                         alt="{{ $style->name }}" 
+                         class="w-full aspect-[3/4] md:aspect-[4/5] object-cover"
+                         onerror="this.src='/images/placeholder.svg'; this.onerror=null;">
                     <div class="absolute inset-0 bg-gradient-to-t from-[#0a0a0f]/90 via-transparent to-transparent"></div>
                     <div class="absolute bottom-0 left-0 right-0 p-4 md:p-6">
                         <h1 class="text-xl md:text-2xl font-bold text-white mb-1.5">{{ $style->name }}</h1>

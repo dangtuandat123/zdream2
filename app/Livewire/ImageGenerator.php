@@ -110,16 +110,23 @@ class ImageGenerator extends Component
 
     /**
      * Toggle chọn option (dạng single select per group)
+     * NOTE: $optionId can be null for "Mặc định" (no effect) option
      */
-    public function selectOption(string $groupName, int $optionId): void
+    public function selectOption(string $groupName, ?int $optionId): void
     {
+        // Handle "Mặc định" (null) case - remove from selection
+        if ($optionId === null) {
+            unset($this->selectedOptions[$groupName]);
+            return;
+        }
+
         // Validate optionId belongs to style
         $validIds = $this->style->options->pluck('id')->all();
         if (!in_array($optionId, $validIds, true)) {
             return;
         }
 
-        // Nếu đã chọn rồi thì bỏ chọn
+        // Nếu đã chọn rồi thì bỏ chọn (toggle off)
         if (isset($this->selectedOptions[$groupName]) && $this->selectedOptions[$groupName] === $optionId) {
             unset($this->selectedOptions[$groupName]);
         } else {

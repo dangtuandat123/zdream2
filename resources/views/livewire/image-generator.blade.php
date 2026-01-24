@@ -62,9 +62,9 @@
         </div>
     @endif
 
-    <!-- ========== DROPDOWN: Option thêm ========== -->
+    <!-- ========== DROPDOWN: Option thêm (mặc định mở nếu có options) ========== -->
     @if($optionGroups->isNotEmpty() || $style->allow_user_custom_prompt)
-        <div class="bg-white/[0.03] border border-white/[0.08] rounded-xl overflow-hidden" x-data="{ open: false }">
+        <div class="bg-white/[0.03] border border-white/[0.08] rounded-xl overflow-hidden" x-data="{ open: {{ $optionGroups->isNotEmpty() ? 'true' : 'false' }} }">
             <button 
                 @click="open = !open" 
                 class="w-full flex items-center justify-between p-4 text-left hover:bg-white/[0.02] transition-colors">
@@ -80,9 +80,16 @@
                 <i class="fa-solid fa-chevron-down text-white/40 transition-transform duration-200" :class="{ 'rotate-180': open }"></i>
             </button>
             
-            <div x-show="open" x-collapse class="border-t border-white/[0.05]">
+            <div x-show="open" 
+                 x-transition:enter="transition ease-out duration-200"
+                 x-transition:enter-start="opacity-0 transform -translate-y-2"
+                 x-transition:enter-end="opacity-100 transform translate-y-0"
+                 x-transition:leave="transition ease-in duration-150"
+                 x-transition:leave-start="opacity-100 transform translate-y-0"
+                 x-transition:leave-end="opacity-0 transform -translate-y-2"
+                 class="border-t border-white/[0.05]">
                 <div class="p-4 space-y-4">
-                    <!-- Options Selection -->
+                    <!-- Options Selection với Thumbnails -->
                     @if($optionGroups->isNotEmpty())
                         @foreach($optionGroups as $groupName => $options)
                             <div>
@@ -90,16 +97,49 @@
                                     <span class="w-1 h-4 bg-gradient-to-b from-purple-400 to-pink-500 rounded-full"></span>
                                     {{ $groupName }}
                                 </h3>
-                                <div class="flex flex-wrap gap-2">
+                                <div class="flex flex-wrap gap-3">
+                                    <!-- Option: Mặc định (không hiệu ứng) -->
+                                    <button 
+                                        wire:click="selectOption('{{ $groupName }}', null)"
+                                        class="flex flex-col items-center gap-2 group cursor-pointer select-none">
+                                        <!-- Collage Container -->
+                                        <div class="relative w-16 h-16 sm:w-20 sm:h-20 transition-transform duration-200 group-hover:scale-105
+                                            {{ !isset($selectedOptions[$groupName]) || $selectedOptions[$groupName] === null ? 'ring-2 ring-cyan-400 ring-offset-2 ring-offset-[#0a0a0f]' : '' }}">
+                                            <div class="absolute inset-0 rounded-lg bg-[#1a1a2e] border border-white/10 flex items-center justify-center">
+                                                <i class="fa-solid fa-ban text-white/30" style="font-size: 24px;"></i>
+                                            </div>
+                                        </div>
+                                        <span class="text-xs font-medium {{ !isset($selectedOptions[$groupName]) || $selectedOptions[$groupName] === null ? 'text-cyan-400' : 'text-white/50' }}">Mặc định</span>
+                                    </button>
+
                                     @foreach($options as $option)
                                         <button 
                                             wire:click="selectOption('{{ $groupName }}', {{ $option->id }})"
-                                            class="px-4 py-2.5 text-sm rounded-xl border cursor-pointer select-none transition-all duration-200
-                                                {{ isset($selectedOptions[$groupName]) && $selectedOptions[$groupName] === $option->id 
-                                                    ? 'bg-purple-500/20 border-purple-500/50 text-purple-300 shadow-[0_0_20px_rgba(168,85,247,0.2)]' 
-                                                    : 'bg-white/[0.03] border-white/[0.08] text-white/70 hover:bg-white/[0.06] hover:border-white/[0.15]' 
-                                                }}">
-                                            {{ $option->label }}
+                                            class="flex flex-col items-center gap-2 group cursor-pointer select-none">
+                                            <!-- Collage Container with Stacked Photos -->
+                                            <div class="relative w-16 h-16 sm:w-20 sm:h-20 transition-transform duration-200 group-hover:scale-105
+                                                {{ isset($selectedOptions[$groupName]) && $selectedOptions[$groupName] === $option->id ? 'ring-2 ring-cyan-400 ring-offset-2 ring-offset-[#0a0a0f]' : '' }}">
+                                                @if($option->thumbnail_url)
+                                                    <!-- Single thumbnail as main image with shadow effect -->
+                                                    <div class="absolute inset-0 rounded-lg overflow-hidden shadow-lg">
+                                                        <img src="{{ $option->thumbnail_url }}" alt="{{ $option->label }}" class="w-full h-full object-cover">
+                                                    </div>
+                                                    <!-- Decorative stacked effect (pseudo layers behind) -->
+                                                    <div class="absolute -bottom-1 -right-1 w-12 h-12 sm:w-14 sm:h-14 rounded-lg bg-white/5 border border-white/10 -z-10 rotate-6"></div>
+                                                    <div class="absolute -bottom-2 -right-2 w-10 h-10 sm:w-12 sm:h-12 rounded-lg bg-white/3 border border-white/5 -z-20 rotate-12"></div>
+                                                @else
+                                                    <!-- Placeholder with stacked effect -->
+                                                    <div class="absolute inset-0 rounded-lg bg-[#1a1a2e] border border-white/10 flex items-center justify-center">
+                                                        @if($option->icon)
+                                                            <i class="{{ $option->icon }} text-white/40" style="font-size: 20px;"></i>
+                                                        @else
+                                                            <i class="fa-solid fa-wand-magic-sparkles text-white/30" style="font-size: 18px;"></i>
+                                                        @endif
+                                                    </div>
+                                                    <div class="absolute -bottom-1 -right-1 w-12 h-12 sm:w-14 sm:h-14 rounded-lg bg-white/5 border border-white/10 -z-10 rotate-6"></div>
+                                                @endif
+                                            </div>
+                                            <span class="text-xs font-medium {{ isset($selectedOptions[$groupName]) && $selectedOptions[$groupName] === $option->id ? 'text-cyan-400' : 'text-white/50' }}">{{ $option->label }}</span>
                                         </button>
                                     @endforeach
                                 </div>
@@ -156,7 +196,14 @@
             </div>
         </button>
         
-        <div x-show="open" x-collapse class="border-t border-white/[0.05]">
+        <div x-show="open" 
+             x-transition:enter="transition ease-out duration-200"
+             x-transition:enter-start="opacity-0 transform -translate-y-2"
+             x-transition:enter-end="opacity-100 transform translate-y-0"
+             x-transition:leave="transition ease-in duration-150"
+             x-transition:leave-start="opacity-100 transform translate-y-0"
+             x-transition:leave-end="opacity-0 transform -translate-y-2"
+             class="border-t border-white/[0.05]">
             <div class="p-4 space-y-4">
                 <!-- Aspect Ratio Selector -->
                 <div>
@@ -308,33 +355,91 @@
                     Tạo lại
                 </button>
             </div>
-            <div class="p-3 md:p-4">
-                <img src="{{ $generatedImageUrl }}" alt="Generated Image" class="w-full rounded-xl">
+            
+            <!-- Image với Loading Skeleton -->
+            <div class="p-3 md:p-4" x-data="{ loaded: false }">
+                <!-- Skeleton Loader -->
+                <div x-show="!loaded" class="w-full aspect-square bg-white/[0.05] rounded-xl animate-pulse flex items-center justify-center">
+                    <i class="fa-solid fa-image text-white/20" style="font-size: 48px;"></i>
+                </div>
+                <!-- Actual Image -->
+                <img 
+                    src="{{ $generatedImageUrl }}" 
+                    alt="Generated Image" 
+                    class="w-full rounded-xl"
+                    x-show="loaded"
+                    x-transition:enter="transition ease-out duration-300"
+                    x-transition:enter-start="opacity-0"
+                    x-transition:enter-end="opacity-100"
+                    @load="loaded = true"
+                    onerror="this.src='/images/placeholder.svg'; this.onerror=null;">
             </div>
-            <div class="p-3 md:p-4 pt-0" x-data="{ downloading: false, error: false }">
-                <a href="{{ $generatedImageUrl }}" 
-                   target="_blank" 
-                   download 
-                   x-on:click="downloading = true; setTimeout(() => downloading = false, 3000)"
-                   x-on:error="error = true"
-                   class="w-full py-3 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold inline-flex items-center justify-center gap-2 hover:shadow-[0_8px_30px_rgba(168,85,247,0.5)] transition-all"
-                   :class="{ 'opacity-75': downloading }">
-                    <template x-if="!downloading">
-                        <span class="inline-flex items-center gap-2">
-                            <i class="fa-solid fa-download" style="font-size: 18px;"></i>
-                            <span>Tải xuống</span>
-                        </span>
-                    </template>
-                    <template x-if="downloading">
-                        <span class="inline-flex items-center gap-2">
-                            <i class="fa-solid fa-spinner animate-spin" style="font-size: 18px;"></i>
-                            <span>Đang tải...</span>
-                        </span>
-                    </template>
-                </a>
-                <p class="text-xs text-white/30 text-center mt-2">
+
+            <!-- Download & Share Buttons -->
+            <div class="p-3 md:p-4 pt-0 space-y-3" x-data="{ downloading: false, copied: false }">
+                <!-- Download Button (via Proxy) -->
+                @if($lastImageId)
+                    <a href="{{ route('history.download', $lastImageId) }}" 
+                       x-on:click="downloading = true; setTimeout(() => downloading = false, 3000)"
+                       class="w-full py-3 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold inline-flex items-center justify-center gap-2 hover:shadow-[0_8px_30px_rgba(168,85,247,0.5)] transition-all"
+                       :class="{ 'opacity-75': downloading }">
+                        <template x-if="!downloading">
+                            <span class="inline-flex items-center gap-2">
+                                <i class="fa-solid fa-download" style="font-size: 18px;"></i>
+                                <span>Tải xuống</span>
+                            </span>
+                        </template>
+                        <template x-if="downloading">
+                            <span class="inline-flex items-center gap-2">
+                                <i class="fa-solid fa-spinner animate-spin" style="font-size: 18px;"></i>
+                                <span>Đang tải...</span>
+                            </span>
+                        </template>
+                    </a>
+                @else
+                    <a href="{{ $generatedImageUrl }}" 
+                       target="_blank" 
+                       download
+                       class="w-full py-3 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold inline-flex items-center justify-center gap-2 hover:shadow-[0_8px_30px_rgba(168,85,247,0.5)] transition-all">
+                        <i class="fa-solid fa-download" style="font-size: 18px;"></i>
+                        <span>Tải xuống</span>
+                    </a>
+                @endif
+
+                <!-- Social Share Buttons -->
+                <div class="flex items-center justify-center gap-2">
+                    <span class="text-xs text-white/40 mr-2">Chia sẻ:</span>
+                    
+                    <!-- Facebook -->
+                    <a href="https://www.facebook.com/sharer/sharer.php?u={{ urlencode($generatedImageUrl) }}" 
+                       target="_blank"
+                       class="w-9 h-9 rounded-lg bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 inline-flex items-center justify-center transition-colors"
+                       title="Chia sẻ Facebook">
+                        <i class="fa-brands fa-facebook-f"></i>
+                    </a>
+                    
+                    <!-- Twitter/X -->
+                    <a href="https://twitter.com/intent/tweet?url={{ urlencode($generatedImageUrl) }}&text={{ urlencode('Ảnh AI từ ' . config('app.name')) }}" 
+                       target="_blank"
+                       class="w-9 h-9 rounded-lg bg-white/[0.05] hover:bg-white/[0.1] text-white/60 inline-flex items-center justify-center transition-colors"
+                       title="Chia sẻ Twitter">
+                        <i class="fa-brands fa-x-twitter"></i>
+                    </a>
+                    
+                    <!-- Copy Link -->
+                    <button 
+                        x-on:click="navigator.clipboard.writeText('{{ $generatedImageUrl }}'); copied = true; setTimeout(() => copied = false, 2000)"
+                        class="w-9 h-9 rounded-lg bg-white/[0.05] hover:bg-white/[0.1] text-white/60 inline-flex items-center justify-center transition-colors"
+                        :class="{ 'bg-green-500/20 text-green-400': copied }"
+                        title="Sao chép link">
+                        <i x-show="!copied" class="fa-solid fa-link"></i>
+                        <i x-show="copied" class="fa-solid fa-check"></i>
+                    </button>
+                </div>
+
+                <p class="text-xs text-white/30 text-center">
                     <i class="fa-solid fa-info-circle mr-1"></i>
-                    Link có hiệu lực trong 7 ngày
+                    Link có hiệu lực trong {{ \App\Models\Setting::get('image_expiry_days', 7) }} ngày
                 </p>
             </div>
         </div>

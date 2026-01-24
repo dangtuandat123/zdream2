@@ -55,6 +55,7 @@ class StyleOption extends Model
 
     /**
      * Lấy URL của thumbnail (local storage)
+     * Dùng relative URL để không phụ thuộc APP_URL
      */
     public function getThumbnailUrlAttribute(): ?string
     {
@@ -62,7 +63,7 @@ class StyleOption extends Model
             return null;
         }
         
-        return asset('storage/' . $this->thumbnail);
+        return '/storage/' . $this->thumbnail;
     }
 
     // =========================================
