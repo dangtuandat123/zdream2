@@ -12,7 +12,7 @@
             </div>
         </div>
 
-        <form method="POST" action="{{ route('admin.styles.update', $style) }}" class="space-y-6">
+        <form method="POST" action="{{ route('admin.styles.update', $style) }}" class="space-y-6" enctype="multipart/form-data">
             @csrf
             @method('PUT')
 
@@ -204,6 +204,103 @@
                 <button type="button" @click="addSlot()" class="w-full py-2.5 rounded-xl border-2 border-dashed border-white/[0.1] hover:border-purple-500/50 text-white/50 hover:text-purple-400 text-sm inline-flex items-center justify-center gap-2 transition-colors">
                     <i class="fa-solid fa-plus" style="font-size: 12px;"></i>
                     <span>Thêm ô upload ảnh</span>
+                </button>
+            </div>
+
+            <!-- System Images Config -->
+            <div class="bg-white/[0.03] border border-white/[0.08] rounded-2xl p-6" x-data="{
+                existingImages: @js($style->system_images ?? []),
+                newImages: [],
+                removedKeys: [],
+                addNewImage() {
+                    this.newImages.push({ file: null, preview: null, label: '', description: '' });
+                },
+                removeNewImage(index) {
+                    this.newImages.splice(index, 1);
+                },
+                removeExisting(key) {
+                    this.removedKeys.push(key);
+                    this.existingImages = this.existingImages.filter(img => img.key !== key);
+                },
+                handleFileSelect(event, index) {
+                    const file = event.target.files[0];
+                    if (file) {
+                        this.newImages[index].file = file;
+                        const reader = new FileReader();
+                        reader.onload = (e) => { this.newImages[index].preview = e.target.result; };
+                        reader.readAsDataURL(file);
+                    }
+                }
+            }">
+                <h2 class="text-lg font-semibold text-white mb-4 inline-flex items-center gap-2">
+                    <i class="fa-solid fa-layer-group text-cyan-400" style="font-size: 18px;"></i>
+                    <span>Ảnh hệ thống (Background/Overlay)</span>
+                </h2>
+                <p class="text-white/40 text-sm mb-4">Ảnh nền, khung, overlay sẽ được gửi kèm với ảnh user lên AI</p>
+
+                <!-- Hidden input for removed keys -->
+                <template x-for="key in removedKeys" :key="key">
+                    <input type="hidden" name="removed_system_images[]" :value="key">
+                </template>
+
+                <!-- Existing Images -->
+                <template x-for="(img, index) in existingImages" :key="img.key">
+                    <div class="p-4 bg-white/[0.02] border border-white/[0.05] rounded-xl mb-3">
+                        <div class="flex items-start gap-3">
+                            <div class="w-24 h-24 rounded-lg overflow-hidden bg-black/20 flex-shrink-0">
+                                <img :src="img.url" :alt="img.label" class="w-full h-full object-cover">
+                            </div>
+                            <div class="flex-1">
+                                <p class="text-white/80 text-sm font-medium" x-text="img.label || 'Ảnh hệ thống'"></p>
+                                <p class="text-white/40 text-xs font-mono" x-text="img.description || 'Không có mô tả'"></p>
+                                <input type="hidden" :name="'existing_system_images[' + index + '][key]'" :value="img.key">
+                                <input type="hidden" :name="'existing_system_images[' + index + '][url]'" :value="img.url">
+                                <input type="hidden" :name="'existing_system_images[' + index + '][path]'" :value="img.path">
+                                <input type="hidden" :name="'existing_system_images[' + index + '][label]'" :value="img.label">
+                                <input type="hidden" :name="'existing_system_images[' + index + '][description]'" :value="img.description">
+                            </div>
+                            <button type="button" @click="removeExisting(img.key)" class="w-8 h-8 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 hover:bg-red-500/20 inline-flex items-center justify-center">
+                                <i class="fa-solid fa-times" style="font-size: 12px;"></i>
+                            </button>
+                        </div>
+                    </div>
+                </template>
+
+                <!-- New Images -->
+                <template x-for="(img, index) in newImages" :key="'new_' + index">
+                    <div class="p-4 bg-white/[0.02] border border-cyan-500/20 rounded-xl mb-3">
+                        <div class="flex items-start gap-3">
+                            <div class="w-24 h-24 rounded-lg overflow-hidden bg-black/20 flex-shrink-0">
+                                <template x-if="img.preview">
+                                    <img :src="img.preview" alt="Preview" class="w-full h-full object-cover">
+                                </template>
+                                <template x-if="!img.preview">
+                                    <div class="w-full h-full flex items-center justify-center text-white/30">
+                                        <i class="fa-solid fa-image" style="font-size: 24px;"></i>
+                                    </div>
+                                </template>
+                            </div>
+                            <div class="flex-1 space-y-2">
+                                <input type="file" :name="'system_images_files[]'" accept="image/*" @change="handleFileSelect($event, index)" class="text-sm text-white/70 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:bg-cyan-500/20 file:text-cyan-300">
+                                <input type="text" x-model="img.label" :name="'system_images_labels[]'" placeholder="Label (VD: Nền tuyết)" class="w-full px-3 py-2 rounded-lg bg-white/[0.03] border border-white/[0.08] text-white/90 text-sm">
+                                <input type="text" x-model="img.description" :name="'system_images_descriptions[]'" placeholder="Mô tả cho AI" class="w-full px-3 py-2 rounded-lg bg-white/[0.03] border border-white/[0.08] text-white/70 text-xs font-mono">
+                            </div>
+                            <button type="button" @click="removeNewImage(index)" class="w-8 h-8 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 hover:bg-red-500/20 inline-flex items-center justify-center">
+                                <i class="fa-solid fa-times" style="font-size: 12px;"></i>
+                            </button>
+                        </div>
+                    </div>
+                </template>
+
+                <!-- Empty State -->
+                <div x-show="existingImages.length === 0 && newImages.length === 0" class="text-center py-4 text-white/30 text-sm">
+                    Chưa có ảnh hệ thống nào.
+                </div>
+
+                <!-- Add Button -->
+                <button type="button" @click="addNewImage()" class="w-full py-2.5 rounded-xl border-2 border-dashed border-white/[0.1] hover:border-cyan-500/50 text-white/50 hover:text-cyan-400 text-sm inline-flex items-center justify-center gap-2 transition-colors">
+                    <i class="fa-solid fa-plus" style="font-size: 12px;"></i>
+                    <span>Thêm ảnh hệ thống mới</span>
                 </button>
             </div>
 

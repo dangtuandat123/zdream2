@@ -217,7 +217,7 @@ class OpenRouterService
                     ],
                 ];
                 
-                // Thêm tất cả images vào content
+                // Thêm tất cả user input images vào content
                 foreach ($inputImages as $key => $imageBase64) {
                     $contentParts[] = [
                         'type' => 'image_url',
@@ -228,6 +228,47 @@ class OpenRouterService
                 }
                 
                 $payload['messages'][0]['content'] = $contentParts;
+            }
+            
+            // Thêm system_images từ Style config (background, overlay, etc)
+            $systemImages = $style->system_images ?? [];
+            if (!empty($systemImages)) {
+                // Build description text cho system images
+                $sysDescText = '';
+                foreach ($systemImages as $sysImg) {
+                    $desc = $sysImg['description'] ?? '';
+                    $label = $sysImg['label'] ?? 'System Image';
+                    if ($desc) {
+                        $sysDescText .= "\n[{$label}: {$desc}]";
+                    }
+                }
+                
+                // Đảm bảo content là array
+                if (is_string($payload['messages'][0]['content'])) {
+                    $payload['messages'][0]['content'] = [
+                        ['type' => 'text', 'text' => $payload['messages'][0]['content'] . $sysDescText],
+                    ];
+                } else {
+                    // Append system images description to text
+                    $payload['messages'][0]['content'][0]['text'] .= $sysDescText;
+                }
+                
+                // Thêm system images vào content parts
+                foreach ($systemImages as $sysImg) {
+                    $url = $sysImg['url'] ?? '';
+                    if ($url) {
+                        // Download và convert sang base64 nếu là URL
+                        $base64 = $this->downloadImageAsBase64($url);
+                        if ($base64) {
+                            $payload['messages'][0]['content'][] = [
+                                'type' => 'image_url',
+                                'image_url' => [
+                                    'url' => 'data:image/jpeg;base64,' . $base64,
+                                ],
+                            ];
+                        }
+                    }
+                }
             }
             
             // Override aspect ratio nếu user đã chọn

@@ -101,6 +101,32 @@ class StyleController extends Controller
             })->values()->toArray();
         }
 
+        // Process system_images (upload to MinIO)
+        $systemImages = null;
+        if ($request->hasFile('system_images_files')) {
+            $storageService = app(\App\Services\StorageService::class);
+            $systemImages = [];
+            
+            $labels = $request->input('system_images_labels', []);
+            $descriptions = $request->input('system_images_descriptions', []);
+            
+            foreach ($request->file('system_images_files') as $index => $file) {
+                if ($file && $file->isValid()) {
+                    // Upload to MinIO
+                    $path = $file->store('system-images', 'minio');
+                    $url = \Illuminate\Support\Facades\Storage::disk('minio')->url($path);
+                    
+                    $systemImages[] = [
+                        'key' => 'sys_' . time() . '_' . $index,
+                        'label' => $labels[$index] ?? 'System Image ' . ($index + 1),
+                        'description' => $descriptions[$index] ?? '',
+                        'path' => $path,
+                        'url' => $url,
+                    ];
+                }
+            }
+        }
+
         // Tạo Style
         $style = Style::create([
             'name' => $validated['name'],
@@ -113,6 +139,7 @@ class StyleController extends Controller
             'base_prompt' => $validated['base_prompt'],
             'config_payload' => $configPayload,
             'image_slots' => $imageSlots,
+            'system_images' => $systemImages,
             'allow_user_custom_prompt' => $validated['allow_user_custom_prompt'] ?? false,
             'is_active' => $validated['is_active'] ?? true,
         ]);
@@ -196,6 +223,43 @@ class StyleController extends Controller
             })->values()->toArray();
         }
 
+        // Process system_images (merge existing + new uploads)
+        $systemImages = [];
+        
+        // Keep existing images that were not removed
+        if ($request->has('existing_system_images')) {
+            foreach ($request->input('existing_system_images', []) as $existing) {
+                $systemImages[] = [
+                    'key' => $existing['key'],
+                    'label' => $existing['label'] ?? '',
+                    'description' => $existing['description'] ?? '',
+                    'path' => $existing['path'] ?? '',
+                    'url' => $existing['url'] ?? '',
+                ];
+            }
+        }
+        
+        // Upload new images to MinIO
+        if ($request->hasFile('system_images_files')) {
+            $labels = $request->input('system_images_labels', []);
+            $descriptions = $request->input('system_images_descriptions', []);
+            
+            foreach ($request->file('system_images_files') as $index => $file) {
+                if ($file && $file->isValid()) {
+                    $path = $file->store('system-images', 'minio');
+                    $url = \Illuminate\Support\Facades\Storage::disk('minio')->url($path);
+                    
+                    $systemImages[] = [
+                        'key' => 'sys_' . time() . '_' . $index,
+                        'label' => $labels[$index] ?? 'System Image',
+                        'description' => $descriptions[$index] ?? '',
+                        'path' => $path,
+                        'url' => $url,
+                    ];
+                }
+            }
+        }
+
         // Update Style
         $style->update([
             'name' => $validated['name'],
@@ -208,6 +272,7 @@ class StyleController extends Controller
             'base_prompt' => $validated['base_prompt'],
             'config_payload' => $configPayload,
             'image_slots' => $imageSlots,
+            'system_images' => !empty($systemImages) ? $systemImages : null,
             'allow_user_custom_prompt' => $validated['allow_user_custom_prompt'] ?? false,
             'is_active' => $validated['is_active'] ?? true,
         ]);

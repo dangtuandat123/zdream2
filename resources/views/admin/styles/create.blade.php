@@ -12,7 +12,7 @@
             </div>
         </div>
 
-        <form method="POST" action="{{ route('admin.styles.store') }}" class="space-y-6">
+        <form method="POST" action="{{ route('admin.styles.store') }}" class="space-y-6" enctype="multipart/form-data">
             @csrf
 
             <!-- Basic Info -->
@@ -198,6 +198,97 @@
                 <button type="button" @click="addSlot()" class="w-full py-2.5 rounded-xl border-2 border-dashed border-white/[0.1] hover:border-purple-500/50 text-white/50 hover:text-purple-400 text-sm inline-flex items-center justify-center gap-2 transition-colors">
                     <i class="fa-solid fa-plus" style="font-size: 12px;"></i>
                     <span>Thêm ô upload ảnh</span>
+                </button>
+            </div>
+
+            <!-- System Images Config -->
+            <div class="bg-white/[0.03] border border-white/[0.08] rounded-2xl p-6" x-data="{
+                systemImages: [],
+                addSystemImage() {
+                    this.systemImages.push({ file: null, preview: null, label: '', description: '' });
+                },
+                removeSystemImage(index) {
+                    this.systemImages.splice(index, 1);
+                },
+                handleFileSelect(event, index) {
+                    const file = event.target.files[0];
+                    if (file) {
+                        this.systemImages[index].file = file;
+                        const reader = new FileReader();
+                        reader.onload = (e) => {
+                            this.systemImages[index].preview = e.target.result;
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                }
+            }">
+                <h2 class="text-lg font-semibold text-white mb-4 inline-flex items-center gap-2">
+                    <i class="fa-solid fa-layer-group text-cyan-400" style="font-size: 18px;"></i>
+                    <span>Ảnh hệ thống (Background/Overlay)</span>
+                </h2>
+                <p class="text-white/40 text-sm mb-4">Ảnh nền, khung, overlay sẽ được gửi kèm với ảnh user lên AI</p>
+
+                <!-- System Images List -->
+                <div class="space-y-3 mb-4">
+                    <template x-for="(img, index) in systemImages" :key="index">
+                        <div class="p-4 bg-white/[0.02] border border-white/[0.05] rounded-xl space-y-3">
+                            <div class="flex items-start gap-3">
+                                <!-- Preview -->
+                                <div class="w-24 h-24 rounded-lg overflow-hidden bg-black/20 flex-shrink-0">
+                                    <template x-if="img.preview">
+                                        <img :src="img.preview" alt="Preview" class="w-full h-full object-cover">
+                                    </template>
+                                    <template x-if="!img.preview">
+                                        <div class="w-full h-full flex items-center justify-center text-white/30">
+                                            <i class="fa-solid fa-image" style="font-size: 24px;"></i>
+                                        </div>
+                                    </template>
+                                </div>
+                                
+                                <div class="flex-1 space-y-2">
+                                    <!-- File Input -->
+                                    <input 
+                                        type="file" 
+                                        :name="'system_images_files[]'"
+                                        accept="image/*"
+                                        @change="handleFileSelect($event, index)"
+                                        class="text-sm text-white/70 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:bg-purple-500/20 file:text-purple-300 file:cursor-pointer hover:file:bg-purple-500/30">
+                                    
+                                    <!-- Label -->
+                                    <input 
+                                        type="text" 
+                                        x-model="img.label"
+                                        :name="'system_images_labels[]'"
+                                        placeholder="Label (VD: Nền tuyết)"
+                                        class="w-full px-3 py-2 rounded-lg bg-white/[0.03] border border-white/[0.08] text-white/90 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/40">
+                                    
+                                    <!-- Description for AI -->
+                                    <input 
+                                        type="text" 
+                                        x-model="img.description"
+                                        :name="'system_images_descriptions[]'"
+                                        placeholder="Mô tả cho AI (VD: This is the winter background scene)"
+                                        class="w-full px-3 py-2 rounded-lg bg-white/[0.03] border border-white/[0.08] text-white/70 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-cyan-500/40">
+                                </div>
+                                
+                                <!-- Remove Button -->
+                                <button type="button" @click="removeSystemImage(index)" class="w-8 h-8 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 hover:bg-red-500/20 inline-flex items-center justify-center transition-colors">
+                                    <i class="fa-solid fa-times" style="font-size: 12px;"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+
+                <!-- Empty State -->
+                <div x-show="systemImages.length === 0" class="text-center py-4 text-white/30 text-sm">
+                    Chưa có ảnh hệ thống nào. Bấm nút bên dưới để thêm.
+                </div>
+
+                <!-- Add Button -->
+                <button type="button" @click="addSystemImage()" class="w-full py-2.5 rounded-xl border-2 border-dashed border-white/[0.1] hover:border-cyan-500/50 text-white/50 hover:text-cyan-400 text-sm inline-flex items-center justify-center gap-2 transition-colors">
+                    <i class="fa-solid fa-plus" style="font-size: 12px;"></i>
+                    <span>Thêm ảnh hệ thống</span>
                 </button>
             </div>
 

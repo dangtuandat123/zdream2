@@ -42,6 +42,7 @@ class Style extends Model
         'is_active',
         'allow_user_custom_prompt',
         'image_slots',
+        'system_images',
         'sort_order',
     ];
 
@@ -49,6 +50,7 @@ class Style extends Model
         'price' => 'decimal:2',
         'config_payload' => 'array',
         'image_slots' => 'array',
+        'system_images' => 'array',
         'is_active' => 'boolean',
         'allow_user_custom_prompt' => 'boolean',
         'sort_order' => 'integer',
