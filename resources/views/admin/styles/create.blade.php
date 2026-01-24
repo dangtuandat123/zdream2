@@ -139,6 +139,21 @@
                         @enderror
                     </div>
 
+                    <div>
+                        <label for="aspect_ratio" class="block text-sm font-medium text-white/70 mb-2">Aspect Ratio mặc định</label>
+                        <select id="aspect_ratio" name="aspect_ratio"
+                                class="w-full px-4 py-3 rounded-xl bg-white/[0.03] border border-white/[0.08] text-white/90 focus:outline-none focus:ring-2 focus:ring-purple-500/40 focus:border-purple-500/40 transition-all">
+                            <option value="">Mặc định (1:1)</option>
+                            <option value="1:1" {{ old('aspect_ratio') == '1:1' ? 'selected' : '' }}>1:1 (Vuông)</option>
+                            <option value="16:9" {{ old('aspect_ratio') == '16:9' ? 'selected' : '' }}>16:9 (Ngang)</option>
+                            <option value="9:16" {{ old('aspect_ratio') == '9:16' ? 'selected' : '' }}>9:16 (Dọc)</option>
+                            <option value="4:3" {{ old('aspect_ratio') == '4:3' ? 'selected' : '' }}>4:3 (Cổ điển)</option>
+                            <option value="3:4" {{ old('aspect_ratio') == '3:4' ? 'selected' : '' }}>3:4 (Chân dung)</option>
+                            <option value="21:9" {{ old('aspect_ratio') == '21:9' ? 'selected' : '' }}>21:9 (Ultrawide)</option>
+                        </select>
+                        <p class="mt-1 text-xs text-white/40">Chỉ áp dụng cho model hỗ trợ ⚙️ image_config (Gemini)</p>
+                    </div>
+
                     <div class="flex items-center gap-3">
                         <input type="checkbox" id="allow_user_custom_prompt" name="allow_user_custom_prompt" value="1" 
                                class="w-5 h-5 rounded bg-white/[0.03] border-white/[0.15] text-purple-500 focus:ring-purple-500/50"

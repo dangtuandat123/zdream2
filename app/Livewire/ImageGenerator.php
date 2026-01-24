@@ -488,6 +488,24 @@ class ImageGenerator extends Component
     }
 
     /**
+     * Validate inputs trước khi generate
+     * O5: Giới hạn customInput để tránh vượt context/cost
+     */
+    protected function validateGenerationInputs(): bool
+    {
+        // Validate customInput length
+        if (strlen($this->customInput) > 500) {
+            $this->errorMessage = 'Mô tả bổ sung không được vượt quá 500 ký tự.';
+            return false;
+        }
+
+        // Sanitize customInput - remove dangerous characters
+        $this->customInput = strip_tags($this->customInput);
+
+        return true;
+    }
+
+    /**
      * Render component
      */
     public function render()

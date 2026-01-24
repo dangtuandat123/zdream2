@@ -57,7 +57,7 @@ class StyleController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'slug' => 'nullable|string|max:255',
+            'slug' => 'nullable|string|max:255|unique:styles,slug',
             'description' => 'nullable|string|max:1000',
             'thumbnail_url' => 'nullable|url|max:500',
             'price' => 'required|numeric|min:0',
@@ -104,6 +104,11 @@ class StyleController extends Controller
         // Process system_images (upload to MinIO)
         $systemImages = null;
         if ($request->hasFile('system_images_files')) {
+            // Validate files
+            $request->validate([
+                'system_images_files.*' => 'image|max:10240', // 10MB max per image
+            ]);
+
             $storageService = app(\App\Services\StorageService::class);
             $systemImages = [];
             
@@ -140,8 +145,8 @@ class StyleController extends Controller
             'config_payload' => $configPayload,
             'image_slots' => $imageSlots,
             'system_images' => $systemImages,
-            'allow_user_custom_prompt' => $validated['allow_user_custom_prompt'] ?? false,
-            'is_active' => $validated['is_active'] ?? true,
+            'allow_user_custom_prompt' => $request->boolean('allow_user_custom_prompt'),
+            'is_active' => $request->boolean('is_active'),
         ]);
 
         // Tạo Options
@@ -180,7 +185,7 @@ class StyleController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'slug' => 'nullable|string|max:255',
+            'slug' => 'nullable|string|max:255|unique:styles,slug,' . $style->id,
             'description' => 'nullable|string|max:1000',
             'thumbnail_url' => 'nullable|url|max:500',
             'price' => 'required|numeric|min:0',
@@ -192,7 +197,7 @@ class StyleController extends Controller
             'is_active' => 'boolean',
             
             'image_slots' => 'nullable|array',
-            'image_slots.*.key' => 'required_with:image_slots|string|max:100',
+            'image_slots.*.key' => ['required_with:image_slots', 'string', 'max:100', 'regex:/^[a-zA-Z0-9_-]+$/'],
             'image_slots.*.label' => 'required_with:image_slots|string|max:255',
             'image_slots.*.description' => 'nullable|string|max:500',
             'image_slots.*.required' => 'nullable',
@@ -225,6 +230,19 @@ class StyleController extends Controller
 
         // Process system_images (merge existing + new uploads)
         $systemImages = [];
+        
+        // I3: Xóa files khi admin remove system images
+        if ($request->has('removed_system_images')) {
+            $removedKeys = $request->input('removed_system_images', []);
+            $existingImages = $style->system_images ?? [];
+            
+            foreach ($existingImages as $img) {
+                if (in_array($img['key'] ?? '', $removedKeys) && !empty($img['path'])) {
+                    // Xóa file khỏi MinIO
+                    \Illuminate\Support\Facades\Storage::disk('minio')->delete($img['path']);
+                }
+            }
+        }
         
         // Keep existing images that were not removed
         if ($request->has('existing_system_images')) {
@@ -273,8 +291,8 @@ class StyleController extends Controller
             'config_payload' => $configPayload,
             'image_slots' => $imageSlots,
             'system_images' => !empty($systemImages) ? $systemImages : null,
-            'allow_user_custom_prompt' => $validated['allow_user_custom_prompt'] ?? false,
-            'is_active' => $validated['is_active'] ?? true,
+            'allow_user_custom_prompt' => $request->boolean('allow_user_custom_prompt'),
+            'is_active' => $request->boolean('is_active'),
         ]);
 
         // Sync Options

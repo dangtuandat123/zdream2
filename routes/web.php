@@ -60,8 +60,8 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
         return view('admin.dashboard');
     })->name('dashboard');
 
-    // CRUD Styles
-    Route::resource('styles', AdminStyleController::class);
+    // CRUD Styles (loại show vì không cần)
+    Route::resource('styles', AdminStyleController::class)->except(['show']);
 
     // CRUD Style Options (nested)
     Route::resource('styles.options', AdminStyleOptionController::class)

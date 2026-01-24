@@ -60,6 +60,13 @@ class StyleOptionController extends Controller
         $validated['sort_order'] = $validated['sort_order'] ?? 0;
         $validated['is_default'] = $request->boolean('is_default');
 
+        // L6: Nếu option mới là default, bỏ is_default của các option khác trong cùng group
+        if ($validated['is_default']) {
+            $style->options()
+                ->where('group_name', $validated['group_name'])
+                ->update(['is_default' => false]);
+        }
+
         $style->options()->create($validated);
 
         return redirect()
@@ -104,6 +111,14 @@ class StyleOptionController extends Controller
         ]);
 
         $validated['is_default'] = $request->boolean('is_default');
+
+        // L6: Nếu option này được set default, bỏ is_default của các option khác trong cùng group
+        if ($validated['is_default']) {
+            $style->options()
+                ->where('group_name', $validated['group_name'])
+                ->where('id', '!=', $option->id)
+                ->update(['is_default' => false]);
+        }
 
         $option->update($validated);
 
