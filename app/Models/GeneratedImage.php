@@ -130,6 +130,7 @@ class GeneratedImage extends Model
 
     /**
      * Lấy URL ảnh từ storage_path
+     * Sử dụng temporaryUrl (pre-signed) để bypass bucket policy restrictions
      */
     public function getImageUrlAttribute(): ?string
     {
@@ -142,8 +143,17 @@ class GeneratedImage extends Model
             return $this->storage_path;
         }
 
-        // Nếu là đường dẫn tương đối
-        return Storage::disk('minio')->url($this->storage_path);
+        // Sử dụng temporaryUrl (pre-signed URL) với expiry 24h
+        // Điều này bypass bucket policy và cho phép public access
+        try {
+            return Storage::disk('minio')->temporaryUrl(
+                $this->storage_path,
+                now()->addHours(24)
+            );
+        } catch (\Exception $e) {
+            // Fallback to regular URL nếu temporaryUrl không khả dụng
+            return Storage::disk('minio')->url($this->storage_path);
+        }
     }
 
     /**

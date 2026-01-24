@@ -218,9 +218,9 @@
         </div>
     @endif
 
-    <!-- Loading State -->
+    <!-- Loading State with Polling -->
     @if($isGenerating)
-        <div class="bg-white/[0.03] border border-white/[0.08] rounded-xl p-6 md:p-8 text-center">
+        <div wire:poll.2s="pollImageStatus" class="bg-white/[0.03] border border-white/[0.08] rounded-xl p-6 md:p-8 text-center">
             <div class="inline-flex items-center justify-center w-16 h-16 mb-4 rounded-2xl bg-gradient-to-br from-purple-500/20 to-pink-500/20">
                 <i class="fa-solid fa-spinner w-8 h-8 text-purple-400 animate-spin"></i>
             </div>
