@@ -37,19 +37,8 @@ class ImageGenerator extends Component
     // Image Size đã chọn (chỉ Gemini)
     public string $selectedImageSize = '1K';
     
-    // Các aspect ratios hỗ trợ (theo OpenRouter docs)
-    public array $aspectRatios = [
-        '1:1' => 'Vuông (1:1)',
-        '16:9' => 'Ngang Wide (16:9)',
-        '9:16' => 'Dọc Portrait (9:16)',
-        '4:3' => 'Ngang (4:3)',
-        '3:4' => 'Dọc (3:4)',
-        '3:2' => 'Photo (3:2)',
-        '2:3' => 'Photo Dọc (2:3)',
-        '5:4' => 'Vuông (5:4)',
-        '4:5' => 'Instagram (4:5)',
-        '21:9' => 'Cinematic (21:9)',
-    ];
+    // Các aspect ratios hỗ trợ (load từ OpenRouterService)
+    public array $aspectRatios = [];
     
     // Các image sizes (chỉ Gemini models)
     public array $imageSizes = [
@@ -57,6 +46,9 @@ class ImageGenerator extends Component
         '2K' => '2K (Cao)',
         '4K' => '4K (Rất cao)',
     ];
+    
+    // Model có hỗ trợ image_config không (Gemini)
+    public bool $supportsImageConfig = false;
     
     // State
     public bool $isGenerating = false;
@@ -76,6 +68,13 @@ class ImageGenerator extends Component
     public function mount(Style $style): void
     {
         $this->style = $style;
+        
+        // Load aspect ratios từ service (đồng bộ với config)
+        $openRouterService = app(OpenRouterService::class);
+        $this->aspectRatios = $openRouterService->getAspectRatios();
+        
+        // Detect xem model có hỗ trợ image_config không (Gemini)
+        $this->supportsImageConfig = str_contains(strtolower($style->openrouter_model_id), 'gemini');
         
         // Set default aspect ratio từ style config (với fallback)
         $this->selectedAspectRatio = $style->aspect_ratio ?? '1:1';

@@ -19,9 +19,9 @@ return [
         
         // Các model mặc định hỗ trợ image generation (Jan 2026)
         'models' => [
-            'gemini' => 'google/gemini-2.5-flash-image-preview',
-            'flux_pro' => 'black-forest-labs/flux.2-pro',
-            'flux_flex' => 'black-forest-labs/flux.2-flex',
+            'gemini' => 'google/gemini-2.5-flash-image',
+            'flux_pro' => 'black-forest-labs/flux-1.1-pro',
+            'flux_schnell' => 'black-forest-labs/flux-schnell',
         ],
         
         // Aspect ratios hỗ trợ (đồng bộ với ImageGenerator)

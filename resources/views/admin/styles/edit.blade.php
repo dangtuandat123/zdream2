@@ -105,11 +105,31 @@
                                 class="w-full px-4 py-3 rounded-xl bg-white/[0.03] border border-white/[0.08] text-white/90 focus:outline-none focus:ring-2 focus:ring-purple-500/40 focus:border-purple-500/40 transition-all">
                             <option value="">Chọn model...</option>
                             @foreach($models as $model)
+                                @php
+                                    $priceLabel = '';
+                                    $price = $model['prompt_price'] ?? -1;
+                                    if ($price == 0) {
+                                        $priceLabel = '🆓 FREE';
+                                    } elseif ($price > 0) {
+                                        $priceLabel = '$' . number_format($price, 4) . '/1M';
+                                    } else {
+                                        $priceLabel = '💲 Paid';
+                                    }
+                                    
+                                    $features = [];
+                                    if ($model['supports_image_config'] ?? false) {
+                                        $features[] = '⚙️ image_config';
+                                    }
+                                    $featuresLabel = implode(' ', $features);
+                                @endphp
                                 <option value="{{ $model['id'] }}" {{ old('openrouter_model_id', $style->openrouter_model_id) == $model['id'] ? 'selected' : '' }}>
-                                    {{ $model['name'] }}
+                                    {{ $model['name'] }} - {{ $priceLabel }} {{ $featuresLabel }}
                                 </option>
                             @endforeach
                         </select>
+                        <p class="mt-1 text-xs text-white/40">
+                            🆓 FREE = miễn phí | 💲 Paid = trả phí | ⚙️ = hỗ trợ aspect_ratio và image_size
+                        </p>
                         @error('openrouter_model_id')
                             <p class="mt-1 text-sm text-red-400">{{ $message }}</p>
                         @enderror

@@ -142,11 +142,14 @@ class OpenRouterService
                     }
                     
                     if ($isImageModel) {
+                        $pricing = $model['pricing'] ?? [];
                         $models[] = [
                             'id' => $model['id'],
                             'name' => $model['name'] ?? $model['id'],
                             'description' => $model['description'] ?? '',
-                            'pricing' => $model['pricing'] ?? [],
+                            'pricing' => $pricing,
+                            'prompt_price' => (float) ($pricing['prompt'] ?? 0),
+                            'completion_price' => (float) ($pricing['completion'] ?? 0),
                             'context_length' => $model['context_length'] ?? 0,
                             'output_modalities' => $outputModalities,
                             'supports_image_config' => str_contains($modelId, 'gemini'),
@@ -190,34 +193,35 @@ class OpenRouterService
     {
         // Danh sách đầy đủ image generation models từ OpenRouter (Jan 2026)
         // Nguồn: https://openrouter.ai/models?output_modalities=image
+        // prompt_price: -1 = chưa biết giá (fallback), 0 = miễn phí
         return [
             // === GOOGLE GEMINI ===
-            ['id' => 'google/gemini-3-pro-image-preview', 'name' => 'Gemini 3 Pro Image', 'description' => 'Google Gemini 3 Pro - Image Generation', 'supports_image_config' => true],
-            ['id' => 'google/gemini-2.5-flash-image', 'name' => 'Gemini 2.5 Flash Image', 'description' => 'Google Gemini 2.5 Flash - Image Generation', 'supports_image_config' => true],
-            ['id' => 'google/gemini-2.0-flash-exp:free', 'name' => 'Gemini 2.0 Flash (Free)', 'description' => 'Google Gemini 2.0 Flash - Free tier', 'supports_image_config' => true],
+            ['id' => 'google/gemini-3-pro-image-preview', 'name' => 'Gemini 3 Pro Image', 'description' => 'Google Gemini 3 Pro - Image Generation', 'supports_image_config' => true, 'prompt_price' => -1],
+            ['id' => 'google/gemini-2.5-flash-image', 'name' => 'Gemini 2.5 Flash Image', 'description' => 'Google Gemini 2.5 Flash - Image Generation', 'supports_image_config' => true, 'prompt_price' => -1],
+            ['id' => 'google/gemini-2.0-flash-exp:free', 'name' => 'Gemini 2.0 Flash (Free)', 'description' => 'Google Gemini 2.0 Flash - Free tier', 'supports_image_config' => true, 'prompt_price' => 0],
             
             // === OPENAI GPT IMAGE ===
-            ['id' => 'openai/gpt-5-image', 'name' => 'GPT-5 Image', 'description' => 'OpenAI GPT-5 Image Generation', 'supports_image_config' => false],
-            ['id' => 'openai/gpt-5-image-mini', 'name' => 'GPT-5 Image Mini', 'description' => 'OpenAI GPT-5 Image Mini (Faster)', 'supports_image_config' => false],
-            ['id' => 'openai/dall-e-3', 'name' => 'DALL-E 3', 'description' => 'OpenAI DALL-E 3', 'supports_image_config' => false],
+            ['id' => 'openai/gpt-5-image', 'name' => 'GPT-5 Image', 'description' => 'OpenAI GPT-5 Image Generation', 'supports_image_config' => false, 'prompt_price' => -1],
+            ['id' => 'openai/gpt-5-image-mini', 'name' => 'GPT-5 Image Mini', 'description' => 'OpenAI GPT-5 Image Mini (Faster)', 'supports_image_config' => false, 'prompt_price' => -1],
+            ['id' => 'openai/dall-e-3', 'name' => 'DALL-E 3', 'description' => 'OpenAI DALL-E 3', 'supports_image_config' => false, 'prompt_price' => -1],
             
             // === BLACK FOREST LABS FLUX ===
-            ['id' => 'black-forest-labs/flux-1.1-pro', 'name' => 'FLUX 1.1 Pro', 'description' => 'Black Forest Labs FLUX 1.1 Pro', 'supports_image_config' => false],
-            ['id' => 'black-forest-labs/flux-pro', 'name' => 'FLUX Pro', 'description' => 'Black Forest Labs FLUX Pro', 'supports_image_config' => false],
-            ['id' => 'black-forest-labs/flux-schnell', 'name' => 'FLUX Schnell', 'description' => 'Black Forest Labs FLUX Schnell (Fast)', 'supports_image_config' => false],
-            ['id' => 'black-forest-labs/flux-dev', 'name' => 'FLUX Dev', 'description' => 'Black Forest Labs FLUX Dev', 'supports_image_config' => false],
+            ['id' => 'black-forest-labs/flux-1.1-pro', 'name' => 'FLUX 1.1 Pro', 'description' => 'Black Forest Labs FLUX 1.1 Pro', 'supports_image_config' => false, 'prompt_price' => -1],
+            ['id' => 'black-forest-labs/flux-pro', 'name' => 'FLUX Pro', 'description' => 'Black Forest Labs FLUX Pro', 'supports_image_config' => false, 'prompt_price' => -1],
+            ['id' => 'black-forest-labs/flux-schnell', 'name' => 'FLUX Schnell', 'description' => 'Black Forest Labs FLUX Schnell (Fast)', 'supports_image_config' => false, 'prompt_price' => -1],
+            ['id' => 'black-forest-labs/flux-dev', 'name' => 'FLUX Dev', 'description' => 'Black Forest Labs FLUX Dev', 'supports_image_config' => false, 'prompt_price' => -1],
             
             // === STABILITY AI ===
-            ['id' => 'stability-ai/stable-diffusion-3', 'name' => 'Stable Diffusion 3', 'description' => 'Stability AI SD3', 'supports_image_config' => false],
-            ['id' => 'stability-ai/sdxl', 'name' => 'SDXL', 'description' => 'Stability AI SDXL', 'supports_image_config' => false],
+            ['id' => 'stability-ai/stable-diffusion-3', 'name' => 'Stable Diffusion 3', 'description' => 'Stability AI SD3', 'supports_image_config' => false, 'prompt_price' => -1],
+            ['id' => 'stability-ai/sdxl', 'name' => 'SDXL', 'description' => 'Stability AI SDXL', 'supports_image_config' => false, 'prompt_price' => -1],
             
             // === IDEOGRAM ===
-            ['id' => 'ideogram/ideogram-v2', 'name' => 'Ideogram V2', 'description' => 'Ideogram V2 - Text-to-Image', 'supports_image_config' => false],
-            ['id' => 'ideogram/ideogram-v2-turbo', 'name' => 'Ideogram V2 Turbo', 'description' => 'Ideogram V2 Turbo (Fast)', 'supports_image_config' => false],
+            ['id' => 'ideogram/ideogram-v2', 'name' => 'Ideogram V2', 'description' => 'Ideogram V2 - Text-to-Image', 'supports_image_config' => false, 'prompt_price' => -1],
+            ['id' => 'ideogram/ideogram-v2-turbo', 'name' => 'Ideogram V2 Turbo', 'description' => 'Ideogram V2 Turbo (Fast)', 'supports_image_config' => false, 'prompt_price' => -1],
             
             // === RECRAFT ===
-            ['id' => 'recraft/recraft-v3-svg', 'name' => 'Recraft V3 SVG', 'description' => 'Recraft V3 - SVG Generation', 'supports_image_config' => false],
-            ['id' => 'recraft/recraft-v3', 'name' => 'Recraft V3', 'description' => 'Recraft V3 Image Generation', 'supports_image_config' => false],
+            ['id' => 'recraft/recraft-v3-svg', 'name' => 'Recraft V3 SVG', 'description' => 'Recraft V3 - SVG Generation', 'supports_image_config' => false, 'prompt_price' => -1],
+            ['id' => 'recraft/recraft-v3', 'name' => 'Recraft V3', 'description' => 'Recraft V3 Image Generation', 'supports_image_config' => false, 'prompt_price' => -1],
         ];
     }
 
@@ -373,6 +377,9 @@ class OpenRouterService
             }
             Log::info('OpenRouter payload structure', ['payload' => json_encode($logPayload, JSON_PRETTY_PRINT)]);
 
+            // Tăng PHP execution time để tránh timeout cho các model chậm (GPT-5, v.v.)
+            set_time_limit(180); // 3 phút
+            
             // Gọi API
             $response = $this->client()->post($this->baseUrl . '/chat/completions', $payload);
 
@@ -391,10 +398,27 @@ class OpenRouterService
 
             $data = $response->json();
             
+            // DEBUG: Log response structure để debug các model khác nhau
+            Log::info('OpenRouter API response structure', [
+                'model' => $style->openrouter_model_id,
+                'has_choices' => isset($data['choices']),
+                'choices_count' => count($data['choices'] ?? []),
+                'message_keys' => array_keys($data['choices'][0]['message'] ?? []),
+                'has_images' => isset($data['choices'][0]['message']['images']),
+                'images_count' => count($data['choices'][0]['message']['images'] ?? []),
+                'content_type' => gettype($data['choices'][0]['message']['content'] ?? null),
+            ]);
+            
             // Parse response để lấy Base64 image
             $imageBase64 = $this->extractImageFromResponse($data);
             
             if (empty($imageBase64)) {
+                // Log thêm chi tiết khi không extract được
+                Log::error('Failed to extract image from response', [
+                    'model' => $style->openrouter_model_id,
+                    'response_preview' => substr(json_encode($data), 0, 2000),
+                ]);
+                
                 return [
                     'success' => false,
                     'error' => 'No image data in response',
