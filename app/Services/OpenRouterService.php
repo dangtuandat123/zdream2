@@ -108,20 +108,20 @@ class OpenRouterService
                 $models = [];
                 
                 // Known image generation model patterns (Jan 2026)
+                // Mở rộng để bắt nhiều models hơn
                 $imageModelPatterns = [
-                    'gemini-2.5-flash-image',
-                    'gemini-3-pro-image',
-                    'gemini-3-flash-image',
+                    // Gemini
+                    '-image-', '-image',
                     'gemini-2.0-flash-exp',
-                    'flux.2-pro',
-                    'flux.2-flex',
-                    'dall-e',
-                    'dalle',
-                    'stable-diffusion',
-                    'ideogram',
-                    'recraft',
-                    'playground',
-                    'imagen',
+                    // FLUX
+                    'flux-', 'flux.',
+                    // OpenAI
+                    'dall-e', 'dalle', 'gpt-5-image', 'gpt-image',
+                    // Stability
+                    'stable-diffusion', 'sdxl', 'sd3',
+                    // Others
+                    'ideogram', 'recraft', 'playground', 'imagen', 'leonardo',
+                    'midjourney', 'riverflow',
                 ];
                 
                 foreach ($data['data'] ?? [] as $model) {
@@ -154,17 +154,24 @@ class OpenRouterService
                     }
                 }
                 
+                // QUAN TRỌNG: Merge với fallback list để đảm bảo có đủ models
+                // Vì API /models không trả về output_modalities cho tất cả models
+                $fallbackModels = $this->getFallbackModels();
+                $existingIds = array_column($models, 'id');
+                
+                foreach ($fallbackModels as $fallbackModel) {
+                    if (!in_array($fallbackModel['id'], $existingIds)) {
+                        $models[] = $fallbackModel;
+                    }
+                }
+                
                 // Sort by name
                 usort($models, fn($a, $b) => strcmp($a['name'], $b['name']));
                 
-                // Nếu không tìm thấy models, return fallback
-                if (empty($models)) {
-                    Log::warning('No image models found from API, using fallback');
-                    return $this->getFallbackModels();
-                }
-                
                 Log::info('OpenRouter image models fetched', [
-                    'count' => count($models),
+                    'from_api' => count($existingIds),
+                    'from_fallback' => count($models) - count($existingIds),
+                    'total' => count($models),
                 ]);
                 
                 return $models;
@@ -181,18 +188,36 @@ class OpenRouterService
      */
     protected function getFallbackModels(): array
     {
-        // Model names theo OpenRouter docs mới (Jan 2026)
+        // Danh sách đầy đủ image generation models từ OpenRouter (Jan 2026)
+        // Nguồn: https://openrouter.ai/models?output_modalities=image
         return [
-            // Gemini models - hỗ trợ image generation
-            ['id' => 'google/gemini-2.5-flash-image-preview', 'name' => 'Gemini 2.5 Flash Image', 'description' => 'Google Gemini 2.5 Flash - Image Generation Preview'],
-            ['id' => 'google/gemini-2.0-flash-exp:free', 'name' => 'Gemini 2.0 Flash (Free)', 'description' => 'Google Gemini 2.0 Flash - Free tier'],
+            // === GOOGLE GEMINI ===
+            ['id' => 'google/gemini-3-pro-image-preview', 'name' => 'Gemini 3 Pro Image', 'description' => 'Google Gemini 3 Pro - Image Generation', 'supports_image_config' => true],
+            ['id' => 'google/gemini-2.5-flash-image', 'name' => 'Gemini 2.5 Flash Image', 'description' => 'Google Gemini 2.5 Flash - Image Generation', 'supports_image_config' => true],
+            ['id' => 'google/gemini-2.0-flash-exp:free', 'name' => 'Gemini 2.0 Flash (Free)', 'description' => 'Google Gemini 2.0 Flash - Free tier', 'supports_image_config' => true],
             
-            // FLUX models - Black Forest Labs
-            ['id' => 'black-forest-labs/flux.2-pro', 'name' => 'FLUX.2 Pro', 'description' => 'Black Forest Labs FLUX.2 Pro - High quality'],
-            ['id' => 'black-forest-labs/flux.2-flex', 'name' => 'FLUX.2 Flex', 'description' => 'Black Forest Labs FLUX.2 Flex - Flexible generation'],
+            // === OPENAI GPT IMAGE ===
+            ['id' => 'openai/gpt-5-image', 'name' => 'GPT-5 Image', 'description' => 'OpenAI GPT-5 Image Generation', 'supports_image_config' => false],
+            ['id' => 'openai/gpt-5-image-mini', 'name' => 'GPT-5 Image Mini', 'description' => 'OpenAI GPT-5 Image Mini (Faster)', 'supports_image_config' => false],
+            ['id' => 'openai/dall-e-3', 'name' => 'DALL-E 3', 'description' => 'OpenAI DALL-E 3', 'supports_image_config' => false],
             
-            // Other image models
-            ['id' => 'sourceful/riverflow-v2-standard-preview', 'name' => 'Riverflow V2', 'description' => 'Sourceful Riverflow V2 Standard Preview'],
+            // === BLACK FOREST LABS FLUX ===
+            ['id' => 'black-forest-labs/flux-1.1-pro', 'name' => 'FLUX 1.1 Pro', 'description' => 'Black Forest Labs FLUX 1.1 Pro', 'supports_image_config' => false],
+            ['id' => 'black-forest-labs/flux-pro', 'name' => 'FLUX Pro', 'description' => 'Black Forest Labs FLUX Pro', 'supports_image_config' => false],
+            ['id' => 'black-forest-labs/flux-schnell', 'name' => 'FLUX Schnell', 'description' => 'Black Forest Labs FLUX Schnell (Fast)', 'supports_image_config' => false],
+            ['id' => 'black-forest-labs/flux-dev', 'name' => 'FLUX Dev', 'description' => 'Black Forest Labs FLUX Dev', 'supports_image_config' => false],
+            
+            // === STABILITY AI ===
+            ['id' => 'stability-ai/stable-diffusion-3', 'name' => 'Stable Diffusion 3', 'description' => 'Stability AI SD3', 'supports_image_config' => false],
+            ['id' => 'stability-ai/sdxl', 'name' => 'SDXL', 'description' => 'Stability AI SDXL', 'supports_image_config' => false],
+            
+            // === IDEOGRAM ===
+            ['id' => 'ideogram/ideogram-v2', 'name' => 'Ideogram V2', 'description' => 'Ideogram V2 - Text-to-Image', 'supports_image_config' => false],
+            ['id' => 'ideogram/ideogram-v2-turbo', 'name' => 'Ideogram V2 Turbo', 'description' => 'Ideogram V2 Turbo (Fast)', 'supports_image_config' => false],
+            
+            // === RECRAFT ===
+            ['id' => 'recraft/recraft-v3-svg', 'name' => 'Recraft V3 SVG', 'description' => 'Recraft V3 - SVG Generation', 'supports_image_config' => false],
+            ['id' => 'recraft/recraft-v3', 'name' => 'Recraft V3', 'description' => 'Recraft V3 Image Generation', 'supports_image_config' => false],
         ];
     }
 
@@ -299,22 +324,27 @@ class OpenRouterService
             }
             
             // Override aspect ratio nếu user đã chọn
+            // CHÚ Ý: image_config chỉ cho Gemini models
+            $isGeminiModel = str_contains(strtolower($style->openrouter_model_id), 'gemini');
+            
             if ($aspectRatio) {
-                $payload['image_config'] = $payload['image_config'] ?? [];
-                $payload['image_config']['aspect_ratio'] = $aspectRatio;
-                
-                // Với Flux model, chèn aspect ratio vào prompt
-                if (str_contains($style->openrouter_model_id, 'flux')) {
+                if ($isGeminiModel) {
+                    // Gemini: dùng image_config
+                    $payload['image_config'] = $payload['image_config'] ?? [];
+                    $payload['image_config']['aspect_ratio'] = $aspectRatio;
+                } else {
+                    // FLUX, DALL-E, v.v.: chèn thông tin vào prompt
+                    $aspectText = ", {$aspectRatio} aspect ratio";
                     if (is_string($payload['messages'][0]['content'])) {
-                        $payload['messages'][0]['content'] .= ", {$aspectRatio} aspect ratio";
+                        $payload['messages'][0]['content'] .= $aspectText;
                     } else {
-                        $payload['messages'][0]['content'][0]['text'] .= ", {$aspectRatio} aspect ratio";
+                        $payload['messages'][0]['content'][0]['text'] .= $aspectText;
                     }
                 }
             }
             
-            // Override image size nếu user đã chọn (chỉ cho Gemini models)
-            if ($imageSize && str_contains($style->openrouter_model_id, 'gemini')) {
+            // Override image size nếu user đã chọn (CHỈ cho Gemini models)
+            if ($imageSize && $isGeminiModel) {
                 $payload['image_config'] = $payload['image_config'] ?? [];
                 $payload['image_config']['image_size'] = $imageSize;
             }
