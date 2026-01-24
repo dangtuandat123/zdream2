@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\HistoryController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\StudioController;
@@ -38,6 +39,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Wallet - Ví tiền
     Route::get('/wallet', [WalletController::class, 'index'])->name('wallet.index');
+
+    // History - Lịch sử ảnh đã tạo
+    Route::get('/history', [HistoryController::class, 'index'])->name('history.index');
 
     // Profile (từ Breeze)
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

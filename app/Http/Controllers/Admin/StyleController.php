@@ -204,10 +204,10 @@ class StyleController extends Controller
             'options.*.prompt_fragment' => 'required_with:options|string|max:500',
         ]);
 
-        // Build config_payload
-        $configPayload = null;
+        // Build config_payload - giữ nguyên nếu không có aspect_ratio mới
+        $configPayload = $style->config_payload; // Giữ giá trị hiện tại
         if (!empty($validated['aspect_ratio'])) {
-            $configPayload = ['aspect_ratio' => $validated['aspect_ratio']];
+            $configPayload = array_merge($configPayload ?? [], ['aspect_ratio' => $validated['aspect_ratio']]);
         }
 
         // Process image_slots

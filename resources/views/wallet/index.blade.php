@@ -40,7 +40,7 @@
                 <div class="space-y-2 text-center">
                     <p class="text-sm text-white/50">
                         Nội dung: 
-                        <code class="px-2 py-0.5 rounded bg-white/[0.05] text-cyan-400 font-mono text-xs">ZDREAM {{ $user->id }} NAP</code>
+                        <code class="px-2 py-0.5 rounded bg-white/[0.05] text-cyan-400 font-mono text-xs">EZSHOT {{ $user->id }} NAP</code>
                     </p>
                     <p class="text-xs text-white/30">Xu sẽ được cộng tự động sau vài phút</p>
                 </div>

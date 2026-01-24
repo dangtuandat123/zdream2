@@ -3,7 +3,7 @@
 
     <div class="text-center mb-6">
         <h1 class="text-2xl font-bold text-white mb-2">Tạo tài khoản mới</h1>
-        <p class="text-white/50 text-sm">Đăng ký để nhận <span class="text-cyan-400 font-semibold">5 Xu miễn phí</span>!</p>
+        <p class="text-white/50 text-sm">Đăng ký để nhận <span class="text-cyan-400 font-semibold">{{ (int) App\Models\Setting::get('default_credits', 10) }} Xu miễn phí</span>!</p>
     </div>
 
     <form method="POST" action="{{ route('register') }}" class="space-y-4">
@@ -77,7 +77,7 @@
                 </div>
                 <div>
                     <p class="text-white font-medium text-sm">Quà tặng đăng ký!</p>
-                    <p class="text-white/50 text-xs">Nhận ngay 5 Xu miễn phí khi tạo tài khoản</p>
+                    <p class="text-white/50 text-xs">Nhận ngay {{ (int) App\Models\Setting::get('default_credits', 10) }} Xu miễn phí khi tạo tài khoản</p>
                 </div>
             </div>
         </div>

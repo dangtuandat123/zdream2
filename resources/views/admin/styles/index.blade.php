@@ -61,7 +61,7 @@
                                 </a>
                                 <a href="{{ route('admin.styles.options.index', $style) }}" class="flex-1 py-2 rounded-lg bg-purple-500/10 border border-purple-500/30 text-purple-400 text-sm text-center hover:bg-purple-500/20 transition-colors inline-flex items-center justify-center gap-1">
                                     <i class="fa-solid fa-sliders" style="font-size: 10px;"></i>
-                                    <span>Options ({{ $style->options->count() }})</span>
+                                    <span>Options ({{ $style->options_count ?? 0 }})</span>
                                 </a>
                                 <form method="POST" action="{{ route('admin.styles.destroy', $style) }}" onsubmit="return confirm('Xác nhận xóa?')">
                                     @csrf
@@ -74,6 +74,11 @@
                         </div>
                     </div>
                 @endforeach
+            </div>
+
+            {{-- Pagination --}}
+            <div class="mt-6">
+                {{ $styles->links() }}
             </div>
         @endif
     </div>

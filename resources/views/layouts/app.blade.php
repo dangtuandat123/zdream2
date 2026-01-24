@@ -8,7 +8,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
-    <title>{{ $title ?? 'ZDream - Biến Ảnh Thường Thành Tác Phẩm AI' }}</title>
+    <title>{{ $title ?? App\Models\Setting::get('site_name', 'ZDream') . ' - Biến Ảnh Thường Thành Tác Phẩm AI' }}</title>
     <meta name="description" content="Chọn style → Upload ảnh → Nhận kết quả. Chỉ 3 bước, không cần prompt!">
 
     <!-- Fonts: Inter -->
@@ -47,7 +47,7 @@
                             <i class="fa-solid fa-palette w-3.5 h-3.5"></i> Styles
                         </a>
                         @auth
-                            <a href="#" class="px-3 py-2 rounded-lg text-sm font-medium text-white/60 hover:text-white hover:bg-white/[0.05] transition-all inline-flex items-center gap-2">
+                            <a href="{{ route('history.index') }}" class="px-3 py-2 rounded-lg text-sm font-medium text-white/60 hover:text-white hover:bg-white/[0.05] transition-all inline-flex items-center gap-2">
                                 <i class="fa-solid fa-clock-rotate-left w-3.5 h-3.5"></i> Lịch sử
                             </a>
                         @endauth

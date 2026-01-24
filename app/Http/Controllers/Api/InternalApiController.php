@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Models\WalletTransaction;
 use App\Services\WalletService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -110,6 +111,19 @@ class InternalApiController extends Controller
         ]);
 
         $user = User::findOrFail($validated['user_id']);
+
+        // Idempotent check: ngăn cộng tiền nhiều lần với cùng transaction_ref
+        $existing = WalletTransaction::where('source', 'vietqr')
+            ->where('reference_id', $validated['transaction_ref'])
+            ->exists();
+
+        if ($existing) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Transaction already processed',
+                'new_balance' => $user->credits,
+            ]);
+        }
 
         $transaction = $this->walletService->addCredits(
             $user,
