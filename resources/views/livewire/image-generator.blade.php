@@ -2,7 +2,7 @@
     
     <!-- Image Upload Slots (Dynamic từ Admin config) -->
     @php
-        $imageSlots = $style->image_slots ?? [['key' => 'default', 'label' => 'Ảnh mẫu (tùy chọn)', 'required' => false]];
+        $imageSlots = $style->image_slots ?? [];
     @endphp
     
     @if(!empty($imageSlots))

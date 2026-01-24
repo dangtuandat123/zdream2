@@ -9,6 +9,7 @@ use App\Services\OpenRouterService;
 use App\Services\StorageService;
 use App\Services\WalletService;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 
@@ -68,6 +69,7 @@ class ImageGenerator extends Component
     public function mount(Style $style): void
     {
         $this->style = $style;
+        $this->style->loadMissing('options');
         
         // Load aspect ratios từ service (đồng bộ với config)
         $openRouterService = app(OpenRouterService::class);
@@ -146,18 +148,26 @@ class ImageGenerator extends Component
      */
     public function generate(): void
     {
+        if ($this->isGenerating) {
+            return;
+        }
+
         $this->resetState();
 
         $user = Auth::user();
         
         if (!$user) {
-            $this->errorMessage = 'Vui lòng đăng nhập để tạo ảnh.';
+            $this->errorMessage = 'Vui l?ng ??ng nh?p ?? t?o ?nh.';
             return;
         }
 
-        // Kiểm tra đủ credits
+        // Ki?m tra ?? credits
         if (!$user->hasEnoughCredits($this->style->price)) {
-            $this->errorMessage = "Bạn không đủ credits. Cần: {$this->style->price}, Hiện có: {$user->credits}";
+            $this->errorMessage = "B?n kh?ng ?? credits. C?n: {$this->style->price}, Hi?n c?: {$user->credits}";
+            return;
+        }
+
+        if (!$this->validateGenerationInputs()) {
             return;
         }
 
@@ -166,42 +176,45 @@ class ImageGenerator extends Component
         foreach ($imageSlots as $slot) {
             $slotKey = $slot['key'] ?? '';
             $isRequired = $slot['required'] ?? false;
-            $slotLabel = $slot['label'] ?? 'Ảnh';
+            $slotLabel = $slot['label'] ?? '?nh';
             
             if ($isRequired && empty($this->uploadedImages[$slotKey])) {
-                $this->errorMessage = "Vui lòng upload ảnh: {$slotLabel}";
+                $this->errorMessage = "Vui l?ng upload ?nh: {$slotLabel}";
                 return;
             }
         }
 
         $this->isGenerating = true;
+        $generatedImage = null;
+        $creditsDeducted = false;
+        $walletService = app(WalletService::class);
 
         try {
-            // Lấy danh sách option IDs đã chọn
+            // L?y danh s?ch option IDs ?? ch?n
             $selectedOptionIds = array_values($this->selectedOptions);
 
-            // Tạo record GeneratedImage trước (trạng thái pending)
+            // T?o record GeneratedImage tr??c (tr?ng th?i processing)
             $generatedImage = GeneratedImage::create([
                 'user_id' => $user->id,
                 'style_id' => $this->style->id,
-                'final_prompt' => '', // Sẽ cập nhật sau
+                'final_prompt' => '', // S? c?p nh?t sau
                 'selected_options' => $selectedOptionIds,
                 'user_custom_input' => $this->customInput ?: null,
                 'status' => GeneratedImage::STATUS_PROCESSING,
                 'credits_used' => $this->style->price,
             ]);
 
-            // Trừ credits
-            $walletService = app(WalletService::class);
+            // Tr? credits
             $walletService->deductCredits(
                 $user,
                 $this->style->price,
-                "Tạo ảnh Style: {$this->style->name}",
+                "T?o ?nh Style: {$this->style->name}",
                 'generation',
                 (string) $generatedImage->id
             );
+            $creditsDeducted = true;
 
-            // Gọi OpenRouter API
+            // G?i OpenRouter API
             $openRouterService = app(OpenRouterService::class);
             $inputImagesBase64 = $this->getUploadedImagesBase64();
             
@@ -215,24 +228,31 @@ class ImageGenerator extends Component
             );
 
             if (!$result['success']) {
-                // Hoàn tiền nếu API thất bại
-                $walletService->refundCredits(
-                    $user,
-                    $this->style->price,
-                    "API error: {$result['error']}",
-                    (string) $generatedImage->id
-                );
-                
-                $generatedImage->markAsFailed($result['error']);
-                $this->errorMessage = 'Có lỗi khi tạo ảnh. Credits đã được hoàn lại.';
-                $this->isGenerating = false;
+                $error = $result['error'] ?? 'OpenRouter error';
+
+                // Ho?n ti?n n?u API th?t b?i
+                if ($creditsDeducted) {
+                    $this->refundCreditsSafely(
+                        $walletService,
+                        $user,
+                        $this->style->price,
+                        "API error: {$error}",
+                        $generatedImage
+                    );
+                }
+
+                if ($generatedImage) {
+                    $generatedImage->markAsFailed($error);
+                }
+
+                $this->errorMessage = 'C? l?i khi t?o ?nh. Credits ?? ???c ho?n l?i.';
                 return;
             }
 
-            // Cập nhật final prompt
-            $generatedImage->update(['final_prompt' => $result['final_prompt']]);
+            // C?p nh?t final prompt
+            $generatedImage->update(['final_prompt' => $result['final_prompt'] ?? '']);
 
-            // Lưu ảnh vào MinIO
+            // L?u ?nh v?o MinIO
             $storageService = app(StorageService::class);
             $storageResult = $storageService->saveBase64Image(
                 $result['image_base64'],
@@ -240,28 +260,69 @@ class ImageGenerator extends Component
             );
 
             if (!$storageResult['success']) {
-                $generatedImage->markAsFailed('Storage error: ' . $storageResult['error']);
-                $this->errorMessage = 'Có lỗi khi lưu ảnh.';
-                $this->isGenerating = false;
+                $storageError = $storageResult['error'] ?? 'Unknown storage error';
+
+                if ($creditsDeducted) {
+                    $this->refundCreditsSafely(
+                        $walletService,
+                        $user,
+                        $this->style->price,
+                        'Storage error: ' . $storageError,
+                        $generatedImage
+                    );
+                }
+
+                if ($generatedImage) {
+                    $generatedImage->markAsFailed('Storage error: ' . $storageError);
+                }
+
+                $this->errorMessage = 'C? l?i khi l?u ?nh. Credits ?? ???c ho?n l?i.';
                 return;
             }
 
-            // Đánh dấu hoàn thành
+            // ??nh d?u ho?n th?nh
             $generatedImage->markAsCompleted(
                 $storageResult['path'],
-                $result['openrouter_id']
+                $result['openrouter_id'] ?? null
             );
 
             $this->generatedImageUrl = $storageResult['url'];
             $this->lastImageId = $generatedImage->id;
 
         } catch (InsufficientCreditsException $e) {
-            $this->errorMessage = 'Bạn không đủ credits để tạo ảnh.';
-        } catch (\Exception $e) {
-            $this->errorMessage = 'Có lỗi xảy ra: ' . $e->getMessage();
-        }
+            if ($generatedImage) {
+                $generatedImage->markAsFailed('Kh?ng ?? credits');
+            }
+            $this->errorMessage = 'B?n kh?ng ?? credits ?? t?o ?nh.';
+        } catch (\Throwable $e) {
+            if ($creditsDeducted) {
+                $this->refundCreditsSafely(
+                    $walletService,
+                    $user,
+                    $this->style->price,
+                    'L?i h? th?ng: ' . $e->getMessage(),
+                    $generatedImage
+                );
+            }
 
-        $this->isGenerating = false;
+            if ($generatedImage) {
+                $generatedImage->markAsFailed('L?i h? th?ng: ' . $e->getMessage());
+            }
+
+            Log::error('Image generation failed', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'user_id' => $user->id ?? null,
+                'style_id' => $this->style->id ?? null,
+                'generated_image_id' => $generatedImage?->id,
+            ]);
+
+            $this->errorMessage = config('app.debug')
+                ? 'C? l?i x?y ra: ' . $e->getMessage()
+                : 'C? l?i x?y ra trong qu? tr?nh t?o ?nh. Vui l?ng th? l?i.';
+        } finally {
+            $this->isGenerating = false;
+        }
     }
 
     /**
@@ -281,12 +342,112 @@ class ImageGenerator extends Component
         $this->resetState();
         $this->customInput = '';
         $this->selectedOptions = [];
+        $this->uploadedImages = [];
+        $this->uploadedImagePreviews = [];
+        $this->selectedAspectRatio = $this->style->aspect_ratio ?? '1:1';
+        $this->selectedImageSize = '1K';
+        $this->lastImageId = null;
         
         // Re-select defaults
         foreach ($this->style->options as $option) {
             if ($option->is_default) {
                 $this->selectedOptions[$option->group_name] = $option->id;
             }
+        }
+    }
+
+    /**
+     * Lấy danh sách key của image slots
+     */
+    protected function getImageSlotKeys(): array
+    {
+        $imageSlots = $this->style->image_slots ?? [];
+
+        return collect($imageSlots)
+            ->pluck('key')
+            ->filter(fn($key) => !empty($key))
+            ->values()
+            ->all();
+    }
+
+    /**
+     * Kiểm tra dữ liệu trước khi tạo ảnh
+     */
+    protected function validateGenerationInputs(): bool
+    {
+        // Validate aspect ratio
+        $ratioKeys = array_keys($this->aspectRatios);
+        if (!empty($ratioKeys) && !in_array($this->selectedAspectRatio, $ratioKeys, true)) {
+            $this->errorMessage = 'Tỉ lệ khung hình không hợp lệ. Vui lòng chọn lại.';
+            return false;
+        }
+
+        // Validate image size (Gemini only)
+        if ($this->supportsImageConfig) {
+            if (!array_key_exists($this->selectedImageSize, $this->imageSizes)) {
+                $this->errorMessage = 'Chất lượng ảnh không hợp lệ. Vui lòng chọn lại.';
+                return false;
+            }
+        } else {
+            // Không gửi image_size đối với model không hỗ trợ
+            $this->selectedImageSize = '1K';
+        }
+
+        // Validate selected options thuộc style hiện tại
+        $validOptionIds = $this->style->options->pluck('id')->all();
+        foreach ($this->selectedOptions as $optionId) {
+            if (!in_array($optionId, $validOptionIds, true)) {
+                $this->errorMessage = 'Tùy chọn không hợp lệ. Vui lòng tải lại trang.';
+                return false;
+            }
+        }
+
+        // Validate uploaded image keys
+        $slotKeys = $this->getImageSlotKeys();
+        $uploadedKeys = array_keys($this->uploadedImages);
+        if (!empty($uploadedKeys)) {
+            $unknownKeys = array_diff($uploadedKeys, $slotKeys);
+            if (!empty($unknownKeys)) {
+                $this->errorMessage = 'Ảnh tải lên không hợp lệ. Vui lòng thử lại.';
+                return false;
+            }
+        }
+
+        // Re-validate files server-side
+        if (!empty($uploadedKeys)) {
+            $rules = [];
+            foreach ($uploadedKeys as $key) {
+                $rules["uploadedImages.{$key}"] = 'image|max:10240';
+            }
+            $this->validate($rules);
+        }
+
+        return true;
+    }
+
+    /**
+     * Hoàn credits an toàn (không làm vỡ luồng chính nếu thất bại)
+     */
+    protected function refundCreditsSafely(
+        WalletService $walletService,
+        $user,
+        float $amount,
+        string $reason,
+        ?GeneratedImage $generatedImage = null
+    ): void {
+        try {
+            $walletService->refundCredits(
+                $user,
+                $amount,
+                $reason,
+                $generatedImage?->id ? (string) $generatedImage->id : null
+            );
+        } catch (\Throwable $e) {
+            Log::error('Refund credits failed', [
+                'error' => $e->getMessage(),
+                'user_id' => $user->id ?? null,
+                'generated_image_id' => $generatedImage?->id,
+            ]);
         }
     }
 

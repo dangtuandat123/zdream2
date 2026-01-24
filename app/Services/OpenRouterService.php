@@ -20,12 +20,14 @@ class OpenRouterService
     protected string $apiKey;
     protected string $baseUrl;
     protected int $timeout;
+    protected int $maxImageBytes = 10485760; // 10MB
 
     public function __construct()
     {
         // Lấy API key từ database Settings (có cache và decrypt)
         $this->apiKey = Setting::get('openrouter_api_key', config('services_custom.openrouter.api_key', ''));
         $this->baseUrl = Setting::get('openrouter_base_url', config('services_custom.openrouter.base_url', 'https://openrouter.ai/api/v1'));
+        $this->baseUrl = rtrim($this->baseUrl, '/');
         $this->timeout = config('services_custom.openrouter.timeout', 120);
     }
 
@@ -62,6 +64,42 @@ class OpenRouterService
             
             $data = $response->json();
             
+            // DEBUG: Log response structure ?? debug c?c model kh?c nhau
+            $choices = $data['choices'] ?? [];
+            $firstMessage = $choices[0]['message'] ?? [];
+            Log::debug('OpenRouter API response structure', [
+                'model' => $style->openrouter_model_id,
+                'has_choices' => !empty($choices),
+                'choices_count' => is_array($choices) ? count($choices) : 0,
+                'message_keys' => is_array($firstMessage) ? array_keys($firstMessage) : [],
+                'has_images' => isset($firstMessage['images']),
+                'images_count' => isset($firstMessage['images']) && is_array($firstMessage['images']) ? count($firstMessage['images']) : 0,
+                'content_type' => isset($firstMessage['content']) ? gettype($firstMessage['content']) : null,
+            ]);
+            
+            // Parse response ?? l?y Base64 image
+            $imageBase64 = $this->extractImageFromResponse($data);
+            
+            if (empty($imageBase64)) {
+                // Log th?m chi ti?t khi kh?ng extract ???c
+                Log::error('Failed to extract image from response', [
+                    'model' => $style->openrouter_model_id,
+                    'response_preview' => substr(json_encode($data), 0, 2000),
+                ]);
+                
+                return [
+                    'success' => false,
+                    'error' => 'No image data in response',
+                    'final_prompt' => $finalPrompt,
+                ];
+
+            return [
+                    'success' => false,
+                    'error' => 'No image data in response',
+                    'final_prompt' => $finalPrompt,
+                ];
+            }
+
             return [
                 'balance' => $data['data']['credit_balance'] ?? 0,
                 'usage' => $data['data']['usage'] ?? [],
@@ -247,6 +285,15 @@ class OpenRouterService
         try {
             // Build final prompt
             $finalPrompt = $style->buildFinalPrompt($selectedOptionIds, $userCustomInput);
+
+            if (empty($this->apiKey)) {
+                Log::warning('OpenRouter API key missing');
+                return [
+                    'success' => false,
+                    'error' => 'Thiếu OpenRouter API key',
+                    'final_prompt' => $finalPrompt,
+                ];
+            }
             
             // Build OpenRouter payload
             $payload = $style->buildOpenRouterPayload($finalPrompt);
@@ -314,12 +361,12 @@ class OpenRouterService
                     $url = $sysImg['url'] ?? '';
                     if ($url) {
                         // Download và convert sang base64 nếu là URL
-                        $base64 = $this->downloadImageAsBase64($url);
-                        if ($base64) {
+                        $base64DataUrl = $this->downloadImageAsBase64($url);
+                        if ($base64DataUrl) {
                             $payload['messages'][0]['content'][] = [
                                 'type' => 'image_url',
                                 'image_url' => [
-                                    'url' => 'data:image/jpeg;base64,' . $base64,
+                                    'url' => $base64DataUrl,
                                 ],
                             ];
                         }
@@ -353,29 +400,37 @@ class OpenRouterService
                 $payload['image_config']['image_size'] = $imageSize;
             }
 
-            // DEBUG: Log toàn bộ payload để debug
-            Log::info('OpenRouter request [DEBUG]', [
+            // DEBUG: Log payload ?? ???c l?m s?ch ?? tr?nh l? d? li?u nh?y c?m
+            Log::debug('OpenRouter request', [
                 'model' => $style->openrouter_model_id,
                 'prompt_length' => strlen($finalPrompt),
                 'has_input_images' => !empty($inputImages),
                 'input_images_count' => count($inputImages),
-                'api_key_length' => strlen($this->apiKey),
-                'api_key_prefix' => substr($this->apiKey, 0, 10) . '...',
+                'api_key_present' => !empty($this->apiKey),
                 'base_url' => $this->baseUrl,
                 'payload_keys' => array_keys($payload),
                 'message_content_type' => is_array($payload['messages'][0]['content']) ? 'array' : 'string',
             ]);
             
-            // Log payload structure (không log base64 images để tránh flood log)
             $logPayload = $payload;
-            if (is_array($logPayload['messages'][0]['content'])) {
-                foreach ($logPayload['messages'][0]['content'] as $i => $part) {
-                    if (isset($part['image_url'])) {
-                        $logPayload['messages'][0]['content'][$i]['image_url']['url'] = '[BASE64_IMAGE_TRUNCATED]';
+            if (isset($logPayload['messages'][0]['content'])) {
+                if (is_string($logPayload['messages'][0]['content'])) {
+                    $logPayload['messages'][0]['content'] = '[REDACTED]';
+                } elseif (is_array($logPayload['messages'][0]['content'])) {
+                    foreach ($logPayload['messages'][0]['content'] as $i => $part) {
+                        if (isset($part['type']) && $part['type'] === 'text') {
+                            $logPayload['messages'][0]['content'][$i]['text'] = '[REDACTED]';
+                        }
+                        if (isset($part['image_url'])) {
+                            $logPayload['messages'][0]['content'][$i]['image_url']['url'] = '[BASE64_IMAGE_TRUNCATED]';
+                        }
                     }
                 }
             }
-            Log::info('OpenRouter payload structure', ['payload' => json_encode($logPayload, JSON_PRETTY_PRINT)]);
+            Log::debug('OpenRouter payload structure', [
+                'payload' => json_encode($logPayload, JSON_PRETTY_PRINT),
+            ]);
+
 
             // Tăng PHP execution time để tránh timeout cho các model chậm (GPT-5, v.v.)
             set_time_limit(180); // 3 phút
@@ -398,17 +453,19 @@ class OpenRouterService
 
             $data = $response->json();
             
-            // DEBUG: Log response structure để debug các model khác nhau
-            Log::info('OpenRouter API response structure', [
+            // DEBUG: Log response structure ?? debug c?c model kh?c nhau
+            $choices = $data['choices'] ?? [];
+            $firstMessage = $choices[0]['message'] ?? [];
+            Log::debug('OpenRouter API response structure', [
                 'model' => $style->openrouter_model_id,
-                'has_choices' => isset($data['choices']),
-                'choices_count' => count($data['choices'] ?? []),
-                'message_keys' => array_keys($data['choices'][0]['message'] ?? []),
-                'has_images' => isset($data['choices'][0]['message']['images']),
-                'images_count' => count($data['choices'][0]['message']['images'] ?? []),
-                'content_type' => gettype($data['choices'][0]['message']['content'] ?? null),
+                'has_choices' => !empty($choices),
+                'choices_count' => is_array($choices) ? count($choices) : 0,
+                'message_keys' => is_array($firstMessage) ? array_keys($firstMessage) : [],
+                'has_images' => isset($firstMessage['images']),
+                'images_count' => isset($firstMessage['images']) && is_array($firstMessage['images']) ? count($firstMessage['images']) : 0,
+                'content_type' => isset($firstMessage['content']) ? gettype($firstMessage['content']) : null,
             ]);
-            
+
             // Parse response để lấy Base64 image
             $imageBase64 = $this->extractImageFromResponse($data);
             
@@ -456,7 +513,8 @@ class OpenRouterService
      */
     protected function extractImageFromResponse(array $data): ?string
     {
-        $message = $data['choices'][0]['message'] ?? [];
+        $choices = $data['choices'] ?? [];
+        $message = $choices[0]['message'] ?? [];
 
         // Case 1: images array (OpenRouter standard format)
         if (!empty($message['images'])) {
@@ -465,6 +523,16 @@ class OpenRouterService
             // Format theo docs: { image_url: { url: "data:image/..." } }
             if (is_array($image) && isset($image['image_url']['url'])) {
                 return $image['image_url']['url'];
+            }
+            
+            // M?t s? SDK tr? v? imageUrl thay v? image_url
+            if (is_array($image) && isset($image['imageUrl']['url'])) {
+                return $image['imageUrl']['url'];
+            }
+
+            // Format: { url: "data:image/..." }
+            if (is_array($image) && isset($image['url'])) {
+                return $image['url'];
             }
             
             // Format: { data: "base64..." }
@@ -486,7 +554,7 @@ class OpenRouterService
             if (is_array($content)) {
                 foreach ($content as $part) {
                     if (isset($part['type']) && $part['type'] === 'image_url') {
-                        return $part['image_url']['url'] ?? null;
+                        return $part['image_url']['url'] ?? ($part['imageUrl']['url'] ?? null);
                     }
                 }
             }
@@ -525,12 +593,47 @@ class OpenRouterService
      */
     protected function downloadImageAsBase64(string $url): ?string
     {
+        if (str_starts_with($url, 'data:image/')) {
+            return $url;
+        }
+
+        if (!filter_var($url, FILTER_VALIDATE_URL)) {
+            return null;
+        }
+
+        $scheme = parse_url($url, PHP_URL_SCHEME);
+        if (!in_array($scheme, ['http', 'https'], true)) {
+            return null;
+        }
+
         try {
             $response = Http::timeout(30)->get($url);
-            
-            if ($response->successful()) {
-                return base64_encode($response->body());
+
+            if (!$response->successful()) {
+                return null;
             }
+
+            $contentType = $response->header('Content-Type') ?? '';
+            $mime = strtolower(trim(explode(';', $contentType)[0]));
+
+            if (!str_starts_with($mime, 'image/')) {
+                Log::warning('Downloaded file is not an image', [
+                    'url' => $url,
+                    'content_type' => $contentType,
+                ]);
+                return null;
+            }
+
+            $body = $response->body();
+            if (strlen($body) > $this->maxImageBytes) {
+                Log::warning('Downloaded image too large', [
+                    'url' => $url,
+                    'bytes' => strlen($body),
+                ]);
+                return null;
+            }
+
+            return 'data:' . $mime . ';base64,' . base64_encode($body);
         } catch (\Exception $e) {
             Log::warning('Failed to download image', ['url' => $url, 'error' => $e->getMessage()]);
         }
