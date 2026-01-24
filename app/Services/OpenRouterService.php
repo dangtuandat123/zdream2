@@ -77,19 +77,21 @@ class OpenRouterService
     /**
      * Fetch danh sách models có khả năng tạo ảnh từ OpenRouter API
      * 
+     * Logic filter:
+     * 1. Ưu tiên output_modalities chứa 'image' nếu API trả về
+     * 2. Fallback: filter theo known image model IDs
+     * 
      * @param bool $forceRefresh Bỏ qua cache và fetch mới
-     * @return array Danh sách models [['id' => ..., 'name' => ..., 'description' => ...], ...]
+     * @return array Danh sách models
      */
     public function fetchImageModels(bool $forceRefresh = false): array
     {
         $cacheKey = 'openrouter_image_models';
         
-        // Clear cache if force refresh
         if ($forceRefresh) {
             \Illuminate\Support\Facades\Cache::forget($cacheKey);
         }
         
-        // Cache for 1 hour
         return \Illuminate\Support\Facades\Cache::remember($cacheKey, 3600, function () {
             try {
                 $response = $this->client()->get($this->baseUrl . '/models');
@@ -105,30 +107,38 @@ class OpenRouterService
                 $data = $response->json();
                 $models = [];
                 
-                // Keywords để nhận dạng image generation models
-                $imageKeywords = [
-                    'gemini', 'flux', 'dall-e', 'dalle', 'stable-diffusion', 
-                    'midjourney', 'imagen', 'ideogram', 'playground', 
-                    'recraft', 'leonardo', 'image'
+                // Known image generation model patterns (Jan 2026)
+                $imageModelPatterns = [
+                    'gemini-2.5-flash-image',
+                    'gemini-3-pro-image',
+                    'gemini-3-flash-image',
+                    'gemini-2.0-flash-exp',
+                    'flux.2-pro',
+                    'flux.2-flex',
+                    'dall-e',
+                    'dalle',
+                    'stable-diffusion',
+                    'ideogram',
+                    'recraft',
+                    'playground',
+                    'imagen',
                 ];
                 
                 foreach ($data['data'] ?? [] as $model) {
                     $modelId = strtolower($model['id'] ?? '');
-                    $modelName = strtolower($model['name'] ?? '');
-                    
-                    // Check nếu model ID hoặc name chứa keywords
-                    $isImageModel = false;
-                    foreach ($imageKeywords as $keyword) {
-                        if (str_contains($modelId, $keyword) || str_contains($modelName, $keyword)) {
-                            $isImageModel = true;
-                            break;
-                        }
-                    }
-                    
-                    // Hoặc check output_modalities nếu có
                     $outputModalities = $model['output_modalities'] ?? [];
-                    if (in_array('image', $outputModalities)) {
-                        $isImageModel = true;
+                    
+                    // Check 1: output_modalities chứa 'image'
+                    $isImageModel = in_array('image', $outputModalities);
+                    
+                    // Check 2: model ID match với known patterns
+                    if (!$isImageModel) {
+                        foreach ($imageModelPatterns as $pattern) {
+                            if (str_contains($modelId, $pattern)) {
+                                $isImageModel = true;
+                                break;
+                            }
+                        }
                     }
                     
                     if ($isImageModel) {
@@ -138,6 +148,8 @@ class OpenRouterService
                             'description' => $model['description'] ?? '',
                             'pricing' => $model['pricing'] ?? [],
                             'context_length' => $model['context_length'] ?? 0,
+                            'output_modalities' => $outputModalities,
+                            'supports_image_config' => str_contains($modelId, 'gemini'),
                         ];
                     }
                 }
@@ -145,7 +157,15 @@ class OpenRouterService
                 // Sort by name
                 usort($models, fn($a, $b) => strcmp($a['name'], $b['name']));
                 
-                Log::info('OpenRouter models fetched', ['count' => count($models)]);
+                // Nếu không tìm thấy models, return fallback
+                if (empty($models)) {
+                    Log::warning('No image models found from API, using fallback');
+                    return $this->getFallbackModels();
+                }
+                
+                Log::info('OpenRouter image models fetched', [
+                    'count' => count($models),
+                ]);
                 
                 return $models;
                 
@@ -161,11 +181,18 @@ class OpenRouterService
      */
     protected function getFallbackModels(): array
     {
+        // Model names theo OpenRouter docs mới (Jan 2026)
         return [
-            ['id' => 'google/gemini-2.5-flash-preview:thinking', 'name' => 'Gemini 2.5 Flash (Thinking)', 'description' => 'Google Gemini 2.5 Flash with thinking capability'],
+            // Gemini models - hỗ trợ image generation
+            ['id' => 'google/gemini-2.5-flash-image-preview', 'name' => 'Gemini 2.5 Flash Image', 'description' => 'Google Gemini 2.5 Flash - Image Generation Preview'],
             ['id' => 'google/gemini-2.0-flash-exp:free', 'name' => 'Gemini 2.0 Flash (Free)', 'description' => 'Google Gemini 2.0 Flash - Free tier'],
-            ['id' => 'black-forest-labs/flux-1.1-pro', 'name' => 'FLUX 1.1 Pro', 'description' => 'Black Forest Labs FLUX 1.1 Pro'],
-            ['id' => 'black-forest-labs/flux-schnell', 'name' => 'FLUX Schnell', 'description' => 'Black Forest Labs FLUX Schnell (Fast)'],
+            
+            // FLUX models - Black Forest Labs
+            ['id' => 'black-forest-labs/flux.2-pro', 'name' => 'FLUX.2 Pro', 'description' => 'Black Forest Labs FLUX.2 Pro - High quality'],
+            ['id' => 'black-forest-labs/flux.2-flex', 'name' => 'FLUX.2 Flex', 'description' => 'Black Forest Labs FLUX.2 Flex - Flexible generation'],
+            
+            // Other image models
+            ['id' => 'sourceful/riverflow-v2-standard-preview', 'name' => 'Riverflow V2', 'description' => 'Sourceful Riverflow V2 Standard Preview'],
         ];
     }
 

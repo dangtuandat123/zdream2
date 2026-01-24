@@ -179,6 +179,9 @@ class Style extends Model
 
     /**
      * Build OpenRouter payload
+     * 
+     * Lưu ý: image_config chỉ hỗ trợ cho Gemini models
+     * FLUX và các model khác không cần/hỗ trợ image_config
      */
     public function buildOpenRouterPayload(string $finalPrompt): array
     {
@@ -190,11 +193,13 @@ class Style extends Model
                     'content' => $finalPrompt,
                 ],
             ],
-            'modalities' => ['image', 'text'],
+            'modalities' => ['image', 'text'], // Bắt buộc cho image generation
         ];
 
-        // Thêm image_config nếu có (cho Gemini)
-        if (!empty($this->config_payload)) {
+        // Thêm image_config CHỈ cho Gemini models (theo OpenRouter docs)
+        $isGeminiModel = str_contains(strtolower($this->openrouter_model_id), 'gemini');
+        
+        if ($isGeminiModel && !empty($this->config_payload)) {
             $payload['image_config'] = $this->config_payload;
         }
 

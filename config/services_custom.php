@@ -17,11 +17,11 @@ return [
         'base_url' => env('OPENROUTER_BASE_URL', 'https://openrouter.ai/api/v1'),
         'timeout' => 120, // seconds - tăng timeout cho image generation
         
-        // Các model mặc định hỗ trợ image generation
+        // Các model mặc định hỗ trợ image generation (Jan 2026)
         'models' => [
             'gemini' => 'google/gemini-2.5-flash-image-preview',
-            'flux_schnell' => 'black-forest-labs/flux-1-schnell',
-            'flux_pro' => 'black-forest-labs/flux-pro',
+            'flux_pro' => 'black-forest-labs/flux.2-pro',
+            'flux_flex' => 'black-forest-labs/flux.2-flex',
         ],
         
         // Aspect ratios hỗ trợ (đồng bộ với ImageGenerator)
