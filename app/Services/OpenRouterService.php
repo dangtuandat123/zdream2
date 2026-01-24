@@ -43,6 +43,38 @@ class OpenRouterService
     }
 
     /**
+     * Kiểm tra số dư tài khoản OpenRouter
+     * 
+     * @return array ['balance' => float, 'usage' => array, 'rate_limit' => array]
+     */
+    public function checkBalance(): array
+    {
+        try {
+            $response = $this->client()->get($this->baseUrl . '/auth/key');
+            
+            if (!$response->successful()) {
+                Log::error('OpenRouter balance check failed', [
+                    'status' => $response->status(),
+                    'body' => $response->body(),
+                ]);
+                return ['error' => 'Failed to check balance'];
+            }
+            
+            $data = $response->json();
+            
+            return [
+                'balance' => $data['data']['credit_balance'] ?? 0,
+                'usage' => $data['data']['usage'] ?? [],
+                'rate_limit' => $data['data']['rate_limit'] ?? [],
+            ];
+            
+        } catch (\Exception $e) {
+            Log::error('OpenRouter balance check exception', ['error' => $e->getMessage()]);
+            return ['error' => $e->getMessage()];
+        }
+    }
+
+    /**
      * Fetch danh sách models có khả năng tạo ảnh từ OpenRouter API
      * 
      * @param bool $forceRefresh Bỏ qua cache và fetch mới
@@ -125,15 +157,15 @@ class OpenRouterService
     }
 
     /**
-     * Fallback models nếu API không khả dụng
+     * Fallback models nếu API không khả dụng (theo OpenRouter docs)
      */
     protected function getFallbackModels(): array
     {
         return [
+            ['id' => 'google/gemini-2.5-flash-preview:thinking', 'name' => 'Gemini 2.5 Flash (Thinking)', 'description' => 'Google Gemini 2.5 Flash with thinking capability'],
             ['id' => 'google/gemini-2.0-flash-exp:free', 'name' => 'Gemini 2.0 Flash (Free)', 'description' => 'Google Gemini 2.0 Flash - Free tier'],
-            ['id' => 'google/gemini-2.5-flash-preview-05-20', 'name' => 'Gemini 2.5 Flash Preview', 'description' => 'Google Gemini 2.5 Flash'],
-            ['id' => 'black-forest-labs/flux-1.1-pro', 'name' => 'Flux 1.1 Pro', 'description' => 'Black Forest Labs Flux 1.1 Pro'],
-            ['id' => 'black-forest-labs/flux-schnell', 'name' => 'Flux Schnell', 'description' => 'Black Forest Labs Flux Schnell'],
+            ['id' => 'black-forest-labs/flux-1.1-pro', 'name' => 'FLUX 1.1 Pro', 'description' => 'Black Forest Labs FLUX 1.1 Pro'],
+            ['id' => 'black-forest-labs/flux-schnell', 'name' => 'FLUX Schnell', 'description' => 'Black Forest Labs FLUX Schnell (Fast)'],
         ];
     }
 
@@ -279,30 +311,46 @@ class OpenRouterService
     /**
      * Extract Base64 image từ OpenRouter response
      * 
-     * Response có thể có cấu trúc:
-     * - choices[0].message.images[] (array of base64)
-     * - choices[0].message.content (base64 string hoặc URL)
+     * Theo docs, response có cấu trúc:
+     * - choices[0].message.images[] (array of image objects)
+     * - Mỗi image có: image_url.url chứa base64 data URL
      */
     protected function extractImageFromResponse(array $data): ?string
     {
         $message = $data['choices'][0]['message'] ?? [];
 
-        // Case 1: images array (Gemini format)
+        // Case 1: images array (OpenRouter standard format)
         if (!empty($message['images'])) {
             $image = $message['images'][0];
             
-            // Có thể là object với data property
+            // Format theo docs: { image_url: { url: "data:image/..." } }
+            if (is_array($image) && isset($image['image_url']['url'])) {
+                return $image['image_url']['url'];
+            }
+            
+            // Format: { data: "base64..." }
             if (is_array($image) && isset($image['data'])) {
                 return $image['data'];
             }
             
-            // Hoặc là base64 string trực tiếp
-            return $image;
+            // Format: base64 string direct
+            if (is_string($image)) {
+                return $image;
+            }
         }
 
-        // Case 2: content chứa base64 (một số model)
+        // Case 2: content chứa base64 (backup)
         if (!empty($message['content'])) {
             $content = $message['content'];
+            
+            // Nếu là array (multimodal content)
+            if (is_array($content)) {
+                foreach ($content as $part) {
+                    if (isset($part['type']) && $part['type'] === 'image_url') {
+                        return $part['image_url']['url'] ?? null;
+                    }
+                }
+            }
             
             // Nếu là base64 string thuần
             if (is_string($content) && $this->isBase64Image($content)) {
