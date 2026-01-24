@@ -292,12 +292,29 @@ class OpenRouterService
                 $payload['image_config']['image_size'] = $imageSize;
             }
 
-            Log::info('OpenRouter request', [
+            // DEBUG: Log toàn bộ payload để debug
+            Log::info('OpenRouter request [DEBUG]', [
                 'model' => $style->openrouter_model_id,
                 'prompt_length' => strlen($finalPrompt),
                 'has_input_images' => !empty($inputImages),
                 'input_images_count' => count($inputImages),
+                'api_key_length' => strlen($this->apiKey),
+                'api_key_prefix' => substr($this->apiKey, 0, 10) . '...',
+                'base_url' => $this->baseUrl,
+                'payload_keys' => array_keys($payload),
+                'message_content_type' => is_array($payload['messages'][0]['content']) ? 'array' : 'string',
             ]);
+            
+            // Log payload structure (không log base64 images để tránh flood log)
+            $logPayload = $payload;
+            if (is_array($logPayload['messages'][0]['content'])) {
+                foreach ($logPayload['messages'][0]['content'] as $i => $part) {
+                    if (isset($part['image_url'])) {
+                        $logPayload['messages'][0]['content'][$i]['image_url']['url'] = '[BASE64_IMAGE_TRUNCATED]';
+                    }
+                }
+            }
+            Log::info('OpenRouter payload structure', ['payload' => json_encode($logPayload, JSON_PRETTY_PRINT)]);
 
             // Gọi API
             $response = $this->client()->post($this->baseUrl . '/chat/completions', $payload);
