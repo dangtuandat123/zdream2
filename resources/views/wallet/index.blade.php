@@ -32,9 +32,20 @@
                 <p class="text-sm text-white/40 mt-1">Quét mã QR để chuyển khoản</p>
             </div>
             <div class="p-4 md:p-6">
-                <div class="flex justify-center mb-4">
-                    <div class="p-3 bg-white rounded-2xl shadow-lg">
-                        <img src="{{ $vietqrUrl }}" alt="VietQR Code" class="w-44 h-44 md:w-52 md:h-52 object-contain">
+                <div class="flex justify-center mb-4" x-data="{ loaded: false }">
+                    <div class="p-3 bg-white rounded-2xl shadow-lg relative">
+                        <!-- Skeleton loader -->
+                        <div x-show="!loaded" class="w-44 h-44 md:w-52 md:h-52 bg-gray-200 animate-pulse rounded-lg flex items-center justify-center">
+                            <i class="fa-solid fa-qrcode text-4xl text-gray-400"></i>
+                        </div>
+                        <!-- Actual QR image -->
+                        <img 
+                            src="{{ $vietqrUrl }}" 
+                            alt="VietQR Code" 
+                            class="w-44 h-44 md:w-52 md:h-52 object-contain"
+                            :class="{ 'hidden': !loaded }"
+                            x-on:load="loaded = true"
+                            x-on:error="loaded = true">
                     </div>
                 </div>
                 <div class="space-y-2 text-center">
@@ -82,6 +93,11 @@
                     </div>
                 @endforelse
             </div>
+            @if($transactions->hasPages())
+                <div class="p-4 border-t border-white/[0.05]">
+                    {{ $transactions->links() }}
+                </div>
+            @endif
         </div>
     </div>
 </x-app-layout>

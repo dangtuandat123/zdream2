@@ -39,7 +39,7 @@ class SettingsController extends Controller
         ]);
 
         // Update API Key (encrypted)
-        if (isset($validated['openrouter_api_key']) && !empty($validated['openrouter_api_key'])) {
+        if (filled($validated['openrouter_api_key'] ?? null)) {
             Setting::set('openrouter_api_key', $validated['openrouter_api_key'], [
                 'is_encrypted' => true,
                 'group' => 'api',

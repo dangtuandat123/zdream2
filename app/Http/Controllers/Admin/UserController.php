@@ -133,6 +133,8 @@ class UserController extends Controller
             'admin_id' => auth()->id(),
             'user_id' => $user->id,
             'new_status' => $user->is_active,
+            'ip' => request()->ip(),
+            'user_agent' => request()->userAgent(),
         ]);
 
         return back()->with('success', "Đã {$status} tài khoản {$user->name}.");
@@ -171,7 +173,7 @@ class UserController extends Controller
                 // Trừ credits
                 $absAmount = abs($amount);
                 
-                if ($user->credits < $absAmount) {
+                if (bccomp((string)$user->credits, (string)$absAmount, 2) < 0) {
                     return back()->with('error', "User chỉ có {$user->credits} Xu, không thể trừ {$absAmount} Xu.");
                 }
 
@@ -189,6 +191,8 @@ class UserController extends Controller
                 'user_id' => $user->id,
                 'amount' => $amount,
                 'reason' => $reason,
+                'ip' => request()->ip(),
+                'user_agent' => request()->userAgent(),
             ]);
 
             return back()->with('success', $message);

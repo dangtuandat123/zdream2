@@ -4,7 +4,7 @@
     <div class="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
         
         <!-- Header -->
-        <div class="flex items-center justify-between mb-6">
+        <div class="flex items-center justify-between mb-4">
             <div>
                 <h1 class="text-2xl font-bold text-white">Lịch sử ảnh</h1>
                 <p class="text-white/50 text-sm">Các ảnh bạn đã tạo</p>
@@ -13,6 +13,31 @@
                 <i class="fa-solid fa-plus" style="font-size: 12px;"></i>
                 <span>Tạo ảnh mới</span>
             </a>
+        </div>
+
+        <!-- Filters -->
+        <div class="flex flex-wrap items-center gap-3 mb-6">
+            <form method="GET" action="{{ route('history.index') }}" class="flex flex-wrap items-center gap-3">
+                <select name="status" onchange="this.form.submit()" class="px-3 py-2 rounded-lg bg-white/[0.05] border border-white/[0.1] text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/40">
+                    <option value="">Tất cả trạng thái</option>
+                    <option value="completed" {{ request('status') == 'completed' ? 'selected' : '' }}>Hoàn thành</option>
+                    <option value="processing" {{ request('status') == 'processing' ? 'selected' : '' }}>Đang xử lý</option>
+                    <option value="failed" {{ request('status') == 'failed' ? 'selected' : '' }}>Thất bại</option>
+                </select>
+                @if(isset($styles) && $styles->isNotEmpty())
+                    <select name="style_id" onchange="this.form.submit()" class="px-3 py-2 rounded-lg bg-white/[0.05] border border-white/[0.1] text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/40">
+                        <option value="">Tất cả styles</option>
+                        @foreach($styles as $style)
+                            <option value="{{ $style->id }}" {{ request('style_id') == $style->id ? 'selected' : '' }}>{{ $style->name }}</option>
+                        @endforeach
+                    </select>
+                @endif
+                @if(request('status') || request('style_id'))
+                    <a href="{{ route('history.index') }}" class="px-3 py-2 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-sm hover:bg-red-500/20 transition-colors">
+                        <i class="fa-solid fa-times mr-1"></i> Xóa lọc
+                    </a>
+                @endif
+            </form>
         </div>
 
         @if(session('success'))

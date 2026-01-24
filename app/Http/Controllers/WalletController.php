@@ -19,11 +19,10 @@ class WalletController extends Controller
     {
         $user = $request->user();
         
-        // Lấy lịch sử giao dịch gần đây
+        // Lấy lịch sử giao dịch với pagination
         $transactions = $user->walletTransactions()
             ->latest()
-            ->limit(20)
-            ->get();
+            ->paginate(20);
 
         // Tạo VietQR URL
         $vietqrUrl = $user->getVietQRUrl();

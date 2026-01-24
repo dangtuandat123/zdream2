@@ -48,6 +48,15 @@ class ProfileController extends Controller
 
         $user = $request->user();
 
+        // Audit log before deletion
+        \Illuminate\Support\Facades\Log::warning('User self-deleted account', [
+            'user_id' => $user->id,
+            'email' => $user->email,
+            'name' => $user->name,
+            'ip' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+        ]);
+
         Auth::logout();
 
         $user->delete();

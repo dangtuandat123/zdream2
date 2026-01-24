@@ -20,6 +20,7 @@ class HomeController extends Controller
         $styles = Style::query()
             ->active()
             ->ordered()
+            ->take(50) // Limit để tránh slow query
             ->get();
 
         return view('home', compact('styles'));

@@ -49,6 +49,37 @@ class OpenRouterService
     }
 
     /**
+     * Tạo HTTP client cho POST requests với retry logic mạnh hơn
+     * Retry khi gặp 429 (rate limit), 500, 502, 503, 504 errors
+     */
+    protected function clientForPost(): PendingRequest
+    {
+        return Http::withHeaders([
+            'Authorization' => 'Bearer ' . $this->apiKey,
+            'Content-Type' => 'application/json',
+            'HTTP-Referer' => config('app.url'),
+            'X-Title' => config('app.name'),
+        ])->acceptJson()
+          ->timeout($this->timeout)
+          ->connectTimeout(15)
+          ->retry(3, function (int $attempt, \Exception $exception) {
+              // Exponential backoff: 1s, 2s, 4s
+              return min(1000 * pow(2, $attempt - 1), 4000);
+          }, function (\Exception $exception, PendingRequest $request) {
+              // Chỉ retry các lỗi có thể recover
+              if ($exception instanceof \Illuminate\Http\Client\ConnectionException) {
+                  return true;
+              }
+              if ($exception instanceof \Illuminate\Http\Client\RequestException) {
+                  $status = $exception->response->status();
+                  // Retry 429 (rate limit), 5xx errors
+                  return in_array($status, [429, 500, 502, 503, 504]);
+              }
+              return false;
+          });
+    }
+
+    /**
      * Kiểm tra số dư tài khoản OpenRouter
      * 
      * @return array ['balance' => float, 'usage' => array, 'rate_limit' => array]
@@ -401,10 +432,11 @@ class OpenRouterService
 
 
             // Tăng PHP execution time để tránh timeout cho các model chậm (GPT-5, v.v.)
-            set_time_limit(180); // 3 phút
+            // Sử dụng @ để suppress warning nếu safe_mode enabled hoặc không có quyền
+            @set_time_limit(180); // 3 phút
             
-            // Gọi API
-            $response = $this->client()->post($this->baseUrl . '/chat/completions', $payload);
+            // Gọi API với retry logic cho POST requests
+            $response = $this->clientForPost()->post($this->baseUrl . '/chat/completions', $payload);
 
             if (!$response->successful()) {
                 Log::error('OpenRouter API error', [

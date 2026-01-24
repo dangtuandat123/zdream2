@@ -27,14 +27,29 @@ class HistoryController extends Controller
     {
         $user = Auth::user();
         
-        $images = $user->generatedImages()
-            ->with('style')
-            ->latest()
-            ->paginate(12);
+        $query = $user->generatedImages()->with('style');
+
+        // Filter by status
+        if ($status = $request->get('status')) {
+            if (in_array($status, ['completed', 'processing', 'failed', 'pending'])) {
+                $query->where('status', $status);
+            }
+        }
+
+        // Filter by style
+        if ($styleId = $request->get('style_id')) {
+            $query->where('style_id', (int)$styleId);
+        }
+
+        $images = $query->latest()->paginate(12)->withQueryString();
+
+        // Get styles for filter dropdown
+        $styles = \App\Models\Style::select('id', 'name')->orderBy('name')->get();
 
         return view('history.index', [
             'images' => $images,
             'user' => $user,
+            'styles' => $styles,
         ]);
     }
 
