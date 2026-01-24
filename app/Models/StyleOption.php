@@ -40,6 +40,14 @@ class StyleOption extends Model
         'is_default' => 'boolean',
     ];
 
+    /**
+     * Default attribute values
+     */
+    protected $attributes = [
+        'sort_order' => 0,
+        'is_default' => false,
+    ];
+
     // =========================================
     // RELATIONSHIPS
     // =========================================

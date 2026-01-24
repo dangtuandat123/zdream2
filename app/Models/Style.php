@@ -56,6 +56,15 @@ class Style extends Model
         'sort_order' => 'integer',
     ];
 
+    /**
+     * Defaults - đảm bảo không bị undefined khi create
+     */
+    protected $attributes = [
+        'is_active' => true,
+        'allow_user_custom_prompt' => false,
+        'sort_order' => 0,
+    ];
+
     // =========================================
     // BOOT (Auto-generate slug)
     // =========================================
@@ -66,7 +75,17 @@ class Style extends Model
 
         static::creating(function ($style) {
             if (empty($style->slug)) {
-                $style->slug = Str::slug($style->name);
+                $baseSlug = Str::slug($style->name);
+                $slug = $baseSlug;
+                $counter = 1;
+                
+                // Đảm bảo slug unique
+                while (static::where('slug', $slug)->exists()) {
+                    $slug = $baseSlug . '-' . $counter;
+                    $counter++;
+                }
+                
+                $style->slug = $slug;
             }
         });
 

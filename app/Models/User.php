@@ -50,6 +50,15 @@ class User extends Authenticatable
         'is_active' => 'boolean',
     ];
 
+    /**
+     * Default attribute values
+     */
+    protected $attributes = [
+        'credits' => 10.00,
+        'is_admin' => false,
+        'is_active' => true,
+    ];
+
     // =========================================
     // RELATIONSHIPS
     // =========================================

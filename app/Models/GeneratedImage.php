@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\Storage;
 
 /**
  * Model: GeneratedImage
@@ -48,6 +49,14 @@ class GeneratedImage extends Model
     protected $casts = [
         'selected_options' => 'array',
         'credits_used' => 'decimal:2',
+    ];
+
+    /**
+     * Default attribute values
+     */
+    protected $attributes = [
+        'status' => self::STATUS_PENDING,
+        'credits_used' => 0,
     ];
 
     // =========================================
@@ -133,7 +142,7 @@ class GeneratedImage extends Model
         }
 
         // Nếu là đường dẫn tương đối
-        return \Storage::disk('minio')->url($this->storage_path);
+        return Storage::disk('minio')->url($this->storage_path);
     }
 
     /**

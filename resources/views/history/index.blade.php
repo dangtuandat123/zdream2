@@ -15,6 +15,20 @@
             </a>
         </div>
 
+        @if(session('success'))
+            <div class="mb-6 p-4 rounded-xl bg-green-500/10 border border-green-500/30 text-green-400 flex items-center gap-2">
+                <i class="fa-solid fa-check-circle w-5 h-5"></i>
+                {{ session('success') }}
+            </div>
+        @endif
+
+        @if(session('error'))
+            <div class="mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 flex items-center gap-2">
+                <i class="fa-solid fa-exclamation-circle w-5 h-5"></i>
+                {{ session('error') }}
+            </div>
+        @endif
+
         @if($images->isEmpty())
             <!-- Empty State -->
             <div class="flex flex-col items-center justify-center py-20">
@@ -56,20 +70,29 @@
                             
                             <!-- Overlay on hover -->
                             <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
-                                <div class="absolute bottom-3 left-3 right-3">
+                                <div class="absolute bottom-3 left-3 right-3 flex gap-2">
                                     @if($image->status === 'completed' && $image->image_url)
-                                        <a href="{{ $image->image_url }}" target="_blank" 
-                                           class="w-full py-2 rounded-lg bg-white/20 backdrop-blur-sm text-white text-xs font-medium text-center block hover:bg-white/30 transition-colors">
-                                            <i class="fa-solid fa-download mr-1"></i> Tải xuống
+                                        <a href="{{ $image->image_url }}" target="_blank" download
+                                           class="flex-1 py-2 rounded-lg bg-white/20 backdrop-blur-sm text-white text-xs font-medium text-center hover:bg-white/30 transition-colors inline-flex items-center justify-center gap-1">
+                                            <i class="fa-solid fa-download"></i> Tải
                                         </a>
                                     @endif
+                                    <form method="POST" action="{{ route('history.destroy', $image) }}" 
+                                          onsubmit="return confirm('Bạn có chắc muốn xóa ảnh này? Hành động này không thể hoàn tác.')"
+                                          class="flex-1">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="w-full py-2 rounded-lg bg-red-500/30 backdrop-blur-sm text-red-300 text-xs font-medium hover:bg-red-500/50 transition-colors inline-flex items-center justify-center gap-1">
+                                            <i class="fa-solid fa-trash"></i> Xóa
+                                        </button>
+                                    </form>
                                 </div>
                             </div>
                         </div>
                         
                         <!-- Info -->
                         <div class="p-3">
-                            <p class="text-sm font-medium text-white/80 truncate">{{ $image->style->name ?? 'Unknown Style' }}</p>
+                            <p class="text-sm font-medium text-white/80 truncate">{{ $image->style?->name ?? 'Style đã xóa' }}</p>
                             <div class="flex items-center justify-between mt-1">
                                 <span class="text-xs text-white/40">{{ $image->created_at->format('d/m/Y H:i') }}</span>
                                 <span class="text-xs px-2 py-0.5 rounded-full 
