@@ -71,11 +71,11 @@
                     </div>
 
                     <div>
-                        <label for="thumbnail" class="block text-sm font-medium text-white/70 mb-2">URL Ảnh thumbnail *</label>
-                        <input id="thumbnail" type="url" name="thumbnail" value="{{ old('thumbnail') }}" 
+                        <label for="thumbnail_url" class="block text-sm font-medium text-white/70 mb-2">URL Ảnh thumbnail *</label>
+                        <input id="thumbnail_url" type="url" name="thumbnail_url" value="{{ old('thumbnail_url') }}" 
                                class="w-full px-4 py-3 rounded-xl bg-white/[0.03] border border-white/[0.08] text-white/90 focus:outline-none focus:ring-2 focus:ring-purple-500/40 focus:border-purple-500/40 transition-all"
                                placeholder="https://..." required>
-                        @error('thumbnail')
+                        @error('thumbnail_url')
                             <p class="mt-1 text-sm text-red-400">{{ $message }}</p>
                         @enderror
                     </div>

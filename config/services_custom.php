@@ -24,13 +24,18 @@ return [
             'flux_pro' => 'black-forest-labs/flux-pro',
         ],
         
-        // Aspect ratios hỗ trợ
+        // Aspect ratios hỗ trợ (đồng bộ với ImageGenerator)
         'aspect_ratios' => [
-            '1:1' => '1:1',
-            '16:9' => '16:9',
-            '9:16' => '9:16',
-            '4:3' => '4:3',
-            '3:4' => '3:4',
+            '1:1' => 'Vuông (1:1)',
+            '16:9' => 'Ngang Wide (16:9)',
+            '9:16' => 'Dọc Portrait (9:16)',
+            '4:3' => 'Ngang (4:3)',
+            '3:4' => 'Dọc (3:4)',
+            '3:2' => 'Photo (3:2)',
+            '2:3' => 'Photo Dọc (2:3)',
+            '5:4' => 'Vuông (5:4)',
+            '4:5' => 'Instagram (4:5)',
+            '21:9' => 'Cinematic (21:9)',
         ],
     ],
 

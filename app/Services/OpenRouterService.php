@@ -222,7 +222,8 @@ class OpenRouterService
             Log::info('OpenRouter request', [
                 'model' => $style->openrouter_model_id,
                 'prompt_length' => strlen($finalPrompt),
-                'has_input_image' => !empty($inputImage),
+                'has_input_images' => !empty($inputImages),
+                'input_images_count' => count($inputImages),
             ]);
 
             // Gọi API

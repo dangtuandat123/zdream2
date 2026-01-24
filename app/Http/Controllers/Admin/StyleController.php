@@ -57,9 +57,11 @@ class StyleController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
+            'slug' => 'nullable|string|max:255',
             'description' => 'nullable|string|max:1000',
             'thumbnail_url' => 'nullable|url|max:500',
             'price' => 'required|numeric|min:0',
+            'sort_order' => 'nullable|integer|min:0',
             'openrouter_model_id' => 'required|string|max:255',
             'base_prompt' => 'required|string',
             'aspect_ratio' => 'nullable|string',
@@ -102,10 +104,11 @@ class StyleController extends Controller
         // Tạo Style
         $style = Style::create([
             'name' => $validated['name'],
-            'slug' => Str::slug($validated['name']),
+            'slug' => $validated['slug'] ?? null,
             'description' => $validated['description'] ?? null,
             'thumbnail_url' => $validated['thumbnail_url'] ?? null,
             'price' => $validated['price'],
+            'sort_order' => $validated['sort_order'] ?? 0,
             'openrouter_model_id' => $validated['openrouter_model_id'],
             'base_prompt' => $validated['base_prompt'],
             'config_payload' => $configPayload,
@@ -150,9 +153,11 @@ class StyleController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
+            'slug' => 'nullable|string|max:255',
             'description' => 'nullable|string|max:1000',
             'thumbnail_url' => 'nullable|url|max:500',
             'price' => 'required|numeric|min:0',
+            'sort_order' => 'nullable|integer|min:0',
             'openrouter_model_id' => 'required|string|max:255',
             'base_prompt' => 'required|string',
             'aspect_ratio' => 'nullable|string',
@@ -194,9 +199,11 @@ class StyleController extends Controller
         // Update Style
         $style->update([
             'name' => $validated['name'],
+            'slug' => $validated['slug'] ?? $style->slug,
             'description' => $validated['description'] ?? null,
             'thumbnail_url' => $validated['thumbnail_url'] ?? null,
             'price' => $validated['price'],
+            'sort_order' => $validated['sort_order'] ?? $style->sort_order,
             'openrouter_model_id' => $validated['openrouter_model_id'],
             'base_prompt' => $validated['base_prompt'],
             'config_payload' => $configPayload,

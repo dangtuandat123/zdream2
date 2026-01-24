@@ -77,8 +77,8 @@ class ImageGenerator extends Component
     {
         $this->style = $style;
         
-        // Set default aspect ratio từ style config
-        $this->selectedAspectRatio = $style->aspect_ratio;
+        // Set default aspect ratio từ style config (với fallback)
+        $this->selectedAspectRatio = $style->aspect_ratio ?? '1:1';
         
         // Pre-select default options
         foreach ($style->options as $option) {
@@ -160,6 +160,19 @@ class ImageGenerator extends Component
         if (!$user->hasEnoughCredits($this->style->price)) {
             $this->errorMessage = "Bạn không đủ credits. Cần: {$this->style->price}, Hiện có: {$user->credits}";
             return;
+        }
+
+        // Validate required images
+        $imageSlots = $this->style->image_slots ?? [];
+        foreach ($imageSlots as $slot) {
+            $slotKey = $slot['key'] ?? '';
+            $isRequired = $slot['required'] ?? false;
+            $slotLabel = $slot['label'] ?? 'Ảnh';
+            
+            if ($isRequired && empty($this->uploadedImages[$slotKey])) {
+                $this->errorMessage = "Vui lòng upload ảnh: {$slotLabel}";
+                return;
+            }
         }
 
         $this->isGenerating = true;
