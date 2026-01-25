@@ -76,6 +76,19 @@
                             <p class="mt-1 text-sm text-red-400">{{ $message }}</p>
                         @enderror
                     </div>
+
+                    <div class="flex items-center justify-between gap-4 rounded-xl bg-white/[0.03] border border-white/[0.08] px-4 py-3">
+                        <div>
+                            <p class="text-sm text-white/80">Model list</p>
+                            <p class="text-xs text-white/40">Fetch latest image models from OpenRouter.</p>
+                        </div>
+                        <button
+                            type="submit"
+                            form="refresh-models-form"
+                            class="px-4 py-2 rounded-xl bg-white/10 text-white/80 hover:bg-white/20 transition-all">
+                            Refresh models
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -148,6 +161,10 @@
                     <span>Lưu cài đặt</span>
                 </button>
             </div>
+        </form>
+
+        <form id="refresh-models-form" method="POST" action="{{ route('admin.settings.refresh-models') }}">
+            @csrf
         </form>
     </div>
 

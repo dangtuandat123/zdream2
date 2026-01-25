@@ -101,4 +101,31 @@ class SettingsController extends Controller
             ->route('admin.settings.index')
             ->with('success', 'Cài đặt đã được cập nhật!');
     }
+
+    /**
+     * Force refresh OpenRouter model list
+     */
+    public function refreshModels(): RedirectResponse
+    {
+        Cache::forget('openrouter_image_models');
+        Cache::forget('openrouter_models_enhanced');
+
+        try {
+            $modelManager = app(\App\Services\ModelManager::class);
+            $models = $modelManager->fetchModels(true);
+            $count = is_array($models) ? count($models) : 0;
+
+            return redirect()
+                ->route('admin.settings.index')
+                ->with('success', "Models refreshed ({$count}).");
+        } catch (\Throwable $e) {
+            logger()->error('Failed to refresh OpenRouter models', [
+                'error' => $e->getMessage(),
+            ]);
+
+            return redirect()
+                ->route('admin.settings.index')
+                ->with('error', 'Failed to refresh models. Please try again.');
+        }
+    }
 }

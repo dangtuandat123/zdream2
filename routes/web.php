@@ -104,6 +104,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     // Settings
     Route::get('settings', [AdminSettingsController::class, 'index'])->name('settings.index');
     Route::put('settings', [AdminSettingsController::class, 'update'])->name('settings.update');
+    Route::post('settings/refresh-models', [AdminSettingsController::class, 'refreshModels'])->name('settings.refresh-models');
 });
 
 // =============================================
