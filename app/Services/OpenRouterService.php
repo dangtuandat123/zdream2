@@ -204,13 +204,16 @@ class OpenRouterService
                     // Check 1: output_modalities chứa 'image'
                     $isImageModel = in_array('image', $outputModalities, true);
                     
-                    // Check 2: model ID match với known patterns (fallback)
-                    if (!$isImageModel) {
-                        foreach ($imageModelPatterns as $pattern) {
-                            if (str_contains($modelId, $pattern)) {
-                                $isImageModel = true;
-                                break;
-                            }
+                    // Check 2: Strict fallback for known models if modalities missing
+                    // Remove loose substring matching to prevent false positives
+                    if (!$isImageModel && empty($outputModalities)) {
+                        $knownImageModels = config('services_custom.openrouter.image_models_fallback', []);
+                        
+                        if (in_array($modelId, $knownImageModels, true)) {
+                            $isImageModel = true;
+                            // Backfill modalities for consistency
+                            $outputModalities = ['image', 'text'];
+                            $inputModalities = ['text', 'image'];
                         }
                     }
                     

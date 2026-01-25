@@ -84,6 +84,10 @@
                     <p class="text-white/50 text-sm">Chọn style yêu thích của bạn</p>
                 </div>
             </div>
+            <a href="{{ route('styles.index') }}" class="px-4 py-2 rounded-xl bg-white/[0.05] border border-white/[0.1] text-white/70 text-sm font-medium hover:bg-white/[0.1] hover:text-white transition-all inline-flex items-center gap-2">
+                <span>Xem tất cả</span>
+                <i class="fa-solid fa-arrow-right w-3 h-3"></i>
+            </a>
         </div>
 
         @if($styles->isEmpty())

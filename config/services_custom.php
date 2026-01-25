@@ -37,6 +37,18 @@ return [
             '4:5' => 'Instagram (4:5)',
             '21:9' => 'Cinematic (21:9)',
         ],
+
+        // Danh sách model fallback (nếu API không trả về modality)
+        'image_models_fallback' => [
+            'google/gemini-2.0-flash-exp:free',
+            'google/gemini-2.0-flash-exp',
+        ],
+
+        // Danh sách Gemini model hỗ trợ image (dùng cho Adapter)
+        'gemini_image_models' => [
+            'google/gemini-2.0-flash-exp:free',
+            'google/gemini-2.0-flash-exp',
+        ],
     ],
 
     /*

@@ -14,8 +14,18 @@ class GeminiAdapter extends BaseAdapter
     public function supports(string $modelId): bool
     {
         $modelLower = strtolower($modelId);
-        return str_contains($modelLower, 'gemini') && 
-               (str_contains($modelLower, 'image') || str_contains($modelLower, 'flash'));
+        // Strict check: must contain 'gemini' AND ('image' OR be a specific known image model)
+        // Avoid matching text-only models like 'gemini-2.0-flash-exp' unless we know they support image
+        // OpenRouter convention: usually has 'image' in name or modalities check handled by Service
+        
+        // List of known Gemini image models that might not have 'image' in ID
+        $knownGeminiImageModels = config('services_custom.openrouter.gemini_image_models', []);
+
+        if (in_array($modelId, $knownGeminiImageModels, true)) {
+            return true;
+        }
+
+        return str_contains($modelLower, 'gemini') && str_contains($modelLower, 'image');
     }
 
     public function preparePayload(array $basePayload, array $options = []): array

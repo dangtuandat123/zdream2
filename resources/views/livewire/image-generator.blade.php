@@ -7,21 +7,35 @@
     
     @if(!empty($imageSlots))
         <div class="space-y-3">
+            <!-- Upload Limits Warning -->
+            <div class="bg-blue-500/10 border border-blue-500/20 rounded-lg px-3 py-2 flex items-start gap-2">
+                <i class="fa-solid fa-info-circle text-blue-400 mt-0.5" style="font-size: 12px;"></i>
+                <p class="text-xs text-blue-300/80">
+                    Định dạng: JPEG, PNG, GIF, WebP. Tối đa <strong>10MB</strong>/ảnh, <strong>25MB</strong> tổng cộng.
+                </p>
+            </div>
+            
             @foreach($imageSlots as $slot)
                 @php
                     $slotKey = $slot['key'] ?? 'slot_' . $loop->index;
                     $slotLabel = $slot['label'] ?? 'Ảnh ' . ($loop->index + 1);
+                    $slotDescription = $slot['description'] ?? null;
                     $isRequired = $slot['required'] ?? false;
                 @endphp
                 
                 <div class="bg-white/[0.03] border border-white/[0.08] rounded-xl p-4">
-                    <label class="block text-sm font-medium text-white/60 mb-3 inline-flex items-center gap-2">
+                    <label class="block text-sm font-medium text-white/60 mb-2 inline-flex items-center gap-2">
                         <i class="fa-solid fa-image" style="font-size: 14px;"></i>
                         <span>{{ $slotLabel }}</span>
                         @if($isRequired)
                             <span class="text-red-400">*</span>
                         @endif
                     </label>
+                    
+                    <!-- Slot Description -->
+                    @if($slotDescription)
+                        <p class="text-xs text-white/40 mb-3 pl-6">{{ $slotDescription }}</p>
+                    @endif
                     
                     @if(isset($uploadedImagePreviews[$slotKey]))
                         <!-- Preview uploaded image -->

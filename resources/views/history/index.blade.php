@@ -130,9 +130,12 @@
                                 </div>
                             @else
                                 <div class="w-full h-full flex items-center justify-center bg-black/20">
-                                    <div class="text-center">
+                                    <div class="text-center px-2">
                                         <i class="fa-solid fa-exclamation-triangle text-2xl text-red-400 mb-2"></i>
                                         <p class="text-xs text-white/40">Thất bại</p>
+                                        @if($image->error_message)
+                                            <p class="text-[10px] text-red-400/70 mt-1 line-clamp-2" title="{{ $image->error_message }}">{{ Str::limit($image->error_message, 50) }}</p>
+                                        @endif
                                     </div>
                                 </div>
                             @endif
@@ -157,6 +160,23 @@
                                     <a href="{{ route('history.download', $image) }}"
                                        class="flex-1 py-1.5 sm:py-2 rounded-lg bg-purple-500/20 text-purple-300 text-[10px] sm:text-xs font-medium text-center hover:bg-purple-500/30 transition-colors inline-flex items-center justify-center gap-1">
                                         <i class="fa-solid fa-download"></i> <span class="hidden sm:inline">Tải</span>
+                                    </a>
+                                    <form method="POST" action="{{ route('history.destroy', $image) }}" 
+                                          onsubmit="return confirm('Bạn có chắc muốn xóa ảnh này?')"
+                                          class="flex-1">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="w-full py-1.5 sm:py-2 rounded-lg bg-red-500/20 text-red-300 text-[10px] sm:text-xs font-medium hover:bg-red-500/30 transition-colors inline-flex items-center justify-center gap-1">
+                                            <i class="fa-solid fa-trash"></i> <span class="hidden sm:inline">Xóa</span>
+                                        </button>
+                                    </form>
+                                </div>
+                            @elseif($image->status === 'failed' && $image->style)
+                                <!-- Retry button for failed images -->
+                                <div class="flex gap-2 mt-2">
+                                    <a href="{{ route('studio.show', $image->style->slug) }}"
+                                       class="flex-1 py-1.5 sm:py-2 rounded-lg bg-purple-500/20 text-purple-300 text-[10px] sm:text-xs font-medium text-center hover:bg-purple-500/30 transition-colors inline-flex items-center justify-center gap-1">
+                                        <i class="fa-solid fa-redo"></i> <span class="hidden sm:inline">Tạo lại</span>
                                     </a>
                                     <form method="POST" action="{{ route('history.destroy', $image) }}" 
                                           onsubmit="return confirm('Bạn có chắc muốn xóa ảnh này?')"

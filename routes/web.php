@@ -4,6 +4,7 @@ use App\Http\Controllers\HistoryController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\StudioController;
+use App\Http\Controllers\StylesController;
 use App\Http\Controllers\WalletController;
 use App\Http\Controllers\Admin\StyleController as AdminStyleController;
 use App\Http\Controllers\Admin\StyleOptionController as AdminStyleOptionController;
@@ -22,6 +23,9 @@ use Illuminate\Support\Facades\Route;
 
 // Home - Gallery Styles
 Route::get('/', [HomeController::class, 'index'])->name('home');
+
+// Styles Gallery (with search, filter, pagination)
+Route::get('/styles', [StylesController::class, 'index'])->name('styles.index');
 
 // DEBUG: Model data inspection
 Route::get('/debug/models', function () {

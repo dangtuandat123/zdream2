@@ -565,6 +565,21 @@ class ImageGenerator extends Component
             }
         }
 
+        // 7. Validate total payload size (max 25MB for all images combined)
+        // OpenRouter/Providers often have payload limits (e.g. 10MB-20MB)
+        $totalSize = 0;
+        foreach ($this->uploadedImages as $image) {
+            if ($image && method_exists($image, 'getSize')) {
+                $totalSize += $image->getSize();
+            }
+        }
+        
+        // 25MB limit (conservative)
+        if ($totalSize > 25 * 1024 * 1024) {
+            $this->errorMessage = 'Tổng dung lượng ảnh tải lên quá lớn (Max 25MB). Vui lòng giảm dung lượng hoặc số lượng ảnh.';
+            return false;
+        }
+
         return true;
     }
 

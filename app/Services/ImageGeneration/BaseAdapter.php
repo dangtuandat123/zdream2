@@ -60,9 +60,22 @@ abstract class BaseAdapter implements ModelAdapterInterface
             return $this->downloadImageAsBase64($value);
         }
         
-        // Raw base64 string (no prefix) - add default prefix
+        // Raw base64 string (no prefix) - detect mime type
         if ($this->isBase64Image($value)) {
-            return 'data:image/png;base64,' . $value;
+            $decoded = base64_decode($value, true);
+            $mime = 'image/png'; // Default
+            
+            if (str_starts_with($decoded, "\xFF\xD8\xFF")) {
+                $mime = 'image/jpeg';
+            } elseif (str_starts_with($decoded, "\x89PNG\r\n\x1a\n")) {
+                $mime = 'image/png';
+            } elseif (str_starts_with($decoded, "GIF87a") || str_starts_with($decoded, "GIF89a")) {
+                $mime = 'image/gif';
+            } elseif (str_starts_with($decoded, "RIFF") && substr($decoded, 8, 4) === 'WEBP') {
+                $mime = 'image/webp';
+            }
+            
+            return 'data:' . $mime . ';base64,' . $value;
         }
         
         return null;
