@@ -93,8 +93,8 @@ class OpenRouterService
     public function checkBalance(): array
     {
         try {
-            // Sử dụng endpoint /api/v1/key để lấy thông tin API key
-            $response = $this->client()->get('https://openrouter.ai/api/v1/key');
+            // Sử dụng endpoint /key để lấy thông tin API key (baseUrl đã có /api/v1)
+            $response = $this->client()->get($this->baseUrl . '/key');
             
             if (!$response->successful()) {
                 Log::error('OpenRouter credits check failed', [

@@ -102,9 +102,32 @@ abstract class BaseAdapter implements ModelAdapterInterface
 
     /**
      * Download image from URL and convert to base64
+     * Includes SSRF protection: blocks private/local IP addresses
      */
     protected function downloadImageAsBase64(string $url): ?string
     {
+        // Already base64 data URL
+        if (str_starts_with($url, 'data:image/')) {
+            return $url;
+        }
+
+        if (!filter_var($url, FILTER_VALIDATE_URL)) {
+            return null;
+        }
+
+        // Only allow http/https
+        $scheme = parse_url($url, PHP_URL_SCHEME);
+        if (!in_array($scheme, ['http', 'https'], true)) {
+            return null;
+        }
+
+        // SSRF Protection: Block private/local addresses
+        $host = parse_url($url, PHP_URL_HOST);
+        if ($host && $this->isPrivateOrLocalHost($host)) {
+            Log::warning('BaseAdapter: Blocked SSRF attempt', ['url' => $url, 'host' => $host]);
+            return null;
+        }
+
         try {
             $response = Http::timeout(30)->get($url);
             
@@ -132,6 +155,31 @@ abstract class BaseAdapter implements ModelAdapterInterface
             ]);
             return null;
         }
+    }
+
+    /**
+     * Check if host is private or local (SSRF protection)
+     */
+    protected function isPrivateOrLocalHost(string $host): bool
+    {
+        // Localhost checks
+        if (in_array(strtolower($host), ['localhost', '127.0.0.1', '::1', '0.0.0.0'], true)) {
+            return true;
+        }
+
+        // Check for local domain patterns
+        if (str_ends_with(strtolower($host), '.local') || str_ends_with(strtolower($host), '.localhost')) {
+            return true;
+        }
+
+        // Resolve IP and check private ranges
+        $ip = gethostbyname($host);
+        if ($ip === $host) {
+            return false; // Could not resolve
+        }
+
+        // Check private IP ranges
+        return filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) === false;
     }
 
     /**

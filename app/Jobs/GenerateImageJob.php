@@ -113,6 +113,19 @@ class GenerateImageJob implements ShouldQueue
                 return;
             }
 
+            // INT-01 FIX: Refresh và check status trước khi complete
+            // Nếu watchdog đã mark failed + refund, không ghi đè status
+            $generatedImage->refresh();
+            if ($generatedImage->status !== GeneratedImage::STATUS_PROCESSING) {
+                Log::warning('GenerateImageJob: Status changed during processing, skipping complete', [
+                    'image_id' => $generatedImage->id,
+                    'current_status' => $generatedImage->status,
+                ]);
+                // Xóa ảnh đã upload vì đã refund
+                $storageService->deleteImage($storageResult['path']);
+                return;
+            }
+
             // Đánh dấu hoàn thành
             $generatedImage->markAsCompleted(
                 $storageResult['path'],

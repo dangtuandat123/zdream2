@@ -512,8 +512,8 @@ class ImageGenerator extends Component
             return false;
         }
 
-        // 2. Sanitize customInput - remove dangerous characters
-        $this->customInput = htmlspecialchars(strip_tags($this->customInput), ENT_QUOTES, 'UTF-8');
+        // 2. Sanitize customInput - remove HTML tags only (keep special chars for AI prompt)
+        $this->customInput = strip_tags($this->customInput);
 
         // 3. Validate aspect ratio
         $ratioKeys = array_keys($this->aspectRatios);
