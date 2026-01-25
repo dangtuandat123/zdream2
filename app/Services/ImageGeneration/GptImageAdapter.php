@@ -26,13 +26,19 @@ class GptImageAdapter extends BaseAdapter
         // Ensure modalities - image MUST be first to prioritize image output
         $payload['modalities'] = ['image', 'text'];
         
+        // Get aspect ratio for instruction
+        $aspectRatio = $options['aspectRatio'] ?? '1:1';
+        
         // GPT models need very explicit instruction to generate image
-        // Using stronger language to avoid text-only responses
+        // Include aspect ratio in the prefix for better compliance
         $imageGenPrefix = "You are an image generation AI. Your ONLY task is to generate and output an image.\n"
-            . "DO NOT describe the image in text.\n"
-            . "DO NOT explain what you would create.\n"
-            . "DO NOT refuse - just generate the image.\n"
-            . "DIRECTLY OUTPUT THE IMAGE based on this description:\n\n";
+            . "CRITICAL REQUIREMENTS:\n"
+            . "1. DO NOT describe the image in text.\n"
+            . "2. DO NOT explain what you would create.\n"
+            . "3. DO NOT refuse - just generate the image.\n"
+            . "4. The image MUST be in {$aspectRatio} aspect ratio (this is MANDATORY).\n"
+            . "5. DIRECTLY OUTPUT THE IMAGE.\n\n"
+            . "Generate the following image:\n\n";
         
         // Check if content has input images (multimodal)
         $hasInputImages = !empty($options['inputImages']);
@@ -42,9 +48,12 @@ class GptImageAdapter extends BaseAdapter
             
             if ($hasInputImages) {
                 // For img2img: instruction to transform the input image
-                $imageGenPrefix = "You are an image transformation AI. Transform the provided image(s) according to this description.\n"
-                    . "DO NOT describe what you see or would do.\n"
-                    . "DIRECTLY OUTPUT the transformed image.\n\n";
+                $imageGenPrefix = "You are an image transformation AI. Transform the provided image(s).\n"
+                    . "CRITICAL REQUIREMENTS:\n"
+                    . "1. DO NOT describe what you see or would do.\n"
+                    . "2. The output image MUST be in {$aspectRatio} aspect ratio (MANDATORY).\n"
+                    . "3. DIRECTLY OUTPUT the transformed image.\n\n"
+                    . "Transform according to this description:\n\n";
             }
             
             $payload['messages'][0]['content'] = $imageGenPrefix . $originalPrompt;
@@ -52,24 +61,18 @@ class GptImageAdapter extends BaseAdapter
             $originalPrompt = $payload['messages'][0]['content'][0]['text'];
             
             if ($hasInputImages) {
-                $imageGenPrefix = "You are an image transformation AI. Transform the provided image(s) according to this description.\n"
-                    . "DO NOT describe what you see or would do.\n"
-                    . "DIRECTLY OUTPUT the transformed image.\n\n";
+                $imageGenPrefix = "You are an image transformation AI. Transform the provided image(s).\n"
+                    . "CRITICAL REQUIREMENTS:\n"
+                    . "1. DO NOT describe what you see or would do.\n"
+                    . "2. The output image MUST be in {$aspectRatio} aspect ratio (MANDATORY).\n"
+                    . "3. DIRECTLY OUTPUT the transformed image.\n\n"
+                    . "Transform according to this description:\n\n";
             }
             
             $payload['messages'][0]['content'][0]['text'] = $imageGenPrefix . $originalPrompt;
         }
         
-        // Append aspect ratio to prompt
-        if (!empty($options['aspectRatio'])) {
-            $aspectText = "\n\nOutput format: {$options['aspectRatio']} aspect ratio image.";
-            
-            if (is_string($payload['messages'][0]['content'])) {
-                $payload['messages'][0]['content'] .= $aspectText;
-            } else if (isset($payload['messages'][0]['content'][0]['text'])) {
-                $payload['messages'][0]['content'][0]['text'] .= $aspectText;
-            }
-        }
+        // NOTE: Aspect ratio is now in prefix, no need to append again
         
         // Add input images if provided
         if ($hasInputImages) {

@@ -25,11 +25,20 @@ class GeminiAdapter extends BaseAdapter
         // Ensure modalities
         $payload['modalities'] = ['image', 'text'];
         
-        // Build image_config for Gemini
+        // Build image_config for Gemini (API parameter - most reliable)
         $imageConfig = $payload['image_config'] ?? [];
+        $aspectRatio = $options['aspectRatio'] ?? '1:1';
         
-        if (!empty($options['aspectRatio'])) {
-            $imageConfig['aspect_ratio'] = $options['aspectRatio'];
+        if (!empty($aspectRatio)) {
+            $imageConfig['aspect_ratio'] = $aspectRatio;
+            
+            // Also add to prompt for reinforcement
+            $aspectText = " The output image MUST be in {$aspectRatio} aspect ratio.";
+            if (is_string($payload['messages'][0]['content'])) {
+                $payload['messages'][0]['content'] .= $aspectText;
+            } else if (isset($payload['messages'][0]['content'][0]['text'])) {
+                $payload['messages'][0]['content'][0]['text'] .= $aspectText;
+            }
         }
         
         if (!empty($options['imageSize'])) {
