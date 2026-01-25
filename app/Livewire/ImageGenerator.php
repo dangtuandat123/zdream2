@@ -363,6 +363,9 @@ class ImageGenerator extends Component
             $this->generatedImageUrl = $generatedImage->image_url;
             $this->lastImageId = $generatedImage->id;
 
+            // Dispatch event để các component khác (history) có thể refresh
+            $this->dispatch('imageGenerated');
+
             Log::info('Image generated successfully (sync)', [
                 'user_id' => $user->id,
                 'style_id' => $this->style->id,
@@ -650,9 +653,20 @@ class ImageGenerator extends Component
      */
     public function render()
     {
+        // Query user's images với style này - reactive, update khi component re-render
+        $userStyleImages = Auth::check()
+            ? GeneratedImage::where('user_id', Auth::id())
+                ->where('style_id', $this->style->id)
+                ->completed()
+                ->latest()
+                ->limit(6)
+                ->get()
+            : collect();
+
         return view('livewire.image-generator', [
             'optionGroups' => $this->style->options->groupBy('group_name'),
             'user' => Auth::user(),
+            'userStyleImages' => $userStyleImages,
         ]);
     }
 }
