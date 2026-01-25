@@ -352,14 +352,15 @@ class ImageGenerator extends Component
                     : 'Có lỗi khi lưu ảnh. Vui lòng liên hệ hỗ trợ để được hoàn tiền.';
                 return;
             }
-
             // Đánh dấu hoàn thành
             $generatedImage->markAsCompleted(
                 $storageResult['path'],
                 $result['openrouter_id'] ?? null
             );
 
-            $this->generatedImageUrl = $storageResult['url'];
+            // FIX: Dùng presigned URL từ accessor (giống History) thay vì public URL
+            $generatedImage->refresh(); // Refresh để lấy storage_path mới
+            $this->generatedImageUrl = $generatedImage->image_url;
             $this->lastImageId = $generatedImage->id;
 
             Log::info('Image generated successfully (sync)', [
