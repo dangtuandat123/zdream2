@@ -414,14 +414,18 @@ class OpenRouterService
             $response = $this->clientForPost()->post($this->baseUrl . '/chat/completions', $payload);
 
             if (!$response->successful()) {
+                // IMG-06 FIX: Truncate body để tránh log quá lớn
+                $body = $response->body();
+                $truncatedBody = strlen($body) > 2000 ? substr($body, 0, 2000) . '...[TRUNCATED]' : $body;
+                
                 Log::error('OpenRouter API error', [
                     'status' => $response->status(),
-                    'body' => $response->body(),
+                    'body' => $truncatedBody,
                 ]);
                 
                 return [
                     'success' => false,
-                    'error' => 'API error: ' . $response->status() . ' - ' . $response->body(),
+                    'error' => 'API error: ' . $response->status() . ' - ' . $truncatedBody,
                     'final_prompt' => $finalPrompt,
                 ];
             }

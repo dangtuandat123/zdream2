@@ -72,6 +72,9 @@ class ImageGenerator extends Component
     
     // Polling interval (ms) for async mode
     public int $pollingInterval = 2000;
+    
+    // Timeout cho async processing (phút) - sau đó sẽ refund
+    private const PROCESSING_TIMEOUT_MINUTES = 5;
 
     /**
      * Mount component với Style
@@ -428,6 +431,21 @@ class ImageGenerator extends Component
         if (!$image) {
             $this->isGenerating = false;
             $this->errorMessage = 'Không tìm thấy ảnh.';
+            $this->lastImageId = null;
+            return;
+        }
+
+        // IMG-02 FIX: Security - Check ownership để tránh user xem ảnh của user khác
+        $currentUserId = Auth::id();
+        if ($image->user_id !== $currentUserId) {
+            Log::warning('Unauthorized image access attempt', [
+                'image_id' => $image->id,
+                'image_owner' => $image->user_id,
+                'requester' => $currentUserId,
+            ]);
+            $this->isGenerating = false;
+            $this->errorMessage = 'Không có quyền truy cập ảnh này.';
+            $this->lastImageId = null;
             return;
         }
 

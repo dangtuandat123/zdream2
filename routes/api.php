@@ -24,9 +24,10 @@ Route::middleware('auth:sanctum')->group(function () {
 
 // =============================================
 // INTERNAL API (API Key Authentication)
+// API-01 FIX: Rate limit 60 requests/phút để ngăn spam
 // =============================================
 
-Route::prefix('internal')->group(function () {
+Route::prefix('internal')->middleware('throttle:60,1')->group(function () {
     
     // Điều chỉnh credits
     Route::post('/wallet/adjust', [InternalApiController::class, 'adjustWallet']);

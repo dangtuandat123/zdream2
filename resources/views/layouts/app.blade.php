@@ -19,8 +19,8 @@
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
-    <!-- Vite Assets (CSS only to avoid Alpine conflict) -->
-    @vite(['resources/css/app.css'])
+    <!-- Vite Assets (CSS + JS với Alpine) -->
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
     
     <!-- Livewire Styles -->
     @livewireStyles

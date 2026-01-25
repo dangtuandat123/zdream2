@@ -207,8 +207,13 @@ class StyleController extends Controller
             return DB::transaction(function () use ($request, $validated, $style) {
                 // Build config_payload - preserve existing, update aspect_ratio
                 $configPayload = $style->config_payload ?? [];
+                
+                // INT-01 FIX: Cho phép clear aspect_ratio khi empty
                 if (!empty($validated['aspect_ratio'])) {
                     $configPayload['aspect_ratio'] = $validated['aspect_ratio'];
+                } else {
+                    // Remove aspect_ratio nếu admin chọn "mặc định"
+                    unset($configPayload['aspect_ratio']);
                 }
 
                 // Process image_slots
