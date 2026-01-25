@@ -51,7 +51,7 @@ class StyleOptionController extends Controller
     {
         $validated = $request->validate([
             'label' => 'required|string|max:255',
-            'group_name' => 'required|string|max:100',
+            'group_name' => ['required', 'string', 'max:100', 'regex:/^[^\'\"<>]+$/'],
             'prompt_fragment' => 'required|string|max:500',
             'icon' => 'nullable|string|max:100',
             'thumbnail' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:1024',
@@ -111,7 +111,7 @@ class StyleOptionController extends Controller
 
         $validated = $request->validate([
             'label' => 'required|string|max:255',
-            'group_name' => 'required|string|max:100',
+            'group_name' => ['required', 'string', 'max:100', 'regex:/^[^\'\"<>]+$/'],
             'prompt_fragment' => 'required|string|max:500',
             'icon' => 'nullable|string|max:100',
             'thumbnail' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:1024',

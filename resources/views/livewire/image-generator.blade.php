@@ -102,7 +102,7 @@
                                     {{-- Default option --}}
                                     <button 
                                         type="button"
-                                        wire:click="selectOption('{{ e($groupName) }}', null)"
+                                        wire:click="selectOption(@js($groupName), null)"
                                         wire:key="option-{{ Str::slug($groupName) }}-default"
                                         class="flex flex-col items-center gap-2 group cursor-pointer select-none">
                                         <!-- Collage Container -->
@@ -119,7 +119,7 @@
                                     @foreach($options as $option)
                                         <button 
                                             type="button"
-                                            wire:click="selectOption('{{ e($groupName) }}', {{ $option->id }})"
+                                            wire:click="selectOption(@js($groupName), {{ $option->id }})"
                                             wire:key="option-{{ $option->id }}"
                                             class="flex flex-col items-center gap-2 group cursor-pointer select-none">
                                             <!-- Collage Container with Stacked Photos -->

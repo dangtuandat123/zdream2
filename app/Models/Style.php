@@ -171,7 +171,19 @@ class Style extends Model
     // =========================================
 
     /**
+     * Max prompt length to avoid API rejection và memory issues
+     */
+    const MAX_PROMPT_LENGTH = 4000;
+    
+    /**
+     * Standard separator giữa các prompt fragments
+     */
+    const PROMPT_SEPARATOR = ', ';
+
+    /**
      * Build prompt cuối cùng từ base + selected options + user input
+     * 
+     * IMPROVED: Tự động normalize separator, giới hạn length, sanitize
      * 
      * @param array $selectedOptionIds Danh sách ID của StyleOption đã chọn
      * @param string|null $userCustomInput Nội dung user tự gõ
@@ -179,23 +191,69 @@ class Style extends Model
      */
     public function buildFinalPrompt(array $selectedOptionIds = [], ?string $userCustomInput = null): string
     {
-        $prompt = $this->base_prompt;
+        $prompt = trim($this->base_prompt);
+        $fragments = [];
 
-        // Nối các prompt fragments từ options đã chọn
+        // Collect all option fragments
         if (!empty($selectedOptionIds)) {
-            $options = $this->options()->whereIn('id', $selectedOptionIds)->get();
+            $options = $this->options()
+                ->whereIn('id', $selectedOptionIds)
+                ->orderBy('sort_order')
+                ->get();
+                
             foreach ($options as $option) {
-                $prompt .= $option->prompt_fragment;
+                $fragment = $this->normalizePromptFragment($option->prompt_fragment);
+                if (!empty($fragment)) {
+                    $fragments[] = $fragment;
+                }
             }
         }
 
-        // Nối user custom input (nếu được phép và có nội dung)
+        // Add user custom input (nếu được phép và có nội dung)
         if ($this->allow_user_custom_prompt && !empty($userCustomInput)) {
-            $prompt .= ', ' . trim($userCustomInput);
+            $fragment = $this->normalizePromptFragment($userCustomInput);
+            if (!empty($fragment)) {
+                $fragments[] = $fragment;
+            }
+        }
+
+        // Join all fragments with separator
+        if (!empty($fragments)) {
+            // Đảm bảo base_prompt không kết thúc bằng separator
+            $prompt = rtrim($prompt, ', ;');
+            $prompt .= self::PROMPT_SEPARATOR . implode(self::PROMPT_SEPARATOR, $fragments);
+        }
+
+        // Enforce max length để tránh API rejection
+        if (mb_strlen($prompt) > self::MAX_PROMPT_LENGTH) {
+            $prompt = mb_substr($prompt, 0, self::MAX_PROMPT_LENGTH - 3) . '...';
         }
 
         return $prompt;
     }
+
+    /**
+     * Normalize một prompt fragment
+     * - Trim whitespace
+     * - Loại bỏ leading separators (sẽ được thêm lại khi join)
+     * - Sanitize basic
+     */
+    protected function normalizePromptFragment(string $fragment): string
+    {
+        // Trim whitespace
+        $fragment = trim($fragment);
+        
+        if (empty($fragment)) {
+            return '';
+        }
+        
+        // Loại bỏ leading separators (comma, semicolon, space)
+        $fragment = ltrim($fragment, ', ;');
+        $fragment = trim($fragment);
+        
+        return $fragment;
+    }
+
 
     /**
      * Build OpenRouter payload
