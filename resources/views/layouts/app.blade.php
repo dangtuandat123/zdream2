@@ -70,21 +70,22 @@
         .select2-container--default .select2-results__option {
             color: rgba(255, 255, 255, 0.8);
             padding: 10px 14px;
+            background: transparent;
         }
         .select2-container--default .select2-results__option--highlighted[aria-selected] {
-            background: linear-gradient(135deg, #a855f7, #ec4899);
-            color: white;
+            background: linear-gradient(135deg, #a855f7, #ec4899) !important;
+            color: white !important;
         }
-        /* Option đã selected (không hover) */
-        .select2-container--default .select2-results__option[aria-selected=true] {
-            background: rgba(168, 85, 247, 0.15);
-            color: #c084fc;
+        /* Option đã selected - luôn giữ màu tím */
+        .select2-container--default .select2-results__option[aria-selected=true]:not(.select2-results__option--highlighted) {
+            background: rgba(168, 85, 247, 0.2) !important;
+            color: #c084fc !important;
             font-weight: 500;
         }
         /* Option đã selected + đang hover */
         .select2-container--default .select2-results__option--highlighted.select2-results__option[aria-selected=true] {
-            background: linear-gradient(135deg, #a855f7, #ec4899);
-            color: white;
+            background: linear-gradient(135deg, #a855f7, #ec4899) !important;
+            color: white !important;
         }
         .select2-container--default .select2-selection--single:focus,
         .select2-container--default.select2-container--open .select2-selection--single {
