@@ -220,12 +220,28 @@
     <script>
         let lightboxOpen = false;
         let lightboxImages = [];
+        let lightboxImageData = []; // For actions (download, delete)
         let lightboxIndex = 0;
+        let lightboxHasActions = false;
 
+        // Simple lightbox (just images)
         function openLightbox(index, images) {
             lightboxImages = images;
+            lightboxImageData = [];
             lightboxIndex = index;
             lightboxOpen = true;
+            lightboxHasActions = false;
+            renderLightbox();
+            document.body.style.overflow = 'hidden';
+        }
+
+        // Lightbox with actions (download, delete)
+        function openLightboxWithActions(index, imageData) {
+            lightboxImageData = imageData;
+            lightboxImages = imageData.map(d => d.url);
+            lightboxIndex = index;
+            lightboxOpen = true;
+            lightboxHasActions = true;
             renderLightbox();
             document.body.style.overflow = 'hidden';
         }
@@ -251,9 +267,33 @@
         function updateLightboxImage() {
             const img = document.getElementById('lightbox-main-image');
             const counter = document.getElementById('lightbox-counter');
+            const downloadBtn = document.getElementById('lightbox-download-btn');
+            const deleteBtn = document.getElementById('lightbox-delete-btn');
+            
             if (img) img.src = lightboxImages[lightboxIndex];
             if (counter) counter.textContent = `${lightboxIndex + 1} / ${lightboxImages.length}`;
+            
+            // Update action buttons
+            if (lightboxHasActions && lightboxImageData[lightboxIndex]) {
+                if (downloadBtn) downloadBtn.href = lightboxImageData[lightboxIndex].download;
+                if (deleteBtn) deleteBtn.onclick = () => deleteLightboxImage(lightboxImageData[lightboxIndex].delete);
+            }
+            
             updateThumbnails();
+        }
+
+        function deleteLightboxImage(deleteUrl) {
+            if (confirm('Bạn có chắc muốn xóa ảnh này?')) {
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = deleteUrl;
+                form.innerHTML = `
+                    <input type="hidden" name="_token" value="${document.querySelector('meta[name=csrf-token]').content}">
+                    <input type="hidden" name="_method" value="DELETE">
+                `;
+                document.body.appendChild(form);
+                form.submit();
+            }
         }
 
         function updateThumbnails() {
@@ -274,6 +314,8 @@
             const existing = document.getElementById('global-lightbox');
             if (existing) existing.remove();
             
+            const currentData = lightboxHasActions ? lightboxImageData[lightboxIndex] : null;
+            
             const html = `
                 <div id="global-lightbox" style="position: fixed; inset: 0; z-index: 999999; background: rgba(0,0,0,0.95); display: flex; flex-direction: column;">
                     <!-- Top Bar -->
@@ -281,9 +323,20 @@
                         <div id="lightbox-counter" style="background: white; color: black; padding: 8px 16px; border-radius: 9999px; font-weight: bold; font-size: 14px;">
                             ${lightboxIndex + 1} / ${lightboxImages.length}
                         </div>
-                        <button onclick="closeLightbox()" style="width: 50px; height: 50px; border-radius: 50%; background: white; color: black; border: none; cursor: pointer; font-size: 24px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
-                            <i class="fa-solid fa-xmark"></i>
-                        </button>
+                        
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            ${lightboxHasActions && currentData ? `
+                                <a id="lightbox-download-btn" href="${currentData.download}" style="width: 44px; height: 44px; border-radius: 50%; background: #22c55e; color: white; border: none; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; text-decoration: none; box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
+                                    <i class="fa-solid fa-download"></i>
+                                </a>
+                                <button id="lightbox-delete-btn" onclick="deleteLightboxImage('${currentData.delete}')" style="width: 44px; height: 44px; border-radius: 50%; background: #ef4444; color: white; border: none; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            ` : ''}
+                            <button onclick="closeLightbox()" style="width: 50px; height: 50px; border-radius: 50%; background: white; color: black; border: none; cursor: pointer; font-size: 24px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
+                                <i class="fa-solid fa-xmark"></i>
+                            </button>
+                        </div>
                     </div>
                     
                     <!-- Main Image Area -->

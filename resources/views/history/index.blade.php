@@ -71,6 +71,12 @@
             <!-- Image Grid -->
             @php 
                 $completedImages = $images->where('status', 'completed')->whereNotNull('storage_path')->values();
+                $imageData = $completedImages->map(fn($img) => [
+                    'url' => $img->image_url,
+                    'id' => $img->id,
+                    'download' => route('history.download', $img),
+                    'delete' => route('history.destroy', $img),
+                ])->toArray();
             @endphp
             <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                 @php $galleryIndex = 0; @endphp
@@ -80,7 +86,7 @@
                         <div class="aspect-[3/4] relative">
                             @if($image->status === 'completed' && $image->storage_path)
                                 <button 
-                                    onclick="openLightbox({{ $galleryIndex }}, {{ json_encode($completedImages->pluck('image_url')->toArray()) }})"
+                                    onclick="openLightboxWithActions({{ $galleryIndex }}, {{ json_encode($imageData) }})"
                                     class="w-full h-full cursor-pointer"
                                 >
                                     <img src="{{ $image->image_url }}" alt="Generated Image" 
@@ -102,49 +108,39 @@
                                     </div>
                                 </div>
                             @endif
-                            
-                            <!-- Overlay on hover -->
-                            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none group-hover:pointer-events-auto">
-                                <div class="absolute bottom-3 left-3 right-3 flex gap-2">
-                                    @if($image->status === 'completed' && $image->storage_path)
-                                        <a href="{{ route('history.download', $image) }}"
-                                           class="flex-1 py-2 rounded-lg bg-white/20 backdrop-blur-sm text-white text-xs font-medium text-center hover:bg-white/30 transition-colors inline-flex items-center justify-center gap-1">
-                                            <i class="fa-solid fa-download"></i> Tải
-                                        </a>
-                                    @endif
-                                    <form method="POST" action="{{ route('history.destroy', $image) }}" 
-                                          onsubmit="return confirm('Bạn có chắc muốn xóa ảnh này? Hành động này không thể hoàn tác.')"
-                                          class="flex-1">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="w-full py-2 rounded-lg bg-red-500/30 backdrop-blur-sm text-red-300 text-xs font-medium hover:bg-red-500/50 transition-colors inline-flex items-center justify-center gap-1">
-                                            <i class="fa-solid fa-trash"></i> Xóa
-                                        </button>
-                                    </form>
-                                </div>
-                            </div>
                         </div>
                         
-                        <!-- Info -->
+                        <!-- Info & Actions -->
                         <div class="p-3">
                             <p class="text-sm font-medium text-white/80 truncate">{{ $image->style?->name ?? 'Style đã xóa' }}</p>
                             <div class="flex items-center justify-between mt-1">
                                 <span class="text-xs text-white/40">{{ $image->created_at->format('d/m/Y H:i') }}</span>
-                                <div class="flex items-center gap-1.5">
-                                    @if($image->status === 'completed' && $image->is_expiring)
-                                        <span class="text-xs px-2 py-0.5 rounded-full bg-orange-500/20 text-orange-400" title="Ảnh sẽ bị xóa sau {{ $image->days_until_expiry }} ngày">
-                                            <i class="fa-solid fa-clock mr-0.5"></i>{{ $image->days_until_expiry }}d
-                                        </span>
-                                    @endif
-                                    <span class="text-xs px-2 py-0.5 rounded-full 
-                                        {{ $image->status === 'completed' ? 'bg-green-500/20 text-green-400' : '' }}
-                                        {{ $image->status === 'processing' ? 'bg-yellow-500/20 text-yellow-400' : '' }}
-                                        {{ $image->status === 'failed' ? 'bg-red-500/20 text-red-400' : '' }}
-                                    ">
-                                        {{ $image->status === 'completed' ? 'Hoàn thành' : ($image->status === 'processing' ? 'Đang xử lý' : 'Thất bại') }}
-                                    </span>
-                                </div>
+                                <span class="text-xs px-2 py-0.5 rounded-full 
+                                    {{ $image->status === 'completed' ? 'bg-green-500/20 text-green-400' : '' }}
+                                    {{ $image->status === 'processing' ? 'bg-yellow-500/20 text-yellow-400' : '' }}
+                                    {{ $image->status === 'failed' ? 'bg-red-500/20 text-red-400' : '' }}
+                                ">
+                                    {{ $image->status === 'completed' ? 'Hoàn thành' : ($image->status === 'processing' ? 'Đang xử lý' : 'Thất bại') }}
+                                </span>
                             </div>
+                            
+                            @if($image->status === 'completed' && $image->storage_path)
+                                <div class="flex gap-2 mt-3">
+                                    <a href="{{ route('history.download', $image) }}"
+                                       class="flex-1 py-2 rounded-lg bg-purple-500/20 text-purple-300 text-xs font-medium text-center hover:bg-purple-500/30 transition-colors inline-flex items-center justify-center gap-1">
+                                        <i class="fa-solid fa-download"></i> Tải
+                                    </a>
+                                    <form method="POST" action="{{ route('history.destroy', $image) }}" 
+                                          onsubmit="return confirm('Bạn có chắc muốn xóa ảnh này?')"
+                                          class="flex-1">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="w-full py-2 rounded-lg bg-red-500/20 text-red-300 text-xs font-medium hover:bg-red-500/30 transition-colors inline-flex items-center justify-center gap-1">
+                                            <i class="fa-solid fa-trash"></i> Xóa
+                                        </button>
+                                    </form>
+                                </div>
+                            @endif
                         </div>
                     </div>
                 @endforeach
@@ -157,10 +153,3 @@
         @endif
     </div>
 </x-app-layout>
-
-@push('scripts')
-<script>
-// Lightbox shared script - will be defined in user-style-history component
-// This page uses the same openLightbox function
-</script>
-@endpush
