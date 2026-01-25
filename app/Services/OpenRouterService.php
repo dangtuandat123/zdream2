@@ -182,12 +182,16 @@ class OpenRouterService
                 
                 foreach ($data['data'] ?? [] as $model) {
                     $modelId = strtolower($model['id'] ?? '');
-                    $outputModalities = $model['output_modalities'] ?? [];
+                    
+                    // CRITICAL FIX: modalities nằm trong architecture object
+                    $architecture = $model['architecture'] ?? [];
+                    $outputModalities = $architecture['output_modalities'] ?? [];
+                    $inputModalities = $architecture['input_modalities'] ?? [];
                     
                     // Check 1: output_modalities chứa 'image'
                     $isImageModel = in_array('image', $outputModalities);
                     
-                    // Check 2: model ID match với known patterns
+                    // Check 2: model ID match với known patterns (fallback)
                     if (!$isImageModel) {
                         foreach ($imageModelPatterns as $pattern) {
                             if (str_contains($modelId, $pattern)) {
@@ -199,6 +203,7 @@ class OpenRouterService
                     
                     if ($isImageModel) {
                         $pricing = $model['pricing'] ?? [];
+                        
                         $models[] = [
                             'id' => $model['id'],
                             'name' => $model['name'] ?? $model['id'],
@@ -208,24 +213,33 @@ class OpenRouterService
                             'completion_price' => (float) ($pricing['completion'] ?? 0),
                             'context_length' => $model['context_length'] ?? 0,
                             'output_modalities' => $outputModalities,
+                            'input_modalities' => $inputModalities,
                             'supports_image_config' => str_contains($modelId, 'gemini'),
+                            // Estimated cost và capabilities
+                            'estimated_cost_per_image' => $this->calculateEstimatedCost($pricing),
+                            'supports_text_input' => in_array('text', $inputModalities),
+                            'supports_image_input' => in_array('image', $inputModalities),
                         ];
                     }
                 }
                 
-                // QUAN TRỌNG: Merge với fallback list để đảm bảo có đủ models
-                // Vì API /models không trả về output_modalities cho tất cả models
+                // Fallback merge (empty since 2026-01-25 - only use real API data)
                 $fallbackModels = $this->getFallbackModels();
-                $existingIds = array_column($models, 'id');
-                
-                foreach ($fallbackModels as $fallbackModel) {
-                    if (!in_array($fallbackModel['id'], $existingIds)) {
-                        $models[] = $fallbackModel;
+                if (!empty($fallbackModels)) {
+                    $existingIds = array_column($models, 'id');
+                    foreach ($fallbackModels as $fallbackModel) {
+                        if (!in_array($fallbackModel['id'], $existingIds)) {
+                            $models[] = $fallbackModel;
+                        }
                     }
                 }
                 
-                // Sort by name
-                usort($models, fn($a, $b) => strcmp($a['name'], $b['name']));
+                // Sort by estimated cost (lowest first)
+                usort($models, function($a, $b) {
+                    $costA = $a['estimated_cost_per_image'] ?? 999;
+                    $costB = $b['estimated_cost_per_image'] ?? 999;
+                    return $costA <=> $costB;
+                });
                 
                 Log::info('OpenRouter image models fetched', [
                     'from_api' => count($existingIds),
@@ -249,8 +263,7 @@ class OpenRouterService
     {
         // Danh sách đầy đủ image generation models từ OpenRouter (Jan 2026)
         // Nguồn: https://openrouter.ai/models?output_modalities=image
-        // prompt_price: -1 = chưa biết giá (fallback), 0 = miễn phí
-        return [
+        $fallbacks = [
             // === GOOGLE GEMINI ===
             ['id' => 'google/gemini-3-pro-image-preview', 'name' => 'Gemini 3 Pro Image', 'description' => 'Google Gemini 3 Pro - Image Generation', 'supports_image_config' => true, 'prompt_price' => -1],
             ['id' => 'google/gemini-2.5-flash-image', 'name' => 'Gemini 2.5 Flash Image', 'description' => 'Google Gemini 2.5 Flash - Image Generation', 'supports_image_config' => true, 'prompt_price' => -1],
@@ -279,6 +292,32 @@ class OpenRouterService
             ['id' => 'recraft/recraft-v3-svg', 'name' => 'Recraft V3 SVG', 'description' => 'Recraft V3 - SVG Generation', 'supports_image_config' => false, 'prompt_price' => -1],
             ['id' => 'recraft/recraft-v3', 'name' => 'Recraft V3', 'description' => 'Recraft V3 Image Generation', 'supports_image_config' => false, 'prompt_price' => -1],
         ];
+
+        // Normalize fallback models để match format của API models
+        return array_map(function ($model) {
+            // Default pricing structure
+            $pricing = [
+                'prompt' => $model['prompt_price'] >= 0 ? $model['prompt_price'] : 0,
+                'completion' => 0,
+            ];
+
+            return [
+                'id' => $model['id'],
+                'name' => $model['name'],
+                'description' => $model['description'] ?? '',
+                'pricing' => $pricing,
+                'prompt_price' => (float) ($model['prompt_price'] >= 0 ? $model['prompt_price'] : 0),
+                'completion_price' => 0.0,
+                'context_length' => 0,
+                'output_modalities' => ['image'],
+                'input_modalities' => ['text', 'image'], // Assume both
+                'supports_image_config' => $model['supports_image_config'] ?? false,
+                // NEW: Add missing fields
+                'estimated_cost_per_image' => $this->calculateEstimatedCost($pricing),
+                'supports_text_input' => true,  // All image gen models support text
+                'supports_image_input' => true, // Most support image-to-image
+            ];
+        }, $fallbacks);
     }
 
     /**
@@ -821,9 +860,12 @@ class OpenRouterService
 
     /**
      * Lấy danh sách models có sẵn
+     * 
+     * @deprecated Use fetchImageModels() instead
      */
     public function getAvailableModels(): array
     {
+        // DEPRECATED: Use fetchImageModels() to get real API data
         return config('services_custom.openrouter.models', []);
     }
 
@@ -833,5 +875,37 @@ class OpenRouterService
     public function getAspectRatios(): array
     {
         return config('services_custom.openrouter.aspect_ratios', []);
+    }
+
+    /**
+     * Calculate estimated cost per image based on pricing structure
+     * 
+     * IMAGE GENERATION PRICING (OpenRouter 2026):
+     * - Tính theo PER-IMAGE, KHÔNG phải theo tokens
+     * - Field chính: pricing['image'] = cost per output image
+     * - Ví dụ: FLUX ~$0.04/image, Gemini ~$0.134/image
+     * 
+     * @param array $pricing Pricing structure từ API
+     * @return float Estimated cost in USD per image
+     */
+    protected function calculateEstimatedCost(array $pricing): float
+    {
+        if (empty($pricing)) {
+            return 0.0;
+        }
+
+        // Image generation models use per-image pricing
+        // Primary field: 'image' = cost per output image
+        if (isset($pricing['image'])) {
+            return round((float) $pricing['image'], 6);
+        }
+
+        // Fallback: Some models might use 'request' pricing
+        if (isset($pricing['request'])) {
+            return round((float) $pricing['request'], 6);
+        }
+
+        // If no image/request pricing, model might be free or pricing unknown
+        return 0.0;
     }
 }

@@ -1,0 +1,84 @@
+{
+    "total_models": 16,
+    "providers": [
+        "Black Forest Labs",
+        "Google",
+        "Ideogram",
+        "OpenAI",
+        "Recraft",
+        "Stability AI"
+    ],
+    "provider_counts": {
+        "Black Forest Labs": 4,
+        "Google": 3,
+        "Ideogram": 2,
+        "OpenAI": 3,
+        "Recraft": 2,
+        "Stability AI": 2
+    },
+    "sample_models": [
+        {
+            "id": "openai\/gpt-5-image-mini",
+            "name": "OpenAI: GPT-5 Image Mini",
+            "description": "GPT-5 Image Mini combines OpenAI's advanced language capabilities, powered by [GPT-5 Mini](https:\/\/openrouter.ai\/openai\/gpt-5-mini), with GPT Image 1 Mini for efficient image generation. This natively multimodal model features superior instruction following, text rendering, and detailed image editing with reduced latency and cost. It excels at high-quality visual creation while maintaining strong text understanding, making it ideal for applications that require both efficient image generation and text processing at scale.",
+            "pricing": {
+                "prompt": "0.0000025",
+                "completion": "0.000002",
+                "web_search": "0.01",
+                "input_cache_read": "0.00000025"
+            },
+            "prompt_price": 2.5e-6,
+            "completion_price": 2.0e-6,
+            "context_length": 400000,
+            "output_modalities": [],
+            "input_modalities": [],
+            "supports_image_config": false,
+            "estimated_cost_per_image": 0,
+            "supports_text_input": false,
+            "supports_image_input": false
+        },
+        {
+            "id": "openai\/gpt-5-image",
+            "name": "OpenAI: GPT-5 Image",
+            "description": "[GPT-5](https:\/\/openrouter.ai\/openai\/gpt-5) Image combines OpenAI's GPT-5 model with state-of-the-art image generation capabilities. It offers major improvements in reasoning, code quality, and user experience while incorporating GPT Image 1's superior instruction following, text rendering, and detailed image editing.",
+            "pricing": {
+                "prompt": "0.00001",
+                "completion": "0.00001",
+                "web_search": "0.01",
+                "input_cache_read": "0.00000125"
+            },
+            "prompt_price": 1.0e-5,
+            "completion_price": 1.0e-5,
+            "context_length": 400000,
+            "output_modalities": [],
+            "input_modalities": [],
+            "supports_image_config": false,
+            "estimated_cost_per_image": 0,
+            "supports_text_input": false,
+            "supports_image_input": false
+        },
+        {
+            "id": "google\/gemini-2.5-flash-image",
+            "name": "Google: Gemini 2.5 Flash Image (Nano Banana)",
+            "description": "Gemini 2.5 Flash Image, a.k.a. \"Nano Banana,\" is now generally available. It is a state of the art image generation model with contextual understanding. It is capable of image generation, edits, and multi-turn conversations. Aspect ratios can be controlled with the [image_config API Parameter](https:\/\/openrouter.ai\/docs\/features\/multimodal\/image-generation#image-aspect-ratio-configuration)",
+            "pricing": {
+                "prompt": "0.0000003",
+                "completion": "0.0000025",
+                "image": "0.0000003",
+                "audio": "0.000001",
+                "internal_reasoning": "0.0000025",
+                "input_cache_read": "0.00000003",
+                "input_cache_write": "0.00000008333333333333334"
+            },
+            "prompt_price": 3.0e-7,
+            "completion_price": 2.5e-6,
+            "context_length": 32768,
+            "output_modalities": [],
+            "input_modalities": [],
+            "supports_image_config": true,
+            "estimated_cost_per_image": 0,
+            "supports_text_input": false,
+            "supports_image_input": false
+        }
+    ]
+}

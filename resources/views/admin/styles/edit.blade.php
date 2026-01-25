@@ -103,40 +103,127 @@
                 </h2>
 
                 <div class="space-y-4">
-                    <div>
-                        <label for="openrouter_model_id" class="block text-sm font-medium text-white/70 mb-2">
-                            OpenRouter Model *
-                            <span class="text-white/40 font-normal">({{ count($models) }} models có khả năng tạo ảnh)</span>
-                        </label>
-                        <select id="openrouter_model_id" name="openrouter_model_id" required
-                                class="w-full px-4 py-3 rounded-xl bg-white/[0.03] border border-white/[0.08] text-white/90 focus:outline-none focus:ring-2 focus:ring-purple-500/40 focus:border-purple-500/40 transition-all">
-                            <option value="">Chọn model...</option>
-                            @foreach($models as $model)
-                                @php
-                                    $priceLabel = '';
-                                    $price = $model['prompt_price'] ?? -1;
-                                    if ($price == 0) {
-                                        $priceLabel = '🆓 FREE';
-                                    } elseif ($price > 0) {
-                                        $priceLabel = '$' . number_format($price, 4) . '/1M';
-                                    } else {
-                                        $priceLabel = '💲 Paid';
+                    <div x-data="{
+                        search: '',
+                        selectedModelId: '{{ old('openrouter_model_id', $style->openrouter_model_id) }}',
+                        groupedModels: @js($groupedModels),
+                        allModels: @js($models),
+                        priceFilter: 'all',
+                        
+                        get filteredGroups() {
+                            let filtered = {};
+                            
+                            for (let provider in this.groupedModels) {
+                                let models = this.groupedModels[provider].filter(model => {
+                                    let matchSearch = this.search === '' || 
+                                        model.name.toLowerCase().includes(this.search.toLowerCase()) ||
+                                        model.id.toLowerCase().includes(this.search.toLowerCase());
+                                    
+                                    let matchPrice = true;
+                                    if (this.priceFilter === 'free') {
+                                        matchPrice = model.estimated_cost_per_image === 0;
+                                    } else if (this.priceFilter === 'low') {
+                                        matchPrice = model.estimated_cost_per_image > 0 && model.estimated_cost_per_image < 0.001;
+                                    } else if (this.priceFilter === 'mid') {
+                                        matchPrice = model.estimated_cost_per_image >= 0.001 && model.estimated_cost_per_image < 0.01;
+                                    } else if (this.priceFilter === 'high') {
+                                        matchPrice = model.estimated_cost_per_image >= 0.01;
                                     }
                                     
-                                    $features = [];
-                                    if ($model['supports_image_config'] ?? false) {
-                                        $features[] = '⚙️ image_config';
-                                    }
-                                    $featuresLabel = implode(' ', $features);
-                                @endphp
-                                <option value="{{ $model['id'] }}" {{ old('openrouter_model_id', $style->openrouter_model_id) == $model['id'] ? 'selected' : '' }}>
-                                    {{ $model['name'] }} - {{ $priceLabel }} {{ $featuresLabel }}
-                                </option>
-                            @endforeach
-                        </select>
-                        <p class="mt-1 text-xs text-white/40">
-                            🆓 FREE = miễn phí | 💲 Paid = trả phí | ⚙️ = hỗ trợ aspect_ratio và image_size
+                                    return matchSearch && matchPrice;
+                                });
+                                
+                                if (models.length > 0) {
+                                    filtered[provider] = models;
+                                }
+                            }
+                            
+                            return filtered;
+                        },
+                        
+                        formatCost(cost) {
+                            if (cost <= 0) return 'Free';
+                            if (cost < 0.0001) return '< $0.0001';
+                            return '$' + cost.toFixed(4);
+                        }
+                    }">
+                        <label for="openrouter_model_id" class="block text-sm font-medium text-white/70 mb-2">
+                            OpenRouter Model *
+                            <span class="text-white/40 font-normal" x-text="'(' + allModels.length + ' models)'"></span>
+                        </label>
+                        
+                        <input type="hidden" name="openrouter_model_id" x-model="selectedModelId" required>
+                        
+                        <input 
+                            type="text" 
+                            x-model="search"
+                            placeholder="🔍 Search models..."
+                            class="w-full px-4 py-3 rounded-xl bg-white/[0.03] border border-white/[0.08] text-white/90 mb-3 focus:outline-none focus:ring-2 focus:ring-purple-500/40 focus:border-purple-500/40 transition-all">
+                        
+                        <div class="flex gap-2 mb-3 flex-wrap">
+                            <button type="button" @click="priceFilter = 'all'" :class="priceFilter === 'all' ? 'bg-purple-500/20 text-purple-300 border-purple-500/50' : 'bg-white/[0.03] text-white/50 border-white/[0.08]'" class="px-3 py-1.5 rounded-lg text-xs border transition-colors">All</button>
+                            <button type="button" @click="priceFilter = 'free'" :class="priceFilter === 'free' ? 'bg-green-500/20 text-green-300 border-green-500/50' : 'bg-white/[0.03] text-white/50 border-white/[0.08]'" class="px-3 py-1.5 rounded-lg text-xs border transition-colors">🆓 Free</button>
+                            <button type="button" @click="priceFilter = 'low'" :class="priceFilter === 'low' ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/50' : 'bg-white/[0.03] text-white/50 border-white/[0.08]'" class="px-3 py-1.5 rounded-lg text-xs border transition-colors">💵 Low (< $0.001)</button>
+                            <button type="button" @click="priceFilter = 'mid'" :class="priceFilter === 'mid' ? 'bg-yellow-500/20 text-yellow-300 border-yellow-500/50' : 'bg-white/[0.03] text-white/50 border-white/[0.08]'" class="px-3 py-1.5 rounded-lg text-xs border transition-colors">💰 Mid ($0.001-$0.01)</button>
+                            <button type="button" @click="priceFilter = 'high'" :class="priceFilter === 'high' ? 'bg-red-500/20 text-red-300 border-red-500/50' : 'bg-white/[0.03] text-white/50 border-white/[0.08]'" class="px-3 py-1.5 rounded-lg text-xs border transition-colors">💎 High (> $0.01)</button>
+                        </div>
+                        
+                        <div class="max-h-96 overflow-y-auto space-y-4 p-4 rounded-xl bg-white/[0.02] border border-white/[0.05]">
+                            <template x-for="(models, provider) in filteredGroups" :key="provider">
+                                <div>
+                                    <h4 class="text-sm font-semibold text-white/60 mb-2 flex items-center gap-2">
+                                        <span class="w-1 h-4 bg-gradient-to-b from-purple-400 to-pink-500 rounded-full"></span>
+                                        <span x-text="provider"></span>
+                                        <span class="text-xs text-white/40" x-text="'(' + models.length + ')'"></span>
+                                    </h4>
+                                    
+                                    <div class="space-y-2 mb-3">
+                                        <template x-for="model in models" :key="model.id">
+                                            <button 
+                                                type="button"
+                                                @click="selectedModelId = model.id"
+                                                :class="selectedModelId === model.id ? 'bg-gradient-to-r from-purple-500/20 to-pink-500/20 border-purple-500/50' : 'bg-white/[0.03] border-white/[0.08] hover:border-white/[0.15]'"
+                                                class="w-full p-3 rounded-lg border transition-all text-left">
+                                                <div class="flex items-start justify-between gap-2 mb-2">
+                                                    <span class="font-medium text-sm" :class="selectedModelId === model.id ? 'text-white' : 'text-white/80'" x-text="model.name"></span>
+                                                    <span x-show="selectedModelId === model.id" class="w-5 h-5 rounded-full bg-gradient-to-r from-cyan-400 to-cyan-500 flex items-center justify-center">
+                                                        <i class="fa-solid fa-check text-white" style="font-size: 10px;"></i>
+                                                    </span>
+                                                </div>
+                                                
+                                                <p class="text-xs text-white/40 font-mono mb-2" x-text="model.id"></p>
+                                                
+                                                <div class="flex items-center gap-2 flex-wrap">
+                                                    <span class="px-2 py-0.5 rounded text-xs font-medium"
+                                                          :class="model.estimated_cost_per_image === 0 ? 'bg-green-500/20 text-green-300' : 'bg-cyan-500/20 text-cyan-300'"
+                                                          x-text="formatCost(model.estimated_cost_per_image)"></span>
+                                                    
+                                                    <template x-if="model.supports_image_config">
+                                                        <span class="px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 text-xs">⚙️ Config</span>
+                                                    </template>
+                                                    <template x-if="model.supports_text_input">
+                                                        <span class="px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 text-xs">📝 Text</span>
+                                                    </template>
+                                                    <template x-if="model.supports_image_input">
+                                                        <span class="px-2 py-0.5 rounded bg-pink-500/20 text-pink-300 text-xs">🖼️ Image</span>
+                                                    </template>
+                                                </div>
+                                            </button>
+                                        </template>
+                                    </div>
+                                </div>
+                            </template>
+                            
+                            <div x-show="Object.keys(filteredGroups).length === 0" class="text-center py-8 text-white/40">
+                                <i class="fa-solid fa-search mb-2" style="font-size: 24px;"></i>
+                                <p class="text-sm">No models found</p>
+                            </div>
+                        </div>
+                        
+                        <p class="mt-2 text-xs text-white/40">
+                            🆓 Free | ⚙️ Supports aspect_ratio & image_size | 📝 Text input | 🖼️ Image input
                         </p>
+                        
                         @error('openrouter_model_id')
                             <p class="mt-1 text-sm text-red-400">{{ $message }}</p>
                         @enderror

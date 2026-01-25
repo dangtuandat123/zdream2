@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Style;
 use App\Models\StyleOption;
+use App\Services\ModelManager;
 use App\Services\OpenRouterService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -24,10 +25,14 @@ use Illuminate\View\View;
 class StyleController extends Controller
 {
     protected OpenRouterService $openRouterService;
+    protected ModelManager $modelManager;
 
-    public function __construct(OpenRouterService $openRouterService)
-    {
+    public function __construct(
+        OpenRouterService $openRouterService,
+        ModelManager $modelManager
+    ) {
         $this->openRouterService = $openRouterService;
+        $this->modelManager = $modelManager;
     }
 
     /**
@@ -49,10 +54,15 @@ class StyleController extends Controller
      */
     public function create(): View
     {
-        $models = $this->openRouterService->fetchImageModels();
+        $models = $this->modelManager->fetchModels();
+        $groupedModels = $this->modelManager->groupByProvider($models);
         $aspectRatios = $this->openRouterService->getAspectRatios();
 
-        return view('admin.styles.create', compact('models', 'aspectRatios'));
+        return view('admin.styles.create', [
+            'models' => $models,
+            'groupedModels' => $groupedModels,
+            'aspectRatios' => $aspectRatios,
+        ]);
     }
 
     /**
@@ -157,10 +167,16 @@ class StyleController extends Controller
     public function edit(Style $style): View
     {
         $style->load('options');
-        $models = $this->openRouterService->fetchImageModels();
+        $models = $this->modelManager->fetchModels();
+        $groupedModels = $this->modelManager->groupByProvider($models);
         $aspectRatios = $this->openRouterService->getAspectRatios();
 
-        return view('admin.styles.edit', compact('style', 'models', 'aspectRatios'));
+        return view('admin.styles.edit', [
+            'style' => $style,
+            'models' => $models,
+            'groupedModels' => $groupedModels,
+            'aspectRatios' => $aspectRatios,
+        ]);
     }
 
     /**
