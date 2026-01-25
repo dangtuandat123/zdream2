@@ -119,15 +119,20 @@
                                         model.name.toLowerCase().includes(this.search.toLowerCase()) ||
                                         model.id.toLowerCase().includes(this.search.toLowerCase());
                                     
+                                    let cost = model.estimated_cost_per_image;
                                     let matchPrice = true;
-                                    if (this.priceFilter === 'free') {
-                                        matchPrice = model.estimated_cost_per_image === 0;
-                                    } else if (this.priceFilter === 'low') {
-                                        matchPrice = model.estimated_cost_per_image > 0 && model.estimated_cost_per_image < 0.001;
-                                    } else if (this.priceFilter === 'mid') {
-                                        matchPrice = model.estimated_cost_per_image >= 0.001 && model.estimated_cost_per_image < 0.01;
-                                    } else if (this.priceFilter === 'high') {
-                                        matchPrice = model.estimated_cost_per_image >= 0.01;
+                                    if (this.priceFilter !== 'all') {
+                                        if (cost === null || cost === undefined) {
+                                            matchPrice = false;
+                                        } else if (this.priceFilter === 'free') {
+                                            matchPrice = cost === 0;
+                                        } else if (this.priceFilter === 'low') {
+                                            matchPrice = cost > 0 && cost < 0.001;
+                                        } else if (this.priceFilter === 'mid') {
+                                            matchPrice = cost >= 0.001 && cost < 0.01;
+                                        } else if (this.priceFilter === 'high') {
+                                            matchPrice = cost >= 0.01;
+                                        }
                                     }
                                     
                                     return matchSearch && matchPrice;
@@ -142,6 +147,7 @@
                         },
                         
                         formatCost(cost) {
+                            if (cost === null || cost === undefined) return 'N/A';
                             if (cost <= 0) return 'Free';
                             if (cost < 0.0001) return '< $0.0001';
                             return '$' + cost.toFixed(4);
@@ -195,7 +201,11 @@
                                                 
                                                 <div class="flex items-center gap-2 flex-wrap">
                                                     <span class="px-2 py-0.5 rounded text-xs font-medium"
-                                                          :class="model.estimated_cost_per_image === 0 ? 'bg-green-500/20 text-green-300' : 'bg-cyan-500/20 text-cyan-300'"
+                                                          :class="model.estimated_cost_per_image === 0
+                                                              ? 'bg-green-500/20 text-green-300'
+                                                              : (model.estimated_cost_per_image === null || model.estimated_cost_per_image === undefined)
+                                                                  ? 'bg-white/[0.05] text-white/50'
+                                                                  : 'bg-cyan-500/20 text-cyan-300'"
                                                           x-text="formatCost(model.estimated_cost_per_image)"></span>
                                                     
                                                     <template x-if="model.supports_image_config">

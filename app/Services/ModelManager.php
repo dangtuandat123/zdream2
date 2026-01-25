@@ -35,8 +35,8 @@ class ModelManager
             Cache::forget($cacheKey);
         }
 
-        return Cache::remember($cacheKey, $this->cacheTimeout, function () {
-            return $this->openRouterService->fetchImageModels();
+        return Cache::remember($cacheKey, $this->cacheTimeout, function () use ($forceRefresh) {
+            return $this->openRouterService->fetchImageModels($forceRefresh);
         });
     }
 

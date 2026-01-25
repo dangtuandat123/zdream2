@@ -29,8 +29,15 @@ class OpenRouterService
     {
         // Lấy API key từ database Settings (có cache và decrypt)
         $this->apiKey = Setting::get('openrouter_api_key', config('services_custom.openrouter.api_key', ''));
-        $this->baseUrl = Setting::get('openrouter_base_url', config('services_custom.openrouter.base_url', 'https://openrouter.ai/api/v1'));
-        $this->baseUrl = rtrim($this->baseUrl, '/');
+        $defaultBaseUrl = config('services_custom.openrouter.base_url', 'https://openrouter.ai/api/v1');
+        $baseUrl = Setting::get('openrouter_base_url', $defaultBaseUrl);
+        if (empty($baseUrl)) {
+            $baseUrl = $defaultBaseUrl;
+        }
+        $this->baseUrl = rtrim($baseUrl, '/');
+        if ($this->baseUrl === '') {
+            $this->baseUrl = 'https://openrouter.ai/api/v1';
+        }
         $this->timeout = config('services_custom.openrouter.timeout', 120);
         
         // Initialize adapter factory
@@ -185,11 +192,17 @@ class OpenRouterService
                     
                     // CRITICAL FIX: modalities nằm trong architecture object
                     $architecture = $model['architecture'] ?? [];
-                    $outputModalities = $architecture['output_modalities'] ?? [];
-                    $inputModalities = $architecture['input_modalities'] ?? [];
+                    $outputModalities = $model['output_modalities'] ?? ($architecture['output_modalities'] ?? []);
+                    $inputModalities = $model['input_modalities'] ?? ($architecture['input_modalities'] ?? []);
+                    if (!is_array($outputModalities)) {
+                        $outputModalities = [];
+                    }
+                    if (!is_array($inputModalities)) {
+                        $inputModalities = [];
+                    }
                     
                     // Check 1: output_modalities chứa 'image'
-                    $isImageModel = in_array('image', $outputModalities);
+                    $isImageModel = in_array('image', $outputModalities, true);
                     
                     // Check 2: model ID match với known patterns (fallback)
                     if (!$isImageModel) {
@@ -217,21 +230,18 @@ class OpenRouterService
                             'supports_image_config' => str_contains($modelId, 'gemini'),
                             // Estimated cost và capabilities
                             'estimated_cost_per_image' => $this->calculateEstimatedCost($pricing),
-                            'supports_text_input' => in_array('text', $inputModalities),
-                            'supports_image_input' => in_array('image', $inputModalities),
+                            'supports_text_input' => in_array('text', $inputModalities, true),
+                            'supports_image_input' => in_array('image', $inputModalities, true),
+                            'source' => 'api',
                         ];
                     }
                 }
                 
-                // Fallback merge (empty since 2026-01-25 - only use real API data)
-                $fallbackModels = $this->getFallbackModels();
-                if (!empty($fallbackModels)) {
-                    $existingIds = array_column($models, 'id');
-                    foreach ($fallbackModels as $fallbackModel) {
-                        if (!in_array($fallbackModel['id'], $existingIds)) {
-                            $models[] = $fallbackModel;
-                        }
-                    }
+                if (empty($models)) {
+                    Log::warning('OpenRouter models fetch returned no image-capable models, using fallback', [
+                        'models_total' => count($data['data'] ?? []),
+                    ]);
+                    return $this->getFallbackModels();
                 }
                 
                 // Sort by estimated cost (lowest first)
@@ -242,8 +252,8 @@ class OpenRouterService
                 });
                 
                 Log::info('OpenRouter image models fetched', [
-                    'from_api' => count($existingIds),
-                    'from_fallback' => count($models) - count($existingIds),
+                    'from_api' => count($models),
+                    'fallback_used' => false,
                     'total' => count($models),
                 ]);
                 
@@ -295,27 +305,22 @@ class OpenRouterService
 
         // Normalize fallback models để match format của API models
         return array_map(function ($model) {
-            // Default pricing structure
-            $pricing = [
-                'prompt' => $model['prompt_price'] >= 0 ? $model['prompt_price'] : 0,
-                'completion' => 0,
-            ];
-
             return [
                 'id' => $model['id'],
                 'name' => $model['name'],
                 'description' => $model['description'] ?? '',
-                'pricing' => $pricing,
-                'prompt_price' => (float) ($model['prompt_price'] >= 0 ? $model['prompt_price'] : 0),
-                'completion_price' => 0.0,
+                'pricing' => [],
+                'prompt_price' => null,
+                'completion_price' => null,
                 'context_length' => 0,
                 'output_modalities' => ['image'],
                 'input_modalities' => ['text', 'image'], // Assume both
                 'supports_image_config' => $model['supports_image_config'] ?? false,
-                // NEW: Add missing fields
-                'estimated_cost_per_image' => $this->calculateEstimatedCost($pricing),
-                'supports_text_input' => true,  // All image gen models support text
-                'supports_image_input' => true, // Most support image-to-image
+                'estimated_cost_per_image' => null,
+                'supports_text_input' => true,
+                'supports_image_input' => true,
+                'pricing_unknown' => true,
+                'source' => 'fallback',
             ];
         }, $fallbacks);
     }
@@ -886,12 +891,12 @@ class OpenRouterService
      * - Ví dụ: FLUX ~$0.04/image, Gemini ~$0.134/image
      * 
      * @param array $pricing Pricing structure từ API
-     * @return float Estimated cost in USD per image
+     * @return float|null Estimated cost in USD per image (null if unknown)
      */
-    protected function calculateEstimatedCost(array $pricing): float
+    protected function calculateEstimatedCost(array $pricing): ?float
     {
         if (empty($pricing)) {
-            return 0.0;
+            return null;
         }
 
         // Image generation models use per-image pricing
@@ -906,6 +911,6 @@ class OpenRouterService
         }
 
         // If no image/request pricing, model might be free or pricing unknown
-        return 0.0;
+        return null;
     }
 }

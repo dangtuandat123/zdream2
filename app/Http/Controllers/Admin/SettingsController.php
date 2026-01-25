@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Setting;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\View\View;
 
 /**
@@ -39,6 +40,8 @@ class SettingsController extends Controller
             'image_expiry_days' => 'nullable|integer|min:1|max:365',
         ]);
 
+        $refreshModels = false;
+
         // Update API Key (encrypted)
         if (filled($validated['openrouter_api_key'] ?? null)) {
             Setting::set('openrouter_api_key', $validated['openrouter_api_key'], [
@@ -46,14 +49,22 @@ class SettingsController extends Controller
                 'group' => 'api',
                 'label' => 'OpenRouter API Key',
             ]);
+            $refreshModels = true;
         }
 
         // Update Base URL
-        if (isset($validated['openrouter_base_url'])) {
-            Setting::set('openrouter_base_url', $validated['openrouter_base_url'], [
-                'group' => 'api',
-                'label' => 'OpenRouter Base URL',
-            ]);
+        if (array_key_exists('openrouter_base_url', $validated)) {
+            $baseUrl = trim((string) ($validated['openrouter_base_url'] ?? ''));
+            if ($baseUrl === '') {
+                Setting::where('key', 'openrouter_base_url')->delete();
+                Cache::forget('setting_openrouter_base_url');
+            } else {
+                Setting::set('openrouter_base_url', $baseUrl, [
+                    'group' => 'api',
+                    'label' => 'OpenRouter Base URL',
+                ]);
+            }
+            $refreshModels = true;
         }
 
         // Update General Settings
@@ -79,6 +90,11 @@ class SettingsController extends Controller
                 'group' => 'general',
                 'label' => 'Số ngày lưu ảnh',
             ]);
+        }
+
+        if ($refreshModels) {
+            Cache::forget('openrouter_image_models');
+            Cache::forget('openrouter_models_enhanced');
         }
 
         return redirect()
