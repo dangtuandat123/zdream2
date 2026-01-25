@@ -37,20 +37,24 @@
 
         <!-- Filters -->
         <div class="flex flex-wrap items-center gap-3 mb-6">
-            <form method="GET" action="{{ route('history.index') }}" class="flex flex-wrap items-center gap-3">
-                <select name="status" onchange="this.form.submit()" class="px-3 py-2 rounded-lg bg-white/[0.05] border border-white/[0.1] text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/40">
-                    <option value="">Tất cả trạng thái</option>
-                    <option value="completed" {{ request('status') == 'completed' ? 'selected' : '' }}>Hoàn thành</option>
-                    <option value="processing" {{ request('status') == 'processing' ? 'selected' : '' }}>Đang xử lý</option>
-                    <option value="failed" {{ request('status') == 'failed' ? 'selected' : '' }}>Thất bại</option>
-                </select>
-                @if(isset($styles) && $styles->isNotEmpty())
-                    <select name="style_id" onchange="this.form.submit()" class="px-3 py-2 rounded-lg bg-white/[0.05] border border-white/[0.1] text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/40">
-                        <option value="">Tất cả styles</option>
-                        @foreach($styles as $style)
-                            <option value="{{ $style->id }}" {{ request('style_id') == $style->id ? 'selected' : '' }}>{{ $style->name }}</option>
-                        @endforeach
+            <form method="GET" action="{{ route('history.index') }}" id="filter-form" class="flex flex-wrap items-center gap-3">
+                <div class="w-40">
+                    <select name="status" class="filter-select">
+                        <option value="">Tất cả trạng thái</option>
+                        <option value="completed" {{ request('status') == 'completed' ? 'selected' : '' }}>Hoàn thành</option>
+                        <option value="processing" {{ request('status') == 'processing' ? 'selected' : '' }}>Đang xử lý</option>
+                        <option value="failed" {{ request('status') == 'failed' ? 'selected' : '' }}>Thất bại</option>
                     </select>
+                </div>
+                @if(isset($styles) && $styles->isNotEmpty())
+                    <div class="w-40">
+                        <select name="style_id" class="filter-select">
+                            <option value="">Tất cả styles</option>
+                            @foreach($styles as $style)
+                                <option value="{{ $style->id }}" {{ request('style_id') == $style->id ? 'selected' : '' }}>{{ $style->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
                 @endif
                 @if(request('status') || request('style_id'))
                     <a href="{{ route('history.index') }}" class="px-3 py-2 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-sm hover:bg-red-500/20 transition-colors">
