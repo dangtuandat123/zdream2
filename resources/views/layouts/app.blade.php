@@ -75,9 +75,16 @@
             background: linear-gradient(135deg, #a855f7, #ec4899);
             color: white;
         }
+        /* Option đã selected (không hover) */
         .select2-container--default .select2-results__option[aria-selected=true] {
-            background: rgba(168, 85, 247, 0.2);
-            color: #a855f7;
+            background: rgba(168, 85, 247, 0.15);
+            color: #c084fc;
+            font-weight: 500;
+        }
+        /* Option đã selected + đang hover */
+        .select2-container--default .select2-results__option--highlighted.select2-results__option[aria-selected=true] {
+            background: linear-gradient(135deg, #a855f7, #ec4899);
+            color: white;
         }
         .select2-container--default .select2-selection--single:focus,
         .select2-container--default.select2-container--open .select2-selection--single {
