@@ -52,6 +52,61 @@
             </a>
         </div>
 
+        <!-- OpenRouter API Status -->
+        @php
+            $openRouter = app(\App\Services\OpenRouterService::class);
+            $credits = $openRouter->checkBalance();
+        @endphp
+        <div class="bg-white/[0.03] border border-white/[0.08] rounded-xl p-4 mb-8">
+            <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-lg bg-orange-500/20 flex items-center justify-center">
+                        <i class="fa-solid fa-robot w-5 h-5 text-orange-400"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-white font-medium">OpenRouter API</h3>
+                        <p class="text-white/40 text-xs">{{ $credits['label'] ?? 'Unknown' }}</p>
+                    </div>
+                </div>
+                @if(isset($credits['is_free_tier']) && $credits['is_free_tier'])
+                    <span class="px-2 py-1 text-xs rounded-full bg-yellow-500/20 text-yellow-400">Free Tier</span>
+                @else
+                    <span class="px-2 py-1 text-xs rounded-full bg-green-500/20 text-green-400">Paid</span>
+                @endif
+            </div>
+            @if(isset($credits['error']))
+                <div class="text-red-400 text-sm">
+                    <i class="fa-solid fa-exclamation-triangle mr-1"></i>
+                    {{ $credits['error'] }}
+                </div>
+            @else
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                    <div>
+                        <p class="text-white/40 text-xs mb-1">Limit Remaining</p>
+                        <p class="text-lg font-bold text-white">
+                            @if($credits['limit_remaining'] !== null)
+                                ${{ number_format($credits['limit_remaining'], 4) }}
+                            @else
+                                <span class="text-green-400">Unlimited</span>
+                            @endif
+                        </p>
+                    </div>
+                    <div>
+                        <p class="text-white/40 text-xs mb-1">Usage Today</p>
+                        <p class="text-lg font-bold text-cyan-400">${{ number_format($credits['usage']['daily'] ?? 0, 4) }}</p>
+                    </div>
+                    <div>
+                        <p class="text-white/40 text-xs mb-1">Usage This Month</p>
+                        <p class="text-lg font-bold text-purple-400">${{ number_format($credits['usage']['monthly'] ?? 0, 4) }}</p>
+                    </div>
+                    <div>
+                        <p class="text-white/40 text-xs mb-1">Total Usage</p>
+                        <p class="text-lg font-bold text-white/70">${{ number_format($credits['usage']['total'] ?? 0, 4) }}</p>
+                    </div>
+                </div>
+            @endif
+        </div>
+
         <!-- Quick Actions -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             <a href="{{ route('admin.users.index') }}" class="group bg-white/[0.03] border border-white/[0.08] rounded-xl p-6 hover:border-purple-500/30 hover:bg-white/[0.05] transition-all">

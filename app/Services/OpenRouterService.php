@@ -88,32 +88,45 @@ class OpenRouterService
     /**
      * Kiểm tra số dư tài khoản OpenRouter
      * 
-     * @return array ['balance' => float, 'usage' => array, 'rate_limit' => array]
+     * @return array Thông tin API key và credits
      */
     public function checkBalance(): array
     {
         try {
-            $response = $this->client()->get($this->baseUrl . '/auth/key');
+            // Sử dụng endpoint /api/v1/key để lấy thông tin API key
+            $response = $this->client()->get('https://openrouter.ai/api/v1/key');
             
             if (!$response->successful()) {
-                Log::error('OpenRouter balance check failed', [
+                Log::error('OpenRouter credits check failed', [
                     'status' => $response->status(),
                     'body' => substr($response->body(), 0, 500),
                 ]);
-                return ['error' => 'Failed to check balance', 'status' => $response->status()];
+                return ['error' => 'Failed to check credits', 'status' => $response->status()];
             }
             
             $data = $response->json()['data'] ?? [];
             
             return [
-                'balance' => (float) ($data['credit_balance'] ?? 0),
-                'usage' => $data['usage'] ?? [],
-                'rate_limit' => $data['rate_limit'] ?? [],
+                'success' => true,
+                'label' => $data['label'] ?? 'Unknown',
+                'limit' => $data['limit'] ?? null,
+                'limit_remaining' => $data['limit_remaining'] ?? null,
+                'is_free_tier' => $data['is_free_tier'] ?? false,
+                'usage' => [
+                    'total' => $data['usage'] ?? 0,
+                    'daily' => $data['usage_daily'] ?? 0,
+                    'weekly' => $data['usage_weekly'] ?? 0,
+                    'monthly' => $data['usage_monthly'] ?? 0,
+                ],
+                'byok_usage' => [
+                    'total' => $data['byok_usage'] ?? 0,
+                    'daily' => $data['byok_usage_daily'] ?? 0,
+                ],
             ];
             
         } catch (\Exception $e) {
-            Log::error('OpenRouter balance check exception', ['error' => $e->getMessage()]);
-            return ['error' => $e->getMessage()];
+            Log::error('OpenRouter credits check exception', ['error' => $e->getMessage()]);
+            return ['error' => $e->getMessage(), 'success' => false];
         }
     }
 
