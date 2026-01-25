@@ -1,6 +1,26 @@
 <x-app-layout>
     <x-slot name="title">Lịch sử ảnh - {{ App\Models\Setting::get('site_name', 'ZDream') }}</x-slot>
 
+    <style>
+        .image-card-hover .hover-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+        }
+        .image-card-hover:hover .hover-overlay {
+            opacity: 1;
+        }
+        .image-card-hover:hover img {
+            transform: scale(1.05);
+        }
+    </style>
+
     <div class="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
         
         <!-- Header -->
@@ -81,17 +101,21 @@
             <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                 @php $galleryIndex = 0; @endphp
                 @foreach($images as $image)
-                    <div class="group relative bg-white/[0.03] border border-white/[0.08] rounded-xl overflow-hidden hover:border-purple-500/30 transition-all">
+                    <div class="relative bg-white/[0.03] border border-white/[0.08] rounded-xl overflow-hidden hover:border-purple-500/30 transition-all">
                         <!-- Image -->
-                        <div class="aspect-[3/4] relative">
+                        <div class="aspect-[3/4] relative overflow-hidden image-card-hover">
                             @if($image->status === 'completed' && $image->storage_path)
                                 <button 
                                     onclick="openLightboxWithActions({{ $galleryIndex }}, {{ json_encode($imageData) }})"
-                                    class="w-full h-full cursor-pointer"
+                                    class="w-full h-full cursor-pointer block"
                                 >
                                     <img src="{{ $image->image_url }}" alt="Generated Image" 
-                                         class="w-full h-full object-cover" loading="lazy">
+                                         class="w-full h-full object-cover transition-transform duration-300" loading="lazy">
                                 </button>
+                                <!-- Hover overlay với icon mắt -->
+                                <div class="hover-overlay">
+                                    <i class="fa-solid fa-eye text-white text-3xl"></i>
+                                </div>
                                 @php $galleryIndex++; @endphp
                             @elseif($image->status === 'processing')
                                 <div class="w-full h-full flex items-center justify-center bg-black/20">
@@ -111,32 +135,32 @@
                         </div>
                         
                         <!-- Info & Actions -->
-                        <div class="p-3">
-                            <p class="text-sm font-medium text-white/80 truncate">{{ $image->style?->name ?? 'Style đã xóa' }}</p>
-                            <div class="flex items-center justify-between mt-1">
-                                <span class="text-xs text-white/40">{{ $image->created_at->format('d/m/Y H:i') }}</span>
-                                <span class="text-xs px-2 py-0.5 rounded-full 
+                        <div class="p-2 sm:p-3">
+                            <div class="flex items-center gap-2 mb-1">
+                                <p class="text-xs sm:text-sm font-medium text-white/80 truncate flex-1">{{ $image->style?->name ?? 'Style đã xóa' }}</p>
+                                <span class="text-[10px] px-1.5 py-0.5 rounded-full whitespace-nowrap flex-shrink-0
                                     {{ $image->status === 'completed' ? 'bg-green-500/20 text-green-400' : '' }}
                                     {{ $image->status === 'processing' ? 'bg-yellow-500/20 text-yellow-400' : '' }}
                                     {{ $image->status === 'failed' ? 'bg-red-500/20 text-red-400' : '' }}
                                 ">
-                                    {{ $image->status === 'completed' ? 'Hoàn thành' : ($image->status === 'processing' ? 'Đang xử lý' : 'Thất bại') }}
+                                    {{ $image->status === 'completed' ? '✓' : ($image->status === 'processing' ? '⏳' : '✗') }}
                                 </span>
                             </div>
+                            <span class="text-[10px] text-white/40">{{ $image->created_at->format('d/m H:i') }}</span>
                             
                             @if($image->status === 'completed' && $image->storage_path)
-                                <div class="flex gap-2 mt-3">
+                                <div class="flex gap-2 mt-2">
                                     <a href="{{ route('history.download', $image) }}"
-                                       class="flex-1 py-2 rounded-lg bg-purple-500/20 text-purple-300 text-xs font-medium text-center hover:bg-purple-500/30 transition-colors inline-flex items-center justify-center gap-1">
-                                        <i class="fa-solid fa-download"></i> Tải
+                                       class="flex-1 py-1.5 sm:py-2 rounded-lg bg-purple-500/20 text-purple-300 text-[10px] sm:text-xs font-medium text-center hover:bg-purple-500/30 transition-colors inline-flex items-center justify-center gap-1">
+                                        <i class="fa-solid fa-download"></i> <span class="hidden sm:inline">Tải</span>
                                     </a>
                                     <form method="POST" action="{{ route('history.destroy', $image) }}" 
                                           onsubmit="return confirm('Bạn có chắc muốn xóa ảnh này?')"
                                           class="flex-1">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="w-full py-2 rounded-lg bg-red-500/20 text-red-300 text-xs font-medium hover:bg-red-500/30 transition-colors inline-flex items-center justify-center gap-1">
-                                            <i class="fa-solid fa-trash"></i> Xóa
+                                        <button type="submit" class="w-full py-1.5 sm:py-2 rounded-lg bg-red-500/20 text-red-300 text-[10px] sm:text-xs font-medium hover:bg-red-500/30 transition-colors inline-flex items-center justify-center gap-1">
+                                            <i class="fa-solid fa-trash"></i> <span class="hidden sm:inline">Xóa</span>
                                         </button>
                                     </form>
                                 </div>
