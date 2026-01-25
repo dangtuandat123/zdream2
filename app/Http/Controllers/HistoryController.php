@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\GeneratedImage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
@@ -131,7 +132,12 @@ class HistoryController extends Controller
 
             // Nếu là full URL, cần fetch nội dung
             if (str_starts_with($path, 'http')) {
-                $content = file_get_contents($path);
+                // LOW-03 FIX: Dùng Http::get() thay vì file_get_contents
+                $response = Http::timeout(30)->get($path);
+                if (!$response->successful()) {
+                    abort(404, 'Không thể tải ảnh từ URL.');
+                }
+                $content = $response->body();
                 $filename = basename(parse_url($path, PHP_URL_PATH));
             } else {
                 // Lấy từ MinIO storage

@@ -89,11 +89,11 @@ class Style extends Model
             }
         });
 
-        static::updating(function ($style) {
-            if ($style->isDirty('name') && !$style->isDirty('slug')) {
-                $style->slug = Str::slug($style->name);
-            }
-        });
+        // MEDIUM-02 FIX: Removed auto slug update on 'updating' event
+        // Lý do: Tự đổi slug khi name thay đổi có thể gây:
+        // 1. Unique constraint violation nếu slug mới đã tồn tại
+        // 2. URL cũ bị broken (bookmark, SEO, shared links)
+        // Admin phải tự cập nhật slug nếu muốn đổi
     }
 
     // =========================================
@@ -159,6 +159,7 @@ class Style extends Model
 
     /**
      * Lấy aspect ratio từ config_payload
+     * LOW-01 FIX: Safe null check để tránh warning khi config_payload là null
      */
     public function getAspectRatioAttribute(): string
     {

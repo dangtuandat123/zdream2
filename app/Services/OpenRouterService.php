@@ -610,6 +610,7 @@ class OpenRouterService
     /**
      * Download ảnh từ URL và convert sang base64
      * Có SSRF protection: block private/local IP addresses
+     * MEDIUM-01 FIX: Đọc từ MinIO storage trực tiếp nếu URL match MinIO endpoint
      */
     protected function downloadImageAsBase64(string $url): ?string
     {
@@ -619,6 +620,12 @@ class OpenRouterService
 
         if (!filter_var($url, FILTER_VALIDATE_URL)) {
             return null;
+        }
+
+        // MEDIUM-01 FIX: Check nếu đây là MinIO URL, đọc trực tiếp qua Storage
+        $minioPath = $this->extractMinioPath($url);
+        if ($minioPath !== null) {
+            return $this->readMinioImageAsBase64($minioPath);
         }
 
         $scheme = parse_url($url, PHP_URL_SCHEME);
@@ -666,6 +673,72 @@ class OpenRouterService
         }
 
         return null;
+    }
+
+    /**
+     * MEDIUM-01 FIX: Extract MinIO path từ URL nếu match với configured endpoint
+     */
+    protected function extractMinioPath(string $url): ?string
+    {
+        $minioUrl = config('filesystems.disks.minio.url');
+        $minioEndpoint = config('filesystems.disks.minio.endpoint');
+        $bucket = config('filesystems.disks.minio.bucket');
+        
+        // Check if URL matches MinIO URL or endpoint
+        foreach ([$minioUrl, $minioEndpoint] as $endpoint) {
+            if (empty($endpoint)) continue;
+            
+            // Normalize endpoint
+            $endpoint = rtrim($endpoint, '/');
+            
+            if (str_starts_with($url, $endpoint)) {
+                // Extract path after endpoint
+                $pathPart = substr($url, strlen($endpoint));
+                $pathPart = ltrim($pathPart, '/');
+                
+                // Remove bucket prefix if present
+                if (!empty($bucket) && str_starts_with($pathPart, $bucket . '/')) {
+                    $pathPart = substr($pathPart, strlen($bucket) + 1);
+                }
+                
+                return $pathPart;
+            }
+        }
+        
+        return null;
+    }
+
+    /**
+     * MEDIUM-01 FIX: Đọc file từ MinIO storage và convert sang base64
+     */
+    protected function readMinioImageAsBase64(string $path): ?string
+    {
+        try {
+            if (!\Storage::disk('minio')->exists($path)) {
+                Log::warning('MinIO file not found', ['path' => $path]);
+                return null;
+            }
+
+            $content = \Storage::disk('minio')->get($path);
+            if (strlen($content) > $this->maxImageBytes) {
+                Log::warning('MinIO image too large', ['path' => $path, 'bytes' => strlen($content)]);
+                return null;
+            }
+
+            // Detect mime type
+            $finfo = new \finfo(FILEINFO_MIME_TYPE);
+            $mime = $finfo->buffer($content);
+            
+            if (!str_starts_with($mime, 'image/')) {
+                Log::warning('MinIO file is not an image', ['path' => $path, 'mime' => $mime]);
+                return null;
+            }
+
+            return 'data:' . $mime . ';base64,' . base64_encode($content);
+        } catch (\Exception $e) {
+            Log::warning('Failed to read MinIO image', ['path' => $path, 'error' => $e->getMessage()]);
+            return null;
+        }
     }
 
     /**

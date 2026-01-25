@@ -93,6 +93,8 @@ class InternalApiController extends Controller
      * Callback từ VietQR (khi user nạp tiền thành công)
      * 
      * POST /api/internal/payment/callback
+     * 
+     * HIGH-03 FIX: Sử dụng DB transaction với lockForUpdate để đảm bảo idempotent
      */
     public function paymentCallback(Request $request): JsonResponse
     {
@@ -112,31 +114,63 @@ class InternalApiController extends Controller
 
         $user = User::findOrFail($validated['user_id']);
 
-        // Idempotent check: ngăn cộng tiền nhiều lần với cùng transaction_ref
-        $existing = WalletTransaction::where('source', 'vietqr')
-            ->where('reference_id', $validated['transaction_ref'])
-            ->exists();
-
-        if ($existing) {
+        // HIGH-03 FIX: Atomic idempotent check với DB transaction
+        // Sử dụng lockForUpdate để tránh race condition
+        try {
+            $result = \DB::transaction(function () use ($user, $validated) {
+                // Lock row nếu đã tồn tại, hoặc insert mới
+                $existing = WalletTransaction::where('source', 'vietqr')
+                    ->where('reference_id', $validated['transaction_ref'])
+                    ->lockForUpdate()
+                    ->first();
+                
+                if ($existing) {
+                    // Transaction đã được xử lý trước đó
+                    return [
+                        'already_processed' => true,
+                        'transaction' => $existing,
+                    ];
+                }
+                
+                // Chưa có, tạo mới
+                $transaction = $this->walletService->addCredits(
+                    $user,
+                    $validated['amount'],
+                    'Nạp tiền qua VietQR',
+                    'vietqr',
+                    $validated['transaction_ref']
+                );
+                
+                return [
+                    'already_processed' => false,
+                    'transaction' => $transaction,
+                ];
+            });
+            
+            if ($result['already_processed']) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Transaction already processed',
+                    'new_balance' => $user->fresh()->credits,
+                ]);
+            }
+            
             return response()->json([
                 'success' => true,
-                'message' => 'Transaction already processed',
-                'new_balance' => $user->credits,
+                'transaction_id' => $result['transaction']->id,
+                'new_balance' => $user->fresh()->credits,
             ]);
+            
+        } catch (\Illuminate\Database\QueryException $e) {
+            // Handle unique constraint violation (backup safety)
+            if (str_contains($e->getMessage(), 'Duplicate') || str_contains($e->getMessage(), 'UNIQUE')) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Transaction already processed (duplicate)',
+                    'new_balance' => $user->fresh()->credits,
+                ]);
+            }
+            throw $e;
         }
-
-        $transaction = $this->walletService->addCredits(
-            $user,
-            $validated['amount'],
-            'Nạp tiền qua VietQR',
-            'vietqr',
-            $validated['transaction_ref']
-        );
-
-        return response()->json([
-            'success' => true,
-            'transaction_id' => $transaction->id,
-            'new_balance' => $user->fresh()->credits,
-        ]);
     }
 }

@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Models\GeneratedImage;
+use App\Models\Setting;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -11,6 +12,7 @@ use Illuminate\Support\Facades\Storage;
  * CleanupOrphanImages
  * 
  * Xóa các ảnh orphan (failed status > 7 ngày, soft deleted > 30 ngày)
+ * MEDIUM-05 FIX: Thêm cleanup cho completed images sau image_expiry_days
  * Dọn dẹp files trong storage không còn reference.
  */
 class CleanupOrphanImages extends Command
@@ -27,6 +29,9 @@ class CleanupOrphanImages extends Command
         $dryRun = $this->option('dry-run');
         $failedDays = (int) $this->option('failed-days');
         $deletedDays = (int) $this->option('deleted-days');
+        
+        // MEDIUM-05 FIX: Đọc image_expiry_days từ Settings
+        $expiryDays = (int) Setting::get('image_expiry_days', 30);
 
         $this->info($dryRun ? '🔍 DRY RUN MODE' : '🗑️ CLEANUP MODE');
 
@@ -35,8 +40,11 @@ class CleanupOrphanImages extends Command
 
         // 2. Xóa các failed images > X ngày
         $this->cleanupFailedImages($failedDays, $dryRun);
+        
+        // 3. MEDIUM-05 FIX: Soft delete completed images > image_expiry_days
+        $this->cleanupExpiredCompletedImages($expiryDays, $dryRun);
 
-        // 3. Xóa storage files không có reference
+        // 4. Xóa storage files không có reference
         $this->cleanupOrphanFiles($dryRun);
 
         $this->info('✅ Cleanup completed!');
@@ -84,6 +92,30 @@ class CleanupOrphanImages extends Command
             $query->delete();
             
             Log::info('Cleanup: Soft deleted old failed images', ['count' => $count]);
+        }
+    }
+
+    /**
+     * MEDIUM-05 FIX: Soft delete completed images older than image_expiry_days
+     */
+    protected function cleanupExpiredCompletedImages(int $expiryDays, bool $dryRun): void
+    {
+        $cutoff = now()->subDays($expiryDays);
+
+        $query = GeneratedImage::where('status', GeneratedImage::STATUS_COMPLETED)
+            ->where('created_at', '<', $cutoff);
+
+        $count = $query->count();
+        $this->info("📷 Completed images > {$expiryDays} days (image_expiry_days): {$count} records");
+
+        if (!$dryRun && $count > 0) {
+            // Soft delete to allow recovery
+            $query->delete();
+            
+            Log::info('Cleanup: Soft deleted expired completed images', [
+                'count' => $count,
+                'expiry_days' => $expiryDays,
+            ]);
         }
     }
 

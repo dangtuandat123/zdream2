@@ -69,6 +69,11 @@ class GenerateImageJob implements ShouldQueue
                 'image_id' => $generatedImage->id,
             ]);
             $generatedImage->markAsFailed('Missing user or style data');
+            
+            // HIGH-01 FIX: Refund credits nếu có user và credits_used > 0
+            if ($user && $generatedImage->credits_used > 0) {
+                $this->refundCreditsDirectly($user, $generatedImage);
+            }
             return;
         }
 
@@ -167,6 +172,7 @@ class GenerateImageJob implements ShouldQueue
 
     /**
      * Handle a job failure (called by Laravel queue worker)
+     * HIGH-01 FIX: Đảm bảo refund credits khi job fail permanently
      */
     public function failed(\Throwable $exception): void
     {
@@ -178,6 +184,41 @@ class GenerateImageJob implements ShouldQueue
         // Mark as failed nếu chưa
         if ($this->generatedImage->status === GeneratedImage::STATUS_PROCESSING) {
             $this->generatedImage->markAsFailed('Job failed: ' . $exception->getMessage());
+            
+            // HIGH-01 FIX: Refund credits khi job fail permanently
+            $user = $this->generatedImage->user;
+            if ($user && $this->generatedImage->credits_used > 0) {
+                $this->refundCreditsDirectly($user, $this->generatedImage);
+            }
+        }
+    }
+    
+    /**
+     * Refund credits trực tiếp (dùng khi không có DI container)
+     * HIGH-01 FIX: Helper method để refund trong failed() và edge cases
+     */
+    protected function refundCreditsDirectly(User $user, GeneratedImage $generatedImage): void
+    {
+        try {
+            $walletService = app(WalletService::class);
+            $walletService->refundCredits(
+                $user,
+                $generatedImage->credits_used,
+                'Job failed permanently',
+                (string) $generatedImage->id
+            );
+            
+            Log::info('Credits refunded in failed() handler', [
+                'image_id' => $generatedImage->id,
+                'user_id' => $user->id,
+                'amount' => $generatedImage->credits_used,
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('Failed to refund credits in failed() handler', [
+                'image_id' => $generatedImage->id,
+                'user_id' => $user->id,
+                'error' => $e->getMessage(),
+            ]);
         }
     }
 }

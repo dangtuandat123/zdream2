@@ -81,6 +81,9 @@ class ImageGenerator extends Component
         $this->style = $style;
         $this->style->loadMissing('options');
         
+        // HIGH-02 FIX: Chỉ dùng async mode khi QUEUE_CONNECTION != 'sync'
+        $this->useAsyncMode = config('queue.default') !== 'sync';
+        
         // Load aspect ratios từ service (đồng bộ với config)
         $openRouterService = app(OpenRouterService::class);
         $this->aspectRatios = $openRouterService->getAspectRatios();
@@ -436,8 +439,44 @@ class ImageGenerator extends Component
         } elseif ($image->status === GeneratedImage::STATUS_FAILED) {
             $this->isGenerating = false;
             $this->errorMessage = 'Tạo ảnh thất bại. Credits đã được hoàn lại.';
+            
+        } elseif ($image->status === GeneratedImage::STATUS_PROCESSING) {
+            // HIGH-02 FIX: Watchdog - kiểm tra timeout
+            $processingMinutes = now()->diffInMinutes($image->created_at);
+            
+            if ($processingMinutes >= self::PROCESSING_TIMEOUT_MINUTES) {
+                Log::warning('Watchdog: Job timeout detected', [
+                    'image_id' => $image->id,
+                    'processing_minutes' => $processingMinutes,
+                ]);
+                
+                // Mark as failed và refund credits
+                $image->markAsFailed('Timeout: Job không hoàn thành sau ' . self::PROCESSING_TIMEOUT_MINUTES . ' phút');
+                
+                // Refund credits
+                $user = $image->user;
+                if ($user && $image->credits_used > 0) {
+                    try {
+                        $walletService = app(WalletService::class);
+                        $walletService->refundCredits(
+                            $user,
+                            $image->credits_used,
+                            'Watchdog timeout refund',
+                            (string) $image->id
+                        );
+                    } catch (\Throwable $e) {
+                        Log::error('Watchdog: Failed to refund credits', [
+                            'image_id' => $image->id,
+                            'error' => $e->getMessage(),
+                        ]);
+                    }
+                }
+                
+                $this->isGenerating = false;
+                $this->errorMessage = 'Xử lý quá lâu. Credits đã được hoàn lại. Vui lòng thử lại.';
+            }
+            // Else: still processing, keep polling
         }
-        // STATUS_PROCESSING: keep polling
     }
 
     /**

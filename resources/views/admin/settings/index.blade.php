@@ -47,7 +47,11 @@
                             </button>
                         </div>
                         <p class="text-white/40 text-xs mt-1">
-                            @if(\App\Models\Setting::where('key', 'openrouter_api_key')->exists())
+                            {{-- MEDIUM-04 FIX: Check if value is not empty, not just if row exists --}}
+                            @php
+                                $apiKey = \App\Models\Setting::get('openrouter_api_key', '');
+                            @endphp
+                            @if(!empty($apiKey))
                                 <span class="text-green-400">✓ Đã có API key được lưu</span>
                             @else
                                 <span class="text-yellow-400">⚠ Chưa có API key</span>

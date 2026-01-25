@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 /**
@@ -68,7 +69,8 @@ class StyleController extends Controller
             'sort_order' => 'nullable|integer|min:0',
             'openrouter_model_id' => 'required|string|max:255',
             'base_prompt' => 'required|string|max:10000', // Limit prompt length
-            'aspect_ratio' => 'nullable|string|max:20',
+            // HIGH-05 FIX: Validate aspect_ratio against supported list
+            'aspect_ratio' => ['nullable', 'string', 'max:20', Rule::in(array_keys($this->openRouterService->getAspectRatios()))],
             'allow_user_custom_prompt' => 'nullable',
             'is_active' => 'nullable',
             
@@ -174,7 +176,8 @@ class StyleController extends Controller
             'sort_order' => 'nullable|integer|min:0',
             'openrouter_model_id' => 'required|string|max:255',
             'base_prompt' => 'required|string|max:10000',
-            'aspect_ratio' => 'nullable|string|max:20',
+            // HIGH-05 FIX: Validate aspect_ratio against supported list
+            'aspect_ratio' => ['nullable', 'string', 'max:20', Rule::in(array_keys($this->openRouterService->getAspectRatios()))],
             'allow_user_custom_prompt' => 'nullable',
             'is_active' => 'nullable',
             

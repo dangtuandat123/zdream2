@@ -101,7 +101,7 @@
                                     {{-- Default option --}}
                                     <button 
                                         type="button"
-                                        wire:click="selectOption('{{ $groupName }}', null)"
+                                        wire:click="selectOption('{{ e($groupName) }}', null)"
                                         wire:key="option-{{ Str::slug($groupName) }}-default"
                                         class="flex flex-col items-center gap-2 group cursor-pointer select-none">
                                         <!-- Collage Container -->
@@ -118,7 +118,7 @@
                                     @foreach($options as $option)
                                         <button 
                                             type="button"
-                                            wire:click="selectOption('{{ $groupName }}', {{ $option->id }})"
+                                            wire:click="selectOption('{{ e($groupName) }}', {{ $option->id }})"
                                             wire:key="option-{{ $option->id }}"
                                             class="flex flex-col items-center gap-2 group cursor-pointer select-none">
                                             <!-- Collage Container with Stacked Photos -->
@@ -444,7 +444,8 @@
 
                 <p class="text-xs text-white/30 text-center">
                     <i class="fa-solid fa-info-circle mr-1"></i>
-                    Link có hiệu lực trong {{ \App\Models\Setting::get('image_expiry_days', 7) }} ngày
+                    {{-- LOW-02 FIX: Đổi default từ 7 thành 30 cho nhất quán --}}
+                    Link có hiệu lực trong {{ \App\Models\Setting::get('image_expiry_days', 30) }} ngày
                 </p>
             </div>
         </div>

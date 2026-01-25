@@ -38,7 +38,8 @@ class RegisteredUserController extends Controller
         ]);
 
         // Lấy default credits từ Settings (fallback về config)
-        $defaultCredits = Setting::get('default_credits', config('services_custom.default_credits', 10));
+        // HIGH-04 FIX: Sửa config key từ 'services_custom.default_credits' thành 'services_custom.pricing.default_credits'
+        $defaultCredits = Setting::get('default_credits', config('services_custom.pricing.default_credits', 10));
 
         $user = User::create([
             'name' => $request->name,
