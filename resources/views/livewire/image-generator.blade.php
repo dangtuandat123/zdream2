@@ -480,6 +480,14 @@
 
     <!-- User's History với Style này (Mobile only) -->
     @if($userStyleImages->isNotEmpty())
+        @php
+            $mobileImageData = $userStyleImages->map(fn($img) => [
+                'url' => $img->image_url,
+                'id' => $img->id,
+                'download' => route('history.download', $img),
+                'delete' => route('history.destroy', $img),
+            ])->toArray();
+        @endphp
         <div class="lg:hidden bg-white/[0.03] border border-white/[0.08] rounded-xl overflow-hidden">
             <div class="flex items-center justify-between p-4 border-b border-white/[0.05]">
                 <div class="flex items-center gap-2 text-white/60">
@@ -494,7 +502,7 @@
                 <div class="grid grid-cols-3 gap-2">
                     @foreach($userStyleImages as $index => $img)
                         <button 
-                            onclick="openLightbox({{ $index }}, {{ json_encode($userStyleImages->pluck('image_url')->toArray()) }})"
+                            onclick="openLightboxWithActions({{ $index }}, {{ json_encode($mobileImageData) }})"
                             class="group relative aspect-square rounded-lg overflow-hidden bg-white/[0.05] focus:outline-none"
                         >
                             <img src="{{ $img->image_url }}" alt="Generated" class="w-full h-full object-cover" onerror="this.src='/images/placeholder.svg'">

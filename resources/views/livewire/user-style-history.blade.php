@@ -1,5 +1,13 @@
 <div>
     @if($userImages->isNotEmpty())
+        @php
+            $imageData = $userImages->map(fn($img) => [
+                'url' => $img->image_url,
+                'id' => $img->id,
+                'download' => route('history.download', $img),
+                'delete' => route('history.destroy', $img),
+            ])->toArray();
+        @endphp
         <div class="bg-white/[0.03] border border-white/[0.08] rounded-xl overflow-hidden" wire:poll.5s>
             <div class="flex items-center justify-between p-4 border-b border-white/[0.05]">
                 <div class="flex items-center gap-2 text-white/60">
@@ -14,7 +22,7 @@
                 <div class="grid grid-cols-3 gap-2">
                     @foreach($userImages as $index => $img)
                         <button 
-                            onclick="openLightbox({{ $index }}, {{ json_encode($userImages->pluck('image_url')->toArray()) }})"
+                            onclick="openLightboxWithActions({{ $index }}, {{ json_encode($imageData) }})"
                             class="group relative aspect-square rounded-lg overflow-hidden bg-white/[0.05] cursor-pointer focus:outline-none"
                         >
                             <img src="{{ $img->image_url }}" alt="Generated" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" onerror="this.src='/images/placeholder.svg'">
