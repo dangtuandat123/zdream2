@@ -23,21 +23,46 @@ class GptImageAdapter extends BaseAdapter
     {
         $payload = $basePayload;
         
-        // Ensure modalities
+        // Ensure modalities - image MUST be first to prioritize image output
         $payload['modalities'] = ['image', 'text'];
         
-        // GPT models need explicit instruction to generate image
-        $imageGenPrefix = "Generate an image based on this description. Do not describe the image, actually create and output the image:\n\n";
+        // GPT models need very explicit instruction to generate image
+        // Using stronger language to avoid text-only responses
+        $imageGenPrefix = "You are an image generation AI. Your ONLY task is to generate and output an image.\n"
+            . "DO NOT describe the image in text.\n"
+            . "DO NOT explain what you would create.\n"
+            . "DO NOT refuse - just generate the image.\n"
+            . "DIRECTLY OUTPUT THE IMAGE based on this description:\n\n";
+        
+        // Check if content has input images (multimodal)
+        $hasInputImages = !empty($options['inputImages']);
         
         if (is_string($payload['messages'][0]['content'])) {
-            $payload['messages'][0]['content'] = $imageGenPrefix . $payload['messages'][0]['content'];
+            $originalPrompt = $payload['messages'][0]['content'];
+            
+            if ($hasInputImages) {
+                // For img2img: instruction to transform the input image
+                $imageGenPrefix = "You are an image transformation AI. Transform the provided image(s) according to this description.\n"
+                    . "DO NOT describe what you see or would do.\n"
+                    . "DIRECTLY OUTPUT the transformed image.\n\n";
+            }
+            
+            $payload['messages'][0]['content'] = $imageGenPrefix . $originalPrompt;
         } else if (isset($payload['messages'][0]['content'][0]['text'])) {
-            $payload['messages'][0]['content'][0]['text'] = $imageGenPrefix . $payload['messages'][0]['content'][0]['text'];
+            $originalPrompt = $payload['messages'][0]['content'][0]['text'];
+            
+            if ($hasInputImages) {
+                $imageGenPrefix = "You are an image transformation AI. Transform the provided image(s) according to this description.\n"
+                    . "DO NOT describe what you see or would do.\n"
+                    . "DIRECTLY OUTPUT the transformed image.\n\n";
+            }
+            
+            $payload['messages'][0]['content'][0]['text'] = $imageGenPrefix . $originalPrompt;
         }
         
         // Append aspect ratio to prompt
         if (!empty($options['aspectRatio'])) {
-            $aspectText = " Output the image in {$options['aspectRatio']} aspect ratio.";
+            $aspectText = "\n\nOutput format: {$options['aspectRatio']} aspect ratio image.";
             
             if (is_string($payload['messages'][0]['content'])) {
                 $payload['messages'][0]['content'] .= $aspectText;
@@ -47,7 +72,7 @@ class GptImageAdapter extends BaseAdapter
         }
         
         // Add input images if provided
-        if (!empty($options['inputImages'])) {
+        if ($hasInputImages) {
             $payload = $this->addInputImagesToPayload(
                 $payload, 
                 $options['inputImages'],

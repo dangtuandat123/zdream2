@@ -291,6 +291,15 @@ class OpenRouterService
             // Build final prompt
             $finalPrompt = $style->buildFinalPrompt($selectedOptionIds, $userCustomInput);
 
+            // DEBUG: Log cho việc troubleshooting option/prompt issues
+            Log::debug('OpenRouter generateImage input', [
+                'style_id' => $style->id,
+                'selectedOptionIds' => $selectedOptionIds,
+                'userCustomInput' => $userCustomInput ? mb_substr($userCustomInput, 0, 100) : null,
+                'finalPrompt_length' => mb_strlen($finalPrompt),
+                'finalPrompt_preview' => mb_substr($finalPrompt, 0, 200),
+            ]);
+
             if (empty($this->apiKey)) {
                 Log::warning('OpenRouter API key missing');
                 return [
