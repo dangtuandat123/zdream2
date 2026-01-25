@@ -215,6 +215,131 @@
             });
         });
     </script>
+
+    <!-- Global Lightbox Script -->
+    <script>
+        let lightboxOpen = false;
+        let lightboxImages = [];
+        let lightboxIndex = 0;
+
+        function openLightbox(index, images) {
+            lightboxImages = images;
+            lightboxIndex = index;
+            lightboxOpen = true;
+            renderLightbox();
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeLightbox() {
+            lightboxOpen = false;
+            const el = document.getElementById('global-lightbox');
+            if (el) el.remove();
+            document.body.style.overflow = '';
+            document.removeEventListener('keydown', handleLightboxKeydown);
+        }
+
+        function lightboxPrev() {
+            lightboxIndex = (lightboxIndex - 1 + lightboxImages.length) % lightboxImages.length;
+            updateLightboxImage();
+        }
+
+        function lightboxNext() {
+            lightboxIndex = (lightboxIndex + 1) % lightboxImages.length;
+            updateLightboxImage();
+        }
+
+        function updateLightboxImage() {
+            const img = document.getElementById('lightbox-main-image');
+            const counter = document.getElementById('lightbox-counter');
+            if (img) img.src = lightboxImages[lightboxIndex];
+            if (counter) counter.textContent = `${lightboxIndex + 1} / ${lightboxImages.length}`;
+            updateThumbnails();
+        }
+
+        function updateThumbnails() {
+            document.querySelectorAll('.lightbox-thumb').forEach((thumb, idx) => {
+                if (idx === lightboxIndex) {
+                    thumb.style.transform = 'scale(1.1)';
+                    thumb.style.opacity = '1';
+                    thumb.style.boxShadow = '0 0 0 3px #a855f7';
+                } else {
+                    thumb.style.transform = 'scale(1)';
+                    thumb.style.opacity = '0.6';
+                    thumb.style.boxShadow = 'none';
+                }
+            });
+        }
+
+        function renderLightbox() {
+            const existing = document.getElementById('global-lightbox');
+            if (existing) existing.remove();
+            
+            const html = `
+                <div id="global-lightbox" style="position: fixed; inset: 0; z-index: 999999; background: rgba(0,0,0,0.95); display: flex; flex-direction: column;">
+                    <!-- Top Bar -->
+                    <div style="height: 70px; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; flex-shrink: 0;">
+                        <div id="lightbox-counter" style="background: white; color: black; padding: 8px 16px; border-radius: 9999px; font-weight: bold; font-size: 14px;">
+                            ${lightboxIndex + 1} / ${lightboxImages.length}
+                        </div>
+                        <button onclick="closeLightbox()" style="width: 50px; height: 50px; border-radius: 50%; background: white; color: black; border: none; cursor: pointer; font-size: 24px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+                    
+                    <!-- Main Image Area -->
+                    <div style="flex: 1; display: flex; align-items: center; justify-content: center; position: relative; padding: 20px; min-height: 0;" onclick="closeLightbox()">
+                        ${lightboxImages.length > 1 ? `
+                        <button onclick="event.stopPropagation(); lightboxPrev();" style="position: absolute; left: 20px; width: 50px; height: 50px; border-radius: 50%; background: white; color: black; border: none; cursor: pointer; font-size: 20px; display: flex; align-items: center; justify-content: center; z-index: 10; box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
+                            <i class="fa-solid fa-chevron-left"></i>
+                        </button>
+                        ` : ''}
+                        
+                        <img 
+                            id="lightbox-main-image"
+                            src="${lightboxImages[lightboxIndex]}" 
+                            style="max-height: 100%; max-width: calc(100% - 140px); object-fit: contain; border-radius: 12px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);"
+                            onclick="event.stopPropagation();"
+                            onerror="this.src='/images/placeholder.svg'"
+                        >
+                        
+                        ${lightboxImages.length > 1 ? `
+                        <button onclick="event.stopPropagation(); lightboxNext();" style="position: absolute; right: 20px; width: 50px; height: 50px; border-radius: 50%; background: white; color: black; border: none; cursor: pointer; font-size: 20px; display: flex; align-items: center; justify-content: center; z-index: 10; box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
+                            <i class="fa-solid fa-chevron-right"></i>
+                        </button>
+                        ` : ''}
+                    </div>
+                    
+                    ${lightboxImages.length > 1 ? `
+                    <div style="height: 100px; display: flex; align-items: center; justify-content: center; padding: 10px; flex-shrink: 0;">
+                        <div style="display: flex; gap: 10px; padding: 10px; background: rgba(255,255,255,0.9); border-radius: 16px; max-width: 90vw; overflow-x: auto;">
+                            ${lightboxImages.map((img, idx) => `
+                                <button 
+                                    onclick="event.stopPropagation(); lightboxIndex = ${idx}; updateLightboxImage();" 
+                                    class="lightbox-thumb"
+                                    style="width: 60px; height: 60px; border-radius: 8px; overflow: hidden; flex-shrink: 0; border: none; padding: 0; cursor: pointer; transition: all 0.2s; ${idx === lightboxIndex ? 'transform: scale(1.1); box-shadow: 0 0 0 3px #a855f7;' : 'opacity: 0.6;'}"
+                                >
+                                    <img src="${img}" style="width: 100%; height: 100%; object-fit: cover;">
+                                </button>
+                            `).join('')}
+                        </div>
+                    </div>
+                    ` : ''}
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', html);
+            document.addEventListener('keydown', handleLightboxKeydown);
+        }
+
+        function handleLightboxKeydown(e) {
+            if (!lightboxOpen) return;
+            if (e.key === 'Escape') closeLightbox();
+            if (e.key === 'ArrowLeft') lightboxPrev();
+            if (e.key === 'ArrowRight') lightboxNext();
+        }
+    </script>
+    
+    @stack('scripts')
     
     <!-- Livewire Scripts (REQUIRED for wire:click) -->
     @livewireScripts

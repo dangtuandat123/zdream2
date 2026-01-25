@@ -478,33 +478,9 @@
         </div>
     @endif
 
-    <!-- User's History với Style này (Mobile only) - Reactive with Lightbox -->
+    <!-- User's History với Style này (Mobile only) -->
     @if($userStyleImages->isNotEmpty())
-        <div 
-            x-data="{ 
-                open: false, 
-                currentIndex: 0,
-                images: @js($userStyleImages->pluck('image_url')->toArray()),
-                touchStartX: 0,
-                openGallery(index) {
-                    this.currentIndex = index;
-                    this.open = true;
-                    document.body.style.overflow = 'hidden';
-                },
-                closeGallery() {
-                    this.open = false;
-                    document.body.style.overflow = '';
-                },
-                next() {
-                    this.currentIndex = (this.currentIndex + 1) % this.images.length;
-                },
-                prev() {
-                    this.currentIndex = (this.currentIndex - 1 + this.images.length) % this.images.length;
-                }
-            }"
-            @keydown.escape.window="closeGallery()"
-            class="lg:hidden bg-white/[0.03] border border-white/[0.08] rounded-xl overflow-hidden"
-        >
+        <div class="lg:hidden bg-white/[0.03] border border-white/[0.08] rounded-xl overflow-hidden">
             <div class="flex items-center justify-between p-4 border-b border-white/[0.05]">
                 <div class="flex items-center gap-2 text-white/60">
                     <i class="fa-solid fa-clock-rotate-left" style="font-size: 14px;"></i>
@@ -518,7 +494,7 @@
                 <div class="grid grid-cols-3 gap-2">
                     @foreach($userStyleImages as $index => $img)
                         <button 
-                            @click="openGallery({{ $index }})"
+                            onclick="openLightbox({{ $index }}, {{ json_encode($userStyleImages->pluck('image_url')->toArray()) }})"
                             class="group relative aspect-square rounded-lg overflow-hidden bg-white/[0.05] focus:outline-none"
                         >
                             <img src="{{ $img->image_url }}" alt="Generated" class="w-full h-full object-cover" onerror="this.src='/images/placeholder.svg'">
@@ -526,85 +502,6 @@
                     @endforeach
                 </div>
             </div>
-
-            <!-- Lightbox Modal (Mobile) - Glassmorphism -->
-            <template x-teleport="body">
-                <div 
-                    x-show="open"
-                    x-transition:enter="transition ease-out duration-300"
-                    x-transition:enter-start="opacity-0"
-                    x-transition:enter-end="opacity-100"
-                    x-transition:leave="transition ease-in duration-200"
-                    x-transition:leave-start="opacity-100"
-                    x-transition:leave-end="opacity-0"
-                    class="fixed inset-0 z-[9999] flex flex-col bg-black/80 backdrop-blur-xl"
-                    x-cloak
-                >
-                    <!-- Top Bar -->
-                    <div class="flex-shrink-0 h-14 flex items-center justify-between px-4 bg-black/40 border-b border-white/10">
-                        <div class="text-white/80 text-sm font-medium">
-                            <span x-text="currentIndex + 1"></span> / <span x-text="images.length"></span>
-                        </div>
-                        <button 
-                            @click="closeGallery()" 
-                            class="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors"
-                        >
-                            <i class="fa-solid fa-xmark text-lg"></i>
-                        </button>
-                    </div>
-
-                    <!-- Main Content with Swipe -->
-                    <div 
-                        class="flex-1 flex items-center justify-center relative overflow-hidden"
-                        @touchstart="touchStartX = $event.touches[0].clientX"
-                        @touchend="
-                            const diff = $event.changedTouches[0].clientX - touchStartX;
-                            if (diff > 50) prev();
-                            if (diff < -50) next();
-                        "
-                        @click="closeGallery()"
-                    >
-                        <!-- Nav Left -->
-                        <button 
-                            @click.stop="prev()"
-                            class="absolute left-2 z-10 w-10 h-10 rounded-full bg-black/50 backdrop-blur-sm text-white flex items-center justify-center border border-white/10"
-                            x-show="images.length > 1"
-                        >
-                            <i class="fa-solid fa-chevron-left"></i>
-                        </button>
-
-                        <!-- Image -->
-                        <img 
-                            :src="images[currentIndex]" 
-                            class="max-w-[calc(100%-80px)] max-h-full object-contain rounded-xl shadow-2xl"
-                            onerror="this.src='/images/placeholder.svg'"
-                            @click.stop
-                        >
-
-                        <!-- Nav Right -->
-                        <button 
-                            @click.stop="next()"
-                            class="absolute right-2 z-10 w-10 h-10 rounded-full bg-black/50 backdrop-blur-sm text-white flex items-center justify-center border border-white/10"
-                            x-show="images.length > 1"
-                        >
-                            <i class="fa-solid fa-chevron-right"></i>
-                        </button>
-                    </div>
-
-                    <!-- Bottom Nav Dots -->
-                    <div class="flex-shrink-0 h-14 flex items-center justify-center bg-black/40 border-t border-white/10" x-show="images.length > 1">
-                        <div class="flex gap-3">
-                            <template x-for="(_, idx) in images" :key="idx">
-                                <button 
-                                    @click.stop="currentIndex = idx"
-                                    class="w-2.5 h-2.5 rounded-full transition-all"
-                                    :class="currentIndex === idx ? 'bg-cyan-400 scale-125' : 'bg-white/40'"
-                                ></button>
-                            </template>
-                        </div>
-                    </div>
-                </div>
-            </template>
         </div>
     @endif
 </div>
