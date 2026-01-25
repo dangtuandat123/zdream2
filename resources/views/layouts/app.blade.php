@@ -297,11 +297,14 @@
         }
 
         function updateThumbnails() {
-            document.querySelectorAll('.lightbox-thumb').forEach((thumb, idx) => {
+            const thumbs = document.querySelectorAll('.lightbox-thumb');
+            thumbs.forEach((thumb, idx) => {
                 if (idx === lightboxIndex) {
                     thumb.style.transform = 'scale(1.1)';
                     thumb.style.opacity = '1';
                     thumb.style.boxShadow = '0 0 0 3px #a855f7';
+                    // Scroll thumbnail vào giữa màn hình
+                    thumb.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
                 } else {
                     thumb.style.transform = 'scale(1)';
                     thumb.style.opacity = '0.6';
@@ -382,6 +385,14 @@
             
             document.body.insertAdjacentHTML('beforeend', html);
             document.addEventListener('keydown', handleLightboxKeydown);
+            
+            // Scroll thumbnail đang active vào giữa sau khi render
+            setTimeout(() => {
+                const activeThumb = document.querySelectorAll('.lightbox-thumb')[lightboxIndex];
+                if (activeThumb) {
+                    activeThumb.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+                }
+            }, 100);
         }
 
         function handleLightboxKeydown(e) {
