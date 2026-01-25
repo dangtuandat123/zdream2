@@ -4,6 +4,8 @@ namespace App\Services;
 
 use App\Models\Setting;
 use App\Models\Style;
+use App\Services\ImageGeneration\ModelAdapterFactory;
+use App\Services\ImageGeneration\ModelAdapterInterface;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -21,14 +23,18 @@ class OpenRouterService
     protected string $baseUrl;
     protected int $timeout;
     protected int $maxImageBytes = 10485760; // 10MB
+    protected ModelAdapterFactory $adapterFactory;
 
-    public function __construct()
+    public function __construct(?ModelAdapterFactory $adapterFactory = null)
     {
         // Lấy API key từ database Settings (có cache và decrypt)
         $this->apiKey = Setting::get('openrouter_api_key', config('services_custom.openrouter.api_key', ''));
         $this->baseUrl = Setting::get('openrouter_base_url', config('services_custom.openrouter.base_url', 'https://openrouter.ai/api/v1'));
         $this->baseUrl = rtrim($this->baseUrl, '/');
         $this->timeout = config('services_custom.openrouter.timeout', 120);
+        
+        // Initialize adapter factory
+        $this->adapterFactory = $adapterFactory ?? new ModelAdapterFactory();
     }
 
     /**
@@ -294,48 +300,36 @@ class OpenRouterService
                 ];
             }
             
-            // Build OpenRouter payload
+            // Get appropriate adapter for this model
+            $adapter = $this->adapterFactory->getAdapter($style->openrouter_model_id);
+            
+            Log::debug('Using model adapter', [
+                'model' => $style->openrouter_model_id,
+                'adapter_type' => $adapter->getModelType(),
+                'supports_image_config' => $adapter->supportsImageConfig(),
+            ]);
+            
+            // Build base payload
             $payload = $style->buildOpenRouterPayload($finalPrompt);
             
-            // Nếu có input images (img2img), cập nhật message content
-            if (!empty($inputImages)) {
-                // Lấy image_slots config từ style để có description
-                $imageSlots = $style->image_slots ?? [];
-                $slotDescriptions = collect($imageSlots)->keyBy('key')->map(fn($s) => $s['description'] ?? '')->toArray();
-                
-                // Build text prompt với image descriptions
-                $imageDescText = '';
-                foreach ($inputImages as $key => $imageBase64) {
-                    $desc = $slotDescriptions[$key] ?? '';
-                    if ($desc) {
-                        $imageDescText .= "\n[Image: {$desc}]";
-                    }
-                }
-                
-                $contentParts = [
-                    [
-                        'type' => 'text',
-                        'text' => $finalPrompt . $imageDescText,
-                    ],
-                ];
-                
-                // Thêm tất cả user input images vào content
-                foreach ($inputImages as $key => $imageBase64) {
-                    $contentParts[] = [
-                        'type' => 'image_url',
-                        'image_url' => [
-                            'url' => $imageBase64,
-                        ],
-                    ];
-                }
-                
-                $payload['messages'][0]['content'] = $contentParts;
-            }
+            // Prepare adapter options
+            $imageSlots = $style->image_slots ?? [];
+            $slotDescriptions = collect($imageSlots)->keyBy('key')->map(fn($s) => $s['description'] ?? '')->toArray();
             
-            // Thêm system_images từ Style config (background, overlay, etc)
+            $adapterOptions = [
+                'aspectRatio' => $aspectRatio,
+                'imageSize' => $imageSize,
+                'inputImages' => $inputImages,
+                'slotDescriptions' => $slotDescriptions,
+            ];
+            
+            // Let adapter prepare the payload (model-specific handling)
+            $payload = $adapter->preparePayload($payload, $adapterOptions);
+            
+            // Add system images from Style config (background, overlay, etc)
+            // This is common to all adapters
             $systemImages = $style->system_images ?? [];
             if (!empty($systemImages)) {
-                // Build description text cho system images
                 $sysDescText = '';
                 foreach ($systemImages as $sysImg) {
                     $desc = $sysImg['description'] ?? '';
@@ -345,21 +339,19 @@ class OpenRouterService
                     }
                 }
                 
-                // Đảm bảo content là array
+                // Ensure content is array
                 if (is_string($payload['messages'][0]['content'])) {
                     $payload['messages'][0]['content'] = [
                         ['type' => 'text', 'text' => $payload['messages'][0]['content'] . $sysDescText],
                     ];
                 } else {
-                    // Append system images description to text
                     $payload['messages'][0]['content'][0]['text'] .= $sysDescText;
                 }
                 
-                // Thêm system images vào content parts
+                // Add system images as image_url parts
                 foreach ($systemImages as $sysImg) {
                     $url = $sysImg['url'] ?? '';
                     if ($url) {
-                        // Download và convert sang base64 nếu là URL
                         $base64DataUrl = $this->downloadImageAsBase64($url);
                         if ($base64DataUrl) {
                             $payload['messages'][0]['content'][] = [
@@ -372,34 +364,8 @@ class OpenRouterService
                     }
                 }
             }
-            
-            // Override aspect ratio nếu user đã chọn
-            // CHÚ Ý: image_config chỉ cho Gemini models
-            $isGeminiModel = str_contains(strtolower($style->openrouter_model_id), 'gemini');
-            
-            if ($aspectRatio) {
-                if ($isGeminiModel) {
-                    // Gemini: dùng image_config
-                    $payload['image_config'] = $payload['image_config'] ?? [];
-                    $payload['image_config']['aspect_ratio'] = $aspectRatio;
-                } else {
-                    // FLUX, DALL-E, v.v.: chèn thông tin vào prompt
-                    $aspectText = ", {$aspectRatio} aspect ratio";
-                    if (is_string($payload['messages'][0]['content'])) {
-                        $payload['messages'][0]['content'] .= $aspectText;
-                    } else {
-                        $payload['messages'][0]['content'][0]['text'] .= $aspectText;
-                    }
-                }
-            }
-            
-            // Override image size nếu user đã chọn (CHỈ cho Gemini models)
-            if ($imageSize && $isGeminiModel) {
-                $payload['image_config'] = $payload['image_config'] ?? [];
-                $payload['image_config']['image_size'] = $imageSize;
-            }
 
-            // DEBUG: Log payload ?? ???c l?m s?ch ?? tr?nh l? d? li?u nh?y c?m
+            // DEBUG: Log payload (sanitized)
             Log::debug('OpenRouter request', [
                 'model' => $style->openrouter_model_id,
                 'prompt_length' => strlen($finalPrompt),
@@ -466,19 +432,36 @@ class OpenRouterService
                 'content_type' => isset($firstMessage['content']) ? gettype($firstMessage['content']) : null,
             ]);
 
-            // Parse response để lấy Base64 image
-            $imageBase64 = $this->extractImageFromResponse($data);
+            // Parse response using adapter (model-specific parsing)
+            $imageBase64 = $adapter->parseResponse($data);
             
             if (empty($imageBase64)) {
-                // Log thêm chi tiết khi không extract được
+                // Extract text response from model as error message
+                $textResponse = $adapter->extractTextResponse($data);
+                
                 Log::error('Failed to extract image from response', [
                     'model' => $style->openrouter_model_id,
+                    'text_response' => $textResponse ? substr($textResponse, 0, 500) : null,
                     'response_preview' => substr(json_encode($data), 0, 2000),
                 ]);
                 
+                // Tạo error message descriptive hơn
+                $errorMessage = 'Model không trả về ảnh.';
+                if ($textResponse) {
+                    // Truncate và clean text response
+                    $cleanText = strip_tags($textResponse);
+                    $cleanText = preg_replace('/\s+/', ' ', $cleanText);
+                    $shortText = mb_substr($cleanText, 0, 200);
+                    if (mb_strlen($cleanText) > 200) {
+                        $shortText .= '...';
+                    }
+                    $errorMessage = "Model phản hồi: \"{$shortText}\"";
+                }
+                
                 return [
                     'success' => false,
-                    'error' => 'No image data in response',
+                    'error' => $errorMessage,
+                    'model_response' => $textResponse,
                     'final_prompt' => $finalPrompt,
                 ];
             }
@@ -573,6 +556,43 @@ class OpenRouterService
             }
         }
 
+        return null;
+    }
+
+    /**
+     * Extract text response from OpenRouter response
+     * Dùng khi model trả text thay vì image (vd: từ chối, giải thích)
+     */
+    protected function extractTextFromResponse(?array $data): ?string
+    {
+        if (empty($data)) {
+            return null;
+        }
+        
+        $choices = $data['choices'] ?? [];
+        $message = $choices[0]['message'] ?? [];
+        
+        // Check content field
+        if (!empty($message['content'])) {
+            $content = $message['content'];
+            
+            // Nếu là string, return trực tiếp
+            if (is_string($content)) {
+                return $content;
+            }
+            
+            // Nếu là array (multimodal), tìm text parts
+            if (is_array($content)) {
+                $textParts = [];
+                foreach ($content as $part) {
+                    if (isset($part['type']) && $part['type'] === 'text' && !empty($part['text'])) {
+                        $textParts[] = $part['text'];
+                    }
+                }
+                return !empty($textParts) ? implode("\n", $textParts) : null;
+            }
+        }
+        
         return null;
     }
 
