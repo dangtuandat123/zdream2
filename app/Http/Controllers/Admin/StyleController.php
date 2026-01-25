@@ -84,7 +84,8 @@ class StyleController extends Controller
             // Options (Dynamic array)
             'options' => 'nullable|array|max:50', // Max 50 options
             'options.*.label' => 'required_with:options|string|max:255',
-            'options.*.group_name' => 'required_with:options|string|max:100',
+            // C2 FIX: Reject quotes in group_name to prevent HTML injection in wire:click
+            'options.*.group_name' => ['required_with:options', 'string', 'max:100', 'regex:/^[^\'\"]+$/'],
             'options.*.prompt_fragment' => 'required_with:options|string|max:500',
             
             // System images files validation
@@ -190,7 +191,8 @@ class StyleController extends Controller
             'options' => 'nullable|array|max:50',
             'options.*.id' => 'nullable|integer',
             'options.*.label' => 'required_with:options|string|max:255',
-            'options.*.group_name' => 'required_with:options|string|max:100',
+            // C2 FIX: Reject quotes in group_name to prevent HTML injection in wire:click
+            'options.*.group_name' => ['required_with:options', 'string', 'max:100', 'regex:/^[^\'\"]+$/'],
             'options.*.prompt_fragment' => 'required_with:options|string|max:500',
             
             'existing_system_images' => 'nullable|array',
@@ -232,8 +234,11 @@ class StyleController extends Controller
                     'is_active' => $request->boolean('is_active'),
                 ]);
 
-                // Sync Options
-                $this->syncOptions($style, $validated['options'] ?? []);
+                // C1 FIX: Chỉ sync options khi request có options field
+                // Tránh xóa sạch options khi edit form không có options section
+                if ($request->has('options')) {
+                    $this->syncOptions($style, $validated['options'] ?? []);
+                }
 
                 Log::info('Style updated', ['id' => $style->id, 'name' => $style->name]);
 

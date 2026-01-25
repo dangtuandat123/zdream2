@@ -510,9 +510,16 @@ class OpenRouterService
      * Theo docs, response có cấu trúc:
      * - choices[0].message.images[] (array of image objects)
      * - Mỗi image có: image_url.url chứa base64 data URL
+     * 
+     * FIX: Changed to ?array to handle null response from json()
      */
-    protected function extractImageFromResponse(array $data): ?string
+    protected function extractImageFromResponse(?array $data): ?string
     {
+        // Handle null/empty data
+        if (empty($data)) {
+            return null;
+        }
+        
         $choices = $data['choices'] ?? [];
         $message = $choices[0]['message'] ?? [];
 

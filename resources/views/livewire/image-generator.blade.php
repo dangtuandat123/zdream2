@@ -92,7 +92,8 @@
                     <!-- Options Selection với Thumbnails -->
                     @if($optionGroups->isNotEmpty())
                         @foreach($optionGroups as $groupName => $options)
-                            <div wire:key="group-{{ Str::slug($groupName) }}">
+                            {{-- D1 FIX: Dùng loop index thay vì slug để tránh key trùng --}}
+                            <div wire:key="group-{{ $loop->index }}">
                                 <h3 class="text-sm font-medium text-white/60 mb-3 flex items-center gap-2">
                                     <span class="w-1 h-4 bg-gradient-to-b from-purple-400 to-pink-500 rounded-full"></span>
                                     {{ $groupName }}
@@ -227,6 +228,14 @@
                             </button>
                         @endforeach
                     </div>
+                    
+                    {{-- B2 FIX: Warning cho non-Gemini models --}}
+                    @if(!$supportsImageConfig)
+                        <p class="text-yellow-400/70 text-xs mt-2 flex items-center gap-1">
+                            <i class="fa-solid fa-info-circle"></i>
+                            <span>Tỷ lệ khung hình chỉ được hỗ trợ tốt nhất với Gemini models</span>
+                        </p>
+                    @endif
                 </div>
 
                 <!-- Image Size Selector (chỉ cho Gemini models) -->
