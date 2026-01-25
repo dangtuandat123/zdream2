@@ -92,56 +92,75 @@
                     <!-- Options Selection với Thumbnails -->
                     @if($optionGroups->isNotEmpty())
                         @foreach($optionGroups as $groupName => $options)
-                            {{-- D1 FIX: Dùng loop index thay vì slug để tránh key trùng --}}
                             <div wire:key="group-{{ $loop->index }}">
                                 <h3 class="text-sm font-medium text-white/60 mb-3 flex items-center gap-2">
                                     <span class="w-1 h-4 bg-gradient-to-b from-purple-400 to-pink-500 rounded-full"></span>
                                     {{ $groupName }}
                                 </h3>
-                                <div class="flex flex-wrap gap-4 pb-2">
+                                <div class="flex flex-wrap gap-3">
                                     {{-- Default option --}}
+                                    @php 
+                                        $isDefaultSelected = !isset($selectedOptions[$groupName]) || $selectedOptions[$groupName] === null;
+                                    @endphp
                                     <button 
                                         type="button"
                                         wire:click="selectOption(@js($groupName), null)"
                                         wire:key="option-{{ Str::slug($groupName) }}-default"
-                                        class="flex flex-col items-center gap-2 group cursor-pointer select-none">
-                                        <!-- Collage Container -->
-                                        <div class="relative w-16 h-16 sm:w-20 sm:h-20 transition-all duration-200 group-hover:scale-105
-                                            {{ !isset($selectedOptions[$groupName]) || $selectedOptions[$groupName] === null ? 'ring-2 ring-cyan-400 ring-offset-2 ring-offset-[#0a0a0f]' : '' }}">
-                                            <div class="absolute inset-0 rounded-lg bg-[#1a1a2e] border border-white/10 flex items-center justify-center z-10">
-                                                <i class="fa-solid fa-ban text-white/30" style="font-size: 24px;"></i>
+                                        class="relative flex flex-col items-center gap-1.5 p-1 rounded-xl transition-all duration-300 
+                                            {{ $isDefaultSelected 
+                                                ? 'bg-gradient-to-br from-cyan-500/20 to-purple-500/20 shadow-[0_0_20px_rgba(6,182,212,0.3)]' 
+                                                : 'hover:bg-white/[0.05]' }}">
+                                        {{-- Selected indicator --}}
+                                        @if($isDefaultSelected)
+                                            <div class="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-gradient-to-r from-cyan-400 to-cyan-500 flex items-center justify-center shadow-lg z-20">
+                                                <i class="fa-solid fa-check text-white" style="font-size: 10px;"></i>
                                             </div>
+                                        @endif
+                                        {{-- Icon container - hình vuông --}}
+                                        <div class="w-14 h-14 sm:w-16 sm:h-16 aspect-square rounded-md transition-all duration-300
+                                            {{ $isDefaultSelected 
+                                                ? 'bg-gradient-to-br from-cyan-500/30 to-purple-500/30 border-2 border-cyan-400/50' 
+                                                : 'bg-[#1a1a2e] border border-white/10 hover:border-white/20' }}
+                                            flex items-center justify-center">
+                                            <i class="fa-solid fa-ban {{ $isDefaultSelected ? 'text-cyan-400' : 'text-white/30' }}" style="font-size: 20px;"></i>
                                         </div>
-                                        <span class="text-xs font-medium {{ !isset($selectedOptions[$groupName]) || $selectedOptions[$groupName] === null ? 'text-cyan-400' : 'text-white/50' }}">Mặc định</span>
+                                        <span class="text-xs font-medium {{ $isDefaultSelected ? 'text-cyan-400' : 'text-white/50' }}">Mặc định</span>
                                     </button>
 
                                     {{-- Style options --}}
                                     @foreach($options as $option)
+                                        @php 
+                                            $isSelected = isset($selectedOptions[$groupName]) && $selectedOptions[$groupName] === $option->id;
+                                        @endphp
                                         <button 
                                             type="button"
                                             wire:click="selectOption(@js($groupName), {{ $option->id }})"
                                             wire:key="option-{{ $option->id }}"
-                                            class="flex flex-col items-center gap-2 group cursor-pointer select-none">
-                                            <!-- Collage Container with Stacked Photos -->
-                                            <div class="relative w-16 h-16 sm:w-20 sm:h-20 transition-all duration-200 group-hover:scale-105
-                                                {{ isset($selectedOptions[$groupName]) && $selectedOptions[$groupName] === $option->id ? 'ring-2 ring-cyan-400 ring-offset-2 ring-offset-[#0a0a0f]' : '' }}">
-                                                
-                                                <!-- Main Image Layer -->
-                                                <div class="absolute inset-0 rounded-lg overflow-hidden shadow-lg border border-white/10 z-10 bg-[#1a1a2e] flex items-center justify-center">
-                                                    @if($option->thumbnail_url)
-                                                        <img src="{{ $option->thumbnail_url }}" alt="{{ $option->label }}" class="w-full h-full object-cover">
-                                                    @elseif($option->icon)
-                                                        <i class="{{ $option->icon }} text-white/40" style="font-size: 20px;"></i>
-                                                    @else
-                                                        <i class="fa-solid fa-wand-magic-sparkles text-white/30" style="font-size: 18px;"></i>
-                                                    @endif
+                                            class="relative flex flex-col items-center gap-1.5 p-1 rounded-xl transition-all duration-300
+                                                {{ $isSelected 
+                                                    ? 'bg-gradient-to-br from-cyan-500/20 to-purple-500/20 shadow-[0_0_20px_rgba(6,182,212,0.3)]' 
+                                                    : 'hover:bg-white/[0.05]' }}">
+                                            {{-- Selected indicator --}}
+                                            @if($isSelected)
+                                                <div class="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-gradient-to-r from-cyan-400 to-cyan-500 flex items-center justify-center shadow-lg z-20">
+                                                    <i class="fa-solid fa-check text-white" style="font-size: 10px;"></i>
                                                 </div>
-
-                                                <!-- Decorative stacked effect (pseudo layers behind) -->
-                                                <div class="absolute -bottom-1 -right-1 w-full h-full rounded-lg bg-white/5 border border-white/10 rotate-3 pointer-events-none z-0"></div>
-                                                <div class="absolute -bottom-2 -right-2 w-full h-full rounded-lg bg-white/3 border border-white/5 rotate-6 pointer-events-none -z-10"></div>
+                                            @endif
+                                            {{-- Thumbnail container - hình vuông --}}
+                                            <div class="w-14 h-14 sm:w-16 sm:h-16 aspect-square rounded-md overflow-hidden transition-all duration-300
+                                                {{ $isSelected 
+                                                    ? 'border-2 border-cyan-400/50 shadow-[0_0_15px_rgba(6,182,212,0.4)]' 
+                                                    : 'border border-white/10 hover:border-white/20' }}
+                                                bg-[#1a1a2e] flex items-center justify-center">
+                                                @if($option->thumbnail_url)
+                                                    <img src="{{ $option->thumbnail_url }}" alt="{{ $option->label }}" class="w-full h-full object-cover">
+                                                @elseif($option->icon)
+                                                    <i class="{{ $option->icon }} {{ $isSelected ? 'text-cyan-400' : 'text-white/40' }}" style="font-size: 20px;"></i>
+                                                @else
+                                                    <i class="fa-solid fa-wand-magic-sparkles {{ $isSelected ? 'text-cyan-400' : 'text-white/30' }}" style="font-size: 18px;"></i>
+                                                @endif
                                             </div>
-                                            <span class="text-xs font-medium {{ isset($selectedOptions[$groupName]) && $selectedOptions[$groupName] === $option->id ? 'text-cyan-400' : 'text-white/50' }}">{{ $option->label }}</span>
+                                            <span class="text-xs font-medium max-w-[60px] truncate {{ $isSelected ? 'text-cyan-400' : 'text-white/50' }}">{{ $option->label }}</span>
                                         </button>
                                     @endforeach
                                 </div>
