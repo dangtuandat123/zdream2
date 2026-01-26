@@ -134,7 +134,8 @@
                                 @endif
                                 <div class="flex items-center justify-between mt-2 sm:mt-3 pt-2 sm:pt-3 border-t border-white/[0.05]">
                                     <div class="flex items-center gap-1 sm:gap-1.5 text-white/50 text-[10px] sm:text-xs">
-                                        <span class="w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full bg-green-500 animate-pulse"></span> Sẵn sàng
+                                        <i class="fa-solid fa-images w-2.5 h-2.5 sm:w-3 sm:h-3"></i>
+                                        {{ number_format($style->generated_images_count) }} lượt tạo
                                     </div>
                                     <div class="flex items-center gap-1 text-purple-400 text-[10px] sm:text-xs font-medium">
                                         <i class="fa-solid fa-arrow-right w-2.5 h-2.5 sm:w-3 sm:h-3"></i>

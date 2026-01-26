@@ -14,12 +14,15 @@ class HomeController extends Controller
 {
     /**
      * Hiển thị trang chủ với danh sách Styles
+     * Mặc định sắp xếp theo lượt tạo nhiều nhất
      */
     public function index(): View
     {
         $styles = Style::query()
             ->active()
-            ->ordered()
+            ->with('tag') // Eager load tag relationship
+            ->withCount('generatedImages')
+            ->orderByDesc('generated_images_count')
             ->take(50) // Limit để tránh slow query
             ->get();
 

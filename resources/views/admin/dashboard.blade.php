@@ -133,6 +133,18 @@
                     <i class="fa-solid fa-chevron-right w-4 h-4 text-white/30 ml-auto group-hover:text-pink-400 transition-colors"></i>
                 </div>
             </a>
+            <a href="{{ route('admin.tags.index') }}" class="group bg-white/[0.03] border border-white/[0.08] rounded-xl p-6 hover:border-orange-500/30 hover:bg-white/[0.05] transition-all">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center">
+                        <i class="fa-solid fa-tags w-6 h-6 text-white"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-semibold text-white group-hover:text-orange-300 transition-colors">Quản lý Tags</h3>
+                        <p class="text-white/50 text-sm">HOT, MỚI, SALE...</p>
+                    </div>
+                    <i class="fa-solid fa-chevron-right w-4 h-4 text-white/30 ml-auto group-hover:text-orange-400 transition-colors"></i>
+                </div>
+            </a>
             <a href="{{ route('admin.images.index') }}" class="group bg-white/[0.03] border border-white/[0.08] rounded-xl p-6 hover:border-cyan-500/30 hover:bg-white/[0.05] transition-all">
                 <div class="flex items-center gap-4">
                     <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-500 flex items-center justify-center">
