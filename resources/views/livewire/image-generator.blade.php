@@ -362,33 +362,141 @@
         </div>
     @endif
 
-    <!-- Loading State with Polling (5s interval để giảm blocking) -->
+    <!-- Beautiful Loading State with Animations -->
     @if($isGenerating)
-        <div wire:poll.5s="pollImageStatus" class="bg-white/[0.03] border border-white/[0.08] rounded-xl p-6 md:p-8 text-center">
-            <div class="inline-flex items-center justify-center w-16 h-16 mb-4 rounded-2xl bg-gradient-to-br from-purple-500/20 to-pink-500/20">
-                <i class="fa-solid fa-spinner w-8 h-8 text-purple-400 animate-spin"></i>
-            </div>
-            <p class="text-white/80 font-medium mb-1">AI đang sáng tạo... ✨</p>
-            <p class="text-sm text-white/40 mb-4">Chờ khoảng 10-30 giây</p>
+        <div wire:poll.5s="pollImageStatus" 
+             x-data="{ 
+                 tipIndex: 0,
+                 tips: [
+                     '🎨 AI đang phân tích phong cách...',
+                     '✨ Đang tạo bố cục sáng tạo...',
+                     '🔮 Rendering chi tiết hình ảnh...',
+                     '🌈 Tối ưu màu sắc và ánh sáng...',
+                     '💫 Hoàn thiện nét cuối...'
+                 ],
+                 messages: [
+                     'Mỗi tác phẩm đều độc nhất vô nhị!',
+                     'AI đang vẽ ước mơ của bạn...',
+                     'Sáng tạo cần thời gian ⏳',
+                     'Đợi chút nhé, sẽ rất xứng đáng!'
+                 ],
+                 currentMessage: 0
+             }" 
+             x-init="
+                 setInterval(() => { tipIndex = (tipIndex + 1) % tips.length }, 3000);
+                 setInterval(() => { currentMessage = (currentMessage + 1) % messages.length }, 5000);
+             "
+             class="relative bg-gradient-to-br from-purple-900/20 via-pink-900/10 to-indigo-900/20 border border-white/[0.08] rounded-2xl p-6 md:p-8 overflow-hidden">
             
-            <!-- Progress bar animation -->
-            <div class="w-full h-1.5 bg-white/[0.05] rounded-full overflow-hidden mb-3">
-                <div class="h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full animate-pulse" style="width: 60%; animation: progress 2s ease-in-out infinite;"></div>
+            <!-- Floating Particles Background -->
+            <div class="absolute inset-0 overflow-hidden pointer-events-none">
+                <div class="absolute w-2 h-2 bg-purple-400/30 rounded-full animate-float-1" style="top: 20%; left: 10%;"></div>
+                <div class="absolute w-3 h-3 bg-pink-400/20 rounded-full animate-float-2" style="top: 60%; left: 80%;"></div>
+                <div class="absolute w-1.5 h-1.5 bg-cyan-400/30 rounded-full animate-float-3" style="top: 40%; left: 60%;"></div>
+                <div class="absolute w-2 h-2 bg-purple-400/20 rounded-full animate-float-1" style="top: 80%; left: 30%;"></div>
+                <div class="absolute w-1 h-1 bg-pink-400/30 rounded-full animate-float-2" style="top: 30%; left: 90%;"></div>
             </div>
             
-            <!-- Expiry notice -->
-            <p class="text-xs text-white/30">
-                <i class="fa-solid fa-info-circle mr-1"></i>
-                Ảnh sẽ được lưu {{ \App\Models\Setting::get('image_expiry_days', 30) }} ngày
-            </p>
+            <!-- Main Content -->
+            <div class="relative z-10 text-center">
+                <!-- Animated AI Avatar -->
+                <div class="relative inline-flex items-center justify-center mb-6">
+                    <!-- Outer glow rings -->
+                    <div class="absolute w-24 h-24 rounded-full bg-purple-500/10 animate-ping-slow"></div>
+                    <div class="absolute w-20 h-20 rounded-full bg-pink-500/10 animate-ping-slower"></div>
+                    
+                    <!-- Main avatar container -->
+                    <div class="relative w-18 h-18 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-500 shadow-[0_8px_32px_rgba(168,85,247,0.4)] flex items-center justify-center animate-pulse-glow">
+                        <i class="fa-solid fa-wand-magic-sparkles text-white" style="font-size: 28px;"></i>
+                        
+                        <!-- Sparkle effects -->
+                        <div class="absolute -top-1 -right-1 w-3 h-3 bg-yellow-400 rounded-full animate-sparkle"></div>
+                        <div class="absolute -bottom-0.5 -left-0.5 w-2 h-2 bg-cyan-400 rounded-full animate-sparkle-delay"></div>
+                    </div>
+                </div>
+                
+                <!-- Dynamic Status Text -->
+                <div class="mb-4">
+                    <p class="text-lg font-semibold text-white mb-1"
+                       x-text="tips[tipIndex]"
+                       x-transition:enter="transition ease-out duration-500"
+                       x-transition:enter-start="opacity-0 transform translate-y-2"
+                       x-transition:enter-end="opacity-100 transform translate-y-0">
+                    </p>
+                    <p class="text-sm text-white/50" x-text="messages[currentMessage]"></p>
+                </div>
+                
+                <!-- Animated Progress Bar -->
+                <div class="w-full max-w-xs mx-auto mb-4">
+                    <div class="h-2 bg-white/[0.05] rounded-full overflow-hidden backdrop-blur-sm">
+                        <div class="h-full rounded-full bg-gradient-to-r from-purple-500 via-pink-500 to-purple-500 bg-[length:200%_100%] animate-gradient-x"></div>
+                    </div>
+                </div>
+                
+                <!-- Time estimate -->
+                <div class="flex items-center justify-center gap-4 text-xs text-white/40">
+                    <span class="flex items-center gap-1.5">
+                        <i class="fa-solid fa-clock"></i>
+                        Khoảng 10-30 giây
+                    </span>
+                    <span class="flex items-center gap-1.5">
+                        <i class="fa-solid fa-shield-halved"></i>
+                        Lưu {{ \App\Models\Setting::get('image_expiry_days', 30) }} ngày
+                    </span>
+                </div>
+            </div>
         </div>
         
         <style>
-            @keyframes progress {
-                0% { width: 10%; }
-                50% { width: 80%; }
-                100% { width: 10%; }
+            @keyframes float-1 {
+                0%, 100% { transform: translateY(0) translateX(0); opacity: 0.3; }
+                50% { transform: translateY(-20px) translateX(10px); opacity: 0.6; }
             }
+            @keyframes float-2 {
+                0%, 100% { transform: translateY(0) translateX(0); opacity: 0.2; }
+                50% { transform: translateY(-15px) translateX(-10px); opacity: 0.5; }
+            }
+            @keyframes float-3 {
+                0%, 100% { transform: translateY(0) translateX(0); opacity: 0.3; }
+                50% { transform: translateY(-25px) translateX(5px); opacity: 0.7; }
+            }
+            @keyframes ping-slow {
+                0% { transform: scale(1); opacity: 0.3; }
+                50% { transform: scale(1.3); opacity: 0.1; }
+                100% { transform: scale(1); opacity: 0.3; }
+            }
+            @keyframes ping-slower {
+                0% { transform: scale(1); opacity: 0.2; }
+                50% { transform: scale(1.2); opacity: 0.05; }
+                100% { transform: scale(1); opacity: 0.2; }
+            }
+            @keyframes pulse-glow {
+                0%, 100% { box-shadow: 0 8px 32px rgba(168,85,247,0.4); }
+                50% { box-shadow: 0 8px 48px rgba(236,72,153,0.5); }
+            }
+            @keyframes sparkle {
+                0%, 100% { transform: scale(1); opacity: 1; }
+                50% { transform: scale(1.5); opacity: 0.5; }
+            }
+            @keyframes sparkle-delay {
+                0%, 100% { transform: scale(1); opacity: 0.8; }
+                50% { transform: scale(1.3); opacity: 0.4; }
+            }
+            @keyframes gradient-x {
+                0% { background-position: 0% 50%; }
+                100% { background-position: 200% 50%; }
+            }
+            .animate-float-1 { animation: float-1 4s ease-in-out infinite; }
+            .animate-float-2 { animation: float-2 5s ease-in-out infinite; }
+            .animate-float-3 { animation: float-3 3.5s ease-in-out infinite; }
+            .animate-ping-slow { animation: ping-slow 3s ease-in-out infinite; }
+            .animate-ping-slower { animation: ping-slower 4s ease-in-out infinite; }
+            .animate-pulse-glow { animation: pulse-glow 2s ease-in-out infinite; }
+            .animate-sparkle { animation: sparkle 1.5s ease-in-out infinite; }
+            .animate-sparkle-delay { animation: sparkle-delay 1.5s ease-in-out infinite 0.5s; }
+            .animate-gradient-x { animation: gradient-x 2s linear infinite; }
+            .w-18 { width: 4.5rem; }
+            .h-18 { height: 4.5rem; }
         </style>
     @endif
 
