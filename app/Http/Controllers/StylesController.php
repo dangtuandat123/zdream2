@@ -20,6 +20,7 @@ class StylesController extends Controller
     {
         $query = Style::query()
             ->active()
+            ->with('tag') // Eager load tag
             ->ordered()
             ->withCount('generatedImages');
 
