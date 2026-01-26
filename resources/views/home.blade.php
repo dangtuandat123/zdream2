@@ -74,7 +74,7 @@
 
     <!-- ========== STYLES GRID ========== -->
     <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12" id="styles">
-        <div class="flex items-center justify-between mb-6 sm:mb-8">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 sm:mb-8">
             <div class="flex items-center gap-3">
                 <div class="p-2 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500">
                     <i class="fa-solid fa-palette w-5 h-5 text-white"></i>
@@ -84,7 +84,7 @@
                     <p class="text-white/50 text-sm">Chọn style yêu thích của bạn</p>
                 </div>
             </div>
-            <a href="{{ route('styles.index') }}" class="px-4 py-2 rounded-xl bg-white/[0.05] border border-white/[0.1] text-white/70 text-sm font-medium hover:bg-white/[0.1] hover:text-white transition-all inline-flex items-center gap-2">
+            <a href="{{ route('styles.index') }}" class="self-start sm:self-auto px-4 py-2 rounded-xl bg-white/[0.05] border border-white/[0.1] text-white/70 text-sm font-medium hover:bg-white/[0.1] hover:text-white transition-all inline-flex items-center gap-2">
                 <span>Xem tất cả</span>
                 <i class="fa-solid fa-arrow-right w-3 h-3"></i>
             </a>
