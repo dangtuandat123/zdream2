@@ -1,218 +1,47 @@
-﻿Findings
+﻿High Issues
 
-High
+H1 — Image uploads allowed for models without image‑input capability. Part: 3. Location: ImageGenerator.php (line 313), OpenRouterService.php (line 245). Short: uploads are accepted and injected even when a model doesn’t support image input. Detail: styles can be configured with image slots on text‑only input models, causing OpenRouter errors after credits are deducted. Steps: (1) Create a style with an image‑output model that lacks image input (e.g., DALL‑E). (2) Add image slots and upload images. (3) Generate. Expected: validation blocks or warns before charging. Actual: payload includes images and request fails post‑charge (refund depends on async flow). Fix: enforce supports_image_input in admin config and runtime validation; hide/disable slots when unsupported. Priority: High.
+H2 — Cleanup job mis‑handles URL storage_path. Part: 4. Location: CleanupOrphanImages.php (line 68), CleanupOrphanImages.php (line 138). Short: cleanup assumes storage_path is a relative object key. Detail: URL paths are deleted as full URLs and orphan detection compares keys to URLs, causing missed deletes or false orphan removal. Steps: (1) Store a GeneratedImage with a full URL in storage_path. (2) Run php artisan images:cleanup. Expected: URL normalized to object key before delete/compare. Actual: deletes no‑op and orphan detection is incorrect. Fix: normalize URLs to object keys for delete and orphan checks. Priority: High.
+Medium Issues
 
-H1 — Async image generation can stall without server‑side watchdog
-Part: 4 — Integration & Sync
-Location: ImageGenerator.php (line 453) Kernel.php (line 16)
-Short: Timeout/refund logic only runs during client polling.
-Detail: pollImageStatus is the only place that marks long‑running jobs as failed/refunded. If the user closes the tab or the worker is down, processing rows stay stuck and credits remain deducted. Scheduled cleanup doesn’t touch processing rows.
-Steps: 1) Set QUEUE_CONNECTION to async and stop the worker. 2) Generate an image and close the tab. 3) Wait >5 minutes and check DB/credits.
-Expected: Job auto‑fails and credits refund server‑side.
-Actual: Record stays processing, credits stay deducted.
-Fix: Add a scheduled watchdog to fail/refund old processing jobs; add queue monitoring/alerts.
-Priority: High
+M1 — Style save blocked when OpenRouter /models is down. Part: 2. Location: StyleController.php (line 82), OpenRouterService.php (line 171). Short: validation requires model ID to be in the current fetch list even during outages. Detail: when /models fails, fallback list is limited; styles using valid models outside fallback cannot be saved. Steps: (1) Make /models unreachable or API key invalid. (2) Edit a style using a non‑fallback model. (3) Save. Expected: allow existing model IDs or use last‑known‑good cache. Actual: validation error blocks save. Fix: retain last‑known‑good list and/or bypass validation on API failure. Priority: Medium.
+M2 — image_capable_model_ids cache not cleared on settings update. Part: 3. Location: SettingsController.php (line 95), ImageGenerator.php (line 251). Short: model capability validation stays stale after API key/base URL changes. Detail: settings update clears OpenRouter caches but not image_capable_model_ids, so generation validation can reject valid models for up to 1 hour. Steps: (1) Update OpenRouter API key/base URL. (2) Generate with newly supported model. Expected: immediate validation against updated list. Actual: stale cache causes false rejection. Fix: clear image_capable_model_ids when $refreshModels is true. Priority: Medium.
+M3 — Payload size validation ignores base64 expansion and system images. Part: 3. Location: ImageGenerator.php (line 614), OpenRouterService.php (line 408). Short: raw size checks do not reflect real request size. Detail: base64 inflates size ~33% and system images are appended later without size validation, causing provider rejections after charging. Steps: (1) Upload images near 25MB and configure system images. (2) Generate. Expected: validation fails before charging. Actual: request sent and provider rejects. Fix: estimate encoded payload size (including system images) and cap earlier. Priority: Medium.
+M4 — Storage privacy mismatch vs “7‑day link” UX. Part: 4. Location: filesystems.php (line 59), image-generator.blade.php (line 489). Short: MinIO disk is public but UI claims 7‑day expiry. Detail: public bucket URLs may remain accessible beyond 7 days, contradicting UX copy. Steps: (1) Generate image. (2) Access direct storage URL after 7 days. Expected: access expires or requires pre‑signed URL. Actual: URL may still work. Fix: make bucket private and rely on pre‑signed URLs, or update UX copy. Priority: Medium.
+M5 — Credits shown as integers despite decimal support. Part: 1. Location: app.blade.php (line 133). Short: UI rounds credits while backend stores decimals. Detail: fractional credits (e.g., 1.5 from 1500 VND) are displayed as whole numbers, misleading balance/affordability. Steps: (1) Credit 1500 VND via callback. (2) Check header/wallet/generator. Expected: 1.5 shown. Actual: rounded to 1 or 2. Fix: display decimals consistently or enforce integer‑only credits at API/DB/UI. Priority: Medium.
+M6 — is_featured/is_new flags are dead. Part: 1/4. Location: 2026_01_26_000001_add_tag_fields_to_styles_table.php (line 18), Style.php (line 35), StyleController.php (line 146). Short: columns exist but model/controller/view don’t wire them. Detail: fields aren’t fillable/cast and aren’t saved in create/update payloads; no current UI surfaces them. Steps: (1) Attempt to set flags. (2) Check DB/UI. Expected: flags saved and drive badges. Actual: flags never change. Fix: add to model, persist in controller, and expose in admin UI (or remove columns). Priority: Medium.
+Low Issues
 
-H2 — Image uploads allowed for models without image‑input capability
-Part: 3 — Image Gen & OpenRouter
-Location: ImageGenerator.php (line 251) BaseAdapter.php (line 201)
-Short: Uploads are accepted and injected into the payload without capability checks.
-Detail: image_slots drive the UI, but there is no guard that the selected model supports image input; input images are always appended. Text‑only models will error after credits are deducted.
-Steps: 1) Configure a style with image slots on a text‑only model (e.g., DALL‑E). 2) Upload images and generate.
-Expected: UI/validation blocks upload or rejects before charging.
-Actual: Request includes images; generation fails.
-Fix: Enforce supports_image_input in admin config and generation validation; hide slots or block with a clear message.
-Priority: High
-
-H3 — Cleanup can delete valid files or skip deletions when storage_path is a URL
-Part: 4 — Integration & Sync
-Location: CleanupOrphanImages.php (line 68) CleanupOrphanImages.php (line 138)
-Short: Cleanup assumes storage_path is a relative object key.
-Detail: URL‑based paths are deleted using the full URL (no‑op) and orphan detection compares file keys to URLs, so valid files can be deleted as “orphan” or never deleted.
-Steps: 1) Save a GeneratedImage with a full URL in storage_path. 2) Run images:cleanup.
-Expected: URL normalized to object key before delete/compare.
-Actual: Incorrect deletion or missed cleanup.
-Fix: Normalize URL to a relative object key for delete and orphan checks.
-Priority: High
-
-Medium
-
-M1 — Style update blocked when OpenRouter /models is down or incomplete
-Part: 2 — API & Backend
-Location: StyleController.php (line 82) StyleController.php (line 217) OpenRouterService.php (line 160)
-Short: Validation requires model ID to exist in fetched list even during outages.
-Detail: fetchImageModels falls back to a limited list on API failure. Styles using non‑fallback models fail validation even if already in use.
-Steps: 1) Make /models unreachable. 2) Edit a style using a non‑fallback model. 3) Save.
-Expected: Allow existing model IDs or warn when list is stale.
-Actual: Validation error blocks save.
-Fix: Use last‑known‑good cache or bypass validation when API fails.
-Priority: Medium
-
-M2 — image_capable_model_ids cache not cleared on settings update
-Part: 3 — Image Gen & OpenRouter
-Location: SettingsController.php (line 95) ImageGenerator.php (line 251)
-Short: Model capability validation can stay stale after API key/base URL changes.
-Detail: Settings update clears OpenRouter caches but not image_capable_model_ids, so generation validation may be wrong for up to 1 hour.
-Steps: 1) Change API key/base URL. 2) Generate with a newly supported model.
-Expected: Validation uses fresh model list.
-Actual: Old list persists until TTL expires.
-Fix: Clear image_capable_model_ids when $refreshModels is true.
-Priority: Medium
-
-M3 — Upload size validation ignores base64 expansion and system images
-Part: 3 — Image Gen & OpenRouter
-Location: ImageGenerator.php (line 613) OpenRouterService.php (line 408)
-Short: Raw size check doesn’t reflect actual payload size.
-Detail: Base64 adds ~33% overhead and system images are appended later without total‑size validation, so provider payload limits can be exceeded.
-Steps: 1) Upload images near 25MB and configure multiple system images. 2) Generate.
-Expected: Pre‑validation on encoded payload size.
-Actual: Oversized payload sent; provider rejects.
-Fix: Include base64 expansion and system images in size checks; lower raw limits.
-Priority: Medium
-
-M4 — Storage privacy mismatch (public MinIO vs “7‑day link” UX)
-Part: 4 — Integration & Sync
-Location: filesystems.php (line 69) image-generator.blade.php (line 492)
-Short: Disk is public while UI implies time‑limited access.
-Detail: minio is configured as public, but UI says share links expire in 7 days, which may be false if the bucket is public.
-Steps: 1) Generate image. 2) Access direct storage URL after 7 days.
-Expected: Access only via pre‑signed URLs.
-Actual: Direct URL may remain accessible.
-Fix: Make bucket private and use temporaryUrl, or update UX copy.
-Priority: Medium
-
-M5 — Custom prompt can be stale on Generate click
-Part: 1 — Logic & UX/UI
-Location: image-generator.blade.php (line 194)
-Short: wire:model.blur may not sync latest input.
-Detail: Clicking Generate can fire before blur updates customInput, so the last keystrokes are dropped.
-Steps: 1) Type prompt. 2) Immediately click Generate.
-Expected: Latest text used.
-Actual: Previous value used.
-Fix: Use wire:model.defer with submit or wire:model.live.
-Priority: Medium
-
-M6 — Credits displayed as integers, mismatching fractional balances
-Part: 1 — Logic & UX/UI
-Location: app.blade.php (line 133) index.blade.php (line 15) image-generator.blade.php (line 349)
-Short: UI rounds credits while backend supports decimals.
-Detail: Credits can be fractional (e.g., VietQR amount not divisible by 1000); UI rounds to 0 decimals, misleading balances and affordability.
-Steps: 1) Add 1.5 credits. 2) Check header/wallet balance.
-Expected: Accurate decimal display or integer‑only credits.
-Actual: Rounded display (e.g., 2).
-Fix: Display decimals consistently or enforce integer credits.
-Priority: Medium
-
-M7 — API inactive‑user check returns HTML redirect instead of JSON
-Part: 2 — API & Backend
-Location: api.php (line 18) EnsureUserIsActive.php (line 37)
-Short: API clients receive 302 redirect to login.
-Detail: EnsureUserIsActive is web‑oriented and redirects; for API calls it should return JSON 401/403.
-Steps: 1) Mark user inactive. 2) Call /api/user with a valid token.
-Expected: JSON 401/403.
-Actual: HTML redirect.
-Fix: Add API‑specific middleware or return JSON when expectsJson().
-Priority: Medium
-
-M8 — Duplicate image slot keys are allowed
-Part: 1 — Logic & UX/UI
-Location: StyleController.php (line 109) StyleController.php (line 239)
-Short: No uniqueness constraint on image_slots.*.key.
-Detail: Duplicate keys cause uploaded images to overwrite each other in uploadedImages, producing incorrect prompt mapping.
-Steps: 1) Save a style with duplicate slot keys. 2) Upload two images.
-Expected: Validation error or auto‑dedupe.
-Actual: One image overwrites the other.
-Fix: Enforce unique keys in validation and UI generation.
-Priority: Medium
-
-Low
-
-L1 — Raw OpenRouter error details can surface to users
-Part: 3 — Image Gen & OpenRouter
-Location: OpenRouterService.php (line 496) ImageGenerator.php (line 495)
-Short: API error body is stored and shown in UI.
-Detail: Provider errors can include raw payload snippets or internal details, which end up displayed to users.
-Steps: 1) Trigger an OpenRouter error. 2) Wait for job failure.
-Expected: Sanitized, user‑friendly error.
-Actual: Raw API error snippet shown.
-Fix: Store a clean message; log raw body only.
-Priority: Low
-
-L2 — API response shapes inconsistent
-Part: 2 — API & Backend
-Location: api.php (line 21) InternalApiController.php (line 34)
-Short: /api/user returns a bare object while internal APIs return {success: ...}.
-Detail: Clients must special‑case responses; schema is inconsistent.
-Steps: Call /api/user and /api/internal/wallet/adjust.
-Expected: Consistent envelope or documented differences.
-Actual: Mixed response shapes.
-Fix: Standardize the envelope or document per‑endpoint schema.
-Priority: Low
-
-L3 — Mobile menu icon toggling leaves a blank button
-Part: 1 — Logic & UX/UI
-Location: app.blade.php (line 221) app.blade.php (line 353)
-Short: menu-icon-xmark element is missing.
-Detail: When menu opens, bars icon is hidden but no X icon appears.
-Steps: Open the mobile menu.
-Expected: Bars icon switches to X.
-Actual: Icon disappears.
-Fix: Add the X icon element or adjust toggle logic.
-Priority: Low
-
-L4 — Unused artifacts increase maintenance surface
-Part: 4 — Integration & Sync
-Location: web_debug.php _form.blade.php
-Short: Dead files not referenced by routes/views.
-Detail: Debug routes file isn’t loaded; legacy admin form isn’t referenced.
-Steps: Search for references.
-Expected: Remove or wire in intentionally.
-Actual: Unused files remain.
-Fix: Delete or integrate explicitly.
-Priority: Low
-
-L5 — Cannot clear OpenRouter API key via settings form
-Part: 2 — API & Backend
-Location: SettingsController.php (line 46)
-Short: Empty input does not clear existing key.
-Detail: filled() guard prevents clearing the key, making key rotation/disablement awkward.
-Steps: Submit settings with empty API key.
-Expected: Key cleared or explicit “clear key” action.
-Actual: Key remains unchanged.
-Fix: Add a clear‑key control or allow empty to delete.
-Priority: Low
-
+L1 — Raw OpenRouter error details can surface to users. Part: 3. Location: OpenRouterService.php (line 496), GenerateImageJob.php (line 110). Short: provider error body is stored and shown. Detail: API error bodies can include sensitive or noisy details that appear in UI. Steps: (1) Trigger OpenRouter error. (2) Wait for failure. Expected: sanitized user‑friendly error. Actual: raw error snippet displayed. Fix: store a clean message; log raw body only. Priority: Low.
+L2 — API response envelopes inconsistent. Part: 2. Location: api.php (line 21), InternalApiController.php (line 95). Short: /api/user returns a bare object while internal APIs wrap responses. Detail: clients must special‑case response shapes. Steps: call /api/user and /api/internal/wallet/adjust. Expected: consistent envelope. Actual: mixed formats. Fix: standardize envelopes or document per‑endpoint schema. Priority: Low.
+L3 — Mobile menu icon toggling hides icon. Part: 1. Location: app.blade.php (line 220), app.blade.php (line 354). Short: menu-icon-xmark is referenced but not rendered. Detail: when menu opens, bars icon hides and no X icon appears. Steps: open mobile menu. Expected: bars icon switches to X. Actual: icon disappears. Fix: add the X icon element or adjust toggle logic. Priority: Low.
+L4 — Unused artifacts remain in repo. Part: 4. Location: web_debug.php, _form.blade.php. Short: files are not referenced by route providers or views. Detail: dead code paths can drift and confuse maintenance. Steps: search for references. Expected: remove or wire intentionally. Actual: unused files remain. Fix: delete or integrate explicitly. Priority: Low.
+L5 — Cannot clear OpenRouter API key via settings form. Part: 2. Location: SettingsController.php (line 45). Short: filled() guard prevents clearing. Detail: empty submissions leave the previous key intact. Steps: submit settings with empty key. Expected: key cleared or explicit clear action. Actual: key stays unchanged. Fix: add a clear‑key action or allow empty to delete. Priority: Low.
 API Inventory
-
-Internal (first‑party)
+Internal
 
 Method	Endpoint	Purpose	Auth	Required Inputs	Optional Inputs	Output	Notes
-GET	/api/user	Current user info	auth:sanctum + active	Token/session	—	{id,name,email,credits}	Bare object, no envelope.
-POST	/api/internal/wallet/adjust	Credit/debit user wallet	X-API-Secret	user_id, amount, reason	source, reference_id	{success,transaction_id,new_balance} or error	Throttled throttle:60,1.
-POST	/api/internal/payment/callback	VietQR webhook credit	X-API-Secret	user_id, amount, transaction_ref	—	{success,transaction_id,new_balance}	Converts amount/1000; idempotent by source+reference_id.
-POST	/livewire/...	Livewire image generation + polling	Session auth	Component state	—	Livewire JSON + HTML diff	Internal Livewire routes.
+GET	/api/user	Current user info	auth:sanctum + active	token/session	—	{id,name,email,credits}	Bare object (no envelope).
+POST	/api/internal/wallet/adjust	Credit/debit user wallet	X-API-Secret	user_id, amount, reason	source, reference_id	{success,transaction_id,new_balance} or {success:false,error}	Throttled throttle:60,1.
+POST	/api/internal/payment/callback	VietQR webhook credit	X-API-Secret	user_id, amount, transaction_ref	—	{success,transaction_id,new_balance}	Idempotent by source+reference_id, credits = amount/1000.
+POST	/livewire/*	Image generation + polling	Session auth	Livewire payload	—	Livewire JSON/HTML	Generated by Livewire, not explicitly routed.
 External
 
 Service	Endpoint	Purpose	Headers/Params	Payload/Response	Notes
-OpenRouter	{base}/chat/completions	Image generation	Authorization, HTTP-Referer, X-Title	model, messages, modalities, optional image_config	Timeout 120s, retry 3.
-OpenRouter	{base}/models	Model discovery	Same headers	data[] with modalities	Cached 1h.
-OpenRouter	{base}/key	Key/balance	Same headers	data	Used in admin dashboard.
+OpenRouter	{base}/chat/completions	Image generation	Authorization, HTTP-Referer, X-Title	model, messages, modalities, optional image_config; response choices[].message.images[]	Timeout 120s, retries on 429/5xx.
+OpenRouter	{base}/models	Model discovery	same headers	data[] models	Cached 1h.
+OpenRouter	{base}/key	Balance/credits	same headers	data	Used in admin dashboard.
 VietQR	https://api.vietqr.io/image/{bankId}-{accountNumber}-{template}.jpg	QR code	Query: accountName, addInfo, amount?	Image	Used in wallet page.
+Questions / Assumptions
+
+Are credits intended to be integer‑only or can they be fractional?
+Do any generated_images.storage_path values currently store full URLs in production?
+Are any styles configured with image slots but models lacking input_modalities: image?
+Is the MinIO bucket intended to be private (pre‑signed only) or public?
+Should is_featured/is_new be implemented or removed?
 Test Gaps
 
-No tests for GenerateImageJob success/failure/refund flows and race conditions.
-No tests for OpenRouter adapters (Gemini/Flux/GPT/Generic) payload/response parsing.
-No tests for internal API idempotency/authorization and error handling.
-No tests for images:cleanup URL vs path normalization and orphan detection.
-Open Questions / Assumptions
-
-Are credits intended to be integer‑only? If yes, enforce at DB/API/UI; if no, update UI formatting.
-Do you still store any storage_path as full URLs? If not, cleanup risk is lower but still latent.
-Are any styles configured with models that don’t accept image input?
-Brief summary: 3 High, 8 Medium, 5 Low issues; the biggest risks are async job stalls without server‑side refunds, missing image‑input capability checks, and cleanup path handling for URL storage paths.
-
-If you want me to act on fixes next, pick one:
-
-Fix High‑priority issues (watchdog/refund, model input validation, cleanup normalization).
-Align API/UX inconsistencies (stale cache, API responses, credit display, input sync).
-Add targeted tests for image generation, OpenRouter parsing, internal APIs, and cleanup.
+No tests for GenerateImageJob success/failure/refund flows or watchdog/race conditions.
+No tests for OpenRouter adapters (payload prep + response parsing).
+No tests for internal API idempotency/authorization error paths.
+No tests for images:cleanup URL normalization and orphan detection.
