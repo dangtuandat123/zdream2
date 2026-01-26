@@ -851,12 +851,23 @@ class OpenRouterService
 
     /**
      * Check if host is private or local (SSRF protection)
+     * [FIX API-03] Enhanced to handle IP literals directly
      */
     protected function isPrivateOrLocalHost(string $host): bool
     {
         // Block localhost
         if (in_array(strtolower($host), ['localhost', '127.0.0.1', '::1', '0.0.0.0'], true)) {
             return true;
+        }
+        
+        // [FIX API-03] Check if host is already an IP literal
+        if (filter_var($host, FILTER_VALIDATE_IP)) {
+            // It's an IP address, validate directly
+            return filter_var(
+                $host,
+                FILTER_VALIDATE_IP,
+                FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE
+            ) === false;
         }
         
         // Resolve hostname to IP and check if private

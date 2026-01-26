@@ -213,7 +213,20 @@ public function edit(Style $style): View
             'thumbnail_url' => 'nullable|url|max:500',
             'price' => 'required|numeric|min:0',
             'sort_order' => 'nullable|integer|min:0',
-            'openrouter_model_id' => 'required|string|max:255',
+            // [FIX IMG-01] Validate model image-capable same as store()
+            'openrouter_model_id' => [
+                'required', 
+                'string', 
+                'max:255',
+                function ($attribute, $value, $fail) {
+                    $models = $this->modelManager->fetchModels();
+                    $validIds = array_column($models, 'id');
+                    
+                    if (!in_array($value, $validIds)) {
+                        $fail("Model ID '{$value}' không hợp lệ hoặc không hỗ trợ tạo ảnh.");
+                    }
+                },
+            ],
             'base_prompt' => 'required|string|max:10000',
             // HIGH-05 FIX: Validate aspect_ratio against supported list
             'aspect_ratio' => ['nullable', 'string', 'max:20', Rule::in(array_keys($this->openRouterService->getAspectRatios()))],

@@ -306,7 +306,9 @@
             <span class="text-white/50">Chi phí</span>
             <div class="flex items-center gap-2">
                 <i class="fa-solid fa-gem w-5 h-5 text-cyan-400"></i>
-                <span class="text-xl font-bold text-white">{{ number_format($style->price ?? 0, 0) }}</span>
+                {{-- [FIX UX-04] Hiển thị decimal nếu không phải số nguyên --}}
+                @php $price = $style->price ?? 0; @endphp
+                <span class="text-xl font-bold text-white">{{ $price == floor($price) ? number_format($price, 0) : number_format($price, 2) }}</span>
                 <span class="text-white/50">Xu</span>
             </div>
         </div>
@@ -484,9 +486,10 @@
                     </button>
                 </div>
 
+                {{-- [FIX UX-05] Thông báo đúng thời hạn pre-signed URL (7 ngày) --}}
                 <p class="text-xs text-white/30 text-center">
                     <i class="fa-solid fa-info-circle mr-1"></i>
-                    Link có hiệu lực trong {{ \App\Models\Setting::get('image_expiry_days', 30) }} ngày
+                    Link chia sẻ có hiệu lực trong 7 ngày
                 </p>
             </div>
         </div>

@@ -18,19 +18,24 @@ class StylesController extends Controller
      */
     public function index(Request $request): View
     {
+        // [FIX UX-03] Khởi tạo biến filter để tránh undefined
+        $search = $request->input('search', '');
+        $priceFilter = $request->input('price');
+        $sort = $request->input('sort', 'popular');
+
+        // [FIX UX-02] Không gọi ordered() ở đây, để sort options quyết định
         $query = Style::query()
             ->active()
-            ->with('tag') // Eager load tag
-            ->ordered()
+            ->with('tag')
             ->withCount('generatedImages');
 
         // Search by name
-        if ($search = $request->input('search')) {
+        if (!empty($search)) {
             $query->where('name', 'like', '%' . $search . '%');
         }
 
         // Filter by price range
-        if ($priceFilter = $request->input('price')) {
+        if ($priceFilter) {
             match ($priceFilter) {
                 'free' => $query->where('price', 0),
                 'low' => $query->where('price', '>', 0)->where('price', '<=', 5),
@@ -40,14 +45,13 @@ class StylesController extends Controller
             };
         }
 
-        // Sort options
-        $sort = $request->input('sort', 'popular');
+        // [FIX UX-02] Sort options - sử dụng reorder() để clear existing orders
         match ($sort) {
-            'newest' => $query->latest(),
-            'price_asc' => $query->orderBy('price', 'asc'),
-            'price_desc' => $query->orderBy('price', 'desc'),
-            'popular' => $query->orderByDesc('generated_images_count'),
-            default => $query->ordered(),
+            'newest' => $query->reorder()->latest(),
+            'price_asc' => $query->reorder()->orderBy('price', 'asc')->orderBy('name', 'asc'),
+            'price_desc' => $query->reorder()->orderBy('price', 'desc')->orderBy('name', 'asc'),
+            'popular' => $query->reorder()->orderByDesc('generated_images_count'),
+            default => $query->ordered(), // Chỉ gọi ordered() ở default
         };
 
         $styles = $query->paginate(16)->withQueryString();

@@ -150,10 +150,13 @@ class InternalApiController extends Controller
                 }
                 
                 // Chưa có, tạo mới
+                // [FIX API-01] Chuyển đổi VND → Xu (1.000 VND = 1 Xu)
+                $creditsToAdd = $validated['amount'] / 1000;
+                
                 $transaction = $this->walletService->addCredits(
                     $user,
-                    $validated['amount'],
-                    'Nạp tiền qua VietQR',
+                    $creditsToAdd,
+                    'Nạp tiền qua VietQR (' . number_format($validated['amount']) . ' VND)',
                     'vietqr',
                     $validated['transaction_ref']
                 );

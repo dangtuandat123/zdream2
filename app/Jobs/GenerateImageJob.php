@@ -77,6 +77,18 @@ class GenerateImageJob implements ShouldQueue
             return;
         }
 
+        // [FIX INT-02] Check style còn active không trước khi gọi API
+        $style->refresh();
+        if (!$style->is_active) {
+            Log::warning('GenerateImageJob: Style disabled during processing', [
+                'image_id' => $generatedImage->id,
+                'style_id' => $style->id,
+            ]);
+            $generatedImage->markAsFailed('Style đã bị tắt trong khi xử lý');
+            $this->refundCreditsDirectly($user, $generatedImage);
+            return;
+        }
+
         try {
             Log::info('GenerateImageJob started', [
                 'image_id' => $generatedImage->id,

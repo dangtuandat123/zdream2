@@ -491,7 +491,10 @@ class ImageGenerator extends Component
             
         } elseif ($image->status === GeneratedImage::STATUS_FAILED) {
             $this->isGenerating = false;
-            $this->errorMessage = 'Tạo ảnh thất bại. Credits đã được hoàn lại.';
+            // [FIX IMG-05] Hiển thị lỗi cụ thể thay vì chung chung
+            $this->errorMessage = $image->error_message 
+                ? 'Lỗi: ' . $image->error_message . '. Credits đã được hoàn lại.'
+                : 'Tạo ảnh thất bại. Credits đã được hoàn lại.';
             
         } elseif ($image->status === GeneratedImage::STATUS_PROCESSING) {
             // HIGH-02 FIX: Watchdog - kiểm tra timeout
