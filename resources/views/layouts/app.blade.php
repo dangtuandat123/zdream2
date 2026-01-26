@@ -127,26 +127,95 @@
                 <!-- Right: Actions -->
                 <div class="flex items-center gap-2">
                     @auth
-                        <div class="hidden sm:flex items-center bg-white/[0.03] rounded-full border border-white/[0.08] p-1">
-                            <a href="{{ route('wallet.index') }}" class="px-3 h-8 rounded-full inline-flex items-center justify-center gap-2 text-white/80 hover:bg-white/[0.05] transition-all">
-                                <i class="fa-solid fa-gem text-cyan-400" style="font-size: 14px;"></i>
-                                <span class="font-semibold text-sm text-white/95 leading-none">{{ number_format(auth()->user()->credits, 0) }}</span>
-                            </a>
-                            <a href="{{ route('wallet.index') }}" class="h-8 px-4 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white font-medium text-sm inline-flex items-center justify-center gap-1.5 hover:from-purple-400 hover:to-pink-400 transition-all leading-none">
-                                <i class="fa-solid fa-plus" style="font-size: 11px;"></i>
-                                <span>Nạp Xu</span>
-                            </a>
+                        <!-- Xu Display -->
+                        <a href="{{ route('wallet.index') }}" class="hidden sm:flex items-center gap-1.5 px-3 h-9 rounded-full bg-white/[0.03] border border-white/[0.08] text-white/80 hover:bg-white/[0.05] transition-all">
+                            <i class="fa-solid fa-gem text-cyan-400" style="font-size: 14px;"></i>
+                            <span class="font-semibold text-sm text-white/95">{{ number_format(auth()->user()->credits, 0) }}</span>
+                        </a>
+
+                        <!-- Nạp Xu Button -->
+                        <a href="{{ route('wallet.index') }}" class="hidden sm:inline-flex h-9 px-4 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white font-medium text-sm items-center justify-center gap-1.5 hover:from-purple-400 hover:to-pink-400 transition-all">
+                            <i class="fa-solid fa-plus" style="font-size: 11px;"></i>
+                            <span>Nạp Xu</span>
+                        </a>
+
+                        <!-- User Dropdown -->
+                        <div class="relative" x-data="{ open: false }">
+                            <button @click="open = !open" @click.outside="open = false" class="flex items-center gap-2 h-9 px-1 rounded-full bg-white/[0.03] border border-white/[0.08] text-white/80 hover:bg-white/[0.05] transition-all">
+                                <div class="w-7 h-7 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white text-xs font-bold leading-none pr-[1px]">
+                                    {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
+                                </div>
+                                <span class="hidden sm:block text-sm font-medium text-white/90 max-w-[150px] lg:max-w-[200px] truncate">{{ str_contains(auth()->user()->name, '@') ? Str::limit(Str::before(auth()->user()->name, '@'), 20) . '...' : Str::limit(auth()->user()->name, 20) }}</span>
+                                <i class="fa-solid fa-chevron-down text-[10px] text-white/50 transition-transform duration-200" :class="{ 'rotate-180': open }"></i>
+                            </button>
+
+                            <!-- Dropdown Menu -->      
+                            <div x-show="open" 
+                                 x-transition:enter="transition ease-out duration-200"
+                                 x-transition:enter-start="opacity-0 scale-95 -translate-y-2"
+                                 x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                                 x-transition:leave="transition ease-in duration-150"
+                                 x-transition:leave-start="opacity-100 scale-100"
+                                 x-transition:leave-end="opacity-0 scale-95"
+                                 class="absolute right-0 mt-2 w-56 rounded-xl bg-[#1a1a24] border border-white/[0.1] shadow-xl shadow-black/50 overflow-hidden z-50">
+                                
+                                <!-- User Info -->
+                                <div class="p-3 border-b border-white/[0.05]">
+                                    <p class="text-sm font-medium text-white truncate">{{ auth()->user()->name }}</p>
+                                    <p class="text-xs text-white/50 truncate">{{ auth()->user()->email }}</p>
+                                </div>
+
+                                <!-- Menu Links -->
+                                <div class="py-1">
+                                    <a href="{{ route('dashboard') }}" class="flex items-center gap-3 px-4 py-2.5 text-sm text-white/70 hover:text-white hover:bg-white/[0.05] transition-colors">
+                                        <i class="fa-solid fa-gauge w-4 text-purple-400"></i>
+                                        Dashboard
+                                    </a>
+                                    <a href="{{ route('profile.edit') }}" class="flex items-center gap-3 px-4 py-2.5 text-sm text-white/70 hover:text-white hover:bg-white/[0.05] transition-colors">
+                                        <i class="fa-solid fa-user w-4 text-blue-400"></i>
+                                        Hồ sơ cá nhân
+                                    </a>
+                                    <a href="{{ route('history.index') }}" class="flex items-center gap-3 px-4 py-2.5 text-sm text-white/70 hover:text-white hover:bg-white/[0.05] transition-colors">
+                                        <i class="fa-solid fa-images w-4 text-green-400"></i>
+                                        Ảnh của tôi
+                                    </a>
+                                    <a href="{{ route('wallet.index') }}" class="flex items-center gap-3 px-4 py-2.5 text-sm text-white/70 hover:text-white hover:bg-white/[0.05] transition-colors">
+                                        <i class="fa-solid fa-wallet w-4 text-yellow-400"></i>
+                                        Ví tiền
+                                        <span class="ml-auto text-xs text-cyan-400 font-medium">{{ number_format(auth()->user()->credits, 0) }} Xu</span>
+                                    </a>
+                                </div>
+
+                                @if(auth()->user()->is_admin)
+                                    <div class="border-t border-white/[0.05] py-1">
+                                        <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-3 px-4 py-2.5 text-sm text-cyan-400 hover:bg-cyan-500/10 transition-colors">
+                                            <i class="fa-solid fa-crown w-4"></i>
+                                            Admin Panel
+                                        </a>
+                                    </div>
+                                @endif
+
+                                <!-- Logout -->
+                                <div class="border-t border-white/[0.05] py-1">
+                                    <form method="POST" action="{{ route('logout') }}">
+                                        @csrf
+                                        <button type="submit" class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-400 hover:bg-red-500/10 transition-colors">
+                                            <i class="fa-solid fa-right-from-bracket w-4"></i>
+                                            Đăng xuất
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
                         </div>
 
+                        <!-- Mobile: Xu Display -->
                         <a href="{{ route('wallet.index') }}" class="sm:hidden h-9 px-3 rounded-full bg-white/[0.03] border border-white/[0.08] flex items-center gap-2 text-white/80">
                             <i class="fa-solid fa-gem w-4 h-4 text-cyan-400"></i>
                             <span class="font-semibold text-sm text-white/95">{{ number_format(auth()->user()->credits, 0) }}</span>
                         </a>
-                        @if(auth()->user()->is_admin)
-                            <a href="{{ route('admin.dashboard') }}" class="hidden sm:inline-flex items-center justify-center h-9 px-4 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 text-sm font-medium hover:bg-cyan-500/20 transition-all leading-none">Admin</a>
-                        @endif
                     @else
                         <a href="{{ route('login') }}" class="hidden sm:inline-flex items-center justify-center h-9 px-4 rounded-full bg-white/[0.03] border border-white/[0.1] text-white/80 text-sm font-medium hover:bg-white/[0.06] transition-all leading-none">Đăng nhập</a>
+                        <a href="{{ route('register') }}" class="hidden sm:inline-flex items-center justify-center h-9 px-4 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white text-sm font-medium hover:from-purple-400 hover:to-pink-400 transition-all leading-none">Đăng ký</a>
                     @endauth
                     <button id="menu-btn" class="md:hidden w-10 h-10 rounded-xl bg-white/[0.03] border border-white/[0.08] flex items-center justify-center text-white/80 hover:text-white hover:bg-white/[0.06] transition-all">
                         <i class="fa-solid fa-bars w-4 h-4"></i>
