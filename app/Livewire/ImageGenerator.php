@@ -245,16 +245,28 @@ class ImageGenerator extends Component
             return;
         }
 
-        // [BUG FIX] Kiểm tra model có hỗ trợ image generation không
-        $modelManager = app(\App\Services\ModelManager::class);
-        $imageCapableModels = collect($modelManager->fetchModels())->pluck('id')->toArray();
-        if (!in_array($this->style->openrouter_model_id, $imageCapableModels)) {
-            $this->errorMessage = 'Model AI của style này không còn hỗ trợ. Vui lòng liên hệ admin.';
-            Log::error('Style uses non-image-capable model', [
-                'style_id' => $this->style->id,
+        // [BUG FIX P3-04] Kiểm tra model có hỗ trợ image generation không
+        // Sử dụng cache để tránh gọi API mỗi request
+        try {
+            $imageCapableModels = cache()->remember('image_capable_model_ids', 3600, function () {
+                $modelManager = app(\App\Services\ModelManager::class);
+                return collect($modelManager->fetchModels())->pluck('id')->toArray();
+            });
+            
+            if (!empty($imageCapableModels) && !in_array($this->style->openrouter_model_id, $imageCapableModels)) {
+                $this->errorMessage = 'Model AI của style này không còn hỗ trợ. Vui lòng liên hệ admin.';
+                Log::error('Style uses non-image-capable model', [
+                    'style_id' => $this->style->id,
+                    'model_id' => $this->style->openrouter_model_id,
+                ]);
+                return;
+            }
+        } catch (\Exception $e) {
+            // [BUG FIX P3-05] Fallback: nếu API fail, cho phép generate nhưng log warning
+            Log::warning('ModelManager validation skipped due to API error', [
+                'error' => $e->getMessage(),
                 'model_id' => $this->style->openrouter_model_id,
             ]);
-            return;
         }
 
         // Validate all inputs
@@ -494,21 +506,32 @@ class ImageGenerator extends Component
                 // Mark as failed và refund credits
                 $image->markAsFailed('Timeout: Job không hoàn thành sau ' . self::PROCESSING_TIMEOUT_MINUTES . ' phút');
                 
-                // Refund credits
+                // Refund credits - [BUG FIX P4-02] Check nếu đã refund trước đó
                 $user = $image->user;
                 if ($user && $image->credits_used > 0) {
-                    try {
-                        $walletService = app(WalletService::class);
-                        $walletService->refundCredits(
-                            $user,
-                            $image->credits_used,
-                            'Watchdog timeout refund',
-                            (string) $image->id
-                        );
-                    } catch (\Throwable $e) {
-                        Log::error('Watchdog: Failed to refund credits', [
+                    // Check if already refunded
+                    $alreadyRefunded = \App\Models\WalletTransaction::where('source', 'refund')
+                        ->where('reference_id', (string) $image->id)
+                        ->exists();
+                    
+                    if (!$alreadyRefunded) {
+                        try {
+                            $walletService = app(WalletService::class);
+                            $walletService->refundCredits(
+                                $user,
+                                $image->credits_used,
+                                'Watchdog timeout refund',
+                                (string) $image->id
+                            );
+                        } catch (\Throwable $e) {
+                            Log::error('Watchdog: Failed to refund credits', [
+                                'image_id' => $image->id,
+                                'error' => $e->getMessage(),
+                            ]);
+                        }
+                    } else {
+                        Log::info('Watchdog: Refund already processed, skipping', [
                             'image_id' => $image->id,
-                            'error' => $e->getMessage(),
                         ]);
                     }
                 }

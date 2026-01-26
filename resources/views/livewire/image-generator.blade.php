@@ -184,7 +184,7 @@
 
                     <!-- Custom Input -->
                     @if($style->allow_user_custom_prompt)
-                        <div x-data="{ charCount: 0 }">
+                        <div x-data="{ charCount: @js(strlen($customInput ?? '')) }" x-init="charCount = $refs.customTextarea?.value?.length || 0">
                             <label class="block text-sm font-medium text-white/60 mb-2 inline-flex items-center gap-2">
                                 <i class="fa-solid fa-pencil" style="font-size: 14px;"></i>
                                 <span>Mô tả thêm</span>
