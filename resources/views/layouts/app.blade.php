@@ -259,13 +259,39 @@
                 </a>
                 @auth
                     <a href="{{ route('history.index') }}" class="flex items-center justify-between px-4 py-3 rounded-xl bg-white/[0.02] hover:bg-white/[0.05] border border-white/[0.05] text-white/80 hover:text-white transition-all">
-                        <span class="flex items-center gap-3"><i class="fa-solid fa-clock-rotate-left w-4 h-4 text-purple-400"></i> Lịch sử</span>
+                        <span class="flex items-center gap-3"><i class="fa-solid fa-images w-4 h-4 text-purple-400"></i> Ảnh của tôi</span>
                         <i class="fa-solid fa-chevron-right w-3 h-3 text-white/30"></i>
                     </a>
-                    <a href="{{ route('profile.edit') }}" class="flex items-center justify-between px-4 py-3 rounded-xl bg-white/[0.02] hover:bg-white/[0.05] border border-white/[0.05] text-white/80 hover:text-white transition-all">
-                        <span class="flex items-center gap-3"><i class="fa-solid fa-user w-4 h-4 text-purple-400"></i> Hồ sơ</span>
-                        <i class="fa-solid fa-chevron-right w-3 h-3 text-white/30"></i>
-                    </a>
+                    
+                    <!-- User Menu Dropdown -->
+                    <div x-data="{ userMenuOpen: false }" class="mt-2">
+                        <button @click="userMenuOpen = !userMenuOpen" class="w-full flex items-center justify-between px-4 py-3 rounded-xl bg-gradient-to-r from-purple-500/10 to-pink-500/10 hover:from-purple-500/20 hover:to-pink-500/20 border border-purple-500/30 text-white hover:text-white transition-all">
+                            <span class="flex items-center gap-3">
+                                <div class="w-7 h-7 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white text-xs font-bold shadow-lg shadow-purple-500/30">
+                                    {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
+                                </div>
+                                <span class="truncate max-w-[150px] font-medium">{{ str_contains(auth()->user()->name, '@') ? Str::before(auth()->user()->name, '@') : auth()->user()->name }}</span>
+                            </span>
+                            <i class="fa-solid fa-chevron-down w-3 h-3 text-purple-400 transition-transform duration-200" :class="{ 'rotate-180': userMenuOpen }"></i>
+                        </button>
+                        
+                        <!-- Dropdown Items -->
+                        <div x-show="userMenuOpen" x-collapse class="mt-1 ml-4 space-y-1">
+                            <a href="{{ route('dashboard') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm text-white/70 hover:text-white hover:bg-white/[0.05] transition-colors">
+                                <i class="fa-solid fa-gauge w-4 text-purple-400"></i>
+                                Dashboard
+                            </a>
+                            <a href="{{ route('profile.edit') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm text-white/70 hover:text-white hover:bg-white/[0.05] transition-colors">
+                                <i class="fa-solid fa-user w-4 text-blue-400"></i>
+                                Hồ sơ cá nhân
+                            </a>
+                            <a href="{{ route('wallet.index') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm text-white/70 hover:text-white hover:bg-white/[0.05] transition-colors">
+                                <i class="fa-solid fa-wallet w-4 text-yellow-400"></i>
+                                Ví tiền
+                                <span class="ml-auto text-xs text-cyan-400 font-medium">{{ number_format(auth()->user()->credits, 0) }} Xu</span>
+                            </a>
+                        </div>
+                    </div>
                     @if(auth()->user()->is_admin)
                         <a href="{{ route('admin.dashboard') }}" class="flex items-center justify-between px-4 py-3 rounded-xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 hover:bg-cyan-500/15 transition-all">
                             <span class="flex items-center gap-3"><i class="fa-solid fa-crown w-4 h-4"></i> Admin Panel</span>
