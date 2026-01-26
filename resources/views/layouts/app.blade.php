@@ -218,7 +218,7 @@
                         <a href="{{ route('register') }}" class="hidden sm:inline-flex items-center justify-center h-9 px-4 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white text-sm font-medium hover:from-purple-400 hover:to-pink-400 transition-all leading-none">Đăng ký</a>
                     @endauth
                     <button id="menu-btn" class="md:hidden w-10 h-10 rounded-xl bg-white/[0.03] border border-white/[0.08] flex items-center justify-center text-white/80 hover:text-white hover:bg-white/[0.06] transition-all">
-                        <i class="fa-solid fa-bars w-4 h-4"></i>
+                        <i id="menu-icon-bars" class="fa-solid fa-bars w-4 h-4"></i>
                     </button>
                 </div>
             </div>
@@ -226,7 +226,7 @@
     </header>
 
     <!-- ========== MOBILE MENU OVERLAY ========== -->
-    <div id="menu-overlay" class="fixed inset-0 z-40 md:hidden opacity-0 pointer-events-none transition-opacity duration-300">
+    <div id="menu-overlay" class="fixed inset-0 z-[60] md:hidden opacity-0 pointer-events-none transition-opacity duration-300">
         <div class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
         <div id="mobile-menu" class="mobile-menu closed absolute right-0 top-0 h-full w-72 max-w-[85vw] bg-[#0a0a0f]/98 backdrop-blur-[24px] border-l border-white/[0.08]">
             <div class="p-4 border-b border-white/[0.05] flex items-center justify-between">
@@ -324,11 +324,19 @@
             const menuOverlay = document.getElementById('menu-overlay');
             const mobileMenu = document.getElementById('mobile-menu');
             
+            const menuIconBars = document.getElementById('menu-icon-bars');
+            const menuIconXmark = document.getElementById('menu-icon-xmark');
+            let menuIsOpen = false;
+            
             function openMenu() {
                 menuOverlay.classList.remove('opacity-0', 'pointer-events-none');
                 menuOverlay.classList.add('opacity-100');
                 mobileMenu.classList.remove('closed');
                 mobileMenu.classList.add('open');
+                // Toggle icon
+                if (menuIconBars) menuIconBars.style.display = 'none';
+                if (menuIconXmark) menuIconXmark.style.display = 'inline-flex';
+                menuIsOpen = true;
             }
             
             function closeMenu() {
@@ -336,9 +344,21 @@
                 menuOverlay.classList.remove('opacity-100');
                 mobileMenu.classList.add('closed');
                 mobileMenu.classList.remove('open');
+                // Toggle icon
+                if (menuIconBars) menuIconBars.style.display = 'inline-flex';
+                if (menuIconXmark) menuIconXmark.style.display = 'none';
+                menuIsOpen = false;
             }
             
-            if (menuBtn) menuBtn.addEventListener('click', openMenu);
+            function toggleMenu() {
+                if (menuIsOpen) {
+                    closeMenu();
+                } else {
+                    openMenu();
+                }
+            }
+            
+            if (menuBtn) menuBtn.addEventListener('click', toggleMenu);
             if (closeMenuBtn) closeMenuBtn.addEventListener('click', closeMenu);
             if (menuOverlay) menuOverlay.addEventListener('click', function(e) {
                 if (e.target === menuOverlay || e.target.classList.contains('backdrop-blur-sm')) closeMenu();
