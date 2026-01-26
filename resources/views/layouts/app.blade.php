@@ -139,8 +139,8 @@
                             <span>Nạp Xu</span>
                         </a>
 
-                        <!-- User Dropdown -->
-                        <div class="relative" x-data="{ open: false }">
+                        <!-- User Dropdown (Hidden on mobile, shown on sm+) -->
+                        <div class="relative hidden sm:block" x-data="{ open: false }">
                             <button @click="open = !open" @click.outside="open = false" class="flex items-center gap-2 h-9 px-1 rounded-full bg-white/[0.03] border border-white/[0.08] text-white/80 hover:bg-white/[0.05] transition-all">
                                 <div class="w-7 h-7 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white text-xs font-bold leading-none pr-[1px]">
                                     {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
