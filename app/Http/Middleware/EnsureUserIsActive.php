@@ -26,6 +26,14 @@ class EnsureUserIsActive
         
         // Chỉ kiểm tra nếu đã đăng nhập
         if ($user && !$user->is_active) {
+            // [FIX loi.md M7] Return JSON for API requests
+            if ($request->expectsJson() || $request->is('api/*')) {
+                return response()->json([
+                    'success' => false,
+                    'error' => 'Tài khoản của bạn đã bị vô hiệu hóa.',
+                ], 403);
+            }
+            
             // Logout user bị ban
             Auth::logout();
             

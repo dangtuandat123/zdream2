@@ -191,7 +191,7 @@
                                 <span class="text-white/30 text-xs font-normal">(tùy chọn)</span>
                             </label>
                             <textarea 
-                                wire:model.blur="customInput"
+                                wire:model.live.debounce.300ms="customInput"
                                 x-on:input="charCount = $event.target.value.length"
                                 maxlength="500"
                                 rows="2"

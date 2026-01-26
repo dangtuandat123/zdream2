@@ -106,7 +106,8 @@ public function create(): View
             
             // Image Slots (Dynamic array)
             'image_slots' => 'nullable|array|max:10', // Max 10 slots
-            'image_slots.*.key' => ['required_with:image_slots', 'string', 'max:100', 'regex:/^[a-zA-Z0-9_-]+$/'],
+            // [FIX loi.md M8] Add distinct to prevent duplicate keys
+            'image_slots.*.key' => ['required_with:image_slots', 'string', 'max:100', 'regex:/^[a-zA-Z0-9_-]+$/', 'distinct'],
             'image_slots.*.label' => 'required_with:image_slots|string|max:255',
             'image_slots.*.description' => 'nullable|string|max:500',
             'image_slots.*.required' => 'nullable',
@@ -236,7 +237,8 @@ public function edit(Style $style): View
             'is_new' => 'nullable',
             
             'image_slots' => 'nullable|array|max:10',
-            'image_slots.*.key' => ['required_with:image_slots', 'string', 'max:100', 'regex:/^[a-zA-Z0-9_-]+$/'],
+            // [FIX loi.md M8] Add distinct to prevent duplicate keys in update
+            'image_slots.*.key' => ['required_with:image_slots', 'string', 'max:100', 'regex:/^[a-zA-Z0-9_-]+$/', 'distinct'],
             'image_slots.*.label' => 'required_with:image_slots|string|max:255',
             'image_slots.*.description' => 'nullable|string|max:500',
             'image_slots.*.required' => 'nullable',
