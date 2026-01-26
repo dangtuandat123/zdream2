@@ -122,7 +122,7 @@
                                         wire:key="option-{{ Str::slug($groupName) }}-default"
                                         class="relative flex flex-col items-center gap-1.5 p-1 rounded-xl transition-all duration-300 
                                             {{ $isDefaultSelected 
-                                                ? 'bg-gradient-to-br from-cyan-500/20 to-purple-500/20 shadow-[0_0_20px_rgba(6,182,212,0.3)]' 
+                                                ? 'bg-gradient-to-br from-cyan-500/20 to-cyan-500/20 shadow-[0_0_20px_rgba(6,182,212,0.3)]' 
                                                 : 'hover:bg-white/[0.05]' }}">
                                         {{-- Selected indicator --}}
                                         @if($isDefaultSelected)
@@ -133,7 +133,7 @@
                                         {{-- Icon container - hình vuông --}}
                                         <div class="w-14 h-14 sm:w-16 sm:h-16 aspect-square rounded-md transition-all duration-300
                                             {{ $isDefaultSelected 
-                                                ? 'bg-gradient-to-br from-cyan-500/30 to-purple-500/30 border-2 border-cyan-400/50' 
+                                                ? 'bg-gradient-to-br from-cyan-500/30 to-cyan-500/30 border-2 border-cyan-400/50' 
                                                 : 'bg-[#1a1a2e] border border-white/10 hover:border-white/20' }}
                                             flex items-center justify-center">
                                             <i class="fa-solid fa-ban {{ $isDefaultSelected ? 'text-cyan-400' : 'text-white/30' }}" style="font-size: 20px;"></i>
@@ -152,7 +152,7 @@
                                             wire:key="option-{{ $option->id }}"
                                             class="relative flex flex-col items-center gap-1.5 p-1 rounded-xl transition-all duration-300
                                                 {{ $isSelected 
-                                                    ? 'bg-gradient-to-br from-cyan-500/20 to-purple-500/20 shadow-[0_0_20px_rgba(6,182,212,0.3)]' 
+                                                    ? 'bg-gradient-to-br from-cyan-500/20 to-cyan-500/20 shadow-[0_0_20px_rgba(6,182,212,0.3)]' 
                                                     : 'hover:bg-white/[0.05]' }}">
                                             {{-- Selected indicator --}}
                                             @if($isSelected)
