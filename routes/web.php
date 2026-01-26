@@ -84,6 +84,9 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     // CRUD Styles (loại show vì không cần)
     Route::resource('styles', AdminStyleController::class)->except(['show']);
 
+    // CRUD Tags
+    Route::resource('tags', App\Http\Controllers\Admin\TagController::class)->except(['show']);
+
     // CRUD Style Options (nested)
     Route::resource('styles.options', AdminStyleOptionController::class)
         ->except(['show'])

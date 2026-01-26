@@ -280,6 +280,20 @@
                                {{ old('is_active', $style->is_active) ? 'checked' : '' }}>
                         <label for="is_active" class="text-sm text-white/70">Kích hoạt style</label>
                     </div>
+
+                    <div>
+                        <label for="tag_id" class="block text-sm font-medium text-white/70 mb-2">Tag hiển thị</label>
+                        <select id="tag_id" name="tag_id"
+                                class="w-full px-4 py-3 rounded-xl bg-white/[0.03] border border-white/[0.08] text-white/90 focus:outline-none focus:ring-2 focus:ring-purple-500/40">
+                            <option value="">-- Không có tag --</option>
+                            @foreach($tags as $tag)
+                                <option value="{{ $tag->id }}" {{ old('tag_id', $style->tag_id) == $tag->id ? 'selected' : '' }}>
+                                    {{ $tag->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                        <p class="mt-1 text-xs text-white/40">Chọn tag để gắn lên style này (HOT, MỚI, SALE...)</p>
+                    </div>
                 </div>
             </div>
 

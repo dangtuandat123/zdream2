@@ -100,7 +100,7 @@
                     </select>
                 </div>
 
-                <div class="flex items-center gap-4">
+                <div class="flex flex-wrap items-center gap-4">
                     <label class="flex items-center gap-2 cursor-pointer">
                         <input type="checkbox" name="allow_user_custom_prompt" value="1"
                                {{ old('allow_user_custom_prompt', $isEdit ? $style->allow_user_custom_prompt : false) ? 'checked' : '' }}
@@ -113,6 +113,20 @@
                                {{ old('is_active', $isEdit ? $style->is_active : true) ? 'checked' : '' }}
                                class="w-5 h-5 rounded bg-white/[0.03] border-white/[0.08] text-primary-500 focus:ring-primary-500/50">
                         <span class="text-sm text-white/70">Active (hiển thị cho user)</span>
+                    </label>
+
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" name="is_featured" value="1"
+                               {{ old('is_featured', $isEdit ? $style->is_featured : false) ? 'checked' : '' }}
+                               class="w-5 h-5 rounded bg-white/[0.03] border-white/[0.08] text-orange-500 focus:ring-orange-500/50">
+                        <span class="text-sm text-orange-400">🔥 Đánh dấu HOT</span>
+                    </label>
+
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" name="is_new" value="1"
+                               {{ old('is_new', $isEdit ? $style->is_new : false) ? 'checked' : '' }}
+                               class="w-5 h-5 rounded bg-white/[0.03] border-white/[0.08] text-cyan-500 focus:ring-cyan-500/50">
+                        <span class="text-sm text-cyan-400">⚡ Đánh dấu MỚI</span>
                     </label>
                 </div>
             </div>

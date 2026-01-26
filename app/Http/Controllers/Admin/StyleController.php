@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Style;
 use App\Models\StyleOption;
+use App\Models\Tag;
 use App\Services\ModelManager;
 use App\Services\OpenRouterService;
 use Illuminate\Http\RedirectResponse;
@@ -50,21 +51,22 @@ class StyleController extends Controller
     }
 
     /**
-     * Form tạo Style mới
-     */
-    public function create(): View
-    {
-        $models = $this->modelManager->fetchModels();
-        $groupedModels = $this->modelManager->groupByProvider($models);
-        $aspectRatios = $this->openRouterService->getAspectRatios();
+ * Form tạo Style mới
+ */
+public function create(): View
+{
+    $models = $this->modelManager->fetchModels();
+    $groupedModels = $this->modelManager->groupByProvider($models);
+    $aspectRatios = $this->openRouterService->getAspectRatios();
+    $tags = Tag::active()->ordered()->get();
 
-        return view('admin.styles.create', [
-            'models' => $models,
-            'groupedModels' => $groupedModels,
-            'aspectRatios' => $aspectRatios,
-        ]);
-    }
-
+    return view('admin.styles.create', [
+        'models' => $models,
+        'groupedModels' => $groupedModels,
+        'aspectRatios' => $aspectRatios,
+        'tags' => $tags,
+    ]);
+}
     /**
      * Lưu Style mới
      */
@@ -99,6 +101,8 @@ class StyleController extends Controller
             'aspect_ratio' => ['nullable', 'string', 'max:20', Rule::in(array_keys($this->openRouterService->getAspectRatios()))],
             'allow_user_custom_prompt' => 'nullable',
             'is_active' => 'nullable',
+            'is_featured' => 'nullable',
+            'is_new' => 'nullable',
             
             // Image Slots (Dynamic array)
             'image_slots' => 'nullable|array|max:10', // Max 10 slots
@@ -153,6 +157,7 @@ class StyleController extends Controller
                     'system_images' => $systemImages,
                     'allow_user_custom_prompt' => $request->boolean('allow_user_custom_prompt'),
                     'is_active' => $request->boolean('is_active'),
+                    'tag_id' => $request->input('tag_id') ?: null,
                 ]);
 
                 // Tạo Options
@@ -178,23 +183,24 @@ class StyleController extends Controller
     }
 
     /**
-     * Form chỉnh sửa Style
-     */
-    public function edit(Style $style): View
-    {
-        $style->load('options');
-        $models = $this->modelManager->fetchModels();
-        $groupedModels = $this->modelManager->groupByProvider($models);
-        $aspectRatios = $this->openRouterService->getAspectRatios();
+ * Form chỉnh sửa Style
+ */
+public function edit(Style $style): View
+{
+    $style->load('options');
+    $models = $this->modelManager->fetchModels();
+    $groupedModels = $this->modelManager->groupByProvider($models);
+    $aspectRatios = $this->openRouterService->getAspectRatios();
+    $tags = Tag::active()->ordered()->get();
 
-        return view('admin.styles.edit', [
-            'style' => $style,
-            'models' => $models,
-            'groupedModels' => $groupedModels,
-            'aspectRatios' => $aspectRatios,
-        ]);
-    }
-
+    return view('admin.styles.edit', [
+        'style' => $style,
+        'models' => $models,
+        'groupedModels' => $groupedModels,
+        'aspectRatios' => $aspectRatios,
+        'tags' => $tags,
+    ]);
+}
     /**
      * Cập nhật Style
      */
@@ -213,6 +219,8 @@ class StyleController extends Controller
             'aspect_ratio' => ['nullable', 'string', 'max:20', Rule::in(array_keys($this->openRouterService->getAspectRatios()))],
             'allow_user_custom_prompt' => 'nullable',
             'is_active' => 'nullable',
+            'is_featured' => 'nullable',
+            'is_new' => 'nullable',
             
             'image_slots' => 'nullable|array|max:10',
             'image_slots.*.key' => ['required_with:image_slots', 'string', 'max:100', 'regex:/^[a-zA-Z0-9_-]+$/'],
@@ -269,6 +277,7 @@ class StyleController extends Controller
                     'system_images' => !empty($systemImages) ? $systemImages : null,
                     'allow_user_custom_prompt' => $request->boolean('allow_user_custom_prompt'),
                     'is_active' => $request->boolean('is_active'),
+                    'tag_id' => $request->input('tag_id') ?: null,
                 ]);
 
                 // C1 FIX: Chỉ sync options khi request có options field

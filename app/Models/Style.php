@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
 
@@ -23,6 +24,7 @@ use Illuminate\Support\Str;
  * @property string $base_prompt
  * @property array|null $config_payload
  * @property bool $is_active
+ * @property int|null $tag_id
  * @property bool $allow_user_custom_prompt
  * @property int $sort_order
  */
@@ -40,6 +42,7 @@ class Style extends Model
         'base_prompt',
         'config_payload',
         'is_active',
+        'tag_id',
         'allow_user_custom_prompt',
         'image_slots',
         'system_images',
@@ -52,6 +55,7 @@ class Style extends Model
         'image_slots' => 'array',
         'system_images' => 'array',
         'is_active' => 'boolean',
+        'tag_id' => 'integer',
         'allow_user_custom_prompt' => 'boolean',
         'sort_order' => 'integer',
     ];
@@ -61,6 +65,7 @@ class Style extends Model
      */
     protected $attributes = [
         'is_active' => true,
+        'tag_id' => null,
         'allow_user_custom_prompt' => false,
         'sort_order' => 0,
     ];
@@ -114,6 +119,14 @@ class Style extends Model
     public function generatedImages(): HasMany
     {
         return $this->hasMany(GeneratedImage::class);
+    }
+
+    /**
+     * Lấy tag của style này
+     */
+    public function tag(): BelongsTo
+    {
+        return $this->belongsTo(Tag::class);
     }
 
     // =========================================

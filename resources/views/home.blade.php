@@ -106,13 +106,9 @@
                                 <div class="absolute inset-0 bg-gradient-to-t from-[#0a0a0f] via-transparent to-transparent opacity-80"></div>
                                 <div class="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-pink-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                                 <div class="absolute top-2 sm:top-3 left-2 sm:left-3 right-2 sm:right-3 flex items-start justify-between">
-                                    @if($index < 3)
-                                        <span class="inline-flex items-center gap-1 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full bg-gradient-to-r from-orange-500 to-red-500 text-white text-[9px] sm:text-xs font-bold shadow-lg">
-                                            <i class="fa-solid fa-fire w-2 h-2 sm:w-2.5 sm:h-2.5"></i> HOT
-                                        </span>
-                                    @elseif($index < 5)
-                                        <span class="inline-flex items-center gap-1 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full bg-gradient-to-r from-cyan-500 to-blue-500 text-white text-[9px] sm:text-xs font-bold shadow-lg">
-                                            <i class="fa-solid fa-bolt w-2 h-2 sm:w-2.5 sm:h-2.5"></i> MỚI
+                                    @if($style->tag)
+                                        <span class="inline-flex items-center gap-1 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full bg-gradient-to-r from-{{ $style->tag->color_from }} to-{{ $style->tag->color_to }} text-white text-[9px] sm:text-xs font-bold shadow-lg">
+                                            <i class="fa-solid {{ $style->tag->icon }} w-2 h-2 sm:w-2.5 sm:h-2.5"></i> {{ $style->tag->name }}
                                         </span>
                                     @else
                                         <div></div>
