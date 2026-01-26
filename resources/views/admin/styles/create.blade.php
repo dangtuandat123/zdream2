@@ -86,6 +86,18 @@
                             <p class="mt-1 text-sm text-red-400">{{ $message }}</p>
                         @enderror
                     </div>
+
+                    {{-- [FIX loi.md #7] Tag select dropdown --}}
+                    <div>
+                        <label for="tag_id" class="block text-sm font-medium text-white/70 mb-2">Danh mục (Tag)</label>
+                        <select id="tag_id" name="tag_id"
+                                class="w-full px-4 py-3 rounded-xl bg-white/[0.03] border border-white/[0.08] text-white/90 focus:outline-none focus:ring-2 focus:ring-purple-500/40 focus:border-purple-500/40 transition-all">
+                            <option value="">Không có danh mục</option>
+                            @foreach($tags as $tag)
+                                <option value="{{ $tag->id }}" {{ old('tag_id') == $tag->id ? 'selected' : '' }}>{{ $tag->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
                 </div>
             </div>
 
@@ -270,17 +282,15 @@
                         @enderror
                     </div>
 
+                    {{-- [FIX loi.md #8] Dynamic aspect ratios from config --}}
                     <div>
                         <label for="aspect_ratio" class="block text-sm font-medium text-white/70 mb-2">Aspect Ratio mặc định</label>
                         <select id="aspect_ratio" name="aspect_ratio"
                                 class="w-full px-4 py-3 rounded-xl bg-white/[0.03] border border-white/[0.08] text-white/90 focus:outline-none focus:ring-2 focus:ring-purple-500/40 focus:border-purple-500/40 transition-all">
                             <option value="">Mặc định (1:1)</option>
-                            <option value="1:1" {{ old('aspect_ratio') == '1:1' ? 'selected' : '' }}>1:1 (Vuông)</option>
-                            <option value="16:9" {{ old('aspect_ratio') == '16:9' ? 'selected' : '' }}>16:9 (Ngang)</option>
-                            <option value="9:16" {{ old('aspect_ratio') == '9:16' ? 'selected' : '' }}>9:16 (Dọc)</option>
-                            <option value="4:3" {{ old('aspect_ratio') == '4:3' ? 'selected' : '' }}>4:3 (Cổ điển)</option>
-                            <option value="3:4" {{ old('aspect_ratio') == '3:4' ? 'selected' : '' }}>3:4 (Chân dung)</option>
-                            <option value="21:9" {{ old('aspect_ratio') == '21:9' ? 'selected' : '' }}>21:9 (Ultrawide)</option>
+                            @foreach($aspectRatios as $ratio => $label)
+                                <option value="{{ $ratio }}" {{ old('aspect_ratio') == $ratio ? 'selected' : '' }}>{{ $ratio }} - {{ $label }}</option>
+                            @endforeach
                         </select>
                         <p class="mt-1 text-xs text-white/40">Chỉ áp dụng cho model hỗ trợ ⚙️ image_config (Gemini)</p>
                     </div>

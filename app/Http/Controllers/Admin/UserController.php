@@ -104,10 +104,24 @@ class UserController extends Controller
             'is_admin' => 'boolean',
         ]);
 
+        // [FIX loi.md #4] Guard self-demotion
+        $newIsAdmin = $request->boolean('is_admin');
+        if ($user->id === auth()->id() && $user->is_admin && !$newIsAdmin) {
+            return back()->with('error', 'Không thể tự bỏ quyền admin của chính mình!');
+        }
+
+        // [FIX loi.md #4] Ensure at least one admin remains
+        if ($user->is_admin && !$newIsAdmin) {
+            $otherAdminCount = User::where('is_admin', true)->where('id', '!=', $user->id)->count();
+            if ($otherAdminCount === 0) {
+                return back()->with('error', 'Phải có ít nhất 1 admin trong hệ thống!');
+            }
+        }
+
         $user->update([
             'name' => $validated['name'],
             'email' => $validated['email'],
-            'is_admin' => $request->boolean('is_admin'),
+            'is_admin' => $newIsAdmin,
         ]);
 
         return redirect()

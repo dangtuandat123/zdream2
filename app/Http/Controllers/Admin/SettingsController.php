@@ -109,6 +109,8 @@ class SettingsController extends Controller
     {
         Cache::forget('openrouter_image_models');
         Cache::forget('openrouter_models_enhanced');
+        // [FIX loi.md #6] Clear image_capable_model_ids cache
+        Cache::forget('image_capable_model_ids');
 
         try {
             $modelManager = app(\App\Services\ModelManager::class);

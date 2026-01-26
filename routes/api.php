@@ -12,9 +12,10 @@ use Illuminate\Support\Facades\Route;
 
 // =============================================
 // USER API (Sanctum Authentication)
+// [FIX loi.md #5] Added 'active' middleware to check is_active
 // =============================================
 
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware(['auth:sanctum', 'active'])->group(function () {
     
     // Get current user info
     Route::get('/user', function (Request $request) {

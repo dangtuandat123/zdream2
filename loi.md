@@ -1,185 +1,48 @@
-﻿Part 1 — Logic & UX/UI
-[Critical] Blade templates gây lỗi render (500) theo log
+﻿
+Priority	Part	Issue	Location	Short	Detail	Steps to Reproduce	Expected	Actual	Fix
+High	Integration & Sync	Processing jobs can stall without server-side watchdog	ImageGenerator.php (line 453)<br>CleanupOrphanImages.php (line 27)	Refund/timeout depends on client polling.	Timeout/refund logic only runs in pollImageStatus; if the user leaves or a queue worker is down, processing rows never flip and credits remain locked.	1) Set QUEUE_CONNECTION to async and stop the worker.<br>2) Generate an image and close the tab.<br>3) Wait >5 minutes and check DB.	Processing auto-fails and credits refund without client presence.	Record stays processing; credits remain deducted.	Add a scheduled watchdog to fail/refund old processing rows; consider queue failure monitoring.
+High	Image Gen & OpenRouter	Image uploads allowed for models without image-input capability	ImageGenerator.php (line 312)<br>BaseAdapter.php (line 198)	Uploads allowed even if the model cannot accept images.	Input images are always injected into the payload; no validation against supports_image_input or model capabilities.	1) Configure a style with image slots on a model lacking image input (e.g., DALL-E).<br>2) Upload images and generate.	UI blocks uploads or backend rejects before charging.	Request is sent with images; OpenRouter errors and generation fails.	Validate model input capabilities in admin/config and at generation; hide image slots or block with a clear message.
+High	Integration & Storage	Cleanup may delete valid files or skip deletions when storage_path is a URL	CleanupOrphanImages.php (line 65)<br>CleanupOrphanImages.php (line 136)	Cleanup assumes storage_path is a relative path.	Cleanup deletes by raw storage_path and checks orphans by exact match; URL-based records can be misclassified.	1) Insert a record with storage_path as a full URL (legacy).<br>2) Run images:cleanup.	Cleanup handles URL-based paths correctly and preserves referenced files.	Files may be deleted as “orphan” or never deleted.	Normalize URL paths (parse to relative) before deleting and when comparing.
+High	Logic & UX	Admin can demote self (and potentially remove the last admin)	UserController.php (line 99)	No guard against self-demotion.	Update path allows toggling is_admin for any user, including the current admin.	1) Admin edits own user.<br>2) Uncheck admin and save.	Self-demotion blocked or requires another admin; at least one admin always remains.	Admin loses access; if last admin, system is locked out.	Add a guard to prevent self-demotion or enforce minimum admin count.
+Medium	API & Backend	Inactive users can still access API via Sanctum tokens	Kernel.php (line 31)<br>api.php (line 17)	API doesn’t enforce is_active.	EnsureUserIsActive is only in web middleware; API routes skip it.	1) Ban user (is_active=false).<br>2) Call /api/user with existing token.	401/403 for inactive users.	User data is returned.	Apply active middleware to API routes or add explicit checks.
+Medium	Image Gen & OpenRouter	Model capability cache not invalidated on refresh	ImageGenerator.php (line 248)<br>SettingsController.php (line 95)	image_capable_model_ids stays stale.	Refresh clears OpenRouter caches but not image_capable_model_ids.	1) Refresh models in admin.<br>2) Generate with a newly supported model.	Validation uses refreshed list immediately.	Validation may still use stale list for up to 1h.	Clear image_capable_model_ids when models/settings are refreshed.
+Medium	Logic & UX	Tag cannot be set on style creation	create.blade.php (line 287)<br>StyleController.php (line 151)	Create form lacks tag_id.	Store action accepts tag_id, but create view never sends it.	1) Create a style and look for tag selection.	Tag selectable during creation.	Tag always null until edited later.	Add tag_id field to create form and validate.
+Medium	Logic & UX	Aspect ratio options in admin are hard-coded and out of sync with config	create.blade.php (line 273)<br>edit.blade.php (line 255)<br>services_custom.php (line 27)	Admin forms show a subset of supported ratios.	Config defines more ratios than the admin UI exposes.	1) Add a new ratio in config.<br>2) Open create/edit forms.	New ratio appears in admin UI.	New ratio missing.	Render options from $aspectRatios passed by controller.
+Medium	Logic & UX	Custom prompt can be stale when generating	image-generator.blade.php (line 193)<br>image-generator.blade.php (line 319)	wire:model.blur can drop last keystrokes.	Textarea updates only on blur; clicking generate can fire before blur syncs.	1) Type custom prompt.<br>2) Click Generate immediately.	Full text is used.	Previous value may be used.	Use wire:model.defer or a form submit to ensure sync.
+Medium	Integration & Storage	MinIO disk is public while app assumes private + pre-signed URLs	filesystems.php (line 59)<br>StorageService.php (line 70)	Privacy expectation mismatched with config.	Disk uses public visibility, but UI implies time-limited access.	Generate image and access the direct storage URL externally.	Access only via temporary URL.	Direct URL may work indefinitely.	Set MinIO disk visibility to private and ensure temporary URLs; or update UX copy if public is intended.
+Medium	API & Backend	Style updates can fail if OpenRouter API is down or list is incomplete	StyleController.php (line 217)	Validation blocks saving when model list fetch fails.	Validation requires openrouter_model_id to be in fetched models list.	1) Make OpenRouter /models unavailable.<br>2) Edit a style using a non-fallback model.	Admin can save existing model or gets a soft warning.	Validation error blocks save.	Allow existing model IDs or bypass validation when API is unreachable.
+Medium	Image Gen & OpenRouter	Total image size validation ignores base64 expansion	ImageGenerator.php (line 613)	Raw size ≠ payload size.	Base64 increases size ~33%, so 25MB raw can exceed provider limits.	Upload images totaling ~25MB and generate.	Validation fails before sending.	Request is sent; provider may reject.	Use stricter raw limit or calculate base64 size.
+Low	Image Gen & OpenRouter	Raw OpenRouter error body can surface to users	OpenRouterService.php (line 484)<br>ImageGenerator.php (line 492)	Error messages leak raw response details.	Async failure stores raw response body and displays it in UI.	Trigger OpenRouter error in async mode and wait for failure.	Clean, localized error.	Raw API error snippet shown.	Sanitize user-facing messages; log raw body only.
+Low	API & Backend	Response shapes are inconsistent across endpoints	api.php (line 20)<br>InternalApiController.php (line 94)	Mixed envelopes across APIs.	/api/user returns a bare object, internal APIs return {success: ...}.	Call /api/user and /api/internal/wallet/adjust.	Consistent schema or documented differences.	Mixed shapes; client must special-case.	Standardize response envelope or document explicitly.
+Low	Integration & Maintainability	Unused artifacts remain	web_debug.php (line 1)<br>RouteServiceProvider.php (line 31)<br>_form.blade.php (line 1)	Dead code increases maintenance overhead.	Debug routes file is not loaded; legacy form partial isn’t referenced.	Search for usage.	No unused files.	Dead artifacts remain.	Remove or wire them explicitly.
+API Inventory
+Internal APIs
 
-Location: app.blade.php (line 261), app.blade.php (line 627), image-generator.blade.php (line 461), laravel.log
-Short: Log ghi nhận lỗi Blade “unexpected end of file/else/endif” làm trang không render.
-Details: Log ngày 2026-01-25/26 báo ViewException ở layout và image-generator; lỗi dạng này sẽ chặn toàn bộ UI.
-Steps: 1) Mở trang bất kỳ dùng layout hoặc Studio; 2) Khi Blade mismatch xảy ra, page trả 500.
-Expected: Trang render bình thường.
-Actual: 500 kèm lỗi Blade parse.
-Fix: Soát cặp @if/@endif, @auth/@endauth, @foreach/@endforeach; chạy php artisan view:clear và thêm bước CI php artisan view:cache để bắt lỗi sớm.
-[Low] Polling lịch sử ảnh chạy liên tục dù không cần
+Endpoint	Purpose	Auth	Required Inputs	Optional Inputs	Output	Notes
+GET /api/user	Current user info	auth:sanctum	Valid token/session	None	{id,name,email,credits}	No is_active enforcement (see finding).
+POST /api/internal/wallet/adjust	Credit/debit user wallet	X-API-Secret header	user_id, amount (non-zero), reason	source, reference_id	{success, transaction_id, new_balance} or {success:false,error}	Throttled throttle:60,1.
+POST /api/internal/payment/callback	VietQR webhook credit	X-API-Secret header	user_id, amount, transaction_ref	None	{success, transaction_id, new_balance}	Converts amount/1000 to credits; idempotent by source+reference.
+Livewire endpoints (auto)	Image generation, polling, uploads	Session auth	Component state	N/A	Livewire JSON + HTML diff	Livewire handles /livewire/... behind the scenes.
+External APIs
 
-Location: user-style-history.blade.php (line 11)
-Short: wire:poll.5s tạo request nền không cần thiết.
-Details: Khi user chỉ xem Studio nhưng không generate, Livewire vẫn polling 5s/lần.
-Steps: 1) Mở trang Studio; 2) Không tạo ảnh; 3) Quan sát network có request Livewire mỗi 5s.
-Expected: Polling chỉ bật khi đang generate hoặc theo event.
-Actual: Polling luôn bật.
-Fix: Gating polling theo trạng thái generate hoặc thay bằng event imageGenerated.
-Part 2 — API & Backend
-[High] Endpoint debug public lộ dữ liệu models
+External API	Purpose	Endpoint	Headers/Params	Payload/Response	Notes
+OpenRouter	Image generation	POST {baseUrl}/chat/completions	Authorization, Content-Type, HTTP-Referer, X-Title	Payload includes model, messages, modalities, optional image_config; response choices[0].message.images[].image_url.url	timeout 120s, retry 3, connectTimeout 15.
+OpenRouter	Model discovery	GET {baseUrl}/models	Same headers	Response data[] with modalities	Cached 1h.
+OpenRouter	Key/balance	GET {baseUrl}/key	Same headers	Response data	Method exists; no route/UI usage.
+VietQR	QR image generation	GET https://api.vietqr.io/image/{bankId}-{accountNumber}-{template}.jpg?...	Query params: accountName, addInfo, optional amount	Image response	Used on wallet page.
+Test Gaps
 
-Location: web.php (lines 30-39)
-Short: /debug/models mở công khai, trả JSON danh sách model/provider.
-Details: Endpoint này lộ thông tin nội bộ, không phù hợp production.
-Steps: 1) Truy cập /debug/models khi chưa đăng nhập; 2) Nhận JSON.
-Expected: 403/404 hoặc chỉ chạy ở local.
-Actual: JSON trả về đầy đủ.
-Fix: Gắn middleware admin, hoặc bật điều kiện app()->environment('local') rồi return 404.
-[High] DB thiếu cột deleted_at gây lỗi truy vấn
+No tests for GenerateImageJob success/failure/refund paths.
+No tests for OpenRouter adapter payload/response parsing (Gemini/Flux/GPT/Generic).
+No tests for internal API idempotency and validation edge cases.
+No tests for cleanup command handling URL vs path storage_path and timeouts.
+Assumptions
 
-Location: 2026_01_24_132004_add_deleted_at_to_generated_images_table.php, laravel.log
-Short: Log ghi Unknown column generated_images.deleted_at.
-Details: Soft deletes đã dùng trong model nhưng DB chưa migrate đầy đủ.
-Steps: 1) Chạy app trên DB chưa migrate; 2) Truy cập trang dùng GeneratedImage; 3) Lỗi SQL.
-Expected: Trang tải bình thường.
-Actual: SQLSTATE 42S22.
-Fix: Bắt buộc migrate trên deploy; thêm health-check xác nhận migration đã chạy.
-[High] Ảnh lưu với ACL public có thể lộ dữ liệu
+Third‑party code in vendor/, node_modules/, and public/build/ not audited.
+storage_path can be stored as a full URL (controllers already handle this case).
+Queue workers can be down or misconfigured in production.
+Next steps if you want me to act on this:
 
-Location: StorageService.php (line 71)
-Short: Storage::put(..., 'public') lưu ảnh public.
-Details: UI nói link có hạn, nhưng ACL public khiến ai có URL đều truy cập được lâu dài.
-Steps: 1) Tạo ảnh; 2) Dùng URL trực tiếp từ storage; 3) Ảnh truy cập công khai.
-Expected: Ảnh private + chỉ truy cập qua presigned URL.
-Actual: Ảnh public (phụ thuộc bucket policy).
-Fix: Lưu private, chỉ dùng temporaryUrl/proxy để tải.
-[Medium] Internal API adjust wallet không idempotent
-
-Location: InternalApiController.php (lines 34-75)
-Short: Gọi /api/internal/wallet/adjust nhiều lần với reference_id giống nhau sẽ cộng/trừ lặp.
-Details: Không có check trùng hoặc unique index cho trường hợp reference_id.
-Steps: 1) Gọi endpoint 2 lần cùng reference_id; 2) Credits thay đổi 2 lần.
-Expected: Lần 2 bị từ chối hoặc trả “already processed”.
-Actual: Credits thay đổi lặp.
-Fix: Thêm unique index (source, reference_id) và check trước khi tạo transaction.
-[Low] Download proxy tải toàn bộ file vào memory
-
-Location: HistoryController.php (lines 130-149)
-Short: Http::get()/Storage::get() đọc toàn bộ ảnh vào RAM.
-Details: Ảnh lớn có thể gây spike memory.
-Steps: 1) Download ảnh lớn; 2) Quan sát memory tăng.
-Expected: Stream file.
-Actual: Load toàn bộ rồi trả response.
-Fix: Dùng response streaming hoặc Storage::download.
-[Low] Không có UI clear OpenRouter API key
-
-Location: SettingsController.php (lines 45-52)
-Short: Để trống không xóa key đã lưu.
-Details: filled() bỏ qua cập nhật khi input rỗng.
-Steps: 1) Lưu API key; 2) Submit rỗng; 3) Key vẫn tồn tại.
-Expected: Có thể xóa key.
-Actual: Key giữ nguyên.
-Fix: Thêm nút “Clear key” hoặc cho phép empty => delete.
-API Inventory (Backend + External)
-
-Endpoint	Mục đích	Auth	Required	Optional	Output
-GET /api/user	Lấy info user hiện tại	Sanctum	none	none	{id,name,email,credits}
-POST /api/internal/wallet/adjust	Cộng/trừ credits nội bộ	X-API-Secret	user_id, amount, reason	source, reference_id	{success, transaction_id, new_balance}
-POST /api/internal/payment/callback	Callback VietQR	X-API-Secret	user_id, amount, transaction_ref	none	{success, transaction_id, new_balance}
-GET {openrouter_base}/models	Lấy models	Bearer	none	none	JSON models
-POST {openrouter_base}/chat/completions	Tạo ảnh	Bearer	model, messages, modalities	image_config	choices[0].message.images
-GET {openrouter_base}/key	Check balance	Bearer	none	none	API key info
-GET https://api.vietqr.io/image/...	QR nạp tiền	none	params trong URL	amount	image/QR
-Part 3 — Image & OpenRouter
-[High] update Style không validate model image-capable
-
-Location: StyleController.php (lines 203-212)
-Short: Admin có thể lưu model text-only hoặc model đã bị xoá.
-Details: openrouter_model_id chỉ check string khi update, không check list image-capable.
-Steps: 1) Edit Style; 2) Set model text-only; 3) Generate.
-Expected: Chặn ngay khi save hoặc trước khi generate.
-Actual: Request OpenRouter trả 400/404 (log có).
-Fix: Thêm validation giống store và guard ở runtime.
-[High] Không có guard runtime cho model không hỗ trợ image
-
-Location: OpenRouterService.php (lines 342-398), ImageGenerator.php (lines 216-279)
-Short: Vẫn gửi modalities: ["image","text"] cho model không image-capable.
-Details: Khi model bị gỡ hoặc không hỗ trợ, lỗi xảy ra ở OpenRouter.
-Steps: 1) Chọn model không image-capable; 2) Generate.
-Expected: Báo lỗi sớm trên server.
-Actual: Fail ở OpenRouter với 400/404.
-Fix: So sánh openrouter_model_id với ModelManager trước khi gọi API.
-[High] Base URL cấu hình không ép /api/v1
-
-Location: OpenRouterService.php (lines 31-39), SettingsController.php (lines 55-65)
-Short: Nhập base URL thiếu /api/v1 dẫn đến 404.
-Details: Service chỉ rtrim('/'), không auto-append /api/v1.
-Steps: 1) Set base URL = https://openrouter.ai; 2) Refresh models.
-Expected: Tự sửa thành .../api/v1.
-Actual: 404 do gọi /models sai đường dẫn.
-Fix: Normalize hoặc validate bắt buộc /api/v1.
-[Medium] Không giới hạn tổng ảnh (user + system) và overhead base64
-
-Location: ImageGenerator.php (lines 568-579), OpenRouterService.php (lines 398-434)
-Short: Vượt giới hạn payload của provider dễ gây 400/413.
-Details: Chỉ tính dung lượng ảnh user; system images + base64 overhead chưa tính.
-Steps: 1) Tạo style với 5 system images + 10 slot; 2) Upload đủ; 3) Generate.
-Expected: Validation chặn vượt giới hạn.
-Actual: Request gửi đi và fail ở provider.
-Fix: Tính tổng bytes (base64) + số ảnh; cấu hình per-model limit.
-[Medium] Fallback model allowlist có thể chứa model không image-capable
-
-Location: services_custom.php (lines 42-54), OpenRouterService.php (lines 173-206)
-Short: Fallback có thể trỏ model không hỗ trợ image => 400.
-Details: Log ngày 2026-01-24 có lỗi “Model does not support modalities”.
-Steps: 1) API /models thiếu output_modalities; 2) Admin chọn model từ fallback; 3) Generate.
-Expected: Chỉ hiển thị model image-capable.
-Actual: Cho phép model không hỗ trợ image.
-Fix: Duy trì allowlist chính xác theo /models hoặc cache danh sách từ API.
-[Low/UX] Thông báo lỗi async quá chung chung
-
-Location: ImageGenerator.php (lines 461-463)
-Short: UI luôn báo “credits đã hoàn lại”, không hiển thị lý do thật.
-Details: GeneratedImage->error_message không được show ngay khi fail.
-Steps: 1) Generate bị provider từ chối; 2) Xem thông báo.
-Expected: Hiển thị lý do (từ error_message).
-Actual: Thông báo chung chung.
-Fix: Hiển thị error_message khi status failed.
-Part 4 — Tích hợp & đồng bộ
-[Medium] Style bị tắt vẫn có thể generate từ tab cũ
-
-Location: ImageGenerator.php (lines 216-236)
-Short: Không kiểm tra is_active trước khi generate.
-Details: Studio mở trước khi admin disable; user vẫn tạo ảnh.
-Steps: 1) Mở Studio style; 2) Admin disable; 3) User generate.
-Expected: Bị chặn ngay.
-Actual: Vẫn gửi request.
-Fix: Check style->is_active trong generate() và trong job.
-[Medium] Xóa ảnh ở Admin không cleanup file nếu storage_path là URL
-
-Location: GeneratedImageController.php (lines 83-86)
-Short: Nếu lưu URL (presigned/custom), file không bị xóa.
-Details: Admin delete chỉ xóa khi path không bắt đầu bằng http.
-Steps: 1) Có ảnh với storage_path là URL; 2) Delete trong Admin.
-Expected: File bị xóa.
-Actual: File còn trên storage.
-Fix: Dùng logic parse URL như HistoryController::destroy.
-[Medium] Watchdog timeout + job failure có thể double-refund
-
-Location: ImageGenerator.php (lines 466-489), GenerateImageJob.php (lines 97-113), GenerateImageJob.php (lines 155-183)
-Short: Refund được gọi từ cả watchdog và job failure.
-Details: Đã có unique index nhưng vẫn log lỗi và UI báo refund không chắc chắn.
-Steps: 1) Job chậm > 5 phút; 2) Watchdog refund; 3) Job fail sau đó.
-Expected: 1 lần refund, UI phản ánh đúng.
-Actual: Refund attempt lặp, log lỗi; UI luôn nói đã hoàn tiền.
-Fix: Thêm refunded_at/refund_tx_id trên GeneratedImage và guard trước khi refund.
-[Low/ops] Expiry ảnh phụ thuộc scheduler
-
-Location: Kernel.php (lines 13-19), CleanupOrphanImages.php
-Short: Nếu cron không chạy, ảnh không hết hạn như UI thông báo.
-Details: UI nói ảnh hết hạn theo image_expiry_days.
-Steps: 1) Deploy không chạy scheduler; 2) Chờ quá hạn.
-Expected: Ảnh bị soft-delete.
-Actual: Ảnh vẫn tồn tại.
-Fix: Bật cron cho scheduler và thêm health-check.
-Testing Gaps
-
-Không có test cho image generation flow, OpenRouter adapter, refund/idempotency, cleanup command, internal APIs; rủi ro regression cao.
-Gợi ý thêm test: generation success/fail + refund idempotent; internal API auth; model validation; cleanup command dry-run.
-Next steps gợi ý
-
-Ưu tiên fix các lỗi Critical/High: Blade parse, debug route, model validation, base URL normalize, storage privacy.
-Chạy php artisan view:clear và migrate đầy đủ DB trước khi test lại.
-Thêm test tối thiểu cho: generation fail/refund, internal API idempotency, model validation.
+Implement fixes for the High‑priority items (watchdog/refund, image‑input validation, cleanup normalization, admin self‑demotion guard).
+Align admin UX/config (tags on create, aspect ratios, cache invalidation) and standardize API responses.
+Add targeted tests for image generation, OpenRouter parsing, internal APIs, and cleanup.
