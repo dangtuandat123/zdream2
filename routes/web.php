@@ -27,19 +27,21 @@ Route::get('/', [HomeController::class, 'index'])->name('home');
 // Styles Gallery (with search, filter, pagination)
 Route::get('/styles', [StylesController::class, 'index'])->name('styles.index');
 
-// DEBUG: Model data inspection
-Route::get('/debug/models', function () {
-    $modelManager = app(\App\Services\ModelManager::class);
-    $models = $modelManager->fetchModels(true);
-    $grouped = $modelManager->groupByProvider($models);
-    
-    return response()->json([
-        'total_models' => count($models),
-        'providers' => array_keys($grouped),
-        'provider_counts' => array_map('count', $grouped),
-        'sample_models' => array_slice($models, 0, 3),
-    ], 200, [], JSON_PRETTY_PRINT);
-});
+// DEBUG: Model data inspection (LOCAL ONLY)
+if (app()->environment('local')) {
+    Route::get('/debug/models', function () {
+        $modelManager = app(\App\Services\ModelManager::class);
+        $models = $modelManager->fetchModels(true);
+        $grouped = $modelManager->groupByProvider($models);
+        
+        return response()->json([
+            'total_models' => count($models),
+            'providers' => array_keys($grouped),
+            'provider_counts' => array_map('count', $grouped),
+            'sample_models' => array_slice($models, 0, 3),
+        ], 200, [], JSON_PRETTY_PRINT);
+    });
+}
 
 
 // =============================================

@@ -81,8 +81,24 @@ class GeneratedImageController extends Controller
     {
         try {
             // Delete from storage if exists
-            if ($image->storage_path && !str_starts_with($image->storage_path, 'http')) {
-                Storage::disk('minio')->delete($image->storage_path);
+            if ($image->storage_path) {
+                $storagePath = $image->storage_path;
+                
+                // [BUG FIX] Xử lý storage_path là URL - extract path từ URL
+                if (str_starts_with($storagePath, 'http')) {
+                    // Parse URL để lấy path: /bucket/generated-images/... -> generated-images/...
+                    $parsed = parse_url($storagePath, PHP_URL_PATH);
+                    if ($parsed) {
+                        // Bỏ phần bucket name (segment đầu tiên)
+                        $segments = explode('/', ltrim($parsed, '/'));
+                        array_shift($segments); // Remove bucket name
+                        $storagePath = implode('/', $segments);
+                    }
+                }
+                
+                if (!empty($storagePath)) {
+                    Storage::disk('minio')->delete($storagePath);
+                }
             }
 
             $userName = $image->user->name ?? 'Unknown';

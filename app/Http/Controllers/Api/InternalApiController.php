@@ -52,6 +52,23 @@ class InternalApiController extends Controller
         $user = User::findOrFail($validated['user_id']);
         $amount = abs($validated['amount']);
         $source = $validated['source'] ?? 'admin_adjust';
+        $referenceId = $validated['reference_id'] ?? null;
+
+        // [BUG FIX] Idempotency check: nếu có reference_id, kiểm tra đã xử lý chưa
+        if ($referenceId) {
+            $existing = WalletTransaction::where('source', $source)
+                ->where('reference_id', $referenceId)
+                ->first();
+            
+            if ($existing) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Transaction already processed',
+                    'transaction_id' => $existing->id,
+                    'new_balance' => $user->fresh()->credits,
+                ]);
+            }
+        }
 
         try {
             if ($validated['amount'] > 0) {
@@ -61,7 +78,7 @@ class InternalApiController extends Controller
                     $amount,
                     $validated['reason'],
                     $source,
-                    $validated['reference_id'] ?? null
+                    $referenceId
                 );
             } else {
                 // Trừ tiền
@@ -70,7 +87,7 @@ class InternalApiController extends Controller
                     $amount,
                     $validated['reason'],
                     $source,
-                    $validated['reference_id'] ?? null
+                    $referenceId
                 );
             }
 

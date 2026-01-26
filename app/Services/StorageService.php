@@ -67,8 +67,8 @@ class StorageService
             // Build full path: generated-images/user-{id}/2026/01/filename.webp
             $path = $this->buildPath($userId, $filename);
 
-            // Upload to storage
-            $saved = Storage::disk($this->disk)->put($path, $decodedImage, 'public');
+            // Upload to storage (PRIVATE - use temporaryUrl for access)
+            $saved = Storage::disk($this->disk)->put($path, $decodedImage);
 
             if (!$saved) {
                 return [
@@ -119,11 +119,19 @@ class StorageService
     }
 
     /**
-     * Lấy URL của ảnh từ path
+     * Lấy URL tạm thời của ảnh từ path (24 giờ expiry)
+     * Sử dụng temporaryUrl vì ảnh lưu private
      */
     public function getUrl(string $path): string
     {
-        return Storage::disk($this->disk)->url($path);
+        try {
+            // Trả về temporaryUrl với expiry 24 giờ
+            return Storage::disk($this->disk)->temporaryUrl($path, now()->addHours(24));
+        } catch (\Exception $e) {
+            // Fallback cho local storage không hỗ trợ temporaryUrl
+            Log::warning('temporaryUrl not supported, using regular url', ['path' => $path]);
+            return Storage::disk($this->disk)->url($path);
+        }
     }
 
     /**

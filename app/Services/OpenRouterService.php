@@ -35,7 +35,15 @@ class OpenRouterService
             $baseUrl = $defaultBaseUrl;
         }
         $this->baseUrl = rtrim($baseUrl, '/');
-        if ($this->baseUrl === '') {
+        
+        // [BUG FIX] Auto-append /api/v1 nếu thiếu
+        if (!str_ends_with($this->baseUrl, '/api/v1')) {
+            // Remove trailing parts if partial path exists
+            $this->baseUrl = preg_replace('#/api(/v\d+)?$#', '', $this->baseUrl);
+            $this->baseUrl .= '/api/v1';
+        }
+        
+        if ($this->baseUrl === '' || $this->baseUrl === '/api/v1') {
             $this->baseUrl = 'https://openrouter.ai/api/v1';
         }
         $this->timeout = config('services_custom.openrouter.timeout', 120);

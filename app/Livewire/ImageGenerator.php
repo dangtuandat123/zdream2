@@ -238,6 +238,25 @@ class ImageGenerator extends Component
             return;
         }
 
+        // [BUG FIX] Kiểm tra style còn active không (có thể bị disable khi tab đang mở)
+        $this->style->refresh(); // Refresh từ DB
+        if (!$this->style->is_active) {
+            $this->errorMessage = 'Style này đã bị tắt. Vui lòng chọn style khác.';
+            return;
+        }
+
+        // [BUG FIX] Kiểm tra model có hỗ trợ image generation không
+        $modelManager = app(\App\Services\ModelManager::class);
+        $imageCapableModels = collect($modelManager->fetchModels())->pluck('id')->toArray();
+        if (!in_array($this->style->openrouter_model_id, $imageCapableModels)) {
+            $this->errorMessage = 'Model AI của style này không còn hỗ trợ. Vui lòng liên hệ admin.';
+            Log::error('Style uses non-image-capable model', [
+                'style_id' => $this->style->id,
+                'model_id' => $this->style->openrouter_model_id,
+            ]);
+            return;
+        }
+
         // Validate all inputs
         if (!$this->validateGenerationInputs()) {
             return;
