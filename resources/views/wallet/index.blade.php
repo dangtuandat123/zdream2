@@ -7,6 +7,9 @@
             <div class="lg:col-span-8 h-full">
                 <div class="bg-white/[0.03] border border-white/[0.08] rounded-2xl overflow-hidden h-full flex flex-col">
                     <div class="p-4 sm:p-5 border-b border-white/[0.05]">
+                        @php
+                            $creditRate = (int) \App\Models\Setting::get('credit_exchange_rate', 1000);
+                        @endphp
                         <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                             <div>
                                 <h2 class="text-lg font-semibold text-white flex items-center gap-2">
@@ -15,7 +18,7 @@
                                     </span>
                                     Nạp Xu bằng VietQR
                                 </h2>
-                                <p class="text-sm text-white/40 mt-1">Tỉ lệ: 1.000 VND = 1 Xu • Tự động cộng sau vài phút</p>
+                                <p class="text-sm text-white/40 mt-1">Tỉ lệ: {{ number_format($creditRate, 0) }} VND = 1 Xu • Tự động cộng sau vài phút</p>
                             </div>
                             <div class="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/[0.04] border border-white/[0.08]">
                                 <span class="inline-flex w-5 h-5 items-center justify-center rounded-full bg-cyan-500/15">

@@ -47,6 +47,13 @@ class SettingsSeeder extends Seeder
             'description' => 'Số Xu tặng khi user mới đăng ký',
         ]);
 
+        Setting::set('credit_exchange_rate', 1000, [
+            'type' => 'integer',
+            'group' => 'general',
+            'label' => 'Tỉ lệ VND/Xu',
+            'description' => 'Số VND tương ứng 1 Xu',
+        ]);
+
         $this->command->warn('⚠️  Nhớ cấu hình BFL API Key qua Admin hoặc .env!');
     }
 }
