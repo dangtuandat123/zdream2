@@ -1,72 +1,149 @@
 <x-app-layout>
     <x-slot name="title">ZDream - Biến Ảnh Thường Thành Tác Phẩm AI</x-slot>
 
+    <style>
+        .home-hero {
+            position: relative;
+            overflow: hidden;
+            border-radius: 0 0 2rem 2rem;
+            isolation: isolate;
+            background: radial-gradient(120% 140% at 0% 0%, rgba(216,180,254,0.2) 0%, rgba(10,10,15,0.92) 55%, rgba(10,10,15,1) 100%);
+            box-shadow: 0 26px 60px rgba(0,0,0,0.45), inset 0 0 0 1px rgba(255,255,255,0.08);
+        }
+        .home-hero-grid {
+            position: absolute;
+            inset: -30%;
+            background-image: url('/images/hero/home-grid.png');
+            background-size: 900px auto;
+            background-repeat: repeat;
+            opacity: 0.12;
+            filter: saturate(1) contrast(1.02);
+            animation: home-grid-scroll 120s linear infinite;
+            will-change: background-position;
+            pointer-events: none;
+        }
+        .home-hero-overlay {
+            position: absolute;
+            inset: 0;
+            background:
+                radial-gradient(65% 60% at 20% 15%, rgba(244,114,182,0.18), transparent 60%),
+                radial-gradient(60% 60% at 85% 20%, rgba(168,85,247,0.16), transparent 60%),
+                linear-gradient(180deg, rgba(10,10,15,0.15), rgba(10,10,15,0.7));
+            opacity: 0.55;
+            pointer-events: none;
+        }
+        .home-hero-panel {
+            background: linear-gradient(180deg, rgba(10,10,15,0.42), rgba(10,10,15,0.2));
+            border: 1px solid rgba(255,255,255,0.12);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.35);
+            backdrop-filter: blur(12px);
+        }
+        .hero-deck {
+            position: relative;
+            width: min(360px, 100%);
+            height: 420px;
+            margin-left: auto;
+        }
+        .hero-card {
+            position: absolute;
+            inset: 0;
+            border-radius: 24px;
+            border: 1px solid rgba(255,255,255,0.16);
+            background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+            box-shadow: 0 30px 60px rgba(0,0,0,0.45);
+            overflow: hidden;
+            transform-origin: bottom right;
+            animation: hero-card-float 8s ease-in-out infinite;
+        }
+        .hero-card:nth-child(1) {
+            transform: translate(0, 0) rotate(-4deg) scale(0.98);
+            animation-delay: 0s;
+        }
+        .hero-card:nth-child(2) {
+            transform: translate(18px, -12px) rotate(1deg) scale(1);
+            animation-delay: 1.2s;
+        }
+        .hero-card:nth-child(3) {
+            transform: translate(38px, -28px) rotate(6deg) scale(1.02);
+            animation-delay: 2.1s;
+        }
+        .hero-card:hover {
+            transform: translate(38px, -32px) rotate(6deg) scale(1.04);
+        }
+        @keyframes hero-card-float {
+            0%, 100% { transform: translate(var(--x, 0), var(--y, 0)) rotate(var(--r, 0deg)) scale(var(--s, 1)); }
+            50% { transform: translate(calc(var(--x, 0) + 6px), calc(var(--y, 0) - 6px)) rotate(calc(var(--r, 0deg) + 1deg)) scale(var(--s, 1)); }
+        }
+        .home-hero-content {
+            position: relative;
+            z-index: 2;
+        }
+        @keyframes home-grid-scroll {
+            from { background-position: 0 0; }
+            to { background-position: 1200px 600px; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .home-hero-grid { animation: none; }
+        }
+        body.is-scrolling .home-hero-grid {
+            animation-play-state: paused;
+        }
+        @media (max-width: 768px) {
+            .home-hero-grid {
+                opacity: 0.08;
+                animation-duration: 160s;
+            }
+        }
+    </style>
+
     <!-- ========== HERO SECTION ========== -->
-    <section class="relative overflow-hidden">
-        <div class="absolute inset-0 pointer-events-none">
-            <div class="absolute top-0 left-1/4 w-64 sm:w-96 h-64 sm:h-96 bg-purple-600/20 rounded-full blur-[100px] sm:blur-[150px]"></div>
-            <div class="absolute bottom-0 right-0 w-48 sm:w-80 h-48 sm:h-80 bg-pink-600/15 rounded-full blur-[80px] sm:blur-[130px]"></div>
-        </div>
-        <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16 lg:py-20">
-            <div class="text-center lg:text-left lg:grid lg:grid-cols-2 lg:gap-12 lg:items-center">
-                <div>
-                    <div class="inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-500/30 mb-4 sm:mb-6">
-                        <i class="fa-solid fa-star w-3 h-3 sm:w-4 sm:h-4 text-yellow-400"></i>
-                        <span class="text-xs sm:text-sm font-medium text-white/80">AI tiên tiến nhất</span>
-                    </div>
+    <section class="home-hero">
+        <div class="home-hero-grid"></div>
+        <div class="home-hero-overlay"></div>
+
+        <div class="home-hero-content max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16 lg:py-20">
+            <div class="grid lg:grid-cols-[1.1fr_0.9fr] gap-8 lg:gap-12 items-center">
+                <div class="home-hero-panel rounded-2xl sm:rounded-3xl px-5 sm:px-8 py-6 sm:py-8 text-center lg:text-left">
                     <h1 class="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold mb-4 sm:mb-6 leading-tight">
-                        <span class="text-white">Biến Ảnh Thường</span><br>
-                        <span class="bg-gradient-to-r from-purple-400 via-pink-400 to-purple-400 bg-clip-text text-transparent">Thành Tác Phẩm</span>
+                        <span class="text-white">Chọn Style,</span><br>
+                        <span class="bg-gradient-to-r from-pink-300 via-fuchsia-300 to-purple-300 bg-clip-text text-transparent">Ảnh Đẹp Tự Đến</span>
                     </h1>
-                    <p class="text-white/60 text-base sm:text-lg lg:text-xl max-w-lg mx-auto lg:mx-0 mb-6 sm:mb-8">
-                        Chọn style → Bấm nút → Nhận kết quả.
-                        <span class="hidden sm:inline"> Chỉ 3 bước, không cần prompt!</span>
+                    <p class="text-white/70 text-base sm:text-lg lg:text-xl max-w-xl mx-auto lg:mx-0 mb-6 sm:mb-8">
+                        Chỉ cần chọn phong cách và vài từ gợi ý. ZDream tự hoàn thiện phần còn lại.
                     </p>
-                    <div class="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center lg:justify-start mb-8 sm:mb-0">
-                        <a href="#styles" class="px-6 sm:px-8 py-3.5 sm:py-4 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold text-base sm:text-lg shadow-lg shadow-purple-500/30 hover:shadow-purple-500/50 transition-all inline-flex items-center justify-center gap-2">
+                    <div class="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center lg:justify-start">
+                        <a href="#styles" class="px-6 sm:px-8 py-3.5 sm:py-4 rounded-xl bg-gradient-to-r from-pink-500 via-fuchsia-500 to-purple-500 text-white font-semibold text-base sm:text-lg shadow-lg shadow-fuchsia-500/35 hover:shadow-fuchsia-500/55 transition-all inline-flex items-center justify-center gap-2">
                             <i class="fa-solid fa-wand-magic-sparkles" style="font-size: 18px;"></i>
                             <span>Bắt đầu ngay</span>
                         </a>
                         @guest
-                            <a href="{{ route('register') }}" class="px-6 sm:px-8 py-3.5 sm:py-4 rounded-xl bg-white/[0.05] border border-white/[0.1] text-white font-medium text-base sm:text-lg hover:bg-white/[0.1] transition-all inline-flex items-center justify-center gap-2">
+                            <a href="{{ route('register') }}" class="px-6 sm:px-8 py-3.5 sm:py-4 rounded-xl bg-white/[0.06] border border-fuchsia-300/40 text-white font-medium text-base sm:text-lg hover:bg-white/[0.1] transition-all inline-flex items-center justify-center gap-2">
                                 <i class="fa-solid fa-gift" style="font-size: 14px;"></i>
-                                <span>Đăng ký ngay</span>
+                                <span>Đăng ký miễn phí</span>
                             </a>
                         @endguest
                     </div>
-                    <div class="flex items-center justify-center lg:justify-start gap-6 sm:gap-8 mt-8 pt-6 sm:pt-8 border-t border-white/[0.05]">
-                        <div class="text-center">
-                            <p class="text-2xl sm:text-3xl font-bold text-white">{{ \App\Models\Style::active()->count() }}+</p>
-                            <p class="text-white/50 text-xs sm:text-sm">Styles</p>
-                        </div>
-                        <div class="w-px h-8 sm:h-10 bg-white/10"></div>
-                        <div class="text-center">
-                            <p class="text-2xl sm:text-3xl font-bold text-white">10s</p>
-                            <p class="text-white/50 text-xs sm:text-sm">Xử lý</p>
-                        </div>
-                        <div class="w-px h-8 sm:h-10 bg-white/10"></div>
-                        <div class="text-center">
-                            <p class="text-2xl sm:text-3xl font-bold text-white">2K</p>
-                            <p class="text-white/50 text-xs sm:text-sm">Từ</p>
-                        </div>
-                    </div>
                 </div>
-                <!-- Preview Images - Desktop only -->
-                <div class="hidden lg:block relative mt-8 lg:mt-0">
-                    <div class="relative w-full aspect-square max-w-md mx-auto">
-                        @if($styles->count() > 0)
-                            <div class="absolute top-0 right-0 w-64 xl:w-72 h-80 xl:h-96 rounded-2xl overflow-hidden shadow-2xl shadow-purple-500/20 border border-white/[0.1] transform rotate-3 hover:rotate-0 transition-transform duration-500">
-                                <img src="{{ $styles->first()->thumbnail }}" alt="AI Generated" class="w-full h-full object-cover" loading="eager" decoding="async" fetchpriority="high">
-                                <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
-                                <div class="absolute bottom-4 left-4 right-4">
-                                    <p class="text-white font-semibold">{{ $styles->first()->name }}</p>
+
+                <div class="hidden lg:block">
+                    @php
+                        $heroStyles = $styles->take(3);
+                    @endphp
+                    @if($heroStyles->isNotEmpty())
+                        <div class="hero-deck">
+                            @foreach($heroStyles as $index => $style)
+                                <div class="hero-card" style="--x: {{ $index * 18 }}px; --y: -{{ $index * 10 }}px; --r: {{ -4 + ($index * 5) }}deg; --s: {{ 0.98 + ($index * 0.02) }};">
+                                    <div class="aspect-[3/4] overflow-hidden">
+                                        <img src="{{ $style->thumbnail }}" alt="{{ $style->name }}" class="w-full h-full object-cover" loading="eager" decoding="async" fetchpriority="high">
+                                    </div>
+                                    <div class="p-4 border-t border-white/10 bg-black/30">
+                                        <p class="text-white font-semibold">{{ $style->name }}</p>
+                                        <p class="text-white/60 text-sm mt-1">Phong cách nổi bật hôm nay</p>
+                                    </div>
                                 </div>
-                            </div>
-                        @endif
-                        <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-16 h-16 xl:w-20 xl:h-20 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow-lg shadow-purple-500/50">
-                            <i class="fa-solid fa-wand-magic-sparkles w-6 h-6 xl:w-8 xl:h-8 text-white"></i>
+                            @endforeach
                         </div>
-                    </div>
+                    @endif
                 </div>
             </div>
         </div>
