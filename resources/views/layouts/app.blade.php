@@ -178,13 +178,13 @@
             inset: -8%;
             background-image: url('/images/hero/styles-hero.png');
             background-size: cover;
-            background-position: 50% 50%;
-            opacity: 0.22;
+            background-position: 45% 50%;
+            opacity: 0.28;
             filter: saturate(1.1) contrast(1.05);
             transform: scale(1.03);
             pointer-events: none;
             z-index: 0;
-            animation: styles-hero-pan 22s ease-in-out infinite;
+            animation: styles-hero-pan 14s ease-in-out infinite;
         }
         .styles-hero::after {
             content: '';
@@ -201,22 +201,35 @@
         .styles-hero-grid {
             position: absolute;
             inset: 0;
-            opacity: 0.24;
+            opacity: 0.32;
             background-image:
                 linear-gradient(120deg, rgba(255,255,255,0.06) 1px, transparent 1px),
                 linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px);
-            background-size: 32px 32px;
+            background-size: 26px 26px;
             pointer-events: none;
             z-index: 0;
-            animation: styles-grid-drift 18s linear infinite;
+            animation: styles-grid-drift 12s linear infinite;
+        }
+        .styles-hero-motion {
+            position: absolute;
+            inset: -20%;
+            background:
+                radial-gradient(40% 40% at 15% 20%, rgba(244,114,182,0.25), transparent 60%),
+                radial-gradient(35% 35% at 85% 30%, rgba(139,92,246,0.22), transparent 60%),
+                radial-gradient(30% 30% at 60% 80%, rgba(59,130,246,0.2), transparent 60%);
+            opacity: 0.5;
+            mix-blend-mode: screen;
+            animation: styles-motion 10s ease-in-out infinite;
+            pointer-events: none;
+            z-index: 0;
         }
         .styles-hero-sheen {
             position: absolute;
             inset: -20%;
             background: conic-gradient(from 120deg, rgba(255,255,255,0.06), transparent 35%, rgba(255,255,255,0.08) 50%, transparent 65%);
-            opacity: 0.45;
+            opacity: 0.55;
             mix-blend-mode: soft-light;
-            animation: styles-sheen-rotate 16s linear infinite;
+            animation: styles-sheen-rotate 10s linear infinite;
             pointer-events: none;
             z-index: 0;
         }
@@ -226,9 +239,9 @@
             height: 260px;
             border-radius: 9999px;
             filter: blur(26px);
-            opacity: 0.6;
+            opacity: 0.7;
             mix-blend-mode: screen;
-            animation: styles-orb-float 12s ease-in-out infinite;
+            animation: styles-orb-float 9s ease-in-out infinite;
             pointer-events: none;
             z-index: 0;
         }
@@ -247,20 +260,25 @@
         }
         @keyframes styles-grid-drift {
             0% { background-position: 0 0; }
-            100% { background-position: 260px 160px; }
+            100% { background-position: 320px 220px; }
         }
         @keyframes styles-sheen-rotate {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+        @keyframes styles-motion {
+            0% { transform: translate3d(-3%, 2%, 0) rotate(0deg); }
+            50% { transform: translate3d(2%, -2%, 0) rotate(2deg); }
+            100% { transform: translate3d(-3%, 2%, 0) rotate(0deg); }
+        }
         @keyframes styles-hero-pan {
-            0% { background-position: 50% 50%; transform: scale(1.03); }
-            50% { background-position: 62% 38%; transform: scale(1.06); }
-            100% { background-position: 50% 50%; transform: scale(1.03); }
+            0% { background-position: 45% 50%; transform: scale(1.04) translate3d(0,0,0); }
+            50% { background-position: 70% 30%; transform: scale(1.1) translate3d(12px,-10px,0); }
+            100% { background-position: 45% 50%; transform: scale(1.04) translate3d(0,0,0); }
         }
         @keyframes styles-orb-float {
             0% { transform: translate3d(0, 0, 0) scale(1); }
-            50% { transform: translate3d(32px, -20px, 0) scale(1.08); }
+            50% { transform: translate3d(46px, -26px, 0) scale(1.1); }
             100% { transform: translate3d(0, 0, 0) scale(1); }
         }
         .styles-hero-inner {
@@ -304,6 +322,7 @@
             .hero-sheen,
             .hero-art,
             .styles-hero-grid,
+            .styles-hero-motion,
             .styles-hero-sheen,
             .styles-hero-orb,
             .styles-hero::before {
@@ -317,6 +336,7 @@
         body.is-scrolling .hero-blob,
         body.is-scrolling .hero-sheen,
         body.is-scrolling .styles-hero-grid,
+        body.is-scrolling .styles-hero-motion,
         body.is-scrolling .styles-hero-sheen,
         body.is-scrolling .styles-hero-orb,
         body.is-scrolling .styles-hero::before,
@@ -331,8 +351,8 @@
             background: rgba(255, 255, 255, 0.03);
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 0.5rem;
-            height: 42px;
-            padding: 6px 12px;
+            height: 48px;
+            padding: 10px 12px;
         }
         .select2-container--default .select2-selection--single .select2-selection__rendered {
             color: rgba(255, 255, 255, 0.9);
@@ -340,8 +360,20 @@
             padding-left: 0;
         }
         .select2-container--default .select2-selection--single .select2-selection__arrow {
-            height: 40px;
+            height: 46px;
             right: 8px;
+        }
+        @media (min-width: 640px) {
+            .select2-container--default .select2-selection--single {
+                height: 44px;
+                padding: 8px 12px;
+            }
+            .select2-container--default .select2-selection--single .select2-selection__rendered {
+                line-height: 26px;
+            }
+            .select2-container--default .select2-selection--single .select2-selection__arrow {
+                height: 42px;
+            }
         }
         .select2-container--default .select2-selection--single .select2-selection__arrow b {
             border-color: rgba(255, 255, 255, 0.5) transparent transparent transparent;

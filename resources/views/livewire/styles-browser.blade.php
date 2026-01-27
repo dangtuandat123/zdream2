@@ -2,6 +2,7 @@
     <!-- Hero -->
     <section class="styles-hero mb-6">
         <div class="styles-hero-grid" aria-hidden="true"></div>
+        <div class="styles-hero-motion" aria-hidden="true"></div>
         <div class="styles-hero-sheen" aria-hidden="true"></div>
         <div class="styles-hero-orb styles-hero-orb-1" aria-hidden="true"></div>
         <div class="styles-hero-orb styles-hero-orb-2" aria-hidden="true"></div>
@@ -41,7 +42,7 @@
     </div>
 
     <!-- Filters -->
-    <div class="mb-5">
+    <div class="mb-5 styles-filter">
         <div class="rounded-2xl bg-white/[0.03] border border-white/[0.06] p-3 sm:p-4 lg:p-0 lg:bg-transparent lg:border-0">
             <div class="grid gap-3 lg:grid-cols-[1fr_auto] lg:items-center">
             <!-- Search -->
