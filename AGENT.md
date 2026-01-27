@@ -1,17 +1,14 @@
-# AGENT - zdream.vn2 (ZDream/EZShot AI)
+﻿# AGENT – zdream.vn2 (ZDream/EZShot AI)
 
-Tài liệu này là “bản đồ tư duy” của dự án để hiểu đúng logic, luồng dữ liệu,
-quy ước code và các ràng buộc nghiệp vụ. Khi kiến trúc hoặc luồng chính thay
-đổi, phải cập nhật lại file này.
+Tài liệu này là “bản đồ tư duy” của dự án để hiểu đúng luồng dữ liệu, quy ước code và ràng buộc nghiệp vụ. Hệ thống **đã chuyển hoàn toàn sang BFL/FLUX**, không còn dùng OpenRouter trong runtime (chỉ còn legacy/compat nếu chưa dọn).
 
 ---------------------------------------------------------------------------
 TỔNG QUAN HỆ THỐNG
 ---------------------------------------------------------------------------
 - Stack: Laravel 10 + Livewire 4 + Tailwind CSS + Alpine (Livewire 4 đã bundle).
 - Build frontend: Vite.
-- Tạo ảnh AI: Black Forest Labs (BFL) FLUX API (task async + polling).
-- Lưu trữ ảnh: MinIO (S3 compatible) cho ảnh tạo ra; public disk cho thumbnail
-  của StyleOption.
+- Tạo ảnh AI: **Black Forest Labs (BFL) – FLUX API** (task async + polling).
+- Lưu trữ ảnh: MinIO (S3 compatible) cho ảnh tạo ra; public disk cho thumbnail StyleOption.
 - Nạp credits: VietQR (chuyển khoản) -> cộng Xu.
 - Auth: Laravel Breeze (web) + Sanctum (API).
 
@@ -26,7 +23,6 @@ app/
     ModelManager (cache & group model)
     StorageService (lưu base64 -> MinIO)
     WalletService (cộng/trừ/hoàn Xu, log transaction)
-    ImageGeneration/ (legacy adapters cho OpenRouter, hiện không dùng)
   Livewire/
     ImageGenerator (luồng tạo ảnh chính)
     UserStyleHistory (ảnh gần đây theo style)
@@ -43,6 +39,8 @@ app/
     AdminMiddleware, EnsureUserIsActive
   Console/
     Commands/CleanupOrphanImages, Kernel (scheduler + watchdog)
+  Support/
+    Livewire/ComponentRegistryStub (compat Livewire v4 + Ignition)
 
 config/
   services_custom.php (BFL, VietQR, pricing, internal API secret)
@@ -56,9 +54,11 @@ routes/
 database/migrations/
   Schema users, styles, style_options, generated_images, wallet_transactions,
   settings, tags, soft deletes, v.v.
+  + 2026_01_27_170500_add_generation_params_to_generated_images_table.php
+  + 2026_01_27_160000_migrate_openrouter_to_bfl.php (migration dữ liệu sang BFL)
 
 resources/views/
-  layouts/app.blade.php (global layout + lightbox + select2 init)
+  layouts/app.blade.php (global layout + select2 init)
   livewire/image-generator.blade.php (UI tạo ảnh)
   admin/* (UI admin)
   home, styles, studio, history, wallet, dashboard
@@ -67,15 +67,10 @@ resources/js/app.js
   Không import Alpine thủ công (Livewire 4 đã bundle).
 
 html_thuong/
-  Bản prototype tĩnh, không kết nối Laravel.
+  Prototype tĩnh, không kết nối Laravel.
 
 tài liệu api api.bfl.ai flux/
   Tài liệu BFL FLUX (local docs, dùng để map endpoint/params).
-openrouter.txt / debug_models.json
-  Tài liệu cũ (legacy, không dùng runtime).
-
-public/build/
-  Output Vite (không chỉnh tay).
 
 ---------------------------------------------------------------------------
 ĐỐI TƯỢNG MIỀN & QUY ƯỚC NGHIỆP VỤ
@@ -87,12 +82,13 @@ public/build/
    - slug: tự tạo khi create; KHÔNG tự đổi khi update (tránh vỡ URL).
    - buildFinalPrompt(): ghép base_prompt + options + custom input.
    - MAX_PROMPT_LENGTH = 4000; PROMPT_SEPARATOR = ", ".
-   - BFL payload do BflService build từ config_payload (aspect_ratio, width/height, steps, guidance...).
+   - config_payload: defaults cho BFL (aspect_ratio, width/height, steps, guidance,
+     seed, prompt_upsampling, safety_tolerance, output_format, raw, image_prompt_strength).
    - aspect_ratio lấy từ config_payload['aspect_ratio'] (fallback 1:1).
 
 2) StyleOption
    - thuộc Style, grouped theo group_name.
-   - mỗi group về UI là single-select (chọn 1 option hoặc “mặc định”).
+   - mỗi group ở UI là single-select (chọn 1 option hoặc “mặc định”).
    - thumbnail lưu ở public disk; accessor thumbnail_url -> "/storage/...".
 
 3) Tag
@@ -102,8 +98,10 @@ public/build/
 4) GeneratedImage
    - status: pending, processing, completed, failed.
    - lưu final_prompt, selected_options (json), user_custom_input, storage_path.
-   - image_url accessor: trả temporaryUrl (MinIO) hoặc URL đầy đủ nếu đã có.
-   - soft delete enabled (phục hồi được).
+   - **generation_params (json)**: lưu tham số thực tế khi generate (seed/steps/format/ratio/size...).
+   - bfl_task_id: id task trả về từ BFL.
+   - image_url accessor: pre-signed URL (7 ngày) hoặc URL thường nếu temporaryUrl fail.
+   - soft delete enabled.
 
 5) WalletTransaction
    - log mọi cộng/trừ Xu.
@@ -121,20 +119,19 @@ users
 styles
   - bfl_model_id, base_prompt, config_payload (json),
     image_slots (json), system_images (json), tag_id (fk)
-style_options
-  - style_id (fk), label, group_name, prompt_fragment, icon, thumbnail,
-    is_default, sort_order
+  - openrouter_model_id (legacy, không dùng runtime)
 generated_images
   - user_id, style_id, final_prompt, selected_options (json),
-    user_custom_input, storage_path, bfl_task_id, status, error_message,
-    credits_used, soft deletes
+    user_custom_input, generation_params (json), storage_path,
+    bfl_task_id, status, error_message, credits_used, soft deletes
+  - openrouter_id (legacy, không dùng runtime)
 wallet_transactions
   - user_id, type(credit/debit), amount, balance_before/after, reason,
     source, reference_id (unique per source)
 settings
   - key, value, type, group, is_encrypted
-tags
-  - name, color_from, color_to, icon, sort_order, is_active
+style_options, tags
+  - theo chuẩn quản trị UI
 
 ---------------------------------------------------------------------------
 LUỒNG TẠO ẢNH (USER FLOW)
@@ -149,14 +146,15 @@ LUỒNG TẠO ẢNH (USER FLOW)
      + Style còn active
      + custom input <= 500 ký tự
      + options thuộc style hiện tại
-     + ảnh upload theo image_slots (required + max size)
+     + ảnh upload theo image_slots (required + max size 10MB/ảnh)
      + tổng payload ảnh <= 25MB
-   - Kiểm tra model còn “image-capable” (cache `image_capable_model_ids` từ
-     ModelManager). Nếu model không còn hỗ trợ -> báo lỗi cho user.
-   - Nếu lỗi khi fetch models -> bỏ qua check (log warning).
+     + tổng số ảnh <= max_input_images (theo model)
+   - Kiểm tra model còn “image-capable” (cache `image_capable_model_ids`).
+     Nếu lỗi khi fetch models -> bỏ qua check (log warning).
 
 3) Tạo GeneratedImage status=processing + trừ credits
    - Trừ Xu bằng WalletService (DB::transaction + lockForUpdate).
+   - Lưu **generation_params** (seed/steps/guidance/output_format/ratio/size...).
 
 4) Async/Sync:
    - Nếu queue.default != "sync": dispatch GenerateImageJob.
@@ -173,51 +171,53 @@ LUỒNG TẠO ẢNH (USER FLOW)
 7) Watchdog hệ thống:
    - Kernel scheduler chạy mỗi 5 phút:
      + đánh dấu job processing quá 10 phút là failed
-     + hoàn Xu nếu chưa hoàn.
-
----------------------------------------------------------------------------
-DỌN DẸP ẢNH / DỮ LIỆU (CLEANUP)
----------------------------------------------------------------------------
-Artisan command: `images:cleanup`
-- Soft delete ảnh failed quá `--failed-days` (mặc định 7 ngày).
-- Force delete ảnh đã soft delete quá `--deleted-days` (mặc định 30 ngày),
-  đồng thời xóa file trên MinIO.
-- Soft delete ảnh completed quá `image_expiry_days` (Setting, mặc định 30).
-- Xóa file “orphan” trong MinIO không còn record DB tham chiếu.
+     + hoàn Xu nếu cần.
 
 ---------------------------------------------------------------------------
 TÍCH HỢP BFL (CHI TIẾT)
 ---------------------------------------------------------------------------
 BflService
+- API key:
+  + lấy từ Setting::get('bfl_api_key') (đã encrypt) hoặc env BFL_API_KEY.
 - Base URL:
-  + lấy từ Setting::get('bfl_base_url') hoặc config.
-  + mặc định https://api.bfl.ai
-- HTTP client:
-  + header: x-key
-  + retry/backoff khi 429/5xx, timeout phù hợp cho image models.
-- submit request:
+  + Setting::get('bfl_base_url') hoặc env BFL_BASE_URL; mặc định https://api.bfl.ai
+- HTTP headers: x-key, accept: application/json.
+- Submit request:
   + POST /v1/{model} (vd: flux-2-pro, flux-kontext-pro…)
   + trả về id + polling_url.
-- polling:
-  + GET polling_url (ưu tiên) hoặc /v1/get_result?id=...
-  + status: Ready / Pending / Request Moderated / Content Moderated / Error.
-  + result.sample là signed URL (valid ~10 phút) -> download về MinIO.
-- input images:
-  + chỉ một số model hỗ trợ (kontext / image_prompt).
-  + giới hạn bởi max_input_images trong config/services_custom.php.
-- SSRF Protection:
-  + chặn localhost/private IP khi tải ảnh từ URL.
-  + nếu URL là MinIO endpoint thì đọc trực tiếp Storage.
+- Polling:
+  + ưu tiên GET polling_url nếu có, fallback /v1/get_result?id=...
+  + poll interval ~0.5s, timeout theo config services_custom.bfl.poll_timeout.
+- Kết quả:
+  + lấy result.sample hoặc result.samples[0] hoặc result.image.
+  + nếu là URL -> download về (có SSRF guard) -> convert base64 -> lưu MinIO.
+- Input images:
+  + chỉ một số model hỗ trợ; giới hạn max_input_images từ config.
+- Kích thước:
+  + model hỗ trợ aspect_ratio -> gửi aspect_ratio.
+  + model hỗ trợ width/height -> map ratio -> kích thước (clamp min/max,
+    làm tròn theo dimension_multiple).
+  + nếu UI chọn “Nhập kích thước” -> ưu tiên width/height user nhập.
+- Payload chỉ gửi các tham số model hỗ trợ (theo capabilities trong config).
 
 ModelManager
 - cache list: bfl_models (1h).
 - group theo provider (chủ yếu Black Forest Labs).
-- dùng trong Admin UI để:
-  + hiển thị model list
-  + validate model khi tạo/sửa Style.
+- dùng trong Admin UI để hiển thị model list.
 
-Adapters (app/Services/ImageGeneration)
-- Legacy cho OpenRouter (hiện không dùng).
+---------------------------------------------------------------------------
+UI/UX – TÙY CHỈNH NÂNG CAO
+---------------------------------------------------------------------------
+- Có 2 chế độ kích thước:
+  + “Theo dáng ảnh” (ratio)
+  + “Nhập kích thước” (width/height)
+- Ở phần ratio: hiển thị kích thước gợi ý (từ config ratio_dimensions).
+- Các tuỳ chọn nâng cao được Việt hoá dễ hiểu cho người dùng phổ thông.
+- Tooltip dùng icon “?” để giải thích ngắn gọn.
+- Select2:
+  + app.blade.php auto init select2.
+  + Với Livewire, select “Loại file ảnh” dùng wire:ignore + Alpine entangle
+    để tránh bị reset về select mặc định sau khi update.
 
 ---------------------------------------------------------------------------
 WALLET / CREDITS (QUY ƯỚC BẮT BUỘC)
@@ -226,24 +226,8 @@ WALLET / CREDITS (QUY ƯỚC BẮT BUỘC)
 - Luôn dùng WalletService:
   + deductCredits() / addCredits() / refundCredits().
 - Tất cả thay đổi Xu phải có WalletTransaction log.
-- Dùng DB::transaction + lockForUpdate để tránh race conditions.
 - Idempotency:
   + wallet_transactions có unique index (source, reference_id).
-  + internal API cũng kiểm tra trùng trước khi cộng/trừ.
-
----------------------------------------------------------------------------
-INTERNAL API (NỘI BỘ)
----------------------------------------------------------------------------
-POST /api/internal/wallet/adjust
-POST /api/internal/payment/callback
-Yêu cầu:
-- Header: X-API-Secret (INTERNAL_API_SECRET)
-- Nếu secret trống -> fail-close (Unauthorized)
-Callback VietQR:
-- amount VND -> credits (1000 VND = 1 Xu).
-- xử lý idempotent bằng DB transaction + lockForUpdate.
-Rate limit:
-- /api/internal/* = throttle:60,1.
 
 ---------------------------------------------------------------------------
 LƯU TRỮ (STORAGE)
@@ -259,9 +243,9 @@ LƯU TRỮ (STORAGE)
 
 ---------------------------------------------------------------------------
 SETTINGS + CACHE
-----------------------------------------------------------------------------
-- Settings lưu trong DB (table settings).
-- Setting::get cache 1 giờ.
+---------------------------------------------------------------------------
+- Settings lưu trong DB (table settings), cache 1 giờ.
+- API key luôn lưu is_encrypted = true.
 - Khi cập nhật BFL:
   + clear caches: bfl_models, image_capable_model_ids.
 
@@ -278,19 +262,7 @@ BẢO MẬT / AUTH
 - HistoryController:
   + bắt buộc ownership để download/delete ảnh.
 - BflService:
-  + SSRF protection khi tải ảnh từ URL.
-
----------------------------------------------------------------------------
-FRONTEND (QUY ƯỚC GIAO DIỆN)
----------------------------------------------------------------------------
-- layouts/app.blade.php:
-  + lightbox toàn cục (download/delete).
-  + jQuery + Select2 từ CDN.
-  + auto init Select2 cho tất cả <select>, re-init sau Livewire update.
-- Livewire 4 đã bundle Alpine:
-  + không import Alpine trong resources/js/app.js.
-- CSS chính: resources/css/app.css (glassmorphism).
-- Placeholder ảnh: public/images/placeholder.svg.
+  + SSRF protection khi tải ảnh từ URL (chặn localhost/private IP).
 
 ---------------------------------------------------------------------------
 HÀNG ĐỢI + SCHEDULER
@@ -299,7 +271,7 @@ HÀNG ĐỢI + SCHEDULER
   + tries = 2, timeout = 180s, backoff = [30, 60].
   + fail -> mark failed + refund credits.
 - Kernel schedule:
-  + images:cleanup chạy 03:00 hằng ngày.
+  + images:cleanup chạy 03:00 hàng ngày.
   + watchdog xử lý processing > 10 phút, refund nếu cần.
 
 ---------------------------------------------------------------------------
@@ -313,12 +285,26 @@ SEEDERS (DEV/LOCAL)
   + API key chỉ là placeholder (cấu hình thật qua Admin hoặc .env).
 
 ---------------------------------------------------------------------------
-MỤC CŨ / DI SẢN (CẦN BIẾT)
+SỰ CỐ THƯỜNG GẶP (GỢI Ý XỬ LÝ)
 ---------------------------------------------------------------------------
-- resources/views/admin/styles/_form.blade.php: có vẻ legacy, hiện không dùng.
-- routes/web_debug.php: không đăng ký route, chỉ có debug route trong web.php
-  (chạy khi APP_ENV=local).
-- html_thuong/: prototype tĩnh, không ảnh hưởng runtime.
+- Lỗi `Target class [Livewire\Mechanisms\ComponentRegistry] does not exist`:
+  + Đã alias trong AppServiceProvider -> ComponentRegistryStub.
+- Lỗi thiếu cột `generation_params`:
+  + chạy migration 2026_01_27_170500_add_generation_params_to_generated_images_table.php
+- Ảnh “Đang xử lý” mãi:
+  + kiểm tra queue worker đang chạy, scheduler watchdog có hoạt động,
+    và log ở storage/logs/laravel.log.
+- Lỗi BFL key/credits/timeout:
+  + kiểm tra setting bfl_api_key, bfl_base_url, và credits trên BFL.
+
+---------------------------------------------------------------------------
+LEGACY / TƯƠNG THÍCH NGƯỢC (KHÔNG DÙNG RUNTIME)
+---------------------------------------------------------------------------
+- openrouter_model_id, openrouter_id vẫn còn trong DB để migration/compat.
+- OpenRouterService + app/Services/ImageGeneration/* chỉ là legacy, không dùng.
+- openrouter.txt, debug_models.json, ý tưởng.txt: tài liệu cũ, không dùng runtime.
+- Code hiện có fallback: nếu bfl_model_id trống sẽ dùng openrouter_model_id
+  để tránh lỗi dữ liệu cũ (không còn gọi OpenRouter).
 
 ---------------------------------------------------------------------------
 KHI THÊM TÍNH NĂNG MỚI (CHECKLIST)

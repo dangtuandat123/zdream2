@@ -668,7 +668,7 @@
                         </span>
                         <span wire:loading wire:target="generate" class="inline-flex items-center gap-2">
                             <i class="fa-solid fa-spinner animate-spin" style="font-size: 18px;"></i>
-                            <span>Đang khởi tạo...</span>
+                            <span>ZDream đang tạo ảnh...</span>
                         </span>
                     </button>
                 @endif
@@ -751,8 +751,8 @@
                 </div>
                 <!-- Text -->
                 <div class="space-y-4 px-4">
-                    <h3 class="text-xl md:text-3xl font-bold text-white tracking-tight">Đang khởi tạo...</h3>
-                    <p class="text-white/50 text-base md:text-lg">Đang gửi yêu cầu đến AI...</p>
+                    <h3 class="text-xl md:text-3xl font-bold text-white tracking-tight">ZDream đang tạo ảnh...</h3>
+                    <p class="text-white/50 text-base md:text-lg">Vui lòng chờ trong giây lát...</p>
                 </div>
             </div>
         </div>
