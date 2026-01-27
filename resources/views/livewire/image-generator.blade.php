@@ -362,245 +362,159 @@
         </div>
     @endif
 
-    <!-- Beautiful Loading State with Animations -->
-    @if($isGenerating)
-        <div wire:poll.5s="pollImageStatus" 
-             x-data="{ 
-                 tipIndex: 0,
-                 tips: [
-                     '🎨 AI đang phân tích phong cách...',
-                     '✨ Đang tạo bố cục sáng tạo...',
-                     '🔮 Rendering chi tiết hình ảnh...',
-                     '🌈 Tối ưu màu sắc và ánh sáng...',
-                     '💫 Hoàn thiện nét cuối...'
-                 ],
-                 messages: [
-                     'Mỗi tác phẩm đều độc nhất vô nhị!',
-                     'AI đang vẽ ước mơ của bạn...',
-                     'Sáng tạo cần thời gian ⏳',
-                     'Đợi chút nhé, sẽ rất xứng đáng!'
-                 ],
-                 currentMessage: 0
-             }" 
-             x-init="
-                 setInterval(() => { tipIndex = (tipIndex + 1) % tips.length }, 3000);
-                 setInterval(() => { currentMessage = (currentMessage + 1) % messages.length }, 5000);
-             "
-             class="relative bg-gradient-to-br from-purple-900/20 via-pink-900/10 to-indigo-900/20 border border-white/[0.08] rounded-2xl p-6 md:p-8 overflow-hidden">
-            
-            <!-- Floating Particles Background -->
-            <div class="absolute inset-0 overflow-hidden pointer-events-none">
-                <div class="absolute w-2 h-2 bg-purple-400/30 rounded-full animate-float-1" style="top: 20%; left: 10%;"></div>
-                <div class="absolute w-3 h-3 bg-pink-400/20 rounded-full animate-float-2" style="top: 60%; left: 80%;"></div>
-                <div class="absolute w-1.5 h-1.5 bg-cyan-400/30 rounded-full animate-float-3" style="top: 40%; left: 60%;"></div>
-                <div class="absolute w-2 h-2 bg-purple-400/20 rounded-full animate-float-1" style="top: 80%; left: 30%;"></div>
-                <div class="absolute w-1 h-1 bg-pink-400/30 rounded-full animate-float-2" style="top: 30%; left: 90%;"></div>
-            </div>
-            
-            <!-- Main Content -->
-            <div class="relative z-10 text-center">
-                <!-- Animated AI Avatar -->
-                <div class="relative inline-flex items-center justify-center mb-6">
-                    <!-- Outer glow rings -->
-                    <div class="absolute w-24 h-24 rounded-full bg-purple-500/10 animate-ping-slow"></div>
-                    <div class="absolute w-20 h-20 rounded-full bg-pink-500/10 animate-ping-slower"></div>
-                    
-                    <!-- Main avatar container -->
-                    <div class="relative w-18 h-18 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-500 shadow-[0_8px_32px_rgba(168,85,247,0.4)] flex items-center justify-center animate-pulse-glow">
-                        <i class="fa-solid fa-wand-magic-sparkles text-white" style="font-size: 28px;"></i>
+    <!-- ==================================================================================== -->
+    <!-- FULL SCREEN MODAL: LOADING & RESULT -->
+    <!-- ==================================================================================== -->
+    @if($isGenerating || $generatedImageUrl)
+        <div class="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 animate-fade-in">
+            <!-- Backdrop (Glassmorphism) -->
+            <div class="absolute inset-0 bg-[#0a0a0f]/90 backdrop-blur-xl transition-opacity"></div>
+
+            <!-- Close Button (Top Right) -->
+            <button 
+                wire:click="resetForm" 
+                class="absolute top-6 right-6 z-[10000] w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 text-white/60 hover:text-white flex items-center justify-center transition-all duration-300 hover:rotate-90 backdrop-blur-md border border-white/10 group">
+                <i class="fa-solid fa-xmark text-xl group-hover:scale-110 transition-transform"></i>
+            </button>
+
+            <!-- MODAL CONTENT CONTAINER -->
+            <div class="relative w-full max-w-7xl h-full max-h-[90vh] flex flex-col items-center justify-center z-10">
+                
+                <!-- STATE 1: LOADING -->
+                @if($isGenerating)
+                    <div wire:poll.2s="pollImageStatus" 
+                         x-data="{ 
+                             tipIndex: 0,
+                             tips: [
+                                 '🎨 AI đang phân tích phong cách...',
+                                 '✨ Đang tạo bố cục sáng tạo...',
+                                 '🔮 Rendering chi tiết hình ảnh...',
+                                 '🌈 Tối ưu màu sắc và ánh sáng...',
+                                 '💫 Hoàn thiện nét cuối...'
+                             ],
+                             messages: [
+                                 'Mỗi tác phẩm đều độc nhất vô nhị!',
+                                 'AI đang vẽ ước mơ của bạn...',
+                                 'Sáng tạo cần thời gian ⏳',
+                                 'Đợi chút nhé, sẽ rất xứng đáng!'
+                             ],
+                             currentMessage: 0
+                         }" 
+                         x-init="
+                             setInterval(() => { tipIndex = (tipIndex + 1) % tips.length }, 3000);
+                             setInterval(() => { currentMessage = (currentMessage + 1) % messages.length }, 5000);
+                         "
+                         class="w-full max-w-2xl text-center space-y-8 p-8">
                         
-                        <!-- Sparkle effects -->
-                        <div class="absolute -top-1 -right-1 w-3 h-3 bg-yellow-400 rounded-full animate-sparkle"></div>
-                        <div class="absolute -bottom-0.5 -left-0.5 w-2 h-2 bg-cyan-400 rounded-full animate-sparkle-delay"></div>
-                    </div>
-                </div>
-                
-                <!-- Dynamic Status Text -->
-                <div class="mb-4">
-                    <p class="text-lg font-semibold text-white mb-1"
-                       x-text="tips[tipIndex]"
-                       x-transition:enter="transition ease-out duration-500"
-                       x-transition:enter-start="opacity-0 transform translate-y-2"
-                       x-transition:enter-end="opacity-100 transform translate-y-0">
-                    </p>
-                    <p class="text-sm text-white/50" x-text="messages[currentMessage]"></p>
-                </div>
-                
-                <!-- Animated Progress Bar -->
-                <div class="w-full max-w-xs mx-auto mb-4">
-                    <div class="h-2 bg-white/[0.05] rounded-full overflow-hidden backdrop-blur-sm">
-                        <div class="h-full rounded-full bg-gradient-to-r from-purple-500 via-pink-500 to-purple-500 bg-[length:200%_100%] animate-gradient-x"></div>
-                    </div>
-                </div>
-                
-                <!-- Time estimate -->
-                <div class="flex items-center justify-center gap-4 text-xs text-white/40">
-                    <span class="flex items-center gap-1.5">
-                        <i class="fa-solid fa-clock"></i>
-                        Khoảng 10-30 giây
-                    </span>
-                    <span class="flex items-center gap-1.5">
-                        <i class="fa-solid fa-shield-halved"></i>
-                        Lưu {{ \App\Models\Setting::get('image_expiry_days', 30) }} ngày
-                    </span>
-                </div>
-            </div>
-        </div>
-        
-        <style>
-            @keyframes float-1 {
-                0%, 100% { transform: translateY(0) translateX(0); opacity: 0.3; }
-                50% { transform: translateY(-20px) translateX(10px); opacity: 0.6; }
-            }
-            @keyframes float-2 {
-                0%, 100% { transform: translateY(0) translateX(0); opacity: 0.2; }
-                50% { transform: translateY(-15px) translateX(-10px); opacity: 0.5; }
-            }
-            @keyframes float-3 {
-                0%, 100% { transform: translateY(0) translateX(0); opacity: 0.3; }
-                50% { transform: translateY(-25px) translateX(5px); opacity: 0.7; }
-            }
-            @keyframes ping-slow {
-                0% { transform: scale(1); opacity: 0.3; }
-                50% { transform: scale(1.3); opacity: 0.1; }
-                100% { transform: scale(1); opacity: 0.3; }
-            }
-            @keyframes ping-slower {
-                0% { transform: scale(1); opacity: 0.2; }
-                50% { transform: scale(1.2); opacity: 0.05; }
-                100% { transform: scale(1); opacity: 0.2; }
-            }
-            @keyframes pulse-glow {
-                0%, 100% { box-shadow: 0 8px 32px rgba(168,85,247,0.4); }
-                50% { box-shadow: 0 8px 48px rgba(236,72,153,0.5); }
-            }
-            @keyframes sparkle {
-                0%, 100% { transform: scale(1); opacity: 1; }
-                50% { transform: scale(1.5); opacity: 0.5; }
-            }
-            @keyframes sparkle-delay {
-                0%, 100% { transform: scale(1); opacity: 0.8; }
-                50% { transform: scale(1.3); opacity: 0.4; }
-            }
-            @keyframes gradient-x {
-                0% { background-position: 0% 50%; }
-                100% { background-position: 200% 50%; }
-            }
-            .animate-float-1 { animation: float-1 4s ease-in-out infinite; }
-            .animate-float-2 { animation: float-2 5s ease-in-out infinite; }
-            .animate-float-3 { animation: float-3 3.5s ease-in-out infinite; }
-            .animate-ping-slow { animation: ping-slow 3s ease-in-out infinite; }
-            .animate-ping-slower { animation: ping-slower 4s ease-in-out infinite; }
-            .animate-pulse-glow { animation: pulse-glow 2s ease-in-out infinite; }
-            .animate-sparkle { animation: sparkle 1.5s ease-in-out infinite; }
-            .animate-sparkle-delay { animation: sparkle-delay 1.5s ease-in-out infinite 0.5s; }
-            .animate-gradient-x { animation: gradient-x 2s linear infinite; }
-            .w-18 { width: 4.5rem; }
-            .h-18 { height: 4.5rem; }
-        </style>
-    @endif
+                        <!-- Animated Avatar/Icon -->
+                        <div class="relative inline-flex items-center justify-center">
+                            <div class="absolute w-32 h-32 rounded-full bg-purple-500/20 animate-ping-slow"></div>
+                            <div class="absolute w-24 h-24 rounded-full bg-pink-500/20 animate-ping-slower"></div>
+                            <div class="relative w-24 h-24 rounded-2xl bg-gradient-to-br from-purple-600 to-pink-600 shadow-[0_0_50px_rgba(168,85,247,0.5)] flex items-center justify-center animate-pulse-glow">
+                                <i class="fa-solid fa-wand-magic-sparkles text-white text-4xl animate-bounce-slight"></i>
+                            </div>
+                        </div>
 
-    <!-- Result Image -->
-    @if($generatedImageUrl)
-        <div class="bg-white/[0.03] border border-white/[0.08] rounded-xl overflow-hidden">
-            <div class="flex items-center justify-between p-4 border-b border-white/[0.05]">
-                <div class="flex items-center gap-2 text-green-400">
-                    <i class="fa-solid fa-circle-check w-5 h-5"></i>
-                    <span class="font-semibold">Ảnh đã tạo!</span>
-                </div>
-                <button wire:click="resetForm" class="text-sm text-white/40 hover:text-white transition-colors">
-                    Tạo lại
-                </button>
-            </div>
-            
-            <!-- Image với Loading Skeleton -->
-            <div class="p-3 md:p-4" x-data="{ loaded: false }">
-                <!-- Skeleton Loader -->
-                <div x-show="!loaded" class="w-full aspect-square bg-white/[0.05] rounded-xl animate-pulse flex items-center justify-center">
-                    <i class="fa-solid fa-image text-white/20" style="font-size: 48px;"></i>
-                </div>
-                <!-- Actual Image -->
-                <img 
-                    src="{{ $generatedImageUrl }}" 
-                    alt="Generated Image" 
-                    class="w-full rounded-xl"
-                    x-show="loaded"
-                    x-transition:enter="transition ease-out duration-300"
-                    x-transition:enter-start="opacity-0"
-                    x-transition:enter-end="opacity-100"
-                    @load="loaded = true"
-                    onerror="this.src='/images/placeholder.svg'; this.onerror=null;">
-            </div>
+                        <!-- Text Content -->
+                        <div class="space-y-4">
+                            <h3 class="text-2xl md:text-3xl font-bold text-white tracking-tight"
+                                x-text="tips[tipIndex]"
+                                x-transition:enter="transition ease-out duration-500"
+                                x-transition:enter-start="opacity-0 transform translate-y-2"
+                                x-transition:enter-end="opacity-100 transform translate-y-0">
+                            </h3>
+                            <p class="text-white/50 text-lg" x-text="messages[currentMessage]"></p>
+                        </div>
 
-            <!-- Download & Share Buttons -->
-            <div class="p-3 md:p-4 pt-0 space-y-3" x-data="{ downloading: false, copied: false }">
-                <!-- Download Button (via Proxy) -->
-                @if($lastImageId)
-                    <a href="{{ route('history.download', $lastImageId) }}" 
-                       x-on:click="downloading = true; setTimeout(() => downloading = false, 3000)"
-                       class="w-full py-3 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold inline-flex items-center justify-center gap-2 hover:shadow-[0_8px_30px_rgba(168,85,247,0.5)] transition-all"
-                       :class="{ 'opacity-75': downloading }">
-                        <template x-if="!downloading">
-                            <span class="inline-flex items-center gap-2">
-                                <i class="fa-solid fa-download" style="font-size: 18px;"></i>
-                                <span>Tải xuống</span>
-                            </span>
-                        </template>
-                        <template x-if="downloading">
-                            <span class="inline-flex items-center gap-2">
-                                <i class="fa-solid fa-spinner animate-spin" style="font-size: 18px;"></i>
-                                <span>Đang tải...</span>
-                            </span>
-                        </template>
-                    </a>
-                @else
-                    <a href="{{ $generatedImageUrl }}" 
-                       target="_blank" 
-                       download
-                       class="w-full py-3 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold inline-flex items-center justify-center gap-2 hover:shadow-[0_8px_30px_rgba(168,85,247,0.5)] transition-all">
-                        <i class="fa-solid fa-download" style="font-size: 18px;"></i>
-                        <span>Tải xuống</span>
-                    </a>
+                        <!-- Progress Bar -->
+                        <div class="w-full max-w-md mx-auto">
+                            <div class="h-1.5 bg-white/10 rounded-full overflow-hidden backdrop-blur-sm">
+                                <div class="h-full rounded-full bg-gradient-to-r from-purple-500 via-pink-500 to-purple-500 bg-[length:200%_100%] animate-gradient-x"></div>
+                            </div>
+                        </div>
+                    </div>
                 @endif
 
-                <!-- Social Share Buttons -->
-                <div class="flex items-center justify-center gap-2">
-                    <span class="text-xs text-white/40 mr-2">Chia sẻ:</span>
-                    
-                    <!-- Facebook -->
-                    <a href="https://www.facebook.com/sharer/sharer.php?u={{ urlencode($generatedImageUrl) }}" 
-                       target="_blank"
-                       class="w-9 h-9 rounded-lg bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 inline-flex items-center justify-center transition-colors"
-                       title="Chia sẻ Facebook">
-                        <i class="fa-brands fa-facebook-f"></i>
-                    </a>
-                    
-                    <!-- Twitter/X -->
-                    <a href="https://twitter.com/intent/tweet?url={{ urlencode($generatedImageUrl) }}&text={{ urlencode('Ảnh AI từ ' . config('app.name')) }}" 
-                       target="_blank"
-                       class="w-9 h-9 rounded-lg bg-white/[0.05] hover:bg-white/[0.1] text-white/60 inline-flex items-center justify-center transition-colors"
-                       title="Chia sẻ Twitter">
-                        <i class="fa-brands fa-x-twitter"></i>
-                    </a>
-                    
-                    <!-- Copy Link -->
-                    <button 
-                        x-on:click="navigator.clipboard.writeText('{{ $generatedImageUrl }}'); copied = true; setTimeout(() => copied = false, 2000)"
-                        class="w-9 h-9 rounded-lg bg-white/[0.05] hover:bg-white/[0.1] text-white/60 inline-flex items-center justify-center transition-colors"
-                        :class="{ 'bg-green-500/20 text-green-400': copied }"
-                        title="Sao chép link">
-                        <i x-show="!copied" class="fa-solid fa-link"></i>
-                        <i x-show="copied" class="fa-solid fa-check"></i>
-                    </button>
-                </div>
+                <!-- STATE 2: RESULT IMAGE -->
+                @if($generatedImageUrl && !$isGenerating)
+                    <div class="w-full h-full flex flex-col md:flex-row gap-6 md:gap-8 items-center justify-center animate-zoom-in">
+                        
+                        <!-- Image Container (Center/Left) -->
+                        <div class="relative flex-1 w-full h-full max-h-[80vh] flex items-center justify-center bg-[#0a0a0f]/50 rounded-2xl border border-white/10 p-2 md:p-4 backdrop-blur-sm shadow-2xl">
+                            <img src="{{ $generatedImageUrl }}" 
+                                 alt="Generated Image" 
+                                 class="max-w-full max-h-full object-contain rounded-lg shadow-lg select-none"
+                                 oncontextmenu="return false;">
+                                 
+                            <!-- Zoom Button (Optional) -->
+                            <a href="{{ $generatedImageUrl }}" target="_blank" class="absolute bottom-6 right-6 w-10 h-10 rounded-full bg-black/50 hover:bg-black/70 text-white flex items-center justify-center backdrop-blur-md border border-white/10 transition-all">
+                                <i class="fa-solid fa-expand"></i>
+                            </a>
+                        </div>
 
-                {{-- [FIX UX-05] Thông báo đúng thời hạn pre-signed URL (7 ngày) --}}
-                <p class="text-xs text-white/30 text-center">
-                    <i class="fa-solid fa-info-circle mr-1"></i>
-                    Link chia sẻ có hiệu lực trong 7 ngày
-                </p>
+                        <!-- Actions Sidebar (Right/Bottom) -->
+                        <div class="w-full md:w-80 flex-shrink-0 space-y-4 bg-white/[0.03] backdrop-blur-md border border-white/10 p-6 rounded-2xl">
+                            <div class="text-center mb-6">
+                                <div class="w-12 h-12 rounded-full bg-green-500/20 text-green-400 flex items-center justify-center mx-auto mb-3">
+                                    <i class="fa-solid fa-check text-xl"></i>
+                                </div>
+                                <h3 class="text-xl font-bold text-white">Hoàn tất!</h3>
+                                <p class="text-sm text-white/50">Ảnh của bạn đã sẵn sàng</p>
+                            </div>
+
+                            <!-- Download Button -->
+                            @if($lastImageId)
+                                <a href="{{ route('history.download', $lastImageId) }}" 
+                                   class="block w-full py-4 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-bold text-center shadow-lg hover:shadow-purple-500/30 transition-all transform hover:-translate-y-0.5">
+                                    <i class="fa-solid fa-download mr-2"></i> Tải xuống (HD)
+                                </a>
+                            @else
+                                <a href="{{ $generatedImageUrl }}" download
+                                   class="block w-full py-4 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-bold text-center shadow-lg hover:shadow-purple-500/30 transition-all transform hover:-translate-y-0.5">
+                                    <i class="fa-solid fa-download mr-2"></i> Tải xuống
+                                </a>
+                            @endif
+
+                            <!-- Action Buttons Grid -->
+                            <div class="grid grid-cols-2 gap-3">
+                                <button wire:click="resetForm" class="py-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white font-medium transition-all">
+                                    <i class="fa-solid fa-rotate-right mr-2"></i> Tạo lại
+                                </button>
+                                <a href="{{ route('history.index') }}" class="py-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white font-medium text-center transition-all">
+                                    <i class="fa-solid fa-clock-rotate-left mr-2"></i> Lịch sử
+                                </a>
+                            </div>
+
+                            <!-- Share Section -->
+                            <div class="pt-4 border-t border-white/10">
+                                <p class="text-xs text-white/40 mb-3 text-center">Chia sẻ tác phẩm này</p>
+                                <div class="flex justify-center gap-3">
+                                    <a href="https://www.facebook.com/sharer/sharer.php?u={{ urlencode($generatedImageUrl) }}" target="_blank" class="w-10 h-10 rounded-full bg-[#1877F2]/20 text-[#1877F2] hover:bg-[#1877F2] hover:text-white flex items-center justify-center transition-all">
+                                        <i class="fa-brands fa-facebook-f"></i>
+                                    </a>
+                                    <a href="https://twitter.com/intent/tweet?url={{ urlencode($generatedImageUrl) }}" target="_blank" class="w-10 h-10 rounded-full bg-white/10 text-white hover:bg-white hover:text-black flex items-center justify-center transition-all">
+                                        <i class="fa-brands fa-x-twitter"></i>
+                                    </a>
+                                    <button onclick="navigator.clipboard.writeText('{{ $generatedImageUrl }}'); alert('Đã sao chép link!')" class="w-10 h-10 rounded-full bg-green-500/20 text-green-400 hover:bg-green-500 hover:text-white flex items-center justify-center transition-all">
+                                        <i class="fa-solid fa-link"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                @endif
             </div>
         </div>
+
+        <style>
+            .animate-fade-in { animation: fadeIn 0.3s ease-out; }
+            .animate-zoom-in { animation: zoomIn 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+            .animate-bounce-slight { animation: bounceSlight 2s infinite; }
+            
+            @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+            @keyframes zoomIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+            @keyframes bounceSlight { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+        </style>
     @endif
 
     <!-- User's History với Style này (Mobile only) -->
