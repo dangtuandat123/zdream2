@@ -33,7 +33,7 @@
             pointer-events: none;
         }
         .home-hero-panel {
-            background: linear-gradient(180deg, rgba(10,10,15,0.42), rgba(10,10,15,0.2));
+            background: linear-gradient(180deg, rgba(10,10,15,0.34), rgba(10,10,15,0.16));
             border: 1px solid rgba(255,255,255,0.12);
             box-shadow: 0 20px 40px rgba(0,0,0,0.35);
             backdrop-filter: blur(12px);
@@ -103,7 +103,38 @@
 
         <div class="home-hero-content max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16 lg:py-20">
             <div class="grid lg:grid-cols-[1.1fr_0.9fr] gap-8 lg:gap-12 items-center">
-                <div class="home-hero-panel rounded-2xl sm:rounded-3xl px-5 sm:px-8 py-6 sm:py-8 text-center lg:text-left">
+                <div class="lg:hidden text-center">
+                    <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 border border-white/20 mb-4">
+                        <span class="inline-flex h-2 w-2 rounded-full bg-pink-400"></span>
+                        <span class="text-xs font-medium text-white/80">Tạo ảnh cực nhanh</span>
+                    </div>
+                    <h1 class="text-3xl font-bold text-white mb-3 leading-tight">
+                        Chọn Style,<br>
+                        <span class="bg-gradient-to-r from-pink-300 via-fuchsia-300 to-purple-300 bg-clip-text text-transparent">Ảnh Đẹp Tự Đến</span>
+                    </h1>
+                    <p class="text-white/70 text-sm mb-6">
+                        Chỉ cần vài từ gợi ý. ZDream tự lo phần còn lại.
+                    </p>
+                    <div class="flex flex-col gap-3 items-center">
+                        <a href="#styles" class="w-full max-w-xs px-6 py-3.5 rounded-xl bg-gradient-to-r from-pink-500 via-fuchsia-500 to-purple-500 text-white font-semibold shadow-lg shadow-fuchsia-500/35 hover:shadow-fuchsia-500/55 transition-all inline-flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-wand-magic-sparkles" style="font-size: 16px;"></i>
+                            <span>Bắt đầu ngay</span>
+                        </a>
+                        @guest
+                            <a href="{{ route('register') }}" class="w-full max-w-xs px-6 py-3.5 rounded-xl bg-white/[0.06] border border-fuchsia-300/40 text-white font-medium hover:bg-white/[0.1] transition-all inline-flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-gift" style="font-size: 14px;"></i>
+                                <span>Đăng ký miễn phí</span>
+                            </a>
+                        @endguest
+                    </div>
+                    <div class="mt-5 flex items-center justify-center gap-2 text-[11px] text-white/60">
+                        <span class="px-2.5 py-1 rounded-full bg-white/10 border border-white/20">Nhanh</span>
+                        <span class="px-2.5 py-1 rounded-full bg-white/10 border border-white/20">Dễ dùng</span>
+                        <span class="px-2.5 py-1 rounded-full bg-white/10 border border-white/20">Style phong phú</span>
+                    </div>
+                </div>
+
+                <div class="home-hero-panel hidden lg:block rounded-2xl sm:rounded-3xl px-5 sm:px-8 py-6 sm:py-8 text-center lg:text-left">
                     <h1 class="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold mb-4 sm:mb-6 leading-tight">
                         <span class="text-white">Chọn Style,</span><br>
                         <span class="bg-gradient-to-r from-pink-300 via-fuchsia-300 to-purple-300 bg-clip-text text-transparent">Ảnh Đẹp Tự Đến</span>
