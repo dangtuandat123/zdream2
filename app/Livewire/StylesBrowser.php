@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\Models\Style;
+use App\Models\Tag;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -22,6 +23,9 @@ class StylesBrowser extends Component
     #[Url(as: 'sort')]
     public string $sort = 'popular';
 
+    #[Url(as: 'tag')]
+    public string $tag = '';
+
     public function updatedSearch(): void
     {
         $this->resetPage();
@@ -37,11 +41,17 @@ class StylesBrowser extends Component
         $this->resetPage();
     }
 
+    public function updatedTag(): void
+    {
+        $this->resetPage();
+    }
+
     public function resetFilters(): void
     {
         $this->search = '';
         $this->price = '';
         $this->sort = 'popular';
+        $this->tag = '';
         $this->resetPage();
     }
 
@@ -65,6 +75,10 @@ class StylesBrowser extends Component
                 'high' => $query->where('price', '>', 15),
                 default => null,
             };
+        }
+
+        if (!empty($this->tag)) {
+            $query->where('tag_id', $this->tag);
         }
 
         match ($this->sort) {
@@ -91,10 +105,16 @@ class StylesBrowser extends Component
             'price_desc' => 'Giá cao → thấp',
         ];
 
+        $tags = Tag::query()
+            ->active()
+            ->ordered()
+            ->get(['id', 'name']);
+
         return view('livewire.styles-browser', [
             'styles' => $styles,
             'priceRanges' => $priceRanges,
             'sortOptions' => $sortOptions,
+            'tags' => $tags,
         ]);
     }
 }

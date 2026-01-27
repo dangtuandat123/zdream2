@@ -83,6 +83,15 @@
                     </select>
                 </div>
 
+                <div class="min-w-0 sm:min-w-[180px]" wire:ignore x-data="select2Livewire({ model: @entangle('tag').live, minResults: 9999 })">
+                    <select x-ref="select" data-no-select2="true" class="w-full px-3 py-2.5 rounded-xl bg-white/[0.04] border border-white/[0.08] text-white text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-purple-500/40">
+                        <option value="">Tất cả chủ đề</option>
+                        @foreach($tags as $tagItem)
+                            <option value="{{ $tagItem->id }}">{{ $tagItem->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
                 <div class="min-w-0 sm:min-w-[180px]" wire:ignore x-data="select2Livewire({ model: @entangle('sort').live, minResults: 9999 })">
                     <select x-ref="select" data-no-select2="true" class="w-full px-3 py-2.5 rounded-xl bg-white/[0.04] border border-white/[0.08] text-white text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-purple-500/40">
                         @foreach($sortOptions as $key => $label)
@@ -91,7 +100,7 @@
                     </select>
                 </div>
 
-                @if(trim($search) !== '' || $price !== '')
+                @if(trim($search) !== '' || $price !== '' || $tag !== '')
                     <button type="button" wire:click="resetFilters" class="w-full sm:w-auto h-11 px-4 rounded-xl bg-red-500/15 border border-red-500/30 text-red-300 text-sm hover:bg-red-500/25 transition-colors inline-flex items-center justify-center gap-2 whitespace-nowrap">
                         <i class="fa-solid fa-xmark text-[12px]"></i>
                         Xóa lọc
@@ -120,7 +129,11 @@
                                 <div class="absolute inset-0 bg-gradient-to-t from-[#0a0a0f] via-transparent to-transparent opacity-80"></div>
                                 <div class="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-pink-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                                 <div class="absolute top-2 sm:top-3 left-2 sm:left-3 right-2 sm:right-3 flex items-start justify-between">
-                                    @if($style->generated_images_count > 100)
+                                    @if($style->tag)
+                                        <span class="inline-flex items-center gap-1 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full bg-gradient-to-r from-{{ $style->tag->color_from }} to-{{ $style->tag->color_to }} text-white text-[9px] sm:text-xs font-bold shadow-lg">
+                                            <i class="fa-solid {{ $style->tag->icon }} w-2 h-2 sm:w-2.5 sm:h-2.5"></i> {{ $style->tag->name }}
+                                        </span>
+                                    @elseif($style->generated_images_count > 100)
                                         <span class="inline-flex items-center gap-1 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full bg-gradient-to-r from-orange-500 to-red-500 text-white text-[9px] sm:text-xs font-bold shadow-lg">
                                             <i class="fa-solid fa-fire w-2 h-2 sm:w-2.5 sm:h-2.5"></i> HOT
                                         </span>
