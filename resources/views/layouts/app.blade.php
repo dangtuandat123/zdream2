@@ -29,7 +29,48 @@
     @livewireStyles
     
     <style>
-        body { font-family: 'Inter', sans-serif; }
+        body { font-family: 'Inter', sans-serif; background: #0a0a0f; }
+        .ambient-bg {
+            position: fixed;
+            inset: -20%;
+            z-index: -1;
+            background:
+                radial-gradient(40% 30% at 20% 20%, rgba(56,189,248,0.26), transparent 60%),
+                radial-gradient(35% 30% at 80% 30%, rgba(232,121,249,0.22), transparent 60%),
+                radial-gradient(40% 35% at 50% 80%, rgba(34,197,94,0.14), transparent 65%),
+                linear-gradient(120deg, rgba(15,23,42,0.35), rgba(2,6,23,0.55));
+            filter: blur(12px) saturate(1.2);
+            background-size: 200% 200%;
+            animation: ambient-shift 12s ease-in-out infinite;
+            pointer-events: none;
+        }
+        .ambient-bg::after {
+            content: '';
+            position: absolute;
+            inset: 10%;
+            background:
+                radial-gradient(30% 25% at 30% 60%, rgba(34,211,238,0.2), transparent 60%),
+                radial-gradient(30% 25% at 70% 40%, rgba(244,114,182,0.18), transparent 60%);
+            mix-blend-mode: screen;
+            animation: ambient-float 9s ease-in-out infinite;
+            opacity: 0.7;
+        }
+        @keyframes ambient-shift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        @keyframes ambient-float {
+            0% { transform: translate3d(0, 0, 0) scale(1); }
+            50% { transform: translate3d(2%, -2%, 0) scale(1.03); }
+            100% { transform: translate3d(0, 0, 0) scale(1); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .ambient-bg,
+            .ambient-bg::after {
+                animation: none;
+            }
+        }
         
         /* Select2 Dark Theme */
         .select2-container--default .select2-selection--single {
@@ -99,6 +140,7 @@
     </style>
 </head>
 <body class="min-h-screen text-white antialiased">
+    <div class="ambient-bg" aria-hidden="true"></div>
 
     <!-- ========== HEADER ========== -->
     <header id="header" class="fixed top-0 left-0 right-0 z-50 bg-[#0a0a0f]/80 backdrop-blur-[12px] border-b border-white/[0.03] transition-all duration-300">
