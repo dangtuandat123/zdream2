@@ -32,16 +32,16 @@
         body { font-family: 'Inter', sans-serif; background: #0a0a0f; }
         .ambient-bg {
             position: fixed;
-            inset: -20%;
+            inset: -10%;
             z-index: -1;
+            will-change: transform, opacity;
             background:
-                radial-gradient(40% 30% at 20% 20%, rgba(56,189,248,0.26), transparent 60%),
-                radial-gradient(35% 30% at 80% 30%, rgba(232,121,249,0.22), transparent 60%),
-                radial-gradient(40% 35% at 50% 80%, rgba(34,197,94,0.14), transparent 65%),
+                radial-gradient(40% 30% at 20% 20%, rgba(56,189,248,0.22), transparent 70%),
+                radial-gradient(35% 30% at 80% 30%, rgba(232,121,249,0.18), transparent 70%),
+                radial-gradient(40% 35% at 50% 80%, rgba(34,197,94,0.12), transparent 72%),
                 linear-gradient(120deg, rgba(15,23,42,0.35), rgba(2,6,23,0.55));
-            filter: blur(12px) saturate(1.2);
-            background-size: 200% 200%;
-            animation: ambient-shift 12s ease-in-out infinite;
+            opacity: 0.8;
+            animation: ambient-drift 10s ease-in-out infinite;
             pointer-events: none;
         }
         .ambient-bg::after {
@@ -49,21 +49,14 @@
             position: absolute;
             inset: 10%;
             background:
-                radial-gradient(30% 25% at 30% 60%, rgba(34,211,238,0.2), transparent 60%),
-                radial-gradient(30% 25% at 70% 40%, rgba(244,114,182,0.18), transparent 60%);
-            mix-blend-mode: screen;
-            animation: ambient-float 9s ease-in-out infinite;
-            opacity: 0.7;
+                radial-gradient(30% 25% at 30% 60%, rgba(34,211,238,0.16), transparent 70%),
+                radial-gradient(30% 25% at 70% 40%, rgba(244,114,182,0.14), transparent 70%);
+            opacity: 0.5;
         }
-        @keyframes ambient-shift {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-        @keyframes ambient-float {
-            0% { transform: translate3d(0, 0, 0) scale(1); }
-            50% { transform: translate3d(2%, -2%, 0) scale(1.03); }
-            100% { transform: translate3d(0, 0, 0) scale(1); }
+        @keyframes ambient-drift {
+            0% { transform: translate3d(0, 0, 0); }
+            50% { transform: translate3d(1.5%, -1.5%, 0); }
+            100% { transform: translate3d(0, 0, 0); }
         }
         @media (prefers-reduced-motion: reduce) {
             .ambient-bg,
@@ -160,18 +153,16 @@
         }
         .hero-art {
             position: absolute;
-            inset: -20%;
+            inset: -10%;
             background:
-                radial-gradient(40% 30% at 10% 30%, rgba(34,211,238,0.32), transparent 60%),
-                radial-gradient(35% 30% at 90% 20%, rgba(232,121,249,0.26), transparent 60%),
-                radial-gradient(40% 35% at 60% 80%, rgba(74,222,128,0.2), transparent 65%),
-                conic-gradient(from 0deg, rgba(255,255,255,0.08), transparent 30%, rgba(255,255,255,0.08) 60%, transparent);
-            background-size: 160% 160%;
-            filter: blur(18px) saturate(1.2);
-            opacity: 0.7;
-            mix-blend-mode: screen;
-            animation: hero-pan 14s ease-in-out infinite;
+                radial-gradient(40% 30% at 10% 30%, rgba(34,211,238,0.22), transparent 70%),
+                radial-gradient(35% 30% at 90% 20%, rgba(232,121,249,0.2), transparent 70%),
+                radial-gradient(40% 35% at 60% 80%, rgba(74,222,128,0.16), transparent 72%),
+                conic-gradient(from 0deg, rgba(255,255,255,0.06), transparent 30%, rgba(255,255,255,0.06) 60%, transparent);
+            opacity: 0.6;
+            animation: hero-pan 10s ease-in-out infinite;
             pointer-events: none;
+            will-change: transform, opacity;
         }
         @keyframes hero-blob {
             0% { transform: translate3d(0, 0, 0) scale(1); }
@@ -212,6 +203,16 @@
                 animation: none;
                 transition: none;
             }
+        }
+        body.is-scrolling .ambient-bg,
+        body.is-scrolling .ambient-bg::after,
+        body.is-scrolling .hero-art,
+        body.is-scrolling .hero-blob,
+        body.is-scrolling .hero-sheen,
+        body.is-scrolling .anim-float-slow,
+        body.is-scrolling .anim-float-slower,
+        body.is-scrolling .anim-pulse-soft {
+            animation-play-state: paused;
         }
         
         /* Select2 Dark Theme */
@@ -586,6 +587,20 @@
                 }
             });
         });
+    </script>
+    <script>
+        (function () {
+            let scrollTimer = null;
+            window.addEventListener('scroll', function () {
+                document.body.classList.add('is-scrolling');
+                if (scrollTimer) {
+                    clearTimeout(scrollTimer);
+                }
+                scrollTimer = setTimeout(function () {
+                    document.body.classList.remove('is-scrolling');
+                }, 160);
+            }, { passive: true });
+        })();
     </script>
 
     <!-- Global Lightbox Script -->
