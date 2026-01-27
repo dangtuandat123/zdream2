@@ -124,7 +124,7 @@
                 <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 p-4">
                     @foreach($recentImages as $image)
                         <a href="{{ route('history.index') }}" class="aspect-square rounded-xl overflow-hidden bg-white/[0.05] hover:ring-2 hover:ring-purple-500/50 transition-all">
-                            <img src="{{ $image->image_url }}" alt="Generated Image" class="w-full h-full object-cover">
+                            <img src="{{ $image->image_url }}" alt="Generated Image" class="w-full h-full object-cover" loading="lazy" decoding="async" fetchpriority="low">
                         </a>
                     @endforeach
                 </div>

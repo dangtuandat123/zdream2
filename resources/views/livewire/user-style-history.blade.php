@@ -25,7 +25,7 @@
                             onclick="openLightboxWithActions({{ $index }}, {{ json_encode($imageData) }})"
                             class="group relative aspect-square rounded-lg overflow-hidden bg-white/[0.05] cursor-pointer focus:outline-none"
                         >
-                            <img src="{{ $img->image_url }}" alt="Generated" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" onerror="this.src='/images/placeholder.svg'">
+                            <img src="{{ $img->image_url }}" alt="Generated" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy" decoding="async" fetchpriority="low" onerror="this.src='/images/placeholder.svg'">
                             <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                                 <i class="fa-solid fa-expand text-white"></i>
                             </div>

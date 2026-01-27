@@ -114,7 +114,7 @@
                                     class="w-full h-full cursor-pointer block"
                                 >
                                     <img src="{{ $image->image_url }}" alt="Generated Image" 
-                                         class="w-full h-full object-cover transition-transform duration-300" loading="lazy">
+                                         class="w-full h-full object-cover transition-transform duration-300" loading="lazy" decoding="async" fetchpriority="low">
                                 </button>
                                 <!-- Hover overlay với icon mắt -->
                                 <div class="hover-overlay">

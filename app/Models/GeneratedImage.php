@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 
 /**
@@ -148,14 +149,21 @@ class GeneratedImage extends Model
         }
 
         // Pre-signed URL với expiry 7 ngày (max allowed by S3/MinIO)
-        // URL sẽ được generate mới mỗi lần load trang
+        // Cache URL để tránh tạo mới liên tục (giảm băng thông S3)
         try {
-            return Storage::disk('minio')->temporaryUrl(
-                $this->storage_path,
-                now()->addDays(7)  // Max 7 days for S3-compatible
-            );
+            $storagePath = $this->storage_path;
+            $cacheKey = 'minio:temp_url:' . md5($storagePath);
+            $cacheTtl = now()->addDays(6); // buffer trước khi hết hạn
+
+            return Cache::remember($cacheKey, $cacheTtl, function () use ($storagePath) {
+                return Storage::disk('minio')->temporaryUrl(
+                    $storagePath,
+                    now()->addDays(7)  // Max 7 days for S3-compatible
+                );
+            });
         } catch (\Exception $e) {
             // Fallback to regular URL nếu temporaryUrl không khả dụng
+            Cache::forget('minio:temp_url:' . md5($this->storage_path));
             return Storage::disk('minio')->url($this->storage_path);
         }
     }

@@ -56,7 +56,7 @@
                     <div class="relative w-full aspect-square max-w-md mx-auto">
                         @if($styles->count() > 0)
                             <div class="absolute top-0 right-0 w-64 xl:w-72 h-80 xl:h-96 rounded-2xl overflow-hidden shadow-2xl shadow-purple-500/20 border border-white/[0.1] transform rotate-3 hover:rotate-0 transition-transform duration-500">
-                                <img src="{{ $styles->first()->thumbnail }}" alt="AI Generated" class="w-full h-full object-cover">
+                                <img src="{{ $styles->first()->thumbnail }}" alt="AI Generated" class="w-full h-full object-cover" loading="eager" decoding="async" fetchpriority="high">
                                 <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
                                 <div class="absolute bottom-4 left-4 right-4">
                                     <p class="text-white font-semibold">{{ $styles->first()->name }}</p>
@@ -102,7 +102,7 @@
                     <a href="{{ route('studio.show', $style->slug) }}" class="group block h-full">
                         <div class="style-card relative overflow-hidden h-full bg-gradient-to-b from-white/[0.05] to-white/[0.02] backdrop-blur-[8px] border border-white/[0.08] rounded-2xl sm:rounded-3xl transition-all duration-500 hover:border-purple-500/30 hover:shadow-[0_20px_60px_rgba(168,85,247,0.15)] hover:-translate-y-2 cursor-pointer flex flex-col shine-effect">
                             <div class="relative aspect-[3/4] overflow-hidden rounded-t-2xl sm:rounded-t-3xl">
-                                <img src="{{ $style->thumbnail }}" alt="{{ $style->name }}" class="w-full h-full object-cover transition-all duration-700 group-hover:scale-110" loading="lazy">
+                                <img src="{{ $style->thumbnail }}" alt="{{ $style->name }}" class="w-full h-full object-cover transition-all duration-700 group-hover:scale-110" loading="lazy" decoding="async" fetchpriority="low">
                                 <div class="absolute inset-0 bg-gradient-to-t from-[#0a0a0f] via-transparent to-transparent opacity-80"></div>
                                 <div class="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-pink-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                                 <div class="absolute top-2 sm:top-3 left-2 sm:left-3 right-2 sm:right-3 flex items-start justify-between">

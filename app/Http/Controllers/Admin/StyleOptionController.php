@@ -64,7 +64,10 @@ class StyleOptionController extends Controller
 
         // Upload thumbnail to local storage (public disk)
         if ($request->hasFile('thumbnail')) {
-            $path = $request->file('thumbnail')->store('option-thumbnails', 'public');
+            $path = $request->file('thumbnail')->store('option-thumbnails', 'public', [
+                'visibility' => 'public',
+                'CacheControl' => 'public, max-age=31536000, immutable',
+            ]);
             $validated['thumbnail'] = $path;
         }
 
@@ -131,7 +134,10 @@ class StyleOptionController extends Controller
             if ($option->thumbnail) {
                 Storage::disk('public')->delete($option->thumbnail);
             }
-            $path = $request->file('thumbnail')->store('option-thumbnails', 'public');
+            $path = $request->file('thumbnail')->store('option-thumbnails', 'public', [
+                'visibility' => 'public',
+                'CacheControl' => 'public, max-age=31536000, immutable',
+            ]);
             $validated['thumbnail'] = $path;
         } else {
             unset($validated['thumbnail']);
