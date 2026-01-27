@@ -359,6 +359,7 @@
                 menuOverlay.classList.add('opacity-100');
                 mobileMenu.classList.remove('closed');
                 mobileMenu.classList.add('open');
+                document.body.classList.add('overflow-hidden');
                 // Toggle icon
                 if (menuIconBars) menuIconBars.style.display = 'none';
                 if (menuIconXmark) menuIconXmark.style.display = 'inline-flex';
@@ -370,6 +371,7 @@
                 menuOverlay.classList.remove('opacity-100');
                 mobileMenu.classList.add('closed');
                 mobileMenu.classList.remove('open');
+                document.body.classList.remove('overflow-hidden');
                 // Toggle icon
                 if (menuIconBars) menuIconBars.style.display = 'inline-flex';
                 if (menuIconXmark) menuIconXmark.style.display = 'none';
