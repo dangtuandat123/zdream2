@@ -538,8 +538,15 @@ class BflService
         $started = time();
         $pollInterval = 0.5;
         $pollUrl = $pollingUrl ?: ($this->baseUrl . '/v1/get_result');
+        $maxExecution = (int) ini_get('max_execution_time');
+        $pollTimeout = $this->pollTimeout;
 
-        while ((time() - $started) < $this->pollTimeout) {
+        if ($maxExecution > 0) {
+            // Keep a small buffer to avoid PHP fatal timeout
+            $pollTimeout = min($pollTimeout, max(5, $maxExecution - 5));
+        }
+
+        while ((time() - $started) < $pollTimeout) {
             usleep((int) ($pollInterval * 1000000));
 
             try {
