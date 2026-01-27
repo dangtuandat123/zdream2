@@ -90,6 +90,7 @@ class ImageGenerator extends Component
     public ?float $imagePromptStrength = null;
     public ?int $customWidth = null;
     public ?int $customHeight = null;
+    public string $sizeMode = 'ratio';
 
     public int $dimensionMin = 256;
     public int $dimensionMax = 1408;
@@ -337,6 +338,12 @@ class ImageGenerator extends Component
         $this->customHeight = $this->supportsWidthHeight && array_key_exists('height', $config)
             ? (int) $config['height']
             : null;
+
+        if (!$this->supportsWidthHeight) {
+            $this->sizeMode = 'ratio';
+        } else {
+            $this->sizeMode = ($this->customWidth !== null && $this->customHeight !== null) ? 'custom' : 'ratio';
+        }
     }
 
     /**
@@ -370,7 +377,7 @@ class ImageGenerator extends Component
         if ($this->supportsImagePromptStrength && $this->imagePromptStrength !== null) {
             $overrides['image_prompt_strength'] = (float) $this->imagePromptStrength;
         }
-        if ($this->supportsWidthHeight && $this->customWidth !== null && $this->customHeight !== null) {
+        if ($this->supportsWidthHeight && $this->sizeMode === 'custom' && $this->customWidth !== null && $this->customHeight !== null) {
             $overrides['width'] = (int) $this->customWidth;
             $overrides['height'] = (int) $this->customHeight;
         }
@@ -862,7 +869,8 @@ class ImageGenerator extends Component
         if (!$this->supportsWidthHeight) {
             $this->customWidth = null;
             $this->customHeight = null;
-        } else {
+            $this->sizeMode = 'ratio';
+        } elseif ($this->sizeMode === 'custom') {
             if ($this->customWidth !== null || $this->customHeight !== null) {
                 if ($this->customWidth === null || $this->customHeight === null) {
                     $this->errorMessage = 'Vui lòng nhập đủ các thông số Width và Height.';
@@ -886,6 +894,10 @@ class ImageGenerator extends Component
                     return false;
                 }
             }
+        } else {
+            // Ratio mode: ignore custom size
+            $this->customWidth = null;
+            $this->customHeight = null;
         }
 
         // 5. Validate selected options thuộc style hiện tại

@@ -288,7 +288,31 @@
                         </div>
                     </div>
                 </div>
+                @if($supportsWidthHeight)
+                    <div class="bg-white/[0.02] border border-white/[0.06] rounded-xl p-4 md:p-5">
+                        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                            <div class="text-sm text-white/70 font-semibold">Chọn cách thiết lập kích thước</div>
+                            <div class="inline-flex rounded-xl bg-white/[0.03] border border-white/[0.08] p-1">
+                                <button type="button"
+                                        wire:click="$set('sizeMode','ratio')"
+                                        class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all
+                                            {{ $sizeMode === 'ratio' ? 'bg-cyan-500/20 text-cyan-300' : 'text-white/50 hover:text-white/70' }}">
+                                    Theo dáng ảnh
+                                </button>
+                                <button type="button"
+                                        wire:click="$set('sizeMode','custom')"
+                                        class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all
+                                            {{ $sizeMode === 'custom' ? 'bg-cyan-500/20 text-cyan-300' : 'text-white/50 hover:text-white/70' }}">
+                                    Nhập kích thước
+                                </button>
+                            </div>
+                        </div>
+                        <p class="text-xs text-white/40 mt-2">Gợi ý: người mới nên chọn “Theo dáng ảnh”.</p>
+                    </div>
+                @endif
+
                 <!-- Aspect Ratio Selector -->
+                @if(!$supportsWidthHeight || $sizeMode === 'ratio')
                 <div class="bg-white/[0.02] border border-white/[0.06] rounded-xl p-4 md:p-5">
                     <label class="block text-sm font-semibold text-white/80 mb-3 inline-flex items-center gap-2">
                         <i class="fa-solid fa-crop" style="font-size: 14px;"></i>
@@ -319,8 +343,9 @@
                         </p>
                     @endif
                 </div>
+                @endif
 
-                @if($supportsWidthHeight)
+                @if($supportsWidthHeight && $sizeMode === 'custom')
                     <div class="bg-white/[0.02] border border-white/[0.06] rounded-xl p-4 md:p-5">
                         <label class="block text-sm font-semibold text-white/80 mb-2 inline-flex items-center gap-2">
                             <i class="fa-solid fa-ruler-combined" style="font-size: 12px;"></i>
