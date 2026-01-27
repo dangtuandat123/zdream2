@@ -19,13 +19,14 @@ class WalletController extends Controller
     {
         $user = $request->user();
         
-        // Get amount from query param (for dynamic QR)
-        $amount = max(0, (float) $request->input('amount', 0));
+        // Không yêu cầu nhập số tiền trên UI
+        $amount = 0;
         
-        // Lấy lịch sử giao dịch với pagination
+        // Lấy 5 giao dịch gần nhất (không phân trang)
         $transactions = $user->walletTransactions()
             ->latest()
-            ->paginate(20);
+            ->take(5)
+            ->get();
 
         // Tạo VietQR URL với amount nếu có
         $vietqrUrl = $user->getVietQRUrl($amount);
