@@ -1,14 +1,7 @@
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
     <!-- Hero -->
-    <section class="relative mb-6 overflow-hidden rounded-3xl border border-white/[0.08] bg-[radial-gradient(120%_120%_at_100%_0%,rgba(34,211,238,0.22)_0%,rgba(10,10,15,0.92)_55%,rgba(10,10,15,1)_100%)]">
-        <div class="hero-art" aria-hidden="true"></div>
-        <div class="absolute inset-0 pointer-events-none">
-            <div class="hero-blob hero-blob-1"></div>
-            <div class="hero-blob hero-blob-2"></div>
-            <div class="hero-blob hero-blob-3"></div>
-            <div class="hero-sheen"></div>
-        </div>
-        <div class="absolute inset-0 opacity-30 [background-image:linear-gradient(120deg,rgba(255,255,255,0.06)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.04)_1px,transparent_1px)] [background-size:36px_36px]"></div>
+    <section class="styles-hero mb-6">
+        <div class="styles-hero-grid" aria-hidden="true"></div>
 
         <div class="relative px-4 sm:px-8 py-6 sm:py-10">
             <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
