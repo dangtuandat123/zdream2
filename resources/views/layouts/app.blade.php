@@ -158,6 +158,21 @@
             opacity: 0.35;
             mix-blend-mode: soft-light;
         }
+        .hero-art {
+            position: absolute;
+            inset: -20%;
+            background:
+                radial-gradient(40% 30% at 10% 30%, rgba(34,211,238,0.32), transparent 60%),
+                radial-gradient(35% 30% at 90% 20%, rgba(232,121,249,0.26), transparent 60%),
+                radial-gradient(40% 35% at 60% 80%, rgba(74,222,128,0.2), transparent 65%),
+                conic-gradient(from 0deg, rgba(255,255,255,0.08), transparent 30%, rgba(255,255,255,0.08) 60%, transparent);
+            background-size: 160% 160%;
+            filter: blur(18px) saturate(1.2);
+            opacity: 0.7;
+            mix-blend-mode: screen;
+            animation: hero-pan 14s ease-in-out infinite;
+            pointer-events: none;
+        }
         @keyframes hero-blob {
             0% { transform: translate3d(0, 0, 0) scale(1); }
             50% { transform: translate3d(18px, -14px, 0) scale(1.06); }
@@ -166,6 +181,11 @@
         @keyframes hero-rotate {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
+        }
+        @keyframes hero-pan {
+            0% { transform: translate3d(-2%, -1%, 0) scale(1); background-position: 0% 50%; }
+            50% { transform: translate3d(2%, -3%, 0) scale(1.03); background-position: 100% 50%; }
+            100% { transform: translate3d(-2%, -1%, 0) scale(1); background-position: 0% 50%; }
         }
         @keyframes float-slow {
             0% { transform: translate3d(0, 0, 0); }
@@ -187,7 +207,8 @@
             .anim-pulse-soft,
             .btn-glow::after,
             .hero-blob,
-            .hero-sheen {
+            .hero-sheen,
+            .hero-art {
                 animation: none;
                 transition: none;
             }
