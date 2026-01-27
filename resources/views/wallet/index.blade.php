@@ -99,18 +99,18 @@
                                     </button>
                                 </div>
 
-                                <div class="flex items-center justify-between rounded-xl border border-cyan-500/30 bg-cyan-500/10 px-3 py-3">
-                                    <div>
-                                        <div class="flex items-center gap-2">
-                                            <span class="text-xs text-white/50">Nội dung CK</span>
-                                            <span class="text-[10px] font-semibold uppercase tracking-wider text-cyan-300 bg-cyan-500/20 px-2 py-0.5 rounded-full">Quan trọng</span>
-                                        </div>
-                                        <p class="text-sm text-cyan-200 font-mono mt-1">{{ $bankInfo['transfer_content'] }}</p>
+                                <div class="rounded-xl border border-cyan-500/30 bg-cyan-500/10 px-3 py-3">
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-xs text-white/50">Nội dung CK</span>
+                                        <span class="text-[10px] font-semibold uppercase tracking-wider text-cyan-300 bg-cyan-500/20 px-2 py-0.5 rounded-full">Quan trọng</span>
                                     </div>
-                                    <button onclick="copyToClipboard('{{ $bankInfo['transfer_content'] }}', this)" class="px-3 py-2 rounded-lg bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-100 transition-colors inline-flex items-center gap-2" aria-label="Copy nội dung chuyển khoản">
-                                        <i class="fa-solid fa-copy text-[12px] leading-none"></i>
-                                        <span class="text-xs">Copy</span>
-                                    </button>
+                                    <div class="mt-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                                        <p class="text-sm text-cyan-200 font-mono break-all">{{ $bankInfo['transfer_content'] }}</p>
+                                        <button onclick="copyToClipboard('{{ $bankInfo['transfer_content'] }}', this)" class="px-3 py-2 rounded-lg bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-100 transition-colors inline-flex items-center gap-2 self-start sm:self-auto" aria-label="Copy nội dung chuyển khoản">
+                                            <i class="fa-solid fa-copy text-[12px] leading-none"></i>
+                                            <span class="text-xs">Copy</span>
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
 
