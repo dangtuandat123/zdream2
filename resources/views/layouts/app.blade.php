@@ -71,6 +71,77 @@
                 animation: none;
             }
         }
+        .anim-float-slow {
+            animation: float-slow 8s ease-in-out infinite;
+        }
+        .anim-float-slower {
+            animation: float-slower 12s ease-in-out infinite;
+        }
+        .anim-pulse-soft {
+            animation: pulse-soft 4.5s ease-in-out infinite;
+        }
+        .btn-glow {
+            position: relative;
+            overflow: hidden;
+        }
+        .btn-glow::after {
+            content: '';
+            position: absolute;
+            inset: -120% -30%;
+            background: linear-gradient(120deg, transparent 35%, rgba(255,255,255,0.45) 50%, transparent 65%);
+            transform: translateX(-60%);
+            transition: transform 0.6s ease;
+            pointer-events: none;
+        }
+        .btn-glow:hover::after {
+            transform: translateX(60%);
+        }
+        .btn-pop {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .btn-pop:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(255,255,255,0.08);
+        }
+        .card-anim {
+            position: relative;
+            overflow: hidden;
+        }
+        .card-anim::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(60% 60% at 30% 20%, rgba(255,255,255,0.08), transparent 60%);
+            opacity: 0;
+            transition: opacity 0.4s ease;
+            pointer-events: none;
+        }
+        .card-anim:hover::after {
+            opacity: 0.6;
+        }
+        @keyframes float-slow {
+            0% { transform: translate3d(0, 0, 0); }
+            50% { transform: translate3d(0, -10px, 0); }
+            100% { transform: translate3d(0, 0, 0); }
+        }
+        @keyframes float-slower {
+            0% { transform: translate3d(0, 0, 0); }
+            50% { transform: translate3d(8px, -6px, 0); }
+            100% { transform: translate3d(0, 0, 0); }
+        }
+        @keyframes pulse-soft {
+            0%, 100% { box-shadow: 0 0 0 rgba(34,211,238,0.0); }
+            50% { box-shadow: 0 0 24px rgba(34,211,238,0.25); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .anim-float-slow,
+            .anim-float-slower,
+            .anim-pulse-soft,
+            .btn-glow::after {
+                animation: none;
+                transition: none;
+            }
+        }
         
         /* Select2 Dark Theme */
         .select2-container--default .select2-selection--single {
