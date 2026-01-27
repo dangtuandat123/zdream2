@@ -178,12 +178,13 @@
             inset: -8%;
             background-image: url('/images/hero/styles-hero.png');
             background-size: cover;
-            background-position: center;
-            opacity: 0.2;
+            background-position: 50% 50%;
+            opacity: 0.22;
             filter: saturate(1.1) contrast(1.05);
             transform: scale(1.03);
             pointer-events: none;
             z-index: 0;
+            animation: styles-hero-pan 22s ease-in-out infinite;
         }
         .styles-hero::after {
             content: '';
@@ -200,22 +201,22 @@
         .styles-hero-grid {
             position: absolute;
             inset: 0;
-            opacity: 0.18;
+            opacity: 0.24;
             background-image:
                 linear-gradient(120deg, rgba(255,255,255,0.06) 1px, transparent 1px),
                 linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px);
-            background-size: 40px 40px;
+            background-size: 32px 32px;
             pointer-events: none;
             z-index: 0;
-            animation: styles-grid-drift 26s linear infinite;
+            animation: styles-grid-drift 18s linear infinite;
         }
         .styles-hero-sheen {
             position: absolute;
             inset: -20%;
             background: conic-gradient(from 120deg, rgba(255,255,255,0.06), transparent 35%, rgba(255,255,255,0.08) 50%, transparent 65%);
-            opacity: 0.35;
+            opacity: 0.45;
             mix-blend-mode: soft-light;
-            animation: styles-sheen-rotate 24s linear infinite;
+            animation: styles-sheen-rotate 16s linear infinite;
             pointer-events: none;
             z-index: 0;
         }
@@ -225,9 +226,9 @@
             height: 260px;
             border-radius: 9999px;
             filter: blur(26px);
-            opacity: 0.55;
+            opacity: 0.6;
             mix-blend-mode: screen;
-            animation: styles-orb-float 14s ease-in-out infinite;
+            animation: styles-orb-float 12s ease-in-out infinite;
             pointer-events: none;
             z-index: 0;
         }
@@ -246,20 +247,25 @@
         }
         @keyframes styles-grid-drift {
             0% { background-position: 0 0; }
-            100% { background-position: 120px 60px; }
+            100% { background-position: 260px 160px; }
         }
         @keyframes styles-sheen-rotate {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+        @keyframes styles-hero-pan {
+            0% { background-position: 50% 50%; transform: scale(1.03); }
+            50% { background-position: 62% 38%; transform: scale(1.06); }
+            100% { background-position: 50% 50%; transform: scale(1.03); }
+        }
         @keyframes styles-orb-float {
             0% { transform: translate3d(0, 0, 0) scale(1); }
-            50% { transform: translate3d(18px, -12px, 0) scale(1.05); }
+            50% { transform: translate3d(32px, -20px, 0) scale(1.08); }
             100% { transform: translate3d(0, 0, 0) scale(1); }
         }
         .styles-hero-inner {
             position: relative;
-            z-index: 1;
+            z-index: 2;
         }
         @keyframes hero-blob {
             0% { transform: translate3d(0, 0, 0) scale(1); }
@@ -299,7 +305,8 @@
             .hero-art,
             .styles-hero-grid,
             .styles-hero-sheen,
-            .styles-hero-orb {
+            .styles-hero-orb,
+            .styles-hero::before {
                 animation: none;
                 transition: none;
             }
@@ -312,6 +319,7 @@
         body.is-scrolling .styles-hero-grid,
         body.is-scrolling .styles-hero-sheen,
         body.is-scrolling .styles-hero-orb,
+        body.is-scrolling .styles-hero::before,
         body.is-scrolling .anim-float-slow,
         body.is-scrolling .anim-float-slower,
         body.is-scrolling .anim-pulse-soft {
