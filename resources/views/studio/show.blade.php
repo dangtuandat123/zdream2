@@ -19,13 +19,20 @@
                     <div class="absolute inset-0 bg-gradient-to-t from-[#0a0a0f]/90 via-transparent to-transparent"></div>
                     <div class="absolute bottom-0 left-0 right-0 p-4 md:p-6">
                         <h1 class="text-xl md:text-2xl font-bold text-white mb-1.5">{{ $style->name }}</h1>
-                        @if($style->description)
-                            <p class="text-sm text-white/50 line-clamp-2">{{ $style->description }}</p>
-                        @endif
+
                     </div>
                 </div>
                 
-                <!-- Model Info -->
+                <!-- Description Block -->
+                @if($style->description)
+                <div class="bg-white/[0.03] border border-white/[0.08] rounded-xl p-4">
+                    <h3 class="text-white font-bold text-base mb-2">Mô tả Style</h3>
+                    <p class="text-sm text-white/80 leading-relaxed">{{ $style->description }}</p>
+                </div>
+                @endif
+
+                <!-- Model Info (Hidden as requested) -->
+                {{-- 
                 <div class="hidden lg:block bg-white/[0.03] border border-white/[0.08] rounded-xl p-4">
                     <div class="flex items-center gap-3 text-sm text-white/40 mb-3">
                         <i class="fa-solid fa-microchip text-purple-400" style="font-size: 14px;"></i>
@@ -36,9 +43,10 @@
                         <span>Aspect Ratio: <span class="text-white/60">{{ $style->aspect_ratio }}</span></span>
                     </div>
                 </div>
+                --}}
 
-                <!-- Tips (Desktop) -->
-                <div class="hidden lg:block bg-gradient-to-br from-purple-500/10 to-pink-500/10 border border-purple-500/20 rounded-xl p-4">
+                <!-- Tips -->
+                <div class="bg-gradient-to-br from-purple-500/10 to-pink-500/10 border border-purple-500/20 rounded-xl p-4">
                     <h3 class="text-white font-medium text-sm mb-2 inline-flex items-center gap-2">
                         <i class="fa-solid fa-lightbulb text-yellow-400" style="font-size: 12px;"></i>
                         Mẹo nhỏ
