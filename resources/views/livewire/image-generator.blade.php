@@ -367,39 +367,41 @@
     <!-- ==================================================================================== -->
     
     {{-- 1. IMMEDIATE LOADING STATE (Client-side, shows immediately on click) --}}
-    <div wire:loading.flex wire:target="generate"
-         class="fixed inset-0 z-[99999] flex items-center justify-center animate-fade-in"
-         style="display: none;">
-        <!-- Backdrop -->
-        <div class="absolute inset-0 bg-[#0a0a0f]/80 backdrop-blur-xl transition-opacity"></div>
-        
-        <!-- Content -->
-        <div class="relative z-10 w-full max-w-2xl text-center space-y-8 md:space-y-12 p-4">
-            <!-- Spinner -->
-            <div class="relative flex items-center justify-center">
-                <div class="absolute w-48 h-48 rounded-full bg-purple-500/20 blur-3xl animate-pulse"></div>
-                <div class="relative w-24 h-24 md:w-32 md:h-32">
-                    <svg class="animate-spin w-full h-full text-transparent" viewBox="0 0 100 100">
-                        <defs>
-                            <linearGradient id="spinner-gradient-loading" x1="0%" y1="0%" x2="100%" y2="0%">
-                                <stop offset="0%" stop-color="#a855f7" />
-                                <stop offset="100%" stop-color="#ec4899" />
-                            </linearGradient>
-                        </defs>
-                        <circle cx="50" cy="50" r="45" stroke="url(#spinner-gradient-loading)" stroke-width="4" fill="none" stroke-linecap="round" stroke-dasharray="200" stroke-dashoffset="100" />
-                    </svg>
-                    <div class="absolute inset-0 flex items-center justify-center">
-                        <i class="fa-solid fa-wand-magic-sparkles text-2xl md:text-3xl text-white animate-bounce-slight"></i>
+    @teleport('body')
+        <div wire:loading.flex wire:target="generate"
+             class="fixed inset-0 z-[99999] flex items-center justify-center animate-fade-in"
+             style="display: none;">
+            <!-- Backdrop -->
+            <div class="absolute inset-0 bg-[#0a0a0f]/80 backdrop-blur-xl transition-opacity"></div>
+            
+            <!-- Content -->
+            <div class="relative z-10 w-full max-w-2xl text-center space-y-8 md:space-y-12 p-4">
+                <!-- Spinner -->
+                <div class="relative flex items-center justify-center">
+                    <div class="absolute w-48 h-48 rounded-full bg-purple-500/20 blur-3xl animate-pulse"></div>
+                    <div class="relative w-24 h-24 md:w-32 md:h-32">
+                        <svg class="animate-spin w-full h-full text-transparent" viewBox="0 0 100 100">
+                            <defs>
+                                <linearGradient id="spinner-gradient-loading" x1="0%" y1="0%" x2="100%" y2="0%">
+                                    <stop offset="0%" stop-color="#a855f7" />
+                                    <stop offset="100%" stop-color="#ec4899" />
+                                </linearGradient>
+                            </defs>
+                            <circle cx="50" cy="50" r="45" stroke="url(#spinner-gradient-loading)" stroke-width="4" fill="none" stroke-linecap="round" stroke-dasharray="200" stroke-dashoffset="100" />
+                        </svg>
+                        <div class="absolute inset-0 flex items-center justify-center">
+                            <i class="fa-solid fa-wand-magic-sparkles text-2xl md:text-3xl text-white animate-bounce-slight"></i>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <!-- Text -->
-            <div class="space-y-4 px-4">
-                <h3 class="text-xl md:text-3xl font-bold text-white tracking-tight">Đang khởi tạo...</h3>
-                <p class="text-white/50 text-base md:text-lg">Đang gửi yêu cầu đến AI...</p>
+                <!-- Text -->
+                <div class="space-y-4 px-4">
+                    <h3 class="text-xl md:text-3xl font-bold text-white tracking-tight">Đang khởi tạo...</h3>
+                    <p class="text-white/50 text-base md:text-lg">Đang gửi yêu cầu đến AI...</p>
+                </div>
             </div>
         </div>
-    </div>
+    @endteleport
 
     {{-- 2. REAL MODAL (Server-side state) --}}
     @if($isGenerating || $generatedImageUrl)
