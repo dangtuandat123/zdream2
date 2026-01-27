@@ -19,6 +19,7 @@ use Illuminate\Support\Facades\Storage;
  * @property string $final_prompt
  * @property array|null $selected_options
  * @property string|null $user_custom_input
+ * @property array|null $generation_params
  * @property string|null $storage_path
  * @property string|null $bfl_task_id
  * @property string $status
@@ -40,6 +41,7 @@ class GeneratedImage extends Model
         'final_prompt',
         'selected_options',
         'user_custom_input',
+        'generation_params',
         'storage_path',
         'bfl_task_id',
         'status',
@@ -49,6 +51,7 @@ class GeneratedImage extends Model
 
     protected $casts = [
         'selected_options' => 'array',
+        'generation_params' => 'array',
         'credits_used' => 'decimal:2',
     ];
 

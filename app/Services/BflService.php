@@ -115,6 +115,43 @@ class BflService
         return config('services_custom.bfl.aspect_ratios', []);
     }
 
+    protected function getModelConfig(string $modelId): ?array
+    {
+        $modelId = $this->normalizeModelId($modelId);
+        foreach ($this->getAvailableModels() as $model) {
+            if (($model['id'] ?? '') === $modelId) {
+                return $model;
+            }
+        }
+        return null;
+    }
+
+    public function getModelCapabilities(string $modelId): array
+    {
+        $model = $this->getModelConfig($modelId) ?? [];
+        return array_merge([
+            'supports_text_input' => true,
+            'supports_image_input' => false,
+            'supports_aspect_ratio' => false,
+            'supports_width_height' => false,
+            'supports_seed' => false,
+            'supports_steps' => false,
+            'supports_guidance' => false,
+            'supports_prompt_upsampling' => false,
+            'supports_output_format' => false,
+            'supports_safety_tolerance' => false,
+            'supports_raw' => false,
+            'supports_image_prompt_strength' => false,
+            'max_input_images' => 0,
+            'uses_image_prompt' => false,
+            'output_formats' => ['jpeg', 'png'],
+            'safety_tolerance' => ['min' => 0, 'max' => 6, 'default' => 2],
+            'steps' => null,
+            'guidance' => null,
+            'image_prompt_strength' => null,
+        ], $model);
+    }
+
     protected function normalizeModelId(string $modelId): string
     {
         $modelId = trim($modelId);
@@ -158,46 +195,110 @@ class BflService
 
     public function supportsImageInput(string $modelId): bool
     {
-        $modelId = $this->normalizeModelId($modelId);
-        foreach ($this->getAvailableModels() as $model) {
-            if (($model['id'] ?? '') === $modelId) {
-                return (bool) ($model['supports_image_input'] ?? false);
-            }
-        }
-        return false;
+        $cap = $this->getModelCapabilities($modelId);
+        return (bool) ($cap['supports_image_input'] ?? false);
     }
 
     public function supportsAspectRatio(string $modelId): bool
     {
-        $modelId = $this->normalizeModelId($modelId);
-        foreach ($this->getAvailableModels() as $model) {
-            if (($model['id'] ?? '') === $modelId) {
-                return (bool) ($model['supports_aspect_ratio'] ?? false);
-            }
-        }
-        return false;
+        $cap = $this->getModelCapabilities($modelId);
+        return (bool) ($cap['supports_aspect_ratio'] ?? false);
+    }
+
+    public function supportsWidthHeight(string $modelId): bool
+    {
+        $cap = $this->getModelCapabilities($modelId);
+        return (bool) ($cap['supports_width_height'] ?? false);
     }
 
     public function maxInputImages(string $modelId): int
     {
-        $modelId = $this->normalizeModelId($modelId);
-        foreach ($this->getAvailableModels() as $model) {
-            if (($model['id'] ?? '') === $modelId) {
-                return (int) ($model['max_input_images'] ?? 0);
-            }
-        }
-        return 0;
+        $cap = $this->getModelCapabilities($modelId);
+        return (int) ($cap['max_input_images'] ?? 0);
     }
 
     public function usesImagePrompt(string $modelId): bool
     {
-        $modelId = $this->normalizeModelId($modelId);
-        foreach ($this->getAvailableModels() as $model) {
-            if (($model['id'] ?? '') === $modelId) {
-                return (bool) ($model['uses_image_prompt'] ?? false);
-            }
-        }
-        return false;
+        $cap = $this->getModelCapabilities($modelId);
+        return (bool) ($cap['uses_image_prompt'] ?? false);
+    }
+
+    public function supportsSteps(string $modelId): bool
+    {
+        $cap = $this->getModelCapabilities($modelId);
+        return (bool) ($cap['supports_steps'] ?? false);
+    }
+
+    public function supportsGuidance(string $modelId): bool
+    {
+        $cap = $this->getModelCapabilities($modelId);
+        return (bool) ($cap['supports_guidance'] ?? false);
+    }
+
+    public function supportsPromptUpsampling(string $modelId): bool
+    {
+        $cap = $this->getModelCapabilities($modelId);
+        return (bool) ($cap['supports_prompt_upsampling'] ?? false);
+    }
+
+    public function supportsSeed(string $modelId): bool
+    {
+        $cap = $this->getModelCapabilities($modelId);
+        return (bool) ($cap['supports_seed'] ?? false);
+    }
+
+    public function supportsOutputFormat(string $modelId): bool
+    {
+        $cap = $this->getModelCapabilities($modelId);
+        return (bool) ($cap['supports_output_format'] ?? false);
+    }
+
+    public function supportsSafetyTolerance(string $modelId): bool
+    {
+        $cap = $this->getModelCapabilities($modelId);
+        return (bool) ($cap['supports_safety_tolerance'] ?? false);
+    }
+
+    public function supportsRaw(string $modelId): bool
+    {
+        $cap = $this->getModelCapabilities($modelId);
+        return (bool) ($cap['supports_raw'] ?? false);
+    }
+
+    public function supportsImagePromptStrength(string $modelId): bool
+    {
+        $cap = $this->getModelCapabilities($modelId);
+        return (bool) ($cap['supports_image_prompt_strength'] ?? false);
+    }
+
+    public function getOutputFormats(string $modelId): array
+    {
+        $cap = $this->getModelCapabilities($modelId);
+        return $cap['output_formats'] ?? ['jpeg', 'png'];
+    }
+
+    public function getSafetyToleranceRange(string $modelId): array
+    {
+        $cap = $this->getModelCapabilities($modelId);
+        return $cap['safety_tolerance'] ?? ['min' => 0, 'max' => 6, 'default' => 2];
+    }
+
+    public function getStepsRange(string $modelId): ?array
+    {
+        $cap = $this->getModelCapabilities($modelId);
+        return $cap['steps'] ?? null;
+    }
+
+    public function getGuidanceRange(string $modelId): ?array
+    {
+        $cap = $this->getModelCapabilities($modelId);
+        return $cap['guidance'] ?? null;
+    }
+
+    public function getImagePromptStrengthRange(string $modelId): ?array
+    {
+        $cap = $this->getModelCapabilities($modelId);
+        return $cap['image_prompt_strength'] ?? null;
     }
 
     /**
@@ -211,7 +312,8 @@ class BflService
         ?string $userCustomInput = null,
         ?string $aspectRatio = null,
         ?string $imageSize = null,
-        array $inputImages = []
+        array $inputImages = [],
+        array $generationOverrides = []
     ): array {
         $finalPrompt = $style->buildFinalPrompt($selectedOptionIds, $userCustomInput);
         $modelId = $this->normalizeModelId($style->bfl_model_id ?? $style->openrouter_model_id ?? '');
@@ -262,7 +364,7 @@ class BflService
             $normalizedImages = array_slice($normalizedImages, 0, $maxImages);
         }
 
-        $payload = $this->buildPayload($style, $finalPrompt, $modelId, $aspectRatio, $imageSize, $normalizedImages);
+        $payload = $this->buildPayload($style, $finalPrompt, $modelId, $aspectRatio, $imageSize, $normalizedImages, $generationOverrides);
 
         try {
             $response = $this->clientForPost()->post($this->baseUrl . '/v1/' . $modelId, $payload);
@@ -322,22 +424,50 @@ class BflService
         string $modelId,
         ?string $aspectRatio,
         ?string $imageSize,
-        array $inputImages
+        array $inputImages,
+        array $generationOverrides = []
     ): array {
         $payload = [
             'prompt' => $prompt,
         ];
 
         $config = $style->config_payload ?? [];
-        $ratio = $aspectRatio ?: ($config['aspect_ratio'] ?? null);
+        $overrides = is_array($generationOverrides) ? $generationOverrides : [];
+        $ratio = $overrides['aspect_ratio'] ?? $aspectRatio ?? ($config['aspect_ratio'] ?? null);
 
-        if ($this->supportsAspectRatio($modelId) && $ratio) {
+        $overrideWidth = $overrides['width'] ?? null;
+        $overrideHeight = $overrides['height'] ?? null;
+        $hasCustomDimensions = $this->supportsWidthHeight($modelId)
+            && $overrideWidth !== null
+            && $overrideHeight !== null;
+
+        if ($this->supportsAspectRatio($modelId) && $ratio && !$hasCustomDimensions) {
             $payload['aspect_ratio'] = $ratio;
         } else {
-            $dimensions = $this->resolveDimensions($ratio, $imageSize, $config);
-            if ($dimensions) {
-                $payload['width'] = $dimensions['width'];
-                $payload['height'] = $dimensions['height'];
+            if ($this->supportsWidthHeight($modelId)) {
+                if ($hasCustomDimensions) {
+                    $minDim = (int) config('services_custom.bfl.min_dimension', 256);
+                    $maxDim = (int) config('services_custom.bfl.max_dimension', 1408);
+
+                    $width = (int) $overrideWidth;
+                    $height = (int) $overrideHeight;
+
+                    $width = max($minDim, min($width, $maxDim));
+                    $height = max($minDim, min($height, $maxDim));
+
+                    $multiple = (int) config('services_custom.bfl.dimension_multiple', 32);
+                    $width = $this->roundToMultiple($width, $multiple);
+                    $height = $this->roundToMultiple($height, $multiple);
+
+                    $payload['width'] = $width;
+                    $payload['height'] = $height;
+                } else {
+                    $dimensions = $this->resolveDimensions($ratio, $imageSize, array_merge($config, $overrides));
+                    if ($dimensions) {
+                        $payload['width'] = $dimensions['width'];
+                        $payload['height'] = $dimensions['height'];
+                    }
+                }
             }
         }
 
@@ -352,10 +482,38 @@ class BflService
             'image_prompt_strength',
         ];
 
+        $supported = [
+            'seed' => $this->supportsSeed($modelId),
+            'guidance' => $this->supportsGuidance($modelId),
+            'steps' => $this->supportsSteps($modelId),
+            'safety_tolerance' => $this->supportsSafetyTolerance($modelId),
+            'output_format' => $this->supportsOutputFormat($modelId),
+            'prompt_upsampling' => $this->supportsPromptUpsampling($modelId),
+            'raw' => $this->supportsRaw($modelId),
+            'image_prompt_strength' => $this->supportsImagePromptStrength($modelId),
+        ];
+
         foreach ($allowedKeys as $key) {
-            if (array_key_exists($key, $config)) {
-                $payload[$key] = $config[$key];
+            if (!($supported[$key] ?? false)) {
+                continue;
             }
+
+            $value = null;
+            if (array_key_exists($key, $overrides)) {
+                $value = $overrides[$key];
+            } elseif (array_key_exists($key, $config)) {
+                $value = $config[$key];
+            }
+
+            if ($value === null) {
+                continue;
+            }
+
+            if ($key === 'image_prompt_strength' && (empty($inputImages) || !$this->usesImagePrompt($modelId))) {
+                continue;
+            }
+
+            $payload[$key] = $value;
         }
 
         if (!empty($inputImages)) {
@@ -611,8 +769,9 @@ class BflService
         $maxDim = (int) config('services_custom.bfl.max_dimension', 1408);
         $minDim = (int) config('services_custom.bfl.min_dimension', 256);
 
-        $width = $this->roundToMultiple($width, 32);
-        $height = $this->roundToMultiple($height, 32);
+        $multiple = (int) config('services_custom.bfl.dimension_multiple', 32);
+        $width = $this->roundToMultiple($width, $multiple);
+        $height = $this->roundToMultiple($height, $multiple);
 
         $width = max($minDim, min($width, $maxDim));
         $height = max($minDim, min($height, $maxDim));

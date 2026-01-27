@@ -106,6 +106,26 @@
                     </div>
                 </div>
 
+                <!-- Generation Params -->
+                @if($image->generation_params && count($image->generation_params) > 0)
+                    <div class="bg-white/[0.03] border border-white/[0.08] rounded-2xl p-6">
+                        <h3 class="text-lg font-semibold text-white mb-4">Generation Params</h3>
+                        <div class="space-y-2">
+                            @foreach($image->generation_params as $key => $value)
+                                @php
+                                    $displayValue = is_bool($value)
+                                        ? ($value ? 'true' : 'false')
+                                        : (is_array($value) ? json_encode($value) : $value);
+                                @endphp
+                                <div class="flex items-start justify-between gap-4">
+                                    <span class="text-white/50 text-sm">{{ $key }}</span>
+                                    <span class="text-white/70 text-sm font-mono break-all text-right">{{ $displayValue }}</span>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
+
                 <!-- User Custom Input -->
                 @if($image->user_custom_input)
                     <div class="bg-white/[0.03] border border-white/[0.08] rounded-2xl p-6">

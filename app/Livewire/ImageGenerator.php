@@ -60,6 +60,40 @@ class ImageGenerator extends Component
     
     // Model có hỗ trợ ảnh tham chiếu (input_image) không
     public bool $supportsImageInput = false;
+
+    // Model capabilities nâng cao
+    public bool $supportsWidthHeight = false;
+    public bool $supportsSeed = false;
+    public bool $supportsSteps = false;
+    public bool $supportsGuidance = false;
+    public bool $supportsPromptUpsampling = false;
+    public bool $supportsOutputFormat = false;
+    public bool $supportsSafetyTolerance = false;
+    public bool $supportsRaw = false;
+    public bool $supportsImagePromptStrength = false;
+
+    public int $maxInputImages = 0;
+    public array $outputFormats = [];
+    public array $stepsRange = [];
+    public array $guidanceRange = [];
+    public array $safetyToleranceRange = [];
+    public array $imagePromptStrengthRange = [];
+
+    // Advanced settings (user override)
+    public ?int $seed = null;
+    public ?int $steps = null;
+    public ?float $guidance = null;
+    public ?bool $promptUpsampling = null;
+    public ?int $safetyTolerance = null;
+    public ?string $outputFormat = null;
+    public ?bool $raw = null;
+    public ?float $imagePromptStrength = null;
+    public ?int $customWidth = null;
+    public ?int $customHeight = null;
+
+    public int $dimensionMin = 256;
+    public int $dimensionMax = 1408;
+    public int $dimensionMultiple = 32;
     
     // State
     public bool $isGenerating = false;
@@ -97,14 +131,19 @@ class ImageGenerator extends Component
         $bflService = app(BflService::class);
         $modelId = $style->bfl_model_id ?? $style->openrouter_model_id ?? '';
         $this->aspectRatios = $bflService->getAspectRatios();
+        $this->dimensionMin = (int) config('services_custom.bfl.min_dimension', 256);
+        $this->dimensionMax = (int) config('services_custom.bfl.max_dimension', 1408);
+        $this->dimensionMultiple = (int) config('services_custom.bfl.dimension_multiple', 32);
 
         // BFL không dùng image_size như OpenRouter/Gemini
         $this->supportsImageConfig = false;
-        $this->supportsAspectRatio = $bflService->supportsAspectRatio($modelId);
-        $this->supportsImageInput = $bflService->supportsImageInput($modelId);
+        $this->applyModelCapabilities($modelId);
         
         // Set default aspect ratio từ style config (với fallback)
         $this->selectedAspectRatio = $style->aspect_ratio ?? '1:1';
+
+        // Load advanced defaults từ config_payload (nếu có)
+        $this->applyDefaultAdvancedSettings();
         
         // Pre-select default options
         $this->preselectDefaultOptions();
@@ -223,6 +262,158 @@ class ImageGenerator extends Component
     }
 
     /**
+     * Apply model capabilities từ config/services_custom.php
+     */
+    protected function applyModelCapabilities(string $modelId): void
+    {
+        $bflService = app(BflService::class);
+        $cap = $bflService->getModelCapabilities($modelId);
+
+        $this->supportsAspectRatio = (bool) ($cap['supports_aspect_ratio'] ?? false);
+        $this->supportsImageInput = (bool) ($cap['supports_image_input'] ?? false);
+        $this->supportsWidthHeight = (bool) ($cap['supports_width_height'] ?? false);
+        $this->supportsSeed = (bool) ($cap['supports_seed'] ?? false);
+        $this->supportsSteps = (bool) ($cap['supports_steps'] ?? false);
+        $this->supportsGuidance = (bool) ($cap['supports_guidance'] ?? false);
+        $this->supportsPromptUpsampling = (bool) ($cap['supports_prompt_upsampling'] ?? false);
+        $this->supportsOutputFormat = (bool) ($cap['supports_output_format'] ?? false);
+        $this->supportsSafetyTolerance = (bool) ($cap['supports_safety_tolerance'] ?? false);
+        $this->supportsRaw = (bool) ($cap['supports_raw'] ?? false);
+        $this->supportsImagePromptStrength = (bool) ($cap['supports_image_prompt_strength'] ?? false);
+
+        $this->maxInputImages = (int) ($cap['max_input_images'] ?? 0);
+        $this->outputFormats = $cap['output_formats'] ?? ['jpeg', 'png'];
+        $this->stepsRange = $cap['steps'] ?? [];
+        $this->guidanceRange = $cap['guidance'] ?? [];
+        $this->safetyToleranceRange = $cap['safety_tolerance'] ?? ['min' => 0, 'max' => 6, 'default' => 2];
+        $this->imagePromptStrengthRange = $cap['image_prompt_strength'] ?? [];
+    }
+
+    /**
+     * Load advanced defaults từ config_payload
+     */
+    protected function applyDefaultAdvancedSettings(): void
+    {
+        $config = $this->style->config_payload ?? [];
+
+        $this->seed = $this->supportsSeed && array_key_exists('seed', $config)
+            ? (int) $config['seed']
+            : null;
+
+        $this->steps = $this->supportsSteps
+            ? (array_key_exists('steps', $config) ? (int) $config['steps'] : ($this->stepsRange['default'] ?? null))
+            : null;
+
+        $this->guidance = $this->supportsGuidance
+            ? (array_key_exists('guidance', $config) ? (float) $config['guidance'] : ($this->guidanceRange['default'] ?? null))
+            : null;
+
+        $this->promptUpsampling = $this->supportsPromptUpsampling
+            ? (array_key_exists('prompt_upsampling', $config) ? (bool) $config['prompt_upsampling'] : false)
+            : null;
+
+        $this->safetyTolerance = $this->supportsSafetyTolerance
+            ? (array_key_exists('safety_tolerance', $config) ? (int) $config['safety_tolerance'] : ($this->safetyToleranceRange['default'] ?? null))
+            : null;
+
+        $this->outputFormat = $this->supportsOutputFormat
+            ? ($config['output_format'] ?? ($this->outputFormats[0] ?? null))
+            : null;
+
+        $this->raw = $this->supportsRaw
+            ? (array_key_exists('raw', $config) ? (bool) $config['raw'] : false)
+            : null;
+
+        $this->imagePromptStrength = $this->supportsImagePromptStrength
+            ? (array_key_exists('image_prompt_strength', $config)
+                ? (float) $config['image_prompt_strength']
+                : ($this->imagePromptStrengthRange['default'] ?? null))
+            : null;
+
+        $this->customWidth = $this->supportsWidthHeight && array_key_exists('width', $config)
+            ? (int) $config['width']
+            : null;
+
+        $this->customHeight = $this->supportsWidthHeight && array_key_exists('height', $config)
+            ? (int) $config['height']
+            : null;
+    }
+
+    /**
+     * Build overrides payload từ UI advanced settings
+     */
+    protected function buildGenerationOverrides(): array
+    {
+        $overrides = [];
+
+        if ($this->supportsSeed && $this->seed !== null) {
+            $overrides['seed'] = (int) $this->seed;
+        }
+        if ($this->supportsSteps && $this->steps !== null) {
+            $overrides['steps'] = (int) $this->steps;
+        }
+        if ($this->supportsGuidance && $this->guidance !== null) {
+            $overrides['guidance'] = (float) $this->guidance;
+        }
+        if ($this->supportsPromptUpsampling && $this->promptUpsampling !== null) {
+            $overrides['prompt_upsampling'] = (bool) $this->promptUpsampling;
+        }
+        if ($this->supportsSafetyTolerance && $this->safetyTolerance !== null) {
+            $overrides['safety_tolerance'] = (int) $this->safetyTolerance;
+        }
+        if ($this->supportsOutputFormat && $this->outputFormat) {
+            $overrides['output_format'] = $this->outputFormat;
+        }
+        if ($this->supportsRaw && $this->raw !== null) {
+            $overrides['raw'] = (bool) $this->raw;
+        }
+        if ($this->supportsImagePromptStrength && $this->imagePromptStrength !== null) {
+            $overrides['image_prompt_strength'] = (float) $this->imagePromptStrength;
+        }
+        if ($this->supportsWidthHeight && $this->customWidth !== null && $this->customHeight !== null) {
+            $overrides['width'] = (int) $this->customWidth;
+            $overrides['height'] = (int) $this->customHeight;
+        }
+
+        return $overrides;
+    }
+
+    /**
+     * Build generation params for persistence
+     */
+    protected function buildGenerationParams(array $overrides): array
+    {
+        $params = [
+            'model_id' => $this->style->bfl_model_id ?? $this->style->openrouter_model_id,
+            'aspect_ratio' => $this->selectedAspectRatio,
+        ];
+
+        if ($this->supportsImageConfig) {
+            $params['image_size'] = $this->selectedImageSize;
+        }
+
+        $params = array_merge($params, $overrides);
+
+        return array_filter($params, fn ($value) => !($value === null || $value === ''));
+    }
+
+    /**
+     * Randomize seed để user có thể thử nhiều lần
+     */
+    public function randomizeSeed(): void
+    {
+        $this->seed = random_int(1, 2147483647);
+    }
+
+    /**
+     * Clear seed (auto/random)
+     */
+    public function clearSeed(): void
+    {
+        $this->seed = null;
+    }
+
+    /**
      * Generate image - MAIN FLOW
      */
     public function generate(): void
@@ -298,6 +489,9 @@ class ImageGenerator extends Component
         $walletService = app(WalletService::class);
 
         try {
+            $generationOverrides = $this->buildGenerationOverrides();
+            $generationParams = $this->buildGenerationParams($generationOverrides);
+
             // Lấy danh sách option IDs đã chọn
             $selectedOptionIds = array_values($this->selectedOptions);
 
@@ -308,6 +502,7 @@ class ImageGenerator extends Component
                 'final_prompt' => '', // Sẽ cập nhật sau
                 'selected_options' => $selectedOptionIds,
                 'user_custom_input' => $this->customInput ?: null,
+                'generation_params' => $generationParams,
                 'status' => GeneratedImage::STATUS_PROCESSING,
                 'credits_used' => $this->style->price,
             ]);
@@ -333,7 +528,8 @@ class ImageGenerator extends Component
                     $this->customInput ?: null,
                     $this->selectedAspectRatio,
                     $this->selectedImageSize,
-                    $inputImagesBase64
+                    $inputImagesBase64,
+                    $generationOverrides
                 );
 
                 $this->lastImageId = $generatedImage->id;
@@ -357,7 +553,8 @@ class ImageGenerator extends Component
                 $this->customInput ?: null,
                 $this->selectedAspectRatio,
                 $this->selectedImageSize,
-                $inputImagesBase64
+                $inputImagesBase64,
+                $generationOverrides
             );
 
             if (!$result['success']) {
@@ -591,6 +788,106 @@ class ImageGenerator extends Component
             $this->selectedImageSize = '1K';
         }
 
+        // 4b. Validate advanced settings (theo capability)
+        if (!$this->supportsSeed) {
+            $this->seed = null;
+        } elseif ($this->seed !== null && $this->seed < 0) {
+            $this->errorMessage = 'Seed không hợp lệ. Vui lòng nhập số nguyên >= 0.';
+            return false;
+        }
+
+        if (!$this->supportsSteps) {
+            $this->steps = null;
+        } elseif ($this->steps !== null) {
+            $min = (int) ($this->stepsRange['min'] ?? 1);
+            $max = (int) ($this->stepsRange['max'] ?? 100);
+            if ($this->steps < $min || $this->steps > $max) {
+                $this->errorMessage = "Steps phải trong khoảng {$min}–{$max}.";
+                return false;
+            }
+        }
+
+        if (!$this->supportsGuidance) {
+            $this->guidance = null;
+        } elseif ($this->guidance !== null) {
+            $min = (float) ($this->guidanceRange['min'] ?? 1.0);
+            $max = (float) ($this->guidanceRange['max'] ?? 10.0);
+            if ($this->guidance < $min || $this->guidance > $max) {
+                $this->errorMessage = "Guidance phải trong khoảng {$min}–{$max}.";
+                return false;
+            }
+        }
+
+        if (!$this->supportsPromptUpsampling) {
+            $this->promptUpsampling = null;
+        }
+
+        if (!$this->supportsSafetyTolerance) {
+            $this->safetyTolerance = null;
+        } elseif ($this->safetyTolerance !== null) {
+            $min = (int) ($this->safetyToleranceRange['min'] ?? 0);
+            $max = (int) ($this->safetyToleranceRange['max'] ?? 6);
+            if ($this->safetyTolerance < $min || $this->safetyTolerance > $max) {
+                $this->errorMessage = "Safety tolerance phải trong khoảng {$min}–{$max}.";
+                return false;
+            }
+        }
+
+        if (!$this->supportsOutputFormat) {
+            $this->outputFormat = null;
+        } elseif ($this->outputFormat !== null) {
+            if (!in_array($this->outputFormat, $this->outputFormats, true)) {
+                $this->errorMessage = 'Định dạng ảnh không hợp lệ.';
+                return false;
+            }
+        }
+
+        if (!$this->supportsRaw) {
+            $this->raw = null;
+        }
+
+        if (!$this->supportsImagePromptStrength) {
+            $this->imagePromptStrength = null;
+        } elseif ($this->imagePromptStrength !== null) {
+            $min = (float) ($this->imagePromptStrengthRange['min'] ?? 0);
+            $max = (float) ($this->imagePromptStrengthRange['max'] ?? 1);
+            if ($this->imagePromptStrength < $min || $this->imagePromptStrength > $max) {
+                $this->errorMessage = "Image prompt strength phải trong khoảng {$min}–{$max}.";
+                return false;
+            }
+        }
+
+        
+
+        if (!$this->supportsWidthHeight) {
+            $this->customWidth = null;
+            $this->customHeight = null;
+        } else {
+            if ($this->customWidth !== null || $this->customHeight !== null) {
+                if ($this->customWidth === null || $this->customHeight === null) {
+                    $this->errorMessage = 'Vui lòng nhập đủ các thông số Width và Height.';
+                    return false;
+                }
+
+                $min = $this->dimensionMin;
+                $max = $this->dimensionMax;
+                $multiple = max(1, $this->dimensionMultiple);
+
+                if ($this->customWidth < $min || $this->customWidth > $max) {
+                    $this->errorMessage = "Width phải trong khoảng {$min}–{$max}.";
+                    return false;
+                }
+                if ($this->customHeight < $min || $this->customHeight > $max) {
+                    $this->errorMessage = "Height phải trong khoảng {$min}–{$max}.";
+                    return false;
+                }
+                if (($this->customWidth % $multiple) !== 0 || ($this->customHeight % $multiple) !== 0) {
+                    $this->errorMessage = "Width/Height phải là bội số của {$multiple}.";
+                    return false;
+                }
+            }
+        }
+
         // 5. Validate selected options thuộc style hiện tại
         $validOptionIds = $this->style->options->pluck('id')->all();
         foreach ($this->selectedOptions as $optionId) {
@@ -655,6 +952,14 @@ class ImageGenerator extends Component
             $hasSystemImages = !empty($this->style->system_images);
             if ($hasRequiredSlot || $hasUploaded || $hasSystemImages) {
                 $this->errorMessage = 'Style này yêu cầu ảnh tham chiếu nhưng model hiện tại không hỗ trợ.';
+                return false;
+            }
+        } else {
+            $uploadedCount = count(array_filter($this->uploadedImages));
+            $systemCount = count($this->style->system_images ?? []);
+            $totalImages = $uploadedCount + $systemCount;
+            if ($this->maxInputImages > 0 && $totalImages > $this->maxInputImages) {
+                $this->errorMessage = "Model hiện tại chỉ hỗ trợ tối đa {$this->maxInputImages} ảnh tham chiếu. Vui lòng giảm số lượng ảnh.";
                 return false;
             }
         }
@@ -735,6 +1040,7 @@ class ImageGenerator extends Component
         $this->uploadedImagePreviews = [];
         $this->selectedAspectRatio = $this->style->aspect_ratio ?? '1:1';
         $this->selectedImageSize = '1K';
+        $this->applyDefaultAdvancedSettings();
         
         // Re-select defaults
         $this->preselectDefaultOptions();

@@ -72,6 +72,9 @@ public function create(): View
      */
     public function store(Request $request): RedirectResponse
     {
+        $minDim = (int) config('services_custom.bfl.min_dimension', 256);
+        $maxDim = (int) config('services_custom.bfl.max_dimension', 1408);
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'slug' => 'nullable|string|max:255|unique:styles,slug',
@@ -88,6 +91,17 @@ public function create(): View
             'base_prompt' => 'required|string|max:10000', // Limit prompt length
             // HIGH-05 FIX: Validate aspect_ratio against supported list
             'aspect_ratio' => ['nullable', 'string', 'max:20', Rule::in(array_keys($this->bflService->getAspectRatios()))],
+            'config_payload' => 'nullable|array',
+            'config_payload.width' => ['nullable', 'integer', "min:{$minDim}", "max:{$maxDim}", 'required_with:config_payload.height'],
+            'config_payload.height' => ['nullable', 'integer', "min:{$minDim}", "max:{$maxDim}", 'required_with:config_payload.width'],
+            'config_payload.seed' => 'nullable|integer|min:0',
+            'config_payload.steps' => 'nullable|integer|min:1|max:50',
+            'config_payload.guidance' => 'nullable|numeric|min:1.5|max:10',
+            'config_payload.prompt_upsampling' => 'nullable|boolean',
+            'config_payload.safety_tolerance' => 'nullable|integer|min:0|max:6',
+            'config_payload.output_format' => ['nullable', 'string', Rule::in(['jpeg', 'png'])],
+            'config_payload.raw' => 'nullable|boolean',
+            'config_payload.image_prompt_strength' => 'nullable|numeric|min:0|max:1',
             'allow_user_custom_prompt' => 'nullable',
             'is_active' => 'nullable',
             'is_featured' => 'nullable',
@@ -121,10 +135,12 @@ public function create(): View
         try {
             return DB::transaction(function () use ($request, $validated) {
                 // Build config_payload
-                $configPayload = null;
+                $configPayload = [];
                 if (!empty($validated['aspect_ratio'])) {
-                    $configPayload = ['aspect_ratio' => $validated['aspect_ratio']];
+                    $configPayload['aspect_ratio'] = $validated['aspect_ratio'];
                 }
+                $configPayload = $this->mergeAdvancedConfig($configPayload, $validated['config_payload'] ?? []);
+                $configPayload = !empty($configPayload) ? $configPayload : null;
 
                 // Process image_slots
                 $imageSlots = $this->processImageSlots($validated['image_slots'] ?? []);
@@ -196,6 +212,9 @@ public function edit(Style $style): View
      */
     public function update(Request $request, Style $style): RedirectResponse
     {
+        $minDim = (int) config('services_custom.bfl.min_dimension', 256);
+        $maxDim = (int) config('services_custom.bfl.max_dimension', 1408);
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'slug' => 'nullable|string|max:255|unique:styles,slug,' . $style->id,
@@ -213,6 +232,17 @@ public function edit(Style $style): View
             'base_prompt' => 'required|string|max:10000',
             // HIGH-05 FIX: Validate aspect_ratio against supported list
             'aspect_ratio' => ['nullable', 'string', 'max:20', Rule::in(array_keys($this->bflService->getAspectRatios()))],
+            'config_payload' => 'nullable|array',
+            'config_payload.width' => ['nullable', 'integer', "min:{$minDim}", "max:{$maxDim}", 'required_with:config_payload.height'],
+            'config_payload.height' => ['nullable', 'integer', "min:{$minDim}", "max:{$maxDim}", 'required_with:config_payload.width'],
+            'config_payload.seed' => 'nullable|integer|min:0',
+            'config_payload.steps' => 'nullable|integer|min:1|max:50',
+            'config_payload.guidance' => 'nullable|numeric|min:1.5|max:10',
+            'config_payload.prompt_upsampling' => 'nullable|boolean',
+            'config_payload.safety_tolerance' => 'nullable|integer|min:0|max:6',
+            'config_payload.output_format' => ['nullable', 'string', Rule::in(['jpeg', 'png'])],
+            'config_payload.raw' => 'nullable|boolean',
+            'config_payload.image_prompt_strength' => 'nullable|numeric|min:0|max:1',
             'allow_user_custom_prompt' => 'nullable',
             'is_active' => 'nullable',
             'is_featured' => 'nullable',
@@ -252,6 +282,8 @@ public function edit(Style $style): View
                     // Remove aspect_ratio nếu admin chọn "mặc định"
                     unset($configPayload['aspect_ratio']);
                 }
+                $configPayload = $this->mergeAdvancedConfig($configPayload, $validated['config_payload'] ?? []);
+                $configPayload = !empty($configPayload) ? $configPayload : null;
 
                 // Process image_slots
                 $imageSlots = $this->processImageSlots($validated['image_slots'] ?? []);
@@ -529,5 +561,58 @@ public function edit(Style $style): View
                 }
             }
         }
+    }
+
+    /**
+     * Merge advanced config_payload fields (sanitize + cast + allow clear)
+     */
+    private function mergeAdvancedConfig(array $base, array $input): array
+    {
+        if (empty($input)) {
+            return $base;
+        }
+
+        $map = [
+            'seed' => 'int',
+            'steps' => 'int',
+            'guidance' => 'float',
+            'prompt_upsampling' => 'bool',
+            'safety_tolerance' => 'int',
+            'output_format' => 'string',
+            'raw' => 'bool',
+            'image_prompt_strength' => 'float',
+            'width' => 'int',
+            'height' => 'int',
+        ];
+
+        foreach ($map as $key => $type) {
+            if (!array_key_exists($key, $input)) {
+                continue;
+            }
+
+            $value = $input[$key];
+            if ($value === '' || $value === null) {
+                unset($base[$key]);
+                continue;
+            }
+
+            switch ($type) {
+                case 'int':
+                    $base[$key] = (int) $value;
+                    break;
+                case 'float':
+                    $base[$key] = (float) $value;
+                    break;
+                case 'bool':
+                    $base[$key] = (bool) $value;
+                    break;
+                case 'string':
+                default:
+                    $base[$key] = (string) $value;
+                    break;
+            }
+        }
+
+        return $base;
     }
 }

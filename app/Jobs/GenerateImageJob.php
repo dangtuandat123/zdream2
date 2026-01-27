@@ -49,7 +49,8 @@ class GenerateImageJob implements ShouldQueue
         public ?string $customInput,
         public string $aspectRatio,
         public string $imageSize,
-        public array $inputImagesBase64 = []
+        public array $inputImagesBase64 = [],
+        public array $generationOverrides = []
     ) {}
 
     /**
@@ -103,7 +104,8 @@ class GenerateImageJob implements ShouldQueue
                 $this->customInput,
                 $this->aspectRatio,
                 $this->imageSize,
-                $this->inputImagesBase64
+                $this->inputImagesBase64,
+                $this->generationOverrides
             );
 
             if (!$result['success']) {

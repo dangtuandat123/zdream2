@@ -22,6 +22,14 @@
                     Định dạng: JPEG, PNG, GIF, WebP. Tối đa <strong>10MB</strong>/ảnh, <strong>25MB</strong> tổng cộng.
                 </p>
             </div>
+            @if($supportsImageInput && $maxInputImages > 0)
+                <div class="bg-purple-500/10 border border-purple-500/20 rounded-lg px-3 py-2 flex items-start gap-2">
+                    <i class="fa-solid fa-layer-group text-purple-400 mt-0.5" style="font-size: 12px;"></i>
+                    <p class="text-xs text-purple-300/80">
+                        Model hiện tại hỗ trợ tối đa <strong>{{ $maxInputImages }}</strong> ảnh tham chiếu (bao gồm ảnh hệ thống).
+                    </p>
+                </div>
+            @endif
             
             @foreach($imageSlots as $slot)
                 @php
@@ -252,7 +260,7 @@
                 </div>
                 <div>
                     <span class="text-white font-medium">Tùy chọn nâng cao</span>
-                    <p class="text-xs text-white/40">Kích thước & chất lượng</p>
+                    <p class="text-xs text-white/40">Tỉ lệ & tham số nâng cao</p>
                 </div>
             </div>
             <div class="flex items-center gap-3">
@@ -274,7 +282,7 @@
                 <div>
                     <label class="block text-sm font-medium text-white/60 mb-3 inline-flex items-center gap-2">
                         <i class="fa-solid fa-crop" style="font-size: 14px;"></i>
-                        <span>Tỉ lệ khung hình</span>
+                        <span>Dáng ảnh (vuông/ngang/dọc)</span>
                     </label>
                     <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
                         @foreach($aspectRatios as $ratio => $label)
@@ -296,10 +304,36 @@
                     @if(!$supportsAspectRatio)
                         <p class="text-yellow-400/70 text-xs mt-2 flex items-center gap-1">
                             <i class="fa-solid fa-info-circle"></i>
-                            <span>Model này không hỗ trợ aspect_ratio trực tiếp, hệ thống sẽ map kích thước gần nhất.</span>
+                            <span>Mẫu này chưa có tuỳ chọn dáng ảnh riêng, hệ thống sẽ tự cân kích thước phù hợp.</span>
                         </p>
                     @endif
                 </div>
+
+                @if($supportsWidthHeight)
+                    <div class="bg-white/[0.02] border border-white/[0.06] rounded-xl p-4">
+                        <label class="block text-sm font-medium text-white/60 mb-2 inline-flex items-center gap-2">
+                            <i class="fa-solid fa-ruler-combined" style="font-size: 12px;"></i>
+                            <span>Kích thước ảnh (rộng × cao)</span>
+                        </label>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <input type="number" min="{{ $dimensionMin }}" max="{{ $dimensionMax }}" step="{{ $dimensionMultiple }}"
+                                       wire:model.live="customWidth"
+                                       placeholder="Rộng (px)"
+                                       class="w-full px-3 py-2 rounded-lg bg-white/[0.03] border border-white/[0.08] text-white/90 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500/40">
+                            </div>
+                            <div>
+                                <input type="number" min="{{ $dimensionMin }}" max="{{ $dimensionMax }}" step="{{ $dimensionMultiple }}"
+                                       wire:model.live="customHeight"
+                                       placeholder="Cao (px)"
+                                       class="w-full px-3 py-2 rounded-lg bg-white/[0.03] border border-white/[0.08] text-white/90 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500/40">
+                            </div>
+                        </div>
+                        <p class="text-xs text-white/40 mt-2">
+                            Để trống thì hệ thống tự chọn theo dáng ảnh. Hạn mức: {{ $dimensionMin }}–{{ $dimensionMax }} px, bội số {{ $dimensionMultiple }}.
+                        </p>
+                    </div>
+                @endif
 
                 <!-- Image Size Selector (chỉ cho Gemini models) -->
                 @if($supportsImageConfig)
@@ -324,6 +358,195 @@
                             @endforeach
                         </div>
                         <p class="text-xs text-white/30 mt-2">Ảnh 4K sẽ tốn thêm thời gian xử lý</p>
+                    </div>
+                @endif
+
+                <!-- Advanced Controls -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    @if($supportsSeed)
+                        <div class="bg-white/[0.02] border border-white/[0.06] rounded-xl p-3">
+                            <label class="block text-sm font-medium text-white/60 mb-2 inline-flex items-center gap-2">
+                                <i class="fa-solid fa-hashtag" style="font-size: 12px;"></i>
+                                <span>Mã giữ kết quả</span>
+                            </label>
+                            <div class="flex items-center gap-2">
+                                <input type="number" min="0" step="1" wire:model.live="seed"
+                                       placeholder="Auto"
+                                       class="w-full px-3 py-2 rounded-lg bg-white/[0.03] border border-white/[0.08] text-white/90 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500/40">
+                                <button type="button" wire:click="randomizeSeed" class="px-2.5 py-2 rounded-lg bg-cyan-500/15 border border-cyan-500/30 text-cyan-300 text-xs hover:bg-cyan-500/25 transition-colors">
+                                    Random
+                                </button>
+                                <button type="button" wire:click="clearSeed" class="px-2.5 py-2 rounded-lg bg-white/[0.05] border border-white/[0.1] text-white/50 text-xs hover:bg-white/[0.1] transition-colors">
+                                    Auto
+                                </button>
+                            </div>
+                            <p class="text-xs text-white/40 mt-2">
+                                Nhập mã để lần sau ra ảnh gần giống. Để trống sẽ ngẫu nhiên mỗi lần.
+                            </p>
+                        </div>
+                    @endif
+
+                    @if($supportsOutputFormat)
+                        <div class="bg-white/[0.02] border border-white/[0.06] rounded-xl p-3">
+                            <label class="block text-sm font-medium text-white/60 mb-2 inline-flex items-center gap-2">
+                                <i class="fa-solid fa-file-image" style="font-size: 12px;"></i>
+                                <span>Loại file ảnh</span>
+                            </label>
+                            <select wire:model.live="outputFormat"
+                                    class="w-full px-3 py-2 rounded-lg bg-white/[0.03] border border-white/[0.08] text-white/90 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500/40">
+                                @foreach($outputFormats as $format)
+                                    <option value="{{ $format }}">{{ strtoupper($format) }}</option>
+                                @endforeach
+                            </select>
+                            <p class="text-xs text-white/40 mt-2">
+                                PNG rõ nét hơn nhưng nặng; JPEG nhẹ hơn và tải nhanh hơn.
+                            </p>
+                        </div>
+                    @endif
+                </div>
+
+                @if($supportsSteps)
+                    @php
+                        $stepsMin = $stepsRange['min'] ?? 1;
+                        $stepsMax = $stepsRange['max'] ?? 50;
+                    @endphp
+                    <div class="bg-white/[0.02] border border-white/[0.06] rounded-xl p-3">
+                        <div class="flex items-center justify-between mb-2">
+                            <label class="text-sm font-medium text-white/60 inline-flex items-center gap-2">
+                                <i class="fa-solid fa-stairs" style="font-size: 12px;"></i>
+                                <span>Độ chi tiết</span>
+                            </label>
+                            <span class="text-xs text-white/50">{{ $steps ?? ($stepsRange['default'] ?? $stepsMin) }}</span>
+                        </div>
+                        <input type="range"
+                               min="{{ $stepsMin }}"
+                               max="{{ $stepsMax }}"
+                               step="1"
+                               wire:model.live="steps"
+                               class="w-full accent-cyan-500">
+                        <div class="flex justify-between text-[10px] text-white/30 mt-1">
+                            <span>{{ $stepsMin }}</span>
+                            <span>{{ $stepsMax }}</span>
+                        </div>
+                        <p class="text-xs text-white/40 mt-2">
+                            Tăng lên thì ảnh chi tiết hơn nhưng lâu hơn (chỉ vài mẫu có tuỳ chọn này).
+                        </p>
+                    </div>
+                @endif
+
+                @if($supportsGuidance)
+                    @php
+                        $guidanceMin = $guidanceRange['min'] ?? 1.5;
+                        $guidanceMax = $guidanceRange['max'] ?? 10;
+                    @endphp
+                    <div class="bg-white/[0.02] border border-white/[0.06] rounded-xl p-3">
+                        <div class="flex items-center justify-between mb-2">
+                            <label class="text-sm font-medium text-white/60 inline-flex items-center gap-2">
+                                <i class="fa-solid fa-sliders" style="font-size: 12px;"></i>
+                                <span>Độ bám theo mô tả</span>
+                            </label>
+                            <span class="text-xs text-white/50">{{ $guidance ?? ($guidanceRange['default'] ?? $guidanceMin) }}</span>
+                        </div>
+                        <input type="range"
+                               min="{{ $guidanceMin }}"
+                               max="{{ $guidanceMax }}"
+                               step="0.1"
+                               wire:model.live="guidance"
+                               class="w-full accent-cyan-500">
+                        <div class="flex justify-between text-[10px] text-white/30 mt-1">
+                            <span>{{ $guidanceMin }}</span>
+                            <span>{{ $guidanceMax }}</span>
+                        </div>
+                        <p class="text-xs text-white/40 mt-2">
+                            Cao hơn → ảnh bám theo mô tả hơn; thấp hơn → tự do sáng tạo hơn.
+                        </p>
+                    </div>
+                @endif
+
+                @if($supportsSafetyTolerance)
+                    @php
+                        $safeMin = $safetyToleranceRange['min'] ?? 0;
+                        $safeMax = $safetyToleranceRange['max'] ?? 6;
+                    @endphp
+                    <div class="bg-white/[0.02] border border-white/[0.06] rounded-xl p-3">
+                        <div class="flex items-center justify-between mb-2">
+                            <label class="text-sm font-medium text-white/60 inline-flex items-center gap-2">
+                                <i class="fa-solid fa-shield-halved" style="font-size: 12px;"></i>
+                                <span>Mức lọc nội dung</span>
+                            </label>
+                            <span class="text-xs text-white/50">{{ $safetyTolerance ?? ($safetyToleranceRange['default'] ?? $safeMin) }}</span>
+                        </div>
+                        <input type="range"
+                               min="{{ $safeMin }}"
+                               max="{{ $safeMax }}"
+                               step="1"
+                               wire:model.live="safetyTolerance"
+                               class="w-full accent-cyan-500">
+                        <div class="flex justify-between text-[10px] text-white/30 mt-1">
+                            <span>{{ $safeMin }}</span>
+                            <span>{{ $safeMax }}</span>
+                        </div>
+                        <p class="text-xs text-white/40 mt-2">
+                            0 = lọc chặt, số cao hơn = lọc nhẹ hơn (tuỳ mẫu).
+                        </p>
+                    </div>
+                @endif
+
+                @if($supportsImagePromptStrength)
+                    @php
+                        $ipsMin = $imagePromptStrengthRange['min'] ?? 0;
+                        $ipsMax = $imagePromptStrengthRange['max'] ?? 1;
+                    @endphp
+                    <div class="bg-white/[0.02] border border-white/[0.06] rounded-xl p-3">
+                        <div class="flex items-center justify-between mb-2">
+                            <label class="text-sm font-medium text-white/60 inline-flex items-center gap-2">
+                                <i class="fa-solid fa-blender" style="font-size: 12px;"></i>
+                                <span>Ảnh tham chiếu ảnh hưởng</span>
+                            </label>
+                            <span class="text-xs text-white/50">{{ $imagePromptStrength ?? ($imagePromptStrengthRange['default'] ?? $ipsMin) }}</span>
+                        </div>
+                        <input type="range"
+                               min="{{ $ipsMin }}"
+                               max="{{ $ipsMax }}"
+                               step="0.05"
+                               wire:model.live="imagePromptStrength"
+                               class="w-full accent-cyan-500">
+                        <div class="flex justify-between text-[10px] text-white/30 mt-1">
+                            <span>{{ $ipsMin }}</span>
+                            <span>{{ $ipsMax }}</span>
+                        </div>
+                        <p class="text-xs text-white/40 mt-2">
+                            Thấp → ảnh tham chiếu ảnh hưởng ít; cao → ảnh tham chiếu ảnh hưởng mạnh.
+                        </p>
+                    </div>
+                @endif
+
+                @if($supportsPromptUpsampling || $supportsRaw)
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        @if($supportsPromptUpsampling)
+                            <div class="bg-white/[0.02] border border-white/[0.06] rounded-xl p-3">
+                                <label class="flex items-center gap-2 text-sm text-white/70">
+                                    <input type="checkbox" wire:model.live="promptUpsampling"
+                                           class="w-4 h-4 rounded bg-white/[0.03] border-white/[0.15] text-cyan-500 focus:ring-cyan-500/40">
+                                    <span>Tự làm rõ mô tả</span>
+                                </label>
+                                <p class="text-xs text-white/40 mt-2">
+                                    Hệ thống tự thêm chi tiết khi bạn mô tả ngắn, giúp ảnh đẹp hơn.
+                                </p>
+                            </div>
+                        @endif
+                        @if($supportsRaw)
+                            <div class="bg-white/[0.02] border border-white/[0.06] rounded-xl p-3">
+                                <label class="flex items-center gap-2 text-sm text-white/70">
+                                    <input type="checkbox" wire:model.live="raw"
+                                           class="w-4 h-4 rounded bg-white/[0.03] border-white/[0.15] text-cyan-500 focus:ring-cyan-500/40">
+                                    <span>Phong cách tự nhiên</span>
+                                </label>
+                                <p class="text-xs text-white/40 mt-2">
+                                    Ảnh trông tự nhiên, ít “vẽ”. Chỉ một số mẫu hỗ trợ.
+                                </p>
+                            </div>
+                        @endif
                     </div>
                 @endif
             </div>

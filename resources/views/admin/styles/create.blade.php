@@ -321,6 +321,79 @@
                         <p class="mt-1 text-xs text-white/40">Aspect ratio sẽ được map sang kích thước phù hợp nếu model không hỗ trợ trực tiếp</p>
                     </div>
 
+                    <div class="bg-white/[0.02] border border-white/[0.06] rounded-xl p-4">
+                        <h3 class="text-sm font-semibold text-white/70 mb-3">Thông số nâng cao (mặc định)</h3>
+                        <p class="text-xs text-white/40 mb-4">Chỉ áp dụng nếu model hỗ trợ tham số tương ứng.</p>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs text-white/50 mb-1">Width</label>
+                                <input type="number" name="config_payload[width]" min="{{ config('services_custom.bfl.min_dimension', 256) }}" max="{{ config('services_custom.bfl.max_dimension', 1408) }}" step="{{ config('services_custom.bfl.dimension_multiple', 32) }}"
+                                       value="{{ old('config_payload.width') }}"
+                                       class="w-full px-3 py-2 rounded-lg bg-white/[0.03] border border-white/[0.08] text-white/90 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500/40">
+                            </div>
+                            <div>
+                                <label class="block text-xs text-white/50 mb-1">Height</label>
+                                <input type="number" name="config_payload[height]" min="{{ config('services_custom.bfl.min_dimension', 256) }}" max="{{ config('services_custom.bfl.max_dimension', 1408) }}" step="{{ config('services_custom.bfl.dimension_multiple', 32) }}"
+                                       value="{{ old('config_payload.height') }}"
+                                       class="w-full px-3 py-2 rounded-lg bg-white/[0.03] border border-white/[0.08] text-white/90 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500/40">
+                            </div>
+                            <div>
+                                <label class="block text-xs text-white/50 mb-1">Seed</label>
+                                <input type="number" name="config_payload[seed]" min="0" step="1"
+                                       value="{{ old('config_payload.seed') }}"
+                                       class="w-full px-3 py-2 rounded-lg bg-white/[0.03] border border-white/[0.08] text-white/90 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500/40">
+                            </div>
+                            <div>
+                                <label class="block text-xs text-white/50 mb-1">Steps</label>
+                                <input type="number" name="config_payload[steps]" min="1" max="50" step="1"
+                                       value="{{ old('config_payload.steps') }}"
+                                       class="w-full px-3 py-2 rounded-lg bg-white/[0.03] border border-white/[0.08] text-white/90 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500/40">
+                            </div>
+                            <div>
+                                <label class="block text-xs text-white/50 mb-1">Guidance</label>
+                                <input type="number" name="config_payload[guidance]" min="1.5" max="10" step="0.1"
+                                       value="{{ old('config_payload.guidance') }}"
+                                       class="w-full px-3 py-2 rounded-lg bg-white/[0.03] border border-white/[0.08] text-white/90 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500/40">
+                            </div>
+                            <div>
+                                <label class="block text-xs text-white/50 mb-1">Safety tolerance (0-6)</label>
+                                <input type="number" name="config_payload[safety_tolerance]" min="0" max="6" step="1"
+                                       value="{{ old('config_payload.safety_tolerance') }}"
+                                       class="w-full px-3 py-2 rounded-lg bg-white/[0.03] border border-white/[0.08] text-white/90 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500/40">
+                            </div>
+                            <div>
+                                <label class="block text-xs text-white/50 mb-1">Output format</label>
+                                <select name="config_payload[output_format]" class="w-full px-3 py-2 rounded-lg bg-white/[0.03] border border-white/[0.08] text-white/90 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500/40">
+                                    <option value="">Mặc định</option>
+                                    <option value="jpeg" {{ old('config_payload.output_format') === 'jpeg' ? 'selected' : '' }}>JPEG</option>
+                                    <option value="png" {{ old('config_payload.output_format') === 'png' ? 'selected' : '' }}>PNG</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs text-white/50 mb-1">Prompt upsampling</label>
+                                <select name="config_payload[prompt_upsampling]" class="w-full px-3 py-2 rounded-lg bg-white/[0.03] border border-white/[0.08] text-white/90 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500/40">
+                                    <option value="">Mặc định</option>
+                                    <option value="1" {{ old('config_payload.prompt_upsampling') === '1' ? 'selected' : '' }}>Bật</option>
+                                    <option value="0" {{ old('config_payload.prompt_upsampling') === '0' ? 'selected' : '' }}>Tắt</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs text-white/50 mb-1">Raw mode</label>
+                                <select name="config_payload[raw]" class="w-full px-3 py-2 rounded-lg bg-white/[0.03] border border-white/[0.08] text-white/90 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500/40">
+                                    <option value="">Mặc định</option>
+                                    <option value="1" {{ old('config_payload.raw') === '1' ? 'selected' : '' }}>Bật</option>
+                                    <option value="0" {{ old('config_payload.raw') === '0' ? 'selected' : '' }}>Tắt</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs text-white/50 mb-1">Image prompt strength (0-1)</label>
+                                <input type="number" name="config_payload[image_prompt_strength]" min="0" max="1" step="0.05"
+                                       value="{{ old('config_payload.image_prompt_strength') }}"
+                                       class="w-full px-3 py-2 rounded-lg bg-white/[0.03] border border-white/[0.08] text-white/90 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500/40">
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="flex items-center gap-3">
                         <input type="checkbox" id="allow_user_custom_prompt" name="allow_user_custom_prompt" value="1" 
                                class="w-5 h-5 rounded bg-white/[0.03] border-white/[0.15] text-purple-500 focus:ring-purple-500/50"
