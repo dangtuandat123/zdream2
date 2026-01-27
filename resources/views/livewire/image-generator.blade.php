@@ -289,25 +289,28 @@
                     </div>
                 </div>
                 @if($supportsWidthHeight)
-                    <div class="bg-white/[0.02] border border-white/[0.06] rounded-xl p-4 md:p-5">
+                    <div class="bg-gradient-to-br from-cyan-500/15 via-cyan-500/5 to-transparent border border-cyan-500/30 rounded-2xl p-4 md:p-5 shadow-[0_0_30px_rgba(6,182,212,0.12)]">
                         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                            <div class="text-sm text-white/70 font-semibold">Chọn cách thiết lập kích thước</div>
-                            <div class="inline-flex rounded-xl bg-white/[0.03] border border-white/[0.08] p-1">
+                            <div class="text-sm text-white/90 font-semibold inline-flex items-center gap-2">
+                                <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
+                                Chọn cách thiết lập kích thước
+                            </div>
+                            <div class="inline-flex rounded-xl bg-black/20 border border-cyan-500/30 p-1">
                                 <button type="button"
                                         wire:click="$set('sizeMode','ratio')"
                                         class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all
-                                            {{ $sizeMode === 'ratio' ? 'bg-cyan-500/20 text-cyan-300' : 'text-white/50 hover:text-white/70' }}">
+                                            {{ $sizeMode === 'ratio' ? 'bg-cyan-500/30 text-cyan-200 shadow-[0_0_12px_rgba(6,182,212,0.35)]' : 'text-white/60 hover:text-white/80' }}">
                                     Theo dáng ảnh
                                 </button>
                                 <button type="button"
                                         wire:click="$set('sizeMode','custom')"
                                         class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all
-                                            {{ $sizeMode === 'custom' ? 'bg-cyan-500/20 text-cyan-300' : 'text-white/50 hover:text-white/70' }}">
+                                            {{ $sizeMode === 'custom' ? 'bg-cyan-500/30 text-cyan-200 shadow-[0_0_12px_rgba(6,182,212,0.35)]' : 'text-white/60 hover:text-white/80' }}">
                                     Nhập kích thước
                                 </button>
                             </div>
                         </div>
-                        <p class="text-xs text-white/40 mt-2">Gợi ý: người mới nên chọn “Theo dáng ảnh”.</p>
+                        <p class="text-xs text-cyan-200/80 mt-2">Gợi ý: người mới nên chọn “Theo dáng ảnh”.</p>
                     </div>
                 @endif
 
@@ -423,11 +426,11 @@
                             <div class="flex items-center gap-2">
                                 <input type="number" min="0" step="1" wire:model.live="seed"
                                        placeholder="Auto"
-                                       class="w-full px-3 py-2 rounded-lg bg-white/[0.03] border border-white/[0.08] text-white/90 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500/40">
-                                <button type="button" wire:click="randomizeSeed" class="px-2.5 py-2 rounded-lg bg-cyan-500/15 border border-cyan-500/30 text-cyan-300 text-xs hover:bg-cyan-500/25 transition-colors">
+                                       class="w-full h-9 px-3 rounded-lg bg-white/[0.03] border border-white/[0.08] text-white/90 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500/40">
+                                <button type="button" wire:click="randomizeSeed" class="h-9 px-3 rounded-lg bg-cyan-500/15 border border-cyan-500/30 text-cyan-300 text-xs font-semibold inline-flex items-center justify-center hover:bg-cyan-500/25 transition-colors">
                                     Random
                                 </button>
-                                <button type="button" wire:click="clearSeed" class="px-2.5 py-2 rounded-lg bg-white/[0.05] border border-white/[0.1] text-white/50 text-xs hover:bg-white/[0.1] transition-colors">
+                                <button type="button" wire:click="clearSeed" class="h-9 px-3 rounded-lg bg-white/[0.05] border border-white/[0.1] text-white/50 text-xs font-semibold inline-flex items-center justify-center hover:bg-white/[0.1] transition-colors">
                                     Auto
                                 </button>
                             </div>
@@ -545,8 +548,8 @@
                                 <div class="flex items-center justify-between mb-2">
                                     <label class="text-sm font-semibold text-white/80 inline-flex items-center gap-2">
                                         <i class="fa-solid fa-shield-halved" style="font-size: 12px;"></i>
-                                        <span>Mức lọc nội dung</span>
-                                        <i class="fa-solid fa-circle-question text-white/30" style="font-size: 12px;" title="0 = lọc chặt, số cao hơn = lọc nhẹ hơn."></i>
+                                        <span>Độ an toàn nội dung</span>
+                                        <i class="fa-solid fa-circle-question text-white/30" style="font-size: 12px;" title="Giúp hệ thống tránh nội dung nhạy cảm. Số thấp = lọc chặt, số cao = lọc nhẹ."></i>
                                     </label>
                                     <span class="text-xs text-white/50">{{ $safetyTolerance ?? ($safetyToleranceRange['default'] ?? $safeMin) }}</span>
                                 </div>
@@ -561,7 +564,7 @@
                                     <span>{{ $safeMax }}</span>
                                 </div>
                                 <p class="text-xs text-white/40 mt-2">
-                                    0 = lọc chặt, số cao hơn = lọc nhẹ hơn (tuỳ mẫu).
+                                    Điều chỉnh mức lọc nội dung nhạy cảm. Thấp = an toàn hơn, cao = ít chặn hơn.
                                 </p>
                             </div>
                         @endif
