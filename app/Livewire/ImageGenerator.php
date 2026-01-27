@@ -78,6 +78,7 @@ class ImageGenerator extends Component
     public array $guidanceRange = [];
     public array $safetyToleranceRange = [];
     public array $imagePromptStrengthRange = [];
+    public array $ratioDimensions = [];
 
     // Advanced settings (user override)
     public ?int $seed = null;
@@ -132,6 +133,7 @@ class ImageGenerator extends Component
         $bflService = app(BflService::class);
         $modelId = $style->bfl_model_id ?? $style->openrouter_model_id ?? '';
         $this->aspectRatios = $bflService->getAspectRatios();
+        $this->ratioDimensions = config('services_custom.bfl.ratio_dimensions', []);
         $this->dimensionMin = (int) config('services_custom.bfl.min_dimension', 256);
         $this->dimensionMax = (int) config('services_custom.bfl.max_dimension', 1408);
         $this->dimensionMultiple = (int) config('services_custom.bfl.dimension_multiple', 32);

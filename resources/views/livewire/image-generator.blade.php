@@ -321,6 +321,10 @@
                     </label>
                     <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
                         @foreach($aspectRatios as $ratio => $label)
+                            @php
+                                $dim = $ratioDimensions[$ratio] ?? null;
+                                $dimText = $dim ? ($dim['width'] . '×' . $dim['height'] . ' px') : null;
+                            @endphp
                             <button 
                                 type="button"
                                 wire:click="$set('selectedAspectRatio', '{{ $ratio }}')"
@@ -330,10 +334,18 @@
                                         ? 'bg-cyan-500/10 border-cyan-500/50 text-cyan-400 shadow-[0_0_15px_rgba(6,182,212,0.15)] ring-1 ring-cyan-500/30' 
                                         : 'bg-white/[0.03] border-white/[0.08] text-white/60 hover:bg-white/[0.06] hover:border-white/[0.15]' 
                                     }}">
-                                {{ $label }}
+                                <span class="block">{{ $label }}</span>
+                                @if($dimText)
+                                    <span class="block text-[10px] text-white/40 mt-0.5">{{ $dimText }}</span>
+                                @endif
                             </button>
                         @endforeach
                     </div>
+                    @if(!empty($ratioDimensions))
+                        <p class="text-xs text-white/40 mt-2">
+                            Kích thước chỉ mang tính gợi ý (mặc định). Thực tế có thể thay đổi tuỳ mẫu.
+                        </p>
+                    @endif
                     
                     {{-- Aspect ratio hint for models without native support --}}
                     @if(!$supportsAspectRatio)
