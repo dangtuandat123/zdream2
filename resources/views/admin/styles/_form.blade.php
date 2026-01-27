@@ -60,20 +60,25 @@
             </div>
         </div>
 
-        {{-- OpenRouter Config --}}
+        {{-- BFL Config --}}
         <div class="p-6 rounded-2xl bg-white/[0.03] border border-white/[0.08]">
             <h3 class="text-lg font-semibold text-white/90 mb-4">Cấu hình AI</h3>
             
             <div class="space-y-4">
                 <div>
-                    <label class="block text-sm font-medium text-white/70 mb-2">Model ID (OpenRouter) *</label>
-                    <select name="openrouter_model_id" required
+                    <label class="block text-sm font-medium text-white/70 mb-2">Model ID (BFL) *</label>
+                    <select name="bfl_model_id" required
                             class="w-full px-4 py-3 rounded-lg bg-white/[0.03] border border-white/[0.08] text-white/90 focus:outline-none focus:ring-2 focus:ring-primary-500/50">
-                        @foreach($models as $key => $modelId)
-                            <option value="{{ $modelId }}" 
-                                    {{ old('openrouter_model_id', $isEdit ? $style->openrouter_model_id : '') == $modelId ? 'selected' : '' }}>
-                                {{ $modelId }}
-                            </option>
+                        @foreach($models as $model)
+                            @php
+                                $modelId = is_array($model) ? ($model['id'] ?? '') : $model;
+                            @endphp
+                            @if($modelId !== '')
+                                <option value="{{ $modelId }}" 
+                                        {{ old('bfl_model_id', $isEdit ? ($style->bfl_model_id ?? $style->openrouter_model_id) : '') == $modelId ? 'selected' : '' }}>
+                                    {{ $modelId }}
+                                </option>
+                            @endif
                         @endforeach
                     </select>
                 </div>

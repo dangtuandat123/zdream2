@@ -32,24 +32,24 @@
 
                 <div class="space-y-4">
                     <div>
-                        <label for="openrouter_api_key" class="block text-sm font-medium text-white/70 mb-2">
-                            OpenRouter API Key
+                        <label for="bfl_api_key" class="block text-sm font-medium text-white/70 mb-2">
+                            BFL API Key
                         </label>
                         <div class="relative">
                             <input 
-                                id="openrouter_api_key" 
+                                id="bfl_api_key" 
                                 type="password" 
-                                name="openrouter_api_key" 
-                                placeholder="sk-or-v1-xxxxx (để trống nếu không đổi)"
+                                name="bfl_api_key" 
+                                placeholder="bfl_xxx (để trống nếu không đổi)"
                                 class="w-full px-4 py-3 rounded-xl bg-white/[0.03] border border-white/[0.08] text-white/90 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/40 transition-all pr-12">
-                            <button type="button" onclick="togglePassword('openrouter_api_key')" class="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white">
+                            <button type="button" onclick="togglePassword('bfl_api_key')" class="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white">
                                 <i class="fa-solid fa-eye" style="font-size: 14px;"></i>
                             </button>
                         </div>
                         <p class="text-white/40 text-xs mt-1">
                             {{-- MEDIUM-04 FIX: Check if value is not empty, not just if row exists --}}
                             @php
-                                $apiKey = \App\Models\Setting::get('openrouter_api_key', '');
+                                $apiKey = \App\Models\Setting::get('bfl_api_key', '');
                             @endphp
                             @if(!empty($apiKey))
                                 <span class="text-green-400">✓ Đã có API key được lưu</span>
@@ -57,22 +57,22 @@
                                 <span class="text-yellow-400">⚠ Chưa có API key</span>
                             @endif
                         </p>
-                        @error('openrouter_api_key')
+                        @error('bfl_api_key')
                             <p class="mt-1 text-sm text-red-400">{{ $message }}</p>
                         @enderror
                     </div>
 
                     <div>
-                        <label for="openrouter_base_url" class="block text-sm font-medium text-white/70 mb-2">
-                            OpenRouter Base URL
+                        <label for="bfl_base_url" class="block text-sm font-medium text-white/70 mb-2">
+                            BFL Base URL
                         </label>
                         <input 
-                            id="openrouter_base_url" 
+                            id="bfl_base_url" 
                             type="url" 
-                            name="openrouter_base_url" 
-                            value="{{ \App\Models\Setting::get('openrouter_base_url', 'https://openrouter.ai/api/v1') }}"
+                            name="bfl_base_url" 
+                            value="{{ \App\Models\Setting::get('bfl_base_url', 'https://api.bfl.ai') }}"
                             class="w-full px-4 py-3 rounded-xl bg-white/[0.03] border border-white/[0.08] text-white/90 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/40 transition-all">
-                        @error('openrouter_base_url')
+                        @error('bfl_base_url')
                             <p class="mt-1 text-sm text-red-400">{{ $message }}</p>
                         @enderror
                     </div>
@@ -80,7 +80,7 @@
                     <div class="flex items-center justify-between gap-4 rounded-xl bg-white/[0.03] border border-white/[0.08] px-4 py-3">
                         <div>
                             <p class="text-sm text-white/80">Model list</p>
-                            <p class="text-xs text-white/40">Fetch latest image models from OpenRouter.</p>
+                            <p class="text-xs text-white/40">Refresh danh sách model BFL.</p>
                         </div>
                         <button
                             type="submit"

@@ -105,7 +105,7 @@
                 <div class="space-y-4">
                     <div x-data="{
                         search: '',
-                        selectedModelId: '{{ old('openrouter_model_id', $style->openrouter_model_id) }}',
+                        selectedModelId: '{{ old('bfl_model_id', $style->bfl_model_id ?? $style->openrouter_model_id) }}',
                         groupedModels: @js($groupedModels),
                         allModels: @js($models),
                         priceFilter: 'all',
@@ -153,12 +153,12 @@
                             return '$' + cost.toFixed(4);
                         }
                     }">
-                        <label for="openrouter_model_id" class="block text-sm font-medium text-white/70 mb-2">
-                            OpenRouter Model *
+                        <label for="bfl_model_id" class="block text-sm font-medium text-white/70 mb-2">
+                            BFL Model *
                             <span class="text-white/40 font-normal" x-text="'(' + allModels.length + ' models)'"></span>
                         </label>
                         
-                        <input type="hidden" name="openrouter_model_id" x-model="selectedModelId" required>
+                        <input type="hidden" name="bfl_model_id" x-model="selectedModelId" required>
                         
                         <input 
                             type="text" 
@@ -231,14 +231,17 @@
                                                                   : 'bg-cyan-500/20 text-cyan-300'"
                                                           x-text="formatCost(model.estimated_cost_per_image)"></span>
                                                     
-                                                    <template x-if="model.supports_image_config">
-                                                        <span class="px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 text-xs">⚙️ Config</span>
+                                                    <template x-if="model.supports_aspect_ratio">
+                                                        <span class="px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 text-xs">🔧 Aspect</span>
                                                     </template>
                                                     <template x-if="model.supports_text_input">
                                                         <span class="px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 text-xs">📝 Text</span>
                                                     </template>
                                                     <template x-if="model.supports_image_input">
                                                         <span class="px-2 py-0.5 rounded bg-pink-500/20 text-pink-300 text-xs">🖼️ Image</span>
+                                                    </template>
+                                                    <template x-if="model.uses_image_prompt">
+                                                        <span class="px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-300 text-xs">🧪 Prompt</span>
                                                     </template>
                                                 </div>
                                             </button>
@@ -254,10 +257,10 @@
                         </div>
                         
                         <p class="mt-2 text-xs text-white/40">
-                            🆓 Free | ⚙️ Supports aspect_ratio & image_size | 📝 Text input | 🖼️ Image input
+                            🖼️ Image input | 🔧 Aspect ratio | 🧪 Image prompt
                         </p>
                         
-                        @error('openrouter_model_id')
+                        @error('bfl_model_id')
                             <p class="mt-1 text-sm text-red-400">{{ $message }}</p>
                         @enderror
                     </div>
@@ -287,7 +290,7 @@
                             <option value="3:4" {{ old('aspect_ratio', $currentRatio) == '3:4' ? 'selected' : '' }}>3:4 (Chân dung)</option>
                             <option value="21:9" {{ old('aspect_ratio', $currentRatio) == '21:9' ? 'selected' : '' }}>21:9 (Ultrawide)</option>
                         </select>
-                        <p class="mt-1 text-xs text-white/40">Chỉ áp dụng cho model hỗ trợ ⚙️ image_config (Gemini)</p>
+                        <p class="mt-1 text-xs text-white/40">Aspect ratio sẽ được map sang kích thước phù hợp nếu model không hỗ trợ trực tiếp</p>
                     </div>
 
                     <div class="flex items-center gap-3">

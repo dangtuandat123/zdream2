@@ -12,7 +12,7 @@ use Illuminate\Support\Str;
  * Model: Style
  * 
  * Đại diện cho một "công thức" tạo ảnh AI.
- * Mỗi Style chứa cấu hình OpenRouter và các options bổ sung.
+ * Mỗi Style chứa cấu hình BFL (FLUX) và các options bổ sung.
  * 
  * @property int $id
  * @property string $name
@@ -20,7 +20,7 @@ use Illuminate\Support\Str;
  * @property string|null $thumbnail_url
  * @property string|null $description
  * @property float $price
- * @property string $openrouter_model_id
+ * @property string $bfl_model_id
  * @property string $base_prompt
  * @property array|null $config_payload
  * @property bool $is_active
@@ -38,7 +38,7 @@ class Style extends Model
         'thumbnail_url',
         'description',
         'price',
-        'openrouter_model_id',
+        'bfl_model_id',
         'base_prompt',
         'config_payload',
         'is_active',
@@ -200,7 +200,7 @@ class Style extends Model
      * 
      * @param array $selectedOptionIds Danh sách ID của StyleOption đã chọn
      * @param string|null $userCustomInput Nội dung user tự gõ
-     * @return string Final prompt để gửi đến OpenRouter
+     * @return string Final prompt để gửi đến BFL
      */
     public function buildFinalPrompt(array $selectedOptionIds = [], ?string $userCustomInput = null): string
     {
@@ -269,10 +269,9 @@ class Style extends Model
 
 
     /**
-     * Build OpenRouter payload
-     * 
+     * Legacy: Build OpenRouter payload (không dùng trong luồng BFL)
+     *
      * Lưu ý: image_config chỉ hỗ trợ cho Gemini models
-     * FLUX và các model khác không cần/hỗ trợ image_config
      */
     public function buildOpenRouterPayload(string $finalPrompt): array
     {

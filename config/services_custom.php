@@ -4,27 +4,117 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | OpenRouter API Configuration
+    | Black Forest Labs (BFL) FLUX API Configuration
     |--------------------------------------------------------------------------
     |
-    | Cấu hình kết nối đến OpenRouter API cho việc tạo ảnh AI.
-    | Các model hỗ trợ modality: image (Gemini, Flux, etc.)
+    | Cấu hình kết nối đến BFL API cho việc tạo ảnh AI.
+    | Hệ thống chỉ dùng FLUX models từ BFL.
     |
     */
+    'bfl' => [
+        'api_key' => env('BFL_API_KEY'),
+        'base_url' => env('BFL_BASE_URL', 'https://api.bfl.ai'),
+        'timeout' => 120,
+        'poll_timeout' => 120,
+        'max_dimension' => 1408,
+        'min_dimension' => 256,
 
-    'openrouter' => [
-        'api_key' => env('OPENROUTER_API_KEY'),
-        'base_url' => env('OPENROUTER_BASE_URL', 'https://openrouter.ai/api/v1'),
-        'timeout' => 120, // seconds - tăng timeout cho image generation
-        
-        // Các model mặc định hỗ trợ image generation (Jan 2026)
+        // Danh sách models BFL (Jan 2026)
         'models' => [
-            'gemini' => 'google/gemini-2.5-flash-image',
-            'flux_pro' => 'black-forest-labs/flux-1.1-pro',
-            'flux_schnell' => 'black-forest-labs/flux-schnell',
+            [
+                'id' => 'flux-2-max',
+                'name' => 'FLUX.2 Max',
+                'description' => 'FLUX.2 Max (text-to-image)',
+                'supports_image_input' => true,
+                'supports_aspect_ratio' => false,
+                'max_input_images' => 8,
+            ],
+            [
+                'id' => 'flux-2-pro',
+                'name' => 'FLUX.2 Pro',
+                'description' => 'FLUX.2 Pro (text-to-image)',
+                'supports_image_input' => true,
+                'supports_aspect_ratio' => false,
+                'max_input_images' => 8,
+            ],
+            [
+                'id' => 'flux-2-flex',
+                'name' => 'FLUX.2 Flex',
+                'description' => 'FLUX.2 Flex (text-to-image)',
+                'supports_image_input' => true,
+                'supports_aspect_ratio' => false,
+                'max_input_images' => 8,
+            ],
+            [
+                'id' => 'flux-2-klein-4b',
+                'name' => 'FLUX.2 Klein 4B',
+                'description' => 'FLUX.2 Klein 4B (text-to-image)',
+                'supports_image_input' => true,
+                'supports_aspect_ratio' => false,
+                'max_input_images' => 8,
+            ],
+            [
+                'id' => 'flux-2-klein-9b',
+                'name' => 'FLUX.2 Klein 9B',
+                'description' => 'FLUX.2 Klein 9B (text-to-image)',
+                'supports_image_input' => true,
+                'supports_aspect_ratio' => false,
+                'max_input_images' => 8,
+            ],
+            [
+                'id' => 'flux-kontext-pro',
+                'name' => 'FLUX Kontext Pro',
+                'description' => 'Kontext (multi-ref, edit/create)',
+                'supports_image_input' => true,
+                'supports_aspect_ratio' => true,
+                'max_input_images' => 4,
+            ],
+            [
+                'id' => 'flux-kontext-max',
+                'name' => 'FLUX Kontext Max',
+                'description' => 'Kontext Max (multi-ref, edit/create)',
+                'supports_image_input' => true,
+                'supports_aspect_ratio' => true,
+                'max_input_images' => 4,
+            ],
+            [
+                'id' => 'flux-pro-1.1',
+                'name' => 'FLUX 1.1 Pro',
+                'description' => 'FLUX 1.1 Pro',
+                'supports_image_input' => true,
+                'supports_aspect_ratio' => false,
+                'max_input_images' => 1,
+                'uses_image_prompt' => true,
+            ],
+            [
+                'id' => 'flux-pro-1.1-ultra',
+                'name' => 'FLUX 1.1 Pro Ultra',
+                'description' => 'FLUX 1.1 Pro Ultra',
+                'supports_image_input' => true,
+                'supports_aspect_ratio' => true,
+                'max_input_images' => 1,
+                'uses_image_prompt' => true,
+            ],
+            [
+                'id' => 'flux-pro',
+                'name' => 'FLUX Pro',
+                'description' => 'FLUX Pro',
+                'supports_image_input' => false,
+                'supports_aspect_ratio' => false,
+                'max_input_images' => 0,
+            ],
+            [
+                'id' => 'flux-dev',
+                'name' => 'FLUX Dev',
+                'description' => 'FLUX Dev',
+                'supports_image_input' => true,
+                'supports_aspect_ratio' => false,
+                'max_input_images' => 1,
+                'uses_image_prompt' => true,
+            ],
         ],
-        
-        // Aspect ratios hỗ trợ (đồng bộ với ImageGenerator)
+
+        // Aspect ratios hỗ trợ (UI selection)
         'aspect_ratios' => [
             '1:1' => 'Vuông (1:1)',
             '16:9' => 'Ngang Wide (16:9)',
@@ -38,16 +128,18 @@ return [
             '21:9' => 'Cinematic (21:9)',
         ],
 
-        // Danh sách model fallback (nếu API không trả về modality)
-        'image_models_fallback' => [
-            'google/gemini-2.0-flash-exp:free',
-            'google/gemini-2.0-flash-exp',
-        ],
-
-        // Danh sách Gemini model hỗ trợ image (dùng cho Adapter)
-        'gemini_image_models' => [
-            'google/gemini-2.0-flash-exp:free',
-            'google/gemini-2.0-flash-exp',
+        // Mapping ratio -> width/height (cho models cần width/height)
+        'ratio_dimensions' => [
+            '1:1' => ['width' => 1024, 'height' => 1024],
+            '16:9' => ['width' => 1344, 'height' => 768],
+            '9:16' => ['width' => 768, 'height' => 1344],
+            '4:3' => ['width' => 1152, 'height' => 864],
+            '3:4' => ['width' => 864, 'height' => 1152],
+            '3:2' => ['width' => 1344, 'height' => 896],
+            '2:3' => ['width' => 896, 'height' => 1344],
+            '5:4' => ['width' => 1280, 'height' => 1024],
+            '4:5' => ['width' => 1024, 'height' => 1280],
+            '21:9' => ['width' => 1408, 'height' => 608],
         ],
     ],
 

@@ -89,10 +89,10 @@
                             <span class="text-white/50">Style</span>
                             <span class="text-white">{{ $image->style->name ?? 'Đã xóa' }}</span>
                         </div>
-                        @if($image->openrouter_id)
+                        @if($image->bfl_task_id || $image->openrouter_id)
                             <div class="flex justify-between">
-                                <span class="text-white/50">OpenRouter ID</span>
-                                <span class="text-white/60 text-xs font-mono">{{ $image->openrouter_id }}</span>
+                                <span class="text-white/50">BFL Task ID</span>
+                                <span class="text-white/60 text-xs font-mono">{{ $image->bfl_task_id ?? $image->openrouter_id }}</span>
                             </div>
                         @endif
                     </div>

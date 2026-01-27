@@ -36,7 +36,7 @@
                 <div class="hidden lg:block bg-white/[0.03] border border-white/[0.08] rounded-xl p-4">
                     <div class="flex items-center gap-3 text-sm text-white/40 mb-3">
                         <i class="fa-solid fa-microchip text-purple-400" style="font-size: 14px;"></i>
-                        <span class="font-mono text-xs truncate">{{ $style->openrouter_model_id }}</span>
+                        <span class="font-mono text-xs truncate">{{ $style->bfl_model_id ?? $style->openrouter_model_id }}</span>
                     </div>
                     <div class="flex items-center gap-3 text-sm text-white/40">
                         <i class="fa-solid fa-crop text-cyan-400" style="font-size: 14px;"></i>

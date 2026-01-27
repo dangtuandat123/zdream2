@@ -292,11 +292,11 @@
                         @endforeach
                     </div>
                     
-                    {{-- B2 FIX: Warning cho non-Gemini models --}}
-                    @if(!$supportsImageConfig)
+                    {{-- Aspect ratio hint for models without native support --}}
+                    @if(!$supportsAspectRatio)
                         <p class="text-yellow-400/70 text-xs mt-2 flex items-center gap-1">
                             <i class="fa-solid fa-info-circle"></i>
-                            <span>Tỷ lệ khung hình chỉ được hỗ trợ tốt nhất với Gemini models</span>
+                            <span>Model này không hỗ trợ aspect_ratio trực tiếp, hệ thống sẽ map kích thước gần nhất.</span>
                         </p>
                     @endif
                 </div>
@@ -573,6 +573,9 @@
                                     </div>
                                     <h3 class="text-xl font-bold text-white">Hoàn tất!</h3>
                                     <p class="text-sm text-white/50">Ảnh của bạn đã sẵn sàng</p>
+                                    <p class="text-xs text-white/40 mt-2">
+                                        Model: <span class="font-mono text-white/70">{{ $style->bfl_model_id ?? $style->openrouter_model_id }}</span>
+                                    </p>
                                 </div>
 
                                 <!-- Download Button -->

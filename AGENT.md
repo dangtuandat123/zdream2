@@ -9,7 +9,7 @@ TỔNG QUAN HỆ THỐNG
 ---------------------------------------------------------------------------
 - Stack: Laravel 10 + Livewire 4 + Tailwind CSS + Alpine (Livewire 4 đã bundle).
 - Build frontend: Vite.
-- Tạo ảnh AI: OpenRouter API (đa model, xử lý qua adapter).
+- Tạo ảnh AI: Black Forest Labs (BFL) FLUX API (task async + polling).
 - Lưu trữ ảnh: MinIO (S3 compatible) cho ảnh tạo ra; public disk cho thumbnail
   của StyleOption.
 - Nạp credits: VietQR (chuyển khoản) -> cộng Xu.
@@ -22,11 +22,11 @@ app/
   Models/
     User, Style, StyleOption, Tag, GeneratedImage, WalletTransaction, Setting
   Services/
-    OpenRouterService (gọi API + xử lý response)
+    BflService (gọi BFL API + polling + xử lý ảnh)
     ModelManager (cache & group model)
     StorageService (lưu base64 -> MinIO)
     WalletService (cộng/trừ/hoàn Xu, log transaction)
-    ImageGeneration/ (adapters: Gemini, Flux, GPT, Generic)
+    ImageGeneration/ (legacy adapters cho OpenRouter, hiện không dùng)
   Livewire/
     ImageGenerator (luồng tạo ảnh chính)
     UserStyleHistory (ảnh gần đây theo style)
@@ -45,7 +45,7 @@ app/
     Commands/CleanupOrphanImages, Kernel (scheduler + watchdog)
 
 config/
-  services_custom.php (OpenRouter, VietQR, pricing, internal API secret)
+  services_custom.php (BFL, VietQR, pricing, internal API secret)
   filesystems.php (minio disk)
 
 routes/
@@ -69,8 +69,10 @@ resources/js/app.js
 html_thuong/
   Bản prototype tĩnh, không kết nối Laravel.
 
+tài liệu api api.bfl.ai flux/
+  Tài liệu BFL FLUX (local docs, dùng để map endpoint/params).
 openrouter.txt / debug_models.json
-  Tài liệu/tham khảo, không chạy runtime.
+  Tài liệu cũ (legacy, không dùng runtime).
 
 public/build/
   Output Vite (không chỉnh tay).
@@ -80,13 +82,12 @@ public/build/
 ---------------------------------------------------------------------------
 1) Style
    - fields chính: name, slug, thumbnail_url, description, price,
-     openrouter_model_id, base_prompt, config_payload, is_active,
+     bfl_model_id, base_prompt, config_payload, is_active,
      allow_user_custom_prompt, image_slots, system_images, sort_order, tag_id.
    - slug: tự tạo khi create; KHÔNG tự đổi khi update (tránh vỡ URL).
    - buildFinalPrompt(): ghép base_prompt + options + custom input.
    - MAX_PROMPT_LENGTH = 4000; PROMPT_SEPARATOR = ", ".
-   - buildOpenRouterPayload(): gửi modalities ['image','text']; image_config
-     chỉ dùng cho Gemini.
+   - BFL payload do BflService build từ config_payload (aspect_ratio, width/height, steps, guidance...).
    - aspect_ratio lấy từ config_payload['aspect_ratio'] (fallback 1:1).
 
 2) StyleOption
@@ -118,14 +119,14 @@ SCHEMA CSDL (TÓM TẮT)
 users
   - credits (decimal), is_admin, is_active
 styles
-  - openrouter_model_id, base_prompt, config_payload (json),
+  - bfl_model_id, base_prompt, config_payload (json),
     image_slots (json), system_images (json), tag_id (fk)
 style_options
   - style_id (fk), label, group_name, prompt_fragment, icon, thumbnail,
     is_default, sort_order
 generated_images
   - user_id, style_id, final_prompt, selected_options (json),
-    user_custom_input, storage_path, openrouter_id, status, error_message,
+    user_custom_input, storage_path, bfl_task_id, status, error_message,
     credits_used, soft deletes
 wallet_transactions
   - user_id, type(credit/debit), amount, balance_before/after, reason,
@@ -159,10 +160,10 @@ LUỒNG TẠO ẢNH (USER FLOW)
 
 4) Async/Sync:
    - Nếu queue.default != "sync": dispatch GenerateImageJob.
-   - Nếu sync: gọi OpenRouterService trực tiếp.
+   - Nếu sync: gọi BflService trực tiếp.
 
-5) Job/OpenRouter:
-   - OpenRouterService -> StorageService -> cập nhật status.
+5) Job/BFL:
+   - BflService -> StorageService -> cập nhật status.
    - Thất bại: mark failed + refund credits.
 
 6) UI polling:
@@ -185,46 +186,38 @@ Artisan command: `images:cleanup`
 - Xóa file “orphan” trong MinIO không còn record DB tham chiếu.
 
 ---------------------------------------------------------------------------
-TÍCH HỢP OPENROUTER (CHI TIẾT)
+TÍCH HỢP BFL (CHI TIẾT)
 ---------------------------------------------------------------------------
-OpenRouterService
+BflService
 - Base URL:
-  + lấy từ Setting::get('openrouter_base_url') hoặc config.
-  + tự normalize để kết thúc bằng /api/v1.
+  + lấy từ Setting::get('bfl_base_url') hoặc config.
+  + mặc định https://api.bfl.ai
 - HTTP client:
+  + header: x-key
   + retry/backoff khi 429/5xx, timeout phù hợp cho image models.
-- fetchImageModels():
-  + gọi /models, lọc model có output_modalities chứa 'image'.
-  + fallback list nếu API thiếu modalities (config services_custom).
-  + cache: openrouter_image_models.
-- generateImage():
-  + buildFinalPrompt từ Style.
-  + chọn adapter (Gemini/Flux/GPT/Generic).
-  + gắn input images (img2img) + system_images.
-  + gọi /chat/completions.
-  + parse response -> base64 image.
+- submit request:
+  + POST /v1/{model} (vd: flux-2-pro, flux-kontext-pro…)
+  + trả về id + polling_url.
+- polling:
+  + GET polling_url (ưu tiên) hoặc /v1/get_result?id=...
+  + status: Ready / Pending / Request Moderated / Content Moderated / Error.
+  + result.sample là signed URL (valid ~10 phút) -> download về MinIO.
+- input images:
+  + chỉ một số model hỗ trợ (kontext / image_prompt).
+  + giới hạn bởi max_input_images trong config/services_custom.php.
 - SSRF Protection:
   + chặn localhost/private IP khi tải ảnh từ URL.
-  + nếu URL là MinIO endpoint thì đọc trực tiếp Storage (an toàn hơn).
+  + nếu URL là MinIO endpoint thì đọc trực tiếp Storage.
 
 ModelManager
-- cache enhanced list: openrouter_models_enhanced (1h).
-- group theo provider (Google/OpenAI/Black Forest Labs/Stability/…).
+- cache list: bfl_models (1h).
+- group theo provider (chủ yếu Black Forest Labs).
 - dùng trong Admin UI để:
   + hiển thị model list
   + validate model khi tạo/sửa Style.
 
 Adapters (app/Services/ImageGeneration)
-- ModelAdapterInterface:
-  + preparePayload(), parseResponse(), extractTextResponse().
-- GeminiAdapter:
-  + hỗ trợ image_config (aspect_ratio, image_size).
-- FluxAdapter:
-  + không hỗ trợ image_config -> append tỉ lệ vào prompt.
-- GptImageAdapter:
-  + thêm prefix bắt buộc “generate image only”.
-- GenericAdapter:
-  + fallback cho model không xác định.
+- Legacy cho OpenRouter (hiện không dùng).
 
 ---------------------------------------------------------------------------
 WALLET / CREDITS (QUY ƯỚC BẮT BUỘC)
@@ -266,12 +259,11 @@ LƯU TRỮ (STORAGE)
 
 ---------------------------------------------------------------------------
 SETTINGS + CACHE
----------------------------------------------------------------------------
+----------------------------------------------------------------------------
 - Settings lưu trong DB (table settings).
 - Setting::get cache 1 giờ.
-- Khi cập nhật OpenRouter:
-  + clear caches: openrouter_image_models, openrouter_models_enhanced,
-    image_capable_model_ids.
+- Khi cập nhật BFL:
+  + clear caches: bfl_models, image_capable_model_ids.
 
 ---------------------------------------------------------------------------
 BẢO MẬT / AUTH
@@ -285,7 +277,7 @@ BẢO MẬT / AUTH
   + log audit khi truy cập admin.
 - HistoryController:
   + bắt buộc ownership để download/delete ảnh.
-- OpenRouterService + BaseAdapter:
+- BflService:
   + SSRF protection khi tải ảnh từ URL.
 
 ---------------------------------------------------------------------------
@@ -317,7 +309,7 @@ SEEDERS (DEV/LOCAL)
   + tạo admin mặc định `admin@ezshot.ai` với mật khẩu random.
   + chỉ tạo nếu chưa tồn tại.
 - SettingsSeeder:
-  + tạo settings mặc định (site_name, default_credits, openrouter_base_url…).
+  + tạo settings mặc định (site_name, default_credits, bfl_base_url…).
   + API key chỉ là placeholder (cấu hình thật qua Admin hoặc .env).
 
 ---------------------------------------------------------------------------
@@ -331,8 +323,8 @@ MỤC CŨ / DI SẢN (CẦN BIẾT)
 ---------------------------------------------------------------------------
 KHI THÊM TÍNH NĂNG MỚI (CHECKLIST)
 ---------------------------------------------------------------------------
-1) OpenRouter model mới:
-   - viết adapter (nếu cần) + register trong ModelAdapterFactory.
+1) BFL model mới:
+   - thêm vào config/services_custom.php (models + capabilities).
 2) Setting mới:
    - thêm record trong settings + UI Admin + Setting::set.
 3) Field mới cho Style/GeneratedImage:

@@ -7,7 +7,7 @@ use App\Models\Style;
 use App\Models\StyleOption;
 use App\Models\Tag;
 use App\Services\ModelManager;
-use App\Services\OpenRouterService;
+use App\Services\BflService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -25,14 +25,14 @@ use Illuminate\View\View;
  */
 class StyleController extends Controller
 {
-    protected OpenRouterService $openRouterService;
+    protected BflService $bflService;
     protected ModelManager $modelManager;
 
     public function __construct(
-        OpenRouterService $openRouterService,
+        BflService $bflService,
         ModelManager $modelManager
     ) {
-        $this->openRouterService = $openRouterService;
+        $this->bflService = $bflService;
         $this->modelManager = $modelManager;
     }
 
@@ -57,7 +57,7 @@ public function create(): View
 {
     $models = $this->modelManager->fetchModels();
     $groupedModels = $this->modelManager->groupByProvider($models);
-    $aspectRatios = $this->openRouterService->getAspectRatios();
+    $aspectRatios = $this->bflService->getAspectRatios();
     $tags = Tag::active()->ordered()->get();
 
     return view('admin.styles.create', [
@@ -79,7 +79,7 @@ public function create(): View
             'thumbnail_url' => 'nullable|url|max:500',
             'price' => 'required|numeric|min:0',
             'sort_order' => 'nullable|integer|min:0',
-            'openrouter_model_id' => [
+            'bfl_model_id' => [
                 'required', 
                 'string', 
                 'max:255',
@@ -87,7 +87,7 @@ public function create(): View
             ],
             'base_prompt' => 'required|string|max:10000', // Limit prompt length
             // HIGH-05 FIX: Validate aspect_ratio against supported list
-            'aspect_ratio' => ['nullable', 'string', 'max:20', Rule::in(array_keys($this->openRouterService->getAspectRatios()))],
+            'aspect_ratio' => ['nullable', 'string', 'max:20', Rule::in(array_keys($this->bflService->getAspectRatios()))],
             'allow_user_custom_prompt' => 'nullable',
             'is_active' => 'nullable',
             'is_featured' => 'nullable',
@@ -140,7 +140,7 @@ public function create(): View
                     'thumbnail_url' => $validated['thumbnail_url'] ?? null,
                     'price' => $validated['price'],
                     'sort_order' => $validated['sort_order'] ?? 0,
-                    'openrouter_model_id' => $validated['openrouter_model_id'],
+                    'bfl_model_id' => $validated['bfl_model_id'],
                     'base_prompt' => $validated['base_prompt'],
                     'config_payload' => $configPayload,
                     'image_slots' => $imageSlots,
@@ -180,7 +180,7 @@ public function edit(Style $style): View
     $style->load('options');
     $models = $this->modelManager->fetchModels();
     $groupedModels = $this->modelManager->groupByProvider($models);
-    $aspectRatios = $this->openRouterService->getAspectRatios();
+    $aspectRatios = $this->bflService->getAspectRatios();
     $tags = Tag::active()->ordered()->get();
 
     return view('admin.styles.edit', [
@@ -204,7 +204,7 @@ public function edit(Style $style): View
             'price' => 'required|numeric|min:0',
             'sort_order' => 'nullable|integer|min:0',
             // [FIX IMG-01] Validate model image-capable same as store()
-            'openrouter_model_id' => [
+            'bfl_model_id' => [
                 'required', 
                 'string', 
                 'max:255',
@@ -212,7 +212,7 @@ public function edit(Style $style): View
             ],
             'base_prompt' => 'required|string|max:10000',
             // HIGH-05 FIX: Validate aspect_ratio against supported list
-            'aspect_ratio' => ['nullable', 'string', 'max:20', Rule::in(array_keys($this->openRouterService->getAspectRatios()))],
+            'aspect_ratio' => ['nullable', 'string', 'max:20', Rule::in(array_keys($this->bflService->getAspectRatios()))],
             'allow_user_custom_prompt' => 'nullable',
             'is_active' => 'nullable',
             'is_featured' => 'nullable',
@@ -267,7 +267,7 @@ public function edit(Style $style): View
                     'thumbnail_url' => $validated['thumbnail_url'] ?? null,
                     'price' => $validated['price'],
                     'sort_order' => $validated['sort_order'] ?? $style->sort_order,
-                    'openrouter_model_id' => $validated['openrouter_model_id'],
+                    'bfl_model_id' => $validated['bfl_model_id'],
                     'base_prompt' => $validated['base_prompt'],
                     'config_payload' => !empty($configPayload) ? $configPayload : null,
                     'image_slots' => $imageSlots,

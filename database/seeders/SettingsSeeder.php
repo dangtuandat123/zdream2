@@ -16,19 +16,19 @@ class SettingsSeeder extends Seeder
     public function run(): void
     {
         // API Settings - PLACEHOLDER ONLY (cấu hình thật qua Admin)
-        Setting::set('openrouter_api_key', env('OPENROUTER_API_KEY', ''), [
+        Setting::set('bfl_api_key', env('BFL_API_KEY', ''), [
             'type' => 'string',
             'group' => 'api',
-            'label' => 'OpenRouter API Key',
-            'description' => 'API Key từ OpenRouter.ai để gọi các model AI',
+            'label' => 'BFL API Key',
+            'description' => 'API Key từ Black Forest Labs (BFL) để gọi FLUX',
             'is_encrypted' => true,
         ]);
 
-        Setting::set('openrouter_base_url', 'https://openrouter.ai/api/v1', [
+        Setting::set('bfl_base_url', 'https://api.bfl.ai', [
             'type' => 'string',
             'group' => 'api',
-            'label' => 'OpenRouter Base URL',
-            'description' => 'Base URL của OpenRouter API',
+            'label' => 'BFL Base URL',
+            'description' => 'Base URL của BFL API',
             'is_encrypted' => false,
         ]);
 
@@ -47,6 +47,6 @@ class SettingsSeeder extends Seeder
             'description' => 'Số Xu tặng khi user mới đăng ký',
         ]);
 
-        $this->command->warn('⚠️  Nhớ cấu hình OpenRouter API Key qua Admin hoặc .env!');
+        $this->command->warn('⚠️  Nhớ cấu hình BFL API Key qua Admin hoặc .env!');
     }
 }

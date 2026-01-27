@@ -4,7 +4,7 @@ namespace App\Jobs;
 
 use App\Models\GeneratedImage;
 use App\Models\User;
-use App\Services\OpenRouterService;
+use App\Services\BflService;
 use App\Services\StorageService;
 use App\Services\WalletService;
 use Illuminate\Bus\Queueable;
@@ -18,7 +18,7 @@ use Illuminate\Support\Facades\Log;
  * GenerateImageJob
  * 
  * Queue job để tạo ảnh AI trong background.
- * Xử lý: gọi OpenRouter API → lưu ảnh → update status
+ * Xử lý: gọi BFL API → lưu ảnh → update status
  * Tự động retry 2 lần với exponential backoff.
  */
 class GenerateImageJob implements ShouldQueue
@@ -56,7 +56,7 @@ class GenerateImageJob implements ShouldQueue
      * Execute the job.
      */
     public function handle(
-        OpenRouterService $openRouterService,
+        BflService $bflService,
         StorageService $storageService,
         WalletService $walletService
     ): void {
@@ -96,8 +96,8 @@ class GenerateImageJob implements ShouldQueue
                 'style_id' => $style->id,
             ]);
 
-            // Gọi OpenRouter API
-            $result = $openRouterService->generateImage(
+            // Gọi BFL API
+            $result = $bflService->generateImage(
                 $style,
                 $this->selectedOptionIds,
                 $this->customInput,
@@ -107,7 +107,7 @@ class GenerateImageJob implements ShouldQueue
             );
 
             if (!$result['success']) {
-                $this->handleFailure($generatedImage, $user, $walletService, $result['error'] ?? 'OpenRouter error');
+                $this->handleFailure($generatedImage, $user, $walletService, $result['error'] ?? 'BFL error');
                 return;
             }
 
@@ -141,7 +141,7 @@ class GenerateImageJob implements ShouldQueue
             // Đánh dấu hoàn thành
             $generatedImage->markAsCompleted(
                 $storageResult['path'],
-                $result['openrouter_id'] ?? null
+                $result['bfl_task_id'] ?? null
             );
 
             Log::info('GenerateImageJob completed', [

@@ -6,7 +6,7 @@ use App\Exceptions\InsufficientCreditsException;
 use App\Jobs\GenerateImageJob;
 use App\Models\GeneratedImage;
 use App\Models\Style;
-use App\Services\OpenRouterService;
+use App\Services\BflService;
 use App\Services\StorageService;
 use App\Services\WalletService;
 use Illuminate\Support\Facades\Auth;
@@ -42,7 +42,7 @@ class ImageGenerator extends Component
     // Image Size đã chọn (chỉ Gemini)
     public string $selectedImageSize = '1K';
     
-    // Các aspect ratios hỗ trợ (load từ OpenRouterService)
+    // Các aspect ratios hỗ trợ (load từ BflService)
     public array $aspectRatios = [];
     
     // Các image sizes (chỉ Gemini models)
@@ -52,8 +52,14 @@ class ImageGenerator extends Component
         '4K' => '4K (Rất cao)',
     ];
     
-    // Model có hỗ trợ image_config không (Gemini)
+    // Model có hỗ trợ image_size (legacy Gemini) không
     public bool $supportsImageConfig = false;
+    
+    // Model có hỗ trợ aspect_ratio trực tiếp không
+    public bool $supportsAspectRatio = true;
+    
+    // Model có hỗ trợ ảnh tham chiếu (input_image) không
+    public bool $supportsImageInput = false;
     
     // State
     public bool $isGenerating = false;
@@ -88,11 +94,14 @@ class ImageGenerator extends Component
         $this->useAsyncMode = config('queue.default') !== 'sync';
         
         // Load aspect ratios từ service (đồng bộ với config)
-        $openRouterService = app(OpenRouterService::class);
-        $this->aspectRatios = $openRouterService->getAspectRatios();
-        
-        // Detect xem model có hỗ trợ image_config không (Gemini)
-        $this->supportsImageConfig = str_contains(strtolower($style->openrouter_model_id), 'gemini');
+        $bflService = app(BflService::class);
+        $modelId = $style->bfl_model_id ?? $style->openrouter_model_id ?? '';
+        $this->aspectRatios = $bflService->getAspectRatios();
+
+        // BFL không dùng image_size như OpenRouter/Gemini
+        $this->supportsImageConfig = false;
+        $this->supportsAspectRatio = $bflService->supportsAspectRatio($modelId);
+        $this->supportsImageInput = $bflService->supportsImageInput($modelId);
         
         // Set default aspect ratio từ style config (với fallback)
         $this->selectedAspectRatio = $style->aspect_ratio ?? '1:1';
@@ -255,11 +264,12 @@ class ImageGenerator extends Component
             
             /* 
             // DISABLED: Allow custom models manually entered by admin
-            if (!empty($imageCapableModels) && !in_array($this->style->openrouter_model_id, $imageCapableModels)) {
+            $modelId = $this->style->bfl_model_id ?? $this->style->openrouter_model_id;
+            if (!empty($imageCapableModels) && !in_array($modelId, $imageCapableModels)) {
                 $this->errorMessage = 'Model AI của style này không còn hỗ trợ. Vui lòng liên hệ admin.';
                 Log::error('Style uses non-image-capable model', [
                     'style_id' => $this->style->id,
-                    'model_id' => $this->style->openrouter_model_id,
+                    'model_id' => $modelId,
                 ]);
                 return;
             }
@@ -268,7 +278,7 @@ class ImageGenerator extends Component
             // [BUG FIX P3-05] Fallback: nếu API fail, cho phép generate nhưng log warning
             Log::warning('ModelManager validation skipped due to API error', [
                 'error' => $e->getMessage(),
-                'model_id' => $this->style->openrouter_model_id,
+                'model_id' => $this->style->bfl_model_id ?? $this->style->openrouter_model_id,
             ]);
         }
 
@@ -339,9 +349,9 @@ class ImageGenerator extends Component
             }
 
             // SYNC MODE: Gọi trực tiếp (legacy, for testing)
-            $openRouterService = app(OpenRouterService::class);
+            $bflService = app(BflService::class);
             
-            $result = $openRouterService->generateImage(
+            $result = $bflService->generateImage(
                 $this->style,
                 $selectedOptionIds,
                 $this->customInput ?: null,
@@ -351,7 +361,7 @@ class ImageGenerator extends Component
             );
 
             if (!$result['success']) {
-                $error = $result['error'] ?? 'OpenRouter error';
+                $error = $result['error'] ?? 'BFL error';
 
                 // Hoàn tiền nếu API thất bại
                 $refunded = $this->handleRefund($walletService, $user, $creditsDeducted, $error, $generatedImage);
@@ -389,7 +399,7 @@ class ImageGenerator extends Component
             // Đánh dấu hoàn thành
             $generatedImage->markAsCompleted(
                 $storageResult['path'],
-                $result['openrouter_id'] ?? null
+                $result['bfl_task_id'] ?? null
             );
 
             // FIX: Dùng presigned URL từ accessor (giống History) thay vì public URL
@@ -614,7 +624,7 @@ class ImageGenerator extends Component
         }
 
         // 7. Validate total payload size (max 25MB for all images combined)
-        // OpenRouter/Providers often have payload limits (e.g. 10MB-20MB)
+        // BFL/Providers often have payload limits (e.g. 10MB-20MB)
         $totalSize = 0;
         foreach ($this->uploadedImages as $image) {
             if ($image && method_exists($image, 'getSize')) {
@@ -637,6 +647,17 @@ class ImageGenerator extends Component
     protected function validateRequiredImages(): bool
     {
         $imageSlots = $this->style->image_slots ?? [];
+
+        // Nếu model không hỗ trợ ảnh tham chiếu nhưng style bắt buộc ảnh hoặc có system images
+        if (!$this->supportsImageInput) {
+            $hasRequiredSlot = collect($imageSlots)->contains(fn ($slot) => !empty($slot['required']));
+            $hasUploaded = !empty($this->uploadedImages);
+            $hasSystemImages = !empty($this->style->system_images);
+            if ($hasRequiredSlot || $hasUploaded || $hasSystemImages) {
+                $this->errorMessage = 'Style này yêu cầu ảnh tham chiếu nhưng model hiện tại không hỗ trợ.';
+                return false;
+            }
+        }
         
         foreach ($imageSlots as $slot) {
             $slotKey = $slot['key'] ?? '';

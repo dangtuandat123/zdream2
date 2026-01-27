@@ -9,16 +9,16 @@ use Illuminate\Support\Facades\Log;
  * ModelManager Service
  * 
  * Quản lý AI models với cache và helper methods.
- * Tách logic cache khỏi OpenRouterService để dễ test và reuse.
+ * Tách logic cache khỏi BflService để dễ test và reuse.
  */
 class ModelManager
 {
-    protected OpenRouterService $openRouterService;
+    protected BflService $bflService;
     protected int $cacheTimeout = 3600; // 1 hour
 
-    public function __construct(OpenRouterService $openRouterService)
+    public function __construct(BflService $bflService)
     {
-        $this->openRouterService = $openRouterService;
+        $this->bflService = $bflService;
     }
 
     /**
@@ -29,14 +29,21 @@ class ModelManager
      */
     public function fetchModels(bool $forceRefresh = false): array
     {
-        $cacheKey = 'openrouter_models_enhanced';
+        $cacheKey = 'bfl_models';
 
         if ($forceRefresh) {
             Cache::forget($cacheKey);
         }
 
         return Cache::remember($cacheKey, $this->cacheTimeout, function () use ($forceRefresh) {
-            return $this->openRouterService->fetchImageModels($forceRefresh);
+            $models = $this->bflService->getAvailableModels();
+            return array_map(function (array $model) {
+                $model['supports_text_input'] = $model['supports_text_input'] ?? true;
+                $model['supports_image_input'] = $model['supports_image_input'] ?? false;
+                $model['supports_aspect_ratio'] = $model['supports_aspect_ratio'] ?? false;
+                $model['estimated_cost_per_image'] = $model['estimated_cost_per_image'] ?? null;
+                return $model;
+            }, $models);
         });
     }
 
@@ -84,12 +91,12 @@ class ModelManager
         
         // Danh sách ID models phổ biến
         $popularIds = [
-            'google/gemini-2.5-flash-image-preview',
-            'google/gemini-3-pro-image-preview',
-            'black-forest-labs/flux.2-pro',
-            'black-forest-labs/flux.2-flex',
-            'black-forest-labs/flux-1.1-pro',
-            'black-forest-labs/flux-schnell',
+            'flux-2-pro',
+            'flux-2-max',
+            'flux-2-flex',
+            'flux-kontext-pro',
+            'flux-pro-1.1',
+            'flux-dev',
         ];
         
         return array_filter($models, function ($model) use ($popularIds) {
@@ -134,32 +141,8 @@ class ModelManager
     {
         $modelLower = strtolower($modelId);
 
-        if (str_contains($modelLower, 'google/') || str_contains($modelLower, 'gemini')) {
-            return 'Google';
-        }
-
-        if (str_contains($modelLower, 'openai/') || str_contains($modelLower, 'gpt') || str_contains($modelLower, 'dall-e')) {
-            return 'OpenAI';
-        }
-
-        if (str_contains($modelLower, 'black-forest-labs/') || str_contains($modelLower, 'flux')) {
+        if (str_contains($modelLower, 'flux')) {
             return 'Black Forest Labs';
-        }
-
-        if (str_contains($modelLower, 'stability') || str_contains($modelLower, 'stable-diffusion') || str_contains($modelLower, 'sdxl')) {
-            return 'Stability AI';
-        }
-
-        if (str_contains($modelLower, 'ideogram')) {
-            return 'Ideogram';
-        }
-
-        if (str_contains($modelLower, 'recraft')) {
-            return 'Recraft';
-        }
-
-        if (str_contains($modelLower, 'riverflow') || str_contains($modelLower, 'sourceful')) {
-            return 'Sourceful';
         }
 
         return 'Other';
@@ -189,7 +172,7 @@ class ModelManager
      */
     public function clearCache(): void
     {
-        Cache::forget('openrouter_models_enhanced');
+        Cache::forget('bfl_models');
         Log::info('ModelManager cache cleared');
     }
 
@@ -198,7 +181,7 @@ class ModelManager
      */
     public function getCacheInfo(): array
     {
-        $cacheKey = 'openrouter_models_enhanced';
+        $cacheKey = 'bfl_models';
         $hasCachedData = Cache::has($cacheKey);
 
         return [

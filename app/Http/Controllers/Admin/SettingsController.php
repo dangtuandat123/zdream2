@@ -33,8 +33,8 @@ class SettingsController extends Controller
     public function update(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'openrouter_api_key' => 'nullable|string|max:500',
-            'openrouter_base_url' => 'nullable|url|max:500',
+            'bfl_api_key' => 'nullable|string|max:500',
+            'bfl_base_url' => 'nullable|url|max:500',
             'site_name' => 'nullable|string|max:255',
             'default_credits' => 'nullable|integer|min:0',
             'image_expiry_days' => 'nullable|integer|min:1|max:365',
@@ -43,25 +43,25 @@ class SettingsController extends Controller
         $refreshModels = false;
 
         // Update API Key (encrypted)
-        if (filled($validated['openrouter_api_key'] ?? null)) {
-            Setting::set('openrouter_api_key', $validated['openrouter_api_key'], [
+        if (filled($validated['bfl_api_key'] ?? null)) {
+            Setting::set('bfl_api_key', $validated['bfl_api_key'], [
                 'is_encrypted' => true,
                 'group' => 'api',
-                'label' => 'OpenRouter API Key',
+                'label' => 'BFL API Key',
             ]);
             $refreshModels = true;
         }
 
         // Update Base URL
-        if (array_key_exists('openrouter_base_url', $validated)) {
-            $baseUrl = trim((string) ($validated['openrouter_base_url'] ?? ''));
+        if (array_key_exists('bfl_base_url', $validated)) {
+            $baseUrl = trim((string) ($validated['bfl_base_url'] ?? ''));
             if ($baseUrl === '') {
-                Setting::where('key', 'openrouter_base_url')->delete();
-                Cache::forget('setting_openrouter_base_url');
+                Setting::where('key', 'bfl_base_url')->delete();
+                Cache::forget('setting_bfl_base_url');
             } else {
-                Setting::set('openrouter_base_url', $baseUrl, [
+                Setting::set('bfl_base_url', $baseUrl, [
                     'group' => 'api',
-                    'label' => 'OpenRouter Base URL',
+                    'label' => 'BFL Base URL',
                 ]);
             }
             $refreshModels = true;
@@ -93,8 +93,8 @@ class SettingsController extends Controller
         }
 
         if ($refreshModels) {
-            Cache::forget('openrouter_image_models');
-            Cache::forget('openrouter_models_enhanced');
+            Cache::forget('bfl_models');
+            Cache::forget('image_capable_model_ids');
         }
 
         return redirect()
@@ -103,12 +103,11 @@ class SettingsController extends Controller
     }
 
     /**
-     * Force refresh OpenRouter model list
+     * Force refresh BFL model list
      */
     public function refreshModels(): RedirectResponse
     {
-        Cache::forget('openrouter_image_models');
-        Cache::forget('openrouter_models_enhanced');
+        Cache::forget('bfl_models');
         // [FIX loi.md #6] Clear image_capable_model_ids cache
         Cache::forget('image_capable_model_ids');
 
@@ -121,7 +120,7 @@ class SettingsController extends Controller
                 ->route('admin.settings.index')
                 ->with('success', "Models refreshed ({$count}).");
         } catch (\Throwable $e) {
-            logger()->error('Failed to refresh OpenRouter models', [
+            logger()->error('Failed to refresh BFL models', [
                 'error' => $e->getMessage(),
             ]);
 

@@ -1,11 +1,9 @@
 <?php
 
 use App\Services\ModelManager;
-use App\Services\OpenRouterService;
 
 Route::get('/debug/models', function () {
     $modelManager = app(ModelManager::class);
-    $openRouter = app(OpenRouterService::class);
     
     // Fetch models
     $models = $modelManager->fetchModels(true); // Force refresh

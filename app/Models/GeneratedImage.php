@@ -20,7 +20,7 @@ use Illuminate\Support\Facades\Storage;
  * @property array|null $selected_options
  * @property string|null $user_custom_input
  * @property string|null $storage_path
- * @property string|null $openrouter_id
+ * @property string|null $bfl_task_id
  * @property string $status
  * @property string|null $error_message
  * @property float $credits_used
@@ -41,7 +41,7 @@ class GeneratedImage extends Model
         'selected_options',
         'user_custom_input',
         'storage_path',
-        'openrouter_id',
+        'bfl_task_id',
         'status',
         'error_message',
         'credits_used',
@@ -208,12 +208,12 @@ class GeneratedImage extends Model
     /**
      * Đánh dấu hoàn thành
      */
-    public function markAsCompleted(string $storagePath, ?string $openrouterId = null): void
+    public function markAsCompleted(string $storagePath, ?string $bflTaskId = null): void
     {
         $this->update([
             'status' => self::STATUS_COMPLETED,
             'storage_path' => $storagePath,
-            'openrouter_id' => $openrouterId,
+            'bfl_task_id' => $bflTaskId,
         ]);
     }
 
