@@ -29,10 +29,10 @@
 
                     <div class="p-4 sm:p-6 grid gap-6 lg:grid-cols-2 items-stretch flex-1">
                         <!-- QR Card -->
-                        <div class="bg-white/[0.02] border border-white/[0.06] rounded-2xl p-5 flex flex-col items-center text-center h-full" x-data="{ loaded: false }">
+                        <div class="bg-white/[0.02] border border-cyan-500/20 ring-1 ring-cyan-400/20 shadow-[0_0_40px_rgba(34,211,238,0.08)] rounded-2xl p-5 flex flex-col items-center text-center h-full" x-data="{ loaded: false }">
                             <div class="flex items-center gap-2 text-sm text-white/70 mb-4">
                                 <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-purple-500/20 text-purple-300 text-xs font-bold">1</span>
-                                Quét mã QR
+                                Quét mã QR (quan trọng)
                             </div>
                             <div class="p-3 bg-white rounded-2xl shadow-lg relative">
                                 <div x-show="!loaded" class="w-60 h-60 md:w-72 md:h-72 bg-gray-200 animate-pulse rounded-lg flex items-center justify-center">
@@ -50,7 +50,7 @@
                             <button
                                 type="button"
                                 onclick="downloadQr('{{ $vietqrUrl }}')"
-                                class="mt-4 px-4 py-2 rounded-lg bg-white/[0.05] border border-white/[0.1] text-white/80 text-sm hover:bg-white/[0.1] transition-colors inline-flex items-center gap-2"
+                                class="mt-4 px-4 py-2 rounded-lg bg-cyan-500/20 border border-cyan-500/30 text-cyan-100 text-sm hover:bg-cyan-500/30 transition-colors inline-flex items-center gap-2"
                             >
                                 <span class="inline-flex w-4 h-4 items-center justify-center">
                                     <i class="fa-solid fa-download text-white/60 text-[12px] leading-none"></i>
@@ -99,12 +99,15 @@
                                     </button>
                                 </div>
 
-                                <div class="flex items-center justify-between">
+                                <div class="flex items-center justify-between rounded-xl border border-cyan-500/30 bg-cyan-500/10 px-3 py-3">
                                     <div>
-                                        <p class="text-xs text-white/40">Nội dung CK</p>
-                                        <p class="text-sm text-cyan-300 font-mono mt-1">{{ $bankInfo['transfer_content'] }}</p>
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-xs text-white/50">Nội dung CK</span>
+                                            <span class="text-[10px] font-semibold uppercase tracking-wider text-cyan-300 bg-cyan-500/20 px-2 py-0.5 rounded-full">Quan trọng</span>
+                                        </div>
+                                        <p class="text-sm text-cyan-200 font-mono mt-1">{{ $bankInfo['transfer_content'] }}</p>
                                     </div>
-                                    <button onclick="copyToClipboard('{{ $bankInfo['transfer_content'] }}', this)" class="px-3 py-2 rounded-lg bg-white/[0.05] hover:bg-white/[0.1] text-white/70 hover:text-white transition-colors inline-flex items-center gap-2" aria-label="Copy nội dung chuyển khoản">
+                                    <button onclick="copyToClipboard('{{ $bankInfo['transfer_content'] }}', this)" class="px-3 py-2 rounded-lg bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-100 transition-colors inline-flex items-center gap-2" aria-label="Copy nội dung chuyển khoản">
                                         <i class="fa-solid fa-copy text-[12px] leading-none"></i>
                                         <span class="text-xs">Copy</span>
                                     </button>
