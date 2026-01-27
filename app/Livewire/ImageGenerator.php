@@ -696,6 +696,14 @@ class ImageGenerator extends Component
     }
 
     /**
+     * Close modal but keep form inputs (để user có thể chỉnh sửa và tạo lại)
+     */
+    public function closeModal(): void
+    {
+        $this->resetState();
+    }
+
+    /**
      * Reset form để tạo ảnh mới (public - từ nút "Tạo lại")
      */
     public function resetForm(): void

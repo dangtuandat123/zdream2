@@ -365,157 +365,220 @@
     <!-- ==================================================================================== -->
     <!-- FULL SCREEN MODAL: LOADING & RESULT -->
     <!-- ==================================================================================== -->
-    @if($isGenerating || $generatedImageUrl)
-        <div class="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 animate-fade-in">
-            <!-- Backdrop (Glassmorphism) -->
-            <div class="absolute inset-0 bg-[#0a0a0f]/90 backdrop-blur-xl transition-opacity"></div>
-
-            <!-- Close Button (Top Right) -->
-            <button 
-                wire:click="resetForm" 
-                class="absolute top-6 right-6 z-[10000] w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 text-white/60 hover:text-white flex items-center justify-center transition-all duration-300 hover:rotate-90 backdrop-blur-md border border-white/10 group">
-                <i class="fa-solid fa-xmark text-xl group-hover:scale-110 transition-transform"></i>
-            </button>
-
-            <!-- MODAL CONTENT CONTAINER -->
-            <div class="relative w-full max-w-7xl h-full max-h-[90vh] flex flex-col items-center justify-center z-10">
-                
-                <!-- STATE 1: LOADING -->
-                @if($isGenerating)
-                    <div wire:poll.2s="pollImageStatus" 
-                         x-data="{ 
-                             tipIndex: 0,
-                             tips: [
-                                 '🎨 AI đang phân tích phong cách...',
-                                 '✨ Đang tạo bố cục sáng tạo...',
-                                 '🔮 Rendering chi tiết hình ảnh...',
-                                 '🌈 Tối ưu màu sắc và ánh sáng...',
-                                 '💫 Hoàn thiện nét cuối...'
-                             ],
-                             messages: [
-                                 'Mỗi tác phẩm đều độc nhất vô nhị!',
-                                 'AI đang vẽ ước mơ của bạn...',
-                                 'Sáng tạo cần thời gian ⏳',
-                                 'Đợi chút nhé, sẽ rất xứng đáng!'
-                             ],
-                             currentMessage: 0
-                         }" 
-                         x-init="
-                             setInterval(() => { tipIndex = (tipIndex + 1) % tips.length }, 3000);
-                             setInterval(() => { currentMessage = (currentMessage + 1) % messages.length }, 5000);
-                         "
-                         class="w-full max-w-2xl text-center space-y-8 p-8">
-                        
-                        <!-- Animated Avatar/Icon -->
-                        <div class="relative inline-flex items-center justify-center">
-                            <div class="absolute w-32 h-32 rounded-full bg-purple-500/20 animate-ping-slow"></div>
-                            <div class="absolute w-24 h-24 rounded-full bg-pink-500/20 animate-ping-slower"></div>
-                            <div class="relative w-24 h-24 rounded-2xl bg-gradient-to-br from-purple-600 to-pink-600 shadow-[0_0_50px_rgba(168,85,247,0.5)] flex items-center justify-center animate-pulse-glow">
-                                <i class="fa-solid fa-wand-magic-sparkles text-white text-4xl animate-bounce-slight"></i>
-                            </div>
-                        </div>
-
-                        <!-- Text Content -->
-                        <div class="space-y-4">
-                            <h3 class="text-2xl md:text-3xl font-bold text-white tracking-tight"
-                                x-text="tips[tipIndex]"
-                                x-transition:enter="transition ease-out duration-500"
-                                x-transition:enter-start="opacity-0 transform translate-y-2"
-                                x-transition:enter-end="opacity-100 transform translate-y-0">
-                            </h3>
-                            <p class="text-white/50 text-lg" x-text="messages[currentMessage]"></p>
-                        </div>
-
-                        <!-- Progress Bar -->
-                        <div class="w-full max-w-md mx-auto">
-                            <div class="h-1.5 bg-white/10 rounded-full overflow-hidden backdrop-blur-sm">
-                                <div class="h-full rounded-full bg-gradient-to-r from-purple-500 via-pink-500 to-purple-500 bg-[length:200%_100%] animate-gradient-x"></div>
-                            </div>
-                        </div>
+    
+    {{-- 1. IMMEDIATE LOADING STATE (Client-side, shows immediately on click) --}}
+    <div wire:loading.flex wire:target="generate"
+         class="fixed inset-0 z-[99999] flex items-center justify-center animate-fade-in"
+         style="display: none;">
+        <!-- Backdrop -->
+        <div class="absolute inset-0 bg-[#0a0a0f]/80 backdrop-blur-xl transition-opacity"></div>
+        
+        <!-- Content -->
+        <div class="relative z-10 w-full max-w-2xl text-center space-y-8 md:space-y-12 p-4">
+            <!-- Spinner -->
+            <div class="relative flex items-center justify-center">
+                <div class="absolute w-48 h-48 rounded-full bg-purple-500/20 blur-3xl animate-pulse"></div>
+                <div class="relative w-24 h-24 md:w-32 md:h-32">
+                    <svg class="animate-spin w-full h-full text-transparent" viewBox="0 0 100 100">
+                        <defs>
+                            <linearGradient id="spinner-gradient-loading" x1="0%" y1="0%" x2="100%" y2="0%">
+                                <stop offset="0%" stop-color="#a855f7" />
+                                <stop offset="100%" stop-color="#ec4899" />
+                            </linearGradient>
+                        </defs>
+                        <circle cx="50" cy="50" r="45" stroke="url(#spinner-gradient-loading)" stroke-width="4" fill="none" stroke-linecap="round" stroke-dasharray="200" stroke-dashoffset="100" />
+                    </svg>
+                    <div class="absolute inset-0 flex items-center justify-center">
+                        <i class="fa-solid fa-wand-magic-sparkles text-2xl md:text-3xl text-white animate-bounce-slight"></i>
                     </div>
-                @endif
-
-                <!-- STATE 2: RESULT IMAGE -->
-                @if($generatedImageUrl && !$isGenerating)
-                    <div class="w-full h-full flex flex-col md:flex-row gap-6 md:gap-8 items-center justify-center animate-zoom-in">
-                        
-                        <!-- Image Container (Center/Left) -->
-                        <div class="relative flex-1 w-full h-full max-h-[80vh] flex items-center justify-center bg-[#0a0a0f]/50 rounded-2xl border border-white/10 p-2 md:p-4 backdrop-blur-sm shadow-2xl">
-                            <img src="{{ $generatedImageUrl }}" 
-                                 alt="Generated Image" 
-                                 class="max-w-full max-h-full object-contain rounded-lg shadow-lg select-none"
-                                 oncontextmenu="return false;">
-                                 
-                            <!-- Zoom Button (Optional) -->
-                            <a href="{{ $generatedImageUrl }}" target="_blank" class="absolute bottom-6 right-6 w-10 h-10 rounded-full bg-black/50 hover:bg-black/70 text-white flex items-center justify-center backdrop-blur-md border border-white/10 transition-all">
-                                <i class="fa-solid fa-expand"></i>
-                            </a>
-                        </div>
-
-                        <!-- Actions Sidebar (Right/Bottom) -->
-                        <div class="w-full md:w-80 flex-shrink-0 space-y-4 bg-white/[0.03] backdrop-blur-md border border-white/10 p-6 rounded-2xl">
-                            <div class="text-center mb-6">
-                                <div class="w-12 h-12 rounded-full bg-green-500/20 text-green-400 flex items-center justify-center mx-auto mb-3">
-                                    <i class="fa-solid fa-check text-xl"></i>
-                                </div>
-                                <h3 class="text-xl font-bold text-white">Hoàn tất!</h3>
-                                <p class="text-sm text-white/50">Ảnh của bạn đã sẵn sàng</p>
-                            </div>
-
-                            <!-- Download Button -->
-                            @if($lastImageId)
-                                <a href="{{ route('history.download', $lastImageId) }}" 
-                                   class="block w-full py-4 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-bold text-center shadow-lg hover:shadow-purple-500/30 transition-all transform hover:-translate-y-0.5">
-                                    <i class="fa-solid fa-download mr-2"></i> Tải xuống (HD)
-                                </a>
-                            @else
-                                <a href="{{ $generatedImageUrl }}" download
-                                   class="block w-full py-4 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-bold text-center shadow-lg hover:shadow-purple-500/30 transition-all transform hover:-translate-y-0.5">
-                                    <i class="fa-solid fa-download mr-2"></i> Tải xuống
-                                </a>
-                            @endif
-
-                            <!-- Action Buttons Grid -->
-                            <div class="grid grid-cols-2 gap-3">
-                                <button wire:click="resetForm" class="py-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white font-medium transition-all">
-                                    <i class="fa-solid fa-rotate-right mr-2"></i> Tạo lại
-                                </button>
-                                <a href="{{ route('history.index') }}" class="py-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white font-medium text-center transition-all">
-                                    <i class="fa-solid fa-clock-rotate-left mr-2"></i> Lịch sử
-                                </a>
-                            </div>
-
-                            <!-- Share Section -->
-                            <div class="pt-4 border-t border-white/10">
-                                <p class="text-xs text-white/40 mb-3 text-center">Chia sẻ tác phẩm này</p>
-                                <div class="flex justify-center gap-3">
-                                    <a href="https://www.facebook.com/sharer/sharer.php?u={{ urlencode($generatedImageUrl) }}" target="_blank" class="w-10 h-10 rounded-full bg-[#1877F2]/20 text-[#1877F2] hover:bg-[#1877F2] hover:text-white flex items-center justify-center transition-all">
-                                        <i class="fa-brands fa-facebook-f"></i>
-                                    </a>
-                                    <a href="https://twitter.com/intent/tweet?url={{ urlencode($generatedImageUrl) }}" target="_blank" class="w-10 h-10 rounded-full bg-white/10 text-white hover:bg-white hover:text-black flex items-center justify-center transition-all">
-                                        <i class="fa-brands fa-x-twitter"></i>
-                                    </a>
-                                    <button onclick="navigator.clipboard.writeText('{{ $generatedImageUrl }}'); alert('Đã sao chép link!')" class="w-10 h-10 rounded-full bg-green-500/20 text-green-400 hover:bg-green-500 hover:text-white flex items-center justify-center transition-all">
-                                        <i class="fa-solid fa-link"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                @endif
+                </div>
+            </div>
+            <!-- Text -->
+            <div class="space-y-4 px-4">
+                <h3 class="text-xl md:text-3xl font-bold text-white tracking-tight">Đang khởi tạo...</h3>
+                <p class="text-white/50 text-base md:text-lg">Đang gửi yêu cầu đến AI...</p>
             </div>
         </div>
+    </div>
 
-        <style>
-            .animate-fade-in { animation: fadeIn 0.3s ease-out; }
-            .animate-zoom-in { animation: zoomIn 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
-            .animate-bounce-slight { animation: bounceSlight 2s infinite; }
-            
-            @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-            @keyframes zoomIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
-            @keyframes bounceSlight { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
-        </style>
+    {{-- 2. REAL MODAL (Server-side state) --}}
+    @if($isGenerating || $generatedImageUrl)
+        @teleport('body')
+            <div 
+                x-data="{ 
+                    init() { 
+                        document.body.classList.add('overflow-hidden'); 
+                    },
+                    close() {
+                        document.body.classList.remove('overflow-hidden');
+                        $wire.closeModal();
+                    },
+                    reset() {
+                        document.body.classList.remove('overflow-hidden');
+                        $wire.resetForm();
+                    }
+                }"
+                x-init="init()"
+                x-destroy="document.body.classList.remove('overflow-hidden')"
+                class="fixed inset-0 z-[99999] flex items-center justify-center animate-fade-in"
+            >
+                <!-- Backdrop (Enhanced Glassmorphism) -->
+                <div class="absolute inset-0 bg-[#0a0a0f]/80 backdrop-blur-xl transition-opacity"></div>
+
+                <!-- Close Button -->
+                <button 
+                    @click="close()"
+                    class="absolute top-4 right-4 md:top-6 md:right-6 z-[100000] w-10 h-10 md:w-12 md:h-12 rounded-full bg-white/10 hover:bg-white/20 text-white/60 hover:text-white flex items-center justify-center transition-all duration-300 hover:rotate-90 backdrop-blur-md border border-white/10 group shadow-lg">
+                    <i class="fa-solid fa-xmark text-lg md:text-xl group-hover:scale-110 transition-transform"></i>
+                </button>
+
+                <!-- MODAL CONTENT -->
+                <div class="relative w-full h-full flex flex-col items-center justify-center z-10 p-4 md:p-6">
+                    
+                    <!-- LOADING STATE -->
+                    @if($isGenerating)
+                        <div wire:poll.2s="pollImageStatus" 
+                             x-data="{ 
+                                 tipIndex: 0,
+                                 tips: [
+                                     '🎨 AI đang phân tích phong cách...',
+                                     '✨ Đang tạo bố cục sáng tạo...',
+                                     '🔮 Rendering chi tiết hình ảnh...',
+                                     '🌈 Tối ưu màu sắc và ánh sáng...',
+                                     '💫 Hoàn thiện nét cuối...'
+                                 ],
+                                 messages: [
+                                     'Mỗi tác phẩm đều độc nhất vô nhị!',
+                                     'AI đang vẽ ước mơ của bạn...',
+                                     'Sáng tạo cần thời gian ⏳',
+                                     'Đợi chút nhé, sẽ rất xứng đáng!'
+                                 ],
+                                 currentMessage: 0
+                             }" 
+                             x-init="
+                                 setInterval(() => { tipIndex = (tipIndex + 1) % tips.length }, 3000);
+                                 setInterval(() => { currentMessage = (currentMessage + 1) % messages.length }, 5000);
+                             "
+                             class="w-full max-w-2xl text-center space-y-8 md:space-y-12">
+                            
+                            <!-- Spinner -->
+                            <div class="relative flex items-center justify-center">
+                                <div class="absolute w-48 h-48 rounded-full bg-purple-500/20 blur-3xl animate-pulse"></div>
+                                <div class="relative w-24 h-24 md:w-32 md:h-32">
+                                    <svg class="animate-spin w-full h-full text-transparent" viewBox="0 0 100 100">
+                                        <defs>
+                                            <linearGradient id="spinner-gradient-real" x1="0%" y1="0%" x2="100%" y2="0%">
+                                                <stop offset="0%" stop-color="#a855f7" />
+                                                <stop offset="100%" stop-color="#ec4899" />
+                                            </linearGradient>
+                                        </defs>
+                                        <circle cx="50" cy="50" r="45" stroke="url(#spinner-gradient-real)" stroke-width="4" fill="none" stroke-linecap="round" stroke-dasharray="200" stroke-dashoffset="100" />
+                                    </svg>
+                                    <div class="absolute inset-0 flex items-center justify-center">
+                                        <i class="fa-solid fa-wand-magic-sparkles text-2xl md:text-3xl text-white animate-bounce-slight"></i>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Text -->
+                            <div class="space-y-4 px-4">
+                                <h3 class="text-xl md:text-3xl font-bold text-white tracking-tight h-8 md:h-10"
+                                    x-text="tips[tipIndex]"
+                                    x-transition:enter="transition ease-out duration-500"
+                                    x-transition:enter-start="opacity-0 transform translate-y-2"
+                                    x-transition:enter-end="opacity-100 transform translate-y-0">
+                                </h3>
+                                <p class="text-white/50 text-base md:text-lg" x-text="messages[currentMessage]"></p>
+                            </div>
+
+                            <!-- Progress Bar -->
+                            <div class="w-full max-w-xs md:max-w-md mx-auto px-4">
+                                <div class="h-1.5 bg-white/10 rounded-full overflow-hidden backdrop-blur-sm">
+                                    <div class="h-full rounded-full bg-gradient-to-r from-purple-500 via-pink-500 to-purple-500 bg-[length:200%_100%] animate-gradient-x"></div>
+                                </div>
+                            </div>
+                        </div>
+                    @endif
+
+                    <!-- RESULT STATE -->
+                    @if($generatedImageUrl && !$isGenerating)
+                        <div class="w-full h-full flex flex-col md:flex-row gap-6 md:gap-8 items-center justify-center animate-zoom-in max-w-7xl mx-auto">
+                            
+                            <!-- Image Container -->
+                            <div class="relative flex-1 w-full h-full max-h-[70vh] md:max-h-[85vh] flex items-center justify-center bg-[#0a0a0f]/30 rounded-2xl border border-white/10 p-2 md:p-4 backdrop-blur-md shadow-2xl overflow-hidden">
+                                <img src="{{ $generatedImageUrl }}" 
+                                     alt="Generated Image" 
+                                     class="w-full h-full object-contain rounded-lg shadow-lg select-none"
+                                     oncontextmenu="return false;">
+                            </div>
+
+                            <!-- Actions Sidebar -->
+                            <div class="w-full md:w-80 flex-shrink-0 space-y-4 bg-white/[0.05] backdrop-blur-xl border border-white/10 p-5 md:p-6 rounded-2xl md:self-center shadow-2xl">
+                                <div class="text-center mb-4 md:mb-6">
+                                    <div class="w-12 h-12 rounded-full bg-green-500/20 text-green-400 flex items-center justify-center mx-auto mb-3 animate-bounce-slight">
+                                        <i class="fa-solid fa-check text-xl"></i>
+                                    </div>
+                                    <h3 class="text-xl font-bold text-white">Hoàn tất!</h3>
+                                    <p class="text-sm text-white/50">Ảnh của bạn đã sẵn sàng</p>
+                                </div>
+
+                                <!-- Download Button -->
+                                @if($lastImageId)
+                                    <a href="{{ route('history.download', $lastImageId) }}" 
+                                       class="block w-full py-3.5 md:py-4 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-bold text-center shadow-lg hover:shadow-purple-500/30 transition-all transform hover:-translate-y-0.5">
+                                        <i class="fa-solid fa-download mr-2"></i> Tải xuống (HD)
+                                    </a>
+                                @else
+                                    <a href="{{ $generatedImageUrl }}" download
+                                       class="block w-full py-3.5 md:py-4 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-bold text-center shadow-lg hover:shadow-purple-500/30 transition-all transform hover:-translate-y-0.5">
+                                        <i class="fa-solid fa-download mr-2"></i> Tải xuống
+                                    </a>
+                                @endif
+
+                                <!-- Action Buttons Grid -->
+                                <div class="grid grid-cols-2 gap-3">
+                                    <button @click="close()" class="py-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white font-medium transition-all hover:border-white/20">
+                                        <i class="fa-solid fa-pen-to-square mr-2"></i> Chỉnh sửa
+                                    </button>
+                                    <button @click="reset()" class="py-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white font-medium transition-all hover:border-white/20">
+                                        <i class="fa-solid fa-rotate-right mr-2"></i> Tạo mới
+                                    </button>
+                                </div>
+
+                                <!-- Share Section -->
+                                <div class="pt-4 border-t border-white/10">
+                                    <p class="text-xs text-white/40 mb-3 text-center">Chia sẻ tác phẩm này</p>
+                                    <div class="flex justify-center gap-3">
+                                        <a href="https://www.facebook.com/sharer/sharer.php?u={{ urlencode($generatedImageUrl) }}" target="_blank" class="w-10 h-10 rounded-full bg-[#1877F2]/20 text-[#1877F2] hover:bg-[#1877F2] hover:text-white flex items-center justify-center transition-all">
+                                            <i class="fa-brands fa-facebook-f"></i>
+                                        </a>
+                                        <a href="https://twitter.com/intent/tweet?url={{ urlencode($generatedImageUrl) }}" target="_blank" class="w-10 h-10 rounded-full bg-white/10 text-white hover:bg-white hover:text-black flex items-center justify-center transition-all">
+                                            <i class="fa-brands fa-x-twitter"></i>
+                                        </a>
+                                        <button onclick="navigator.clipboard.writeText('{{ $generatedImageUrl }}'); alert('Đã sao chép link!')" class="w-10 h-10 rounded-full bg-green-500/20 text-green-400 hover:bg-green-500 hover:text-white flex items-center justify-center transition-all">
+                                            <i class="fa-solid fa-link"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    @endif
+                </div>
+            </div>
+        @endteleport
     @endif
+
+    <style>
+        .animate-fade-in { animation: fadeIn 0.3s ease-out; }
+        .animate-zoom-in { animation: zoomIn 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+        .animate-bounce-slight { animation: bounceSlight 2s infinite; }
+        .animate-gradient-x { background-size: 200% 100%; animation: gradientX 2s linear infinite; }
+        
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes zoomIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+        @keyframes bounceSlight { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+        @keyframes gradientX { 0% { background-position: 0% 50%; } 100% { background-position: 100% 50%; } }
+    </style>
 
     <!-- User's History với Style này (Mobile only) -->
     @if($userStyleImages->isNotEmpty())
