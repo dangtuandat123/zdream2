@@ -3,7 +3,7 @@
     <section class="styles-hero mb-6">
         <div class="styles-hero-grid" aria-hidden="true"></div>
 
-        <div class="relative px-4 sm:px-8 py-6 sm:py-10">
+        <div class="styles-hero-inner px-4 sm:px-8 py-6 sm:py-10">
             <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
                 <div class="max-w-2xl">
                     <div class="inline-flex items-center gap-2 rounded-full border border-white/[0.1] bg-white/[0.03] px-3 py-1 text-[11px] text-white/70 anim-pulse-soft">

@@ -179,31 +179,38 @@
             background-image: url('/images/hero/styles-hero.png');
             background-size: cover;
             background-position: center;
-            opacity: 0.22;
+            opacity: 0.2;
             filter: saturate(1.1) contrast(1.05);
             transform: scale(1.03);
             pointer-events: none;
+            z-index: 0;
         }
         .styles-hero::after {
             content: '';
             position: absolute;
             inset: 0;
             background:
-                radial-gradient(60% 60% at 15% 20%, rgba(94,234,212,0.2), transparent 60%),
-                radial-gradient(50% 60% at 85% 10%, rgba(251,113,133,0.18), transparent 60%),
-                linear-gradient(180deg, rgba(10,10,15,0.4), rgba(10,10,15,0.9));
-            opacity: 0.9;
+                radial-gradient(60% 60% at 15% 20%, rgba(94,234,212,0.1), transparent 60%),
+                radial-gradient(50% 60% at 85% 10%, rgba(251,113,133,0.08), transparent 60%),
+                linear-gradient(180deg, rgba(10,10,15,0.12), rgba(10,10,15,0.48));
+            opacity: 0.45;
             pointer-events: none;
+            z-index: 0;
         }
         .styles-hero-grid {
             position: absolute;
             inset: 0;
-            opacity: 0.25;
+            opacity: 0.18;
             background-image:
                 linear-gradient(120deg, rgba(255,255,255,0.06) 1px, transparent 1px),
                 linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px);
             background-size: 40px 40px;
             pointer-events: none;
+            z-index: 0;
+        }
+        .styles-hero-inner {
+            position: relative;
+            z-index: 1;
         }
         @keyframes hero-blob {
             0% { transform: translate3d(0, 0, 0) scale(1); }
