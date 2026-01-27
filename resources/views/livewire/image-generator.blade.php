@@ -369,6 +369,19 @@
     {{-- 1. IMMEDIATE LOADING STATE (Client-side, shows immediately on click) --}}
     @teleport('body')
         <div wire:loading.flex wire:target="generate"
+             x-data
+             x-init="
+                 new MutationObserver(() => {
+                     if ($el.style.display !== 'none') {
+                         document.body.classList.add('overflow-hidden');
+                     } else {
+                         // Chỉ bỏ lock nếu main modal không xuất hiện (tránh flicker)
+                         if (!document.getElementById('main-image-modal')) {
+                             document.body.classList.remove('overflow-hidden');
+                         }
+                     }
+                 }).observe($el, { attributes: true, attributeFilter: ['style'] });
+             "
              class="fixed inset-0 z-[99999] flex items-center justify-center animate-fade-in"
              style="display: none;">
             <!-- Backdrop -->
@@ -407,6 +420,7 @@
     @if($isGenerating || $generatedImageUrl)
         @teleport('body')
             <div 
+                id="main-image-modal"
                 x-data="{ 
                     init() { 
                         document.body.classList.add('overflow-hidden'); 
