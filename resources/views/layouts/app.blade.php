@@ -602,8 +602,12 @@
         $(document).ready(function() {
             // Initialize Select2 for all select elements
             $('select').each(function() {
+                if ($(this).data('no-select2')) {
+                    return;
+                }
+                const minResults = $(this).data('min-results-for-search');
                 $(this).select2({
-                    minimumResultsForSearch: 5,
+                    minimumResultsForSearch: (minResults !== undefined ? minResults : 5),
                     dropdownAutoWidth: false,
                     width: '100%'
                 });
@@ -620,8 +624,12 @@
             Livewire.hook('message.processed', (message, component) => {
                 $('select').each(function() {
                     if (!$(this).hasClass('select2-hidden-accessible')) {
+                        if ($(this).data('no-select2')) {
+                            return;
+                        }
+                        const minResults = $(this).data('min-results-for-search');
                         $(this).select2({
-                            minimumResultsForSearch: 5,
+                            minimumResultsForSearch: (minResults !== undefined ? minResults : 5),
                             dropdownAutoWidth: false,
                             width: '100%'
                         });
