@@ -2,10 +2,10 @@
     <x-slot name="title">Ví tiền - {{ App\Models\Setting::get('site_name', 'ZDream') }}</x-slot>
 
     <div class="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
-        <div class="grid gap-6 lg:grid-cols-12">
+        <div class="grid gap-6 lg:grid-cols-12 lg:items-stretch">
             <!-- Topup Card -->
-            <div class="lg:col-span-8">
-                <div class="bg-white/[0.03] border border-white/[0.08] rounded-2xl overflow-hidden h-full">
+            <div class="lg:col-span-8 h-full">
+                <div class="bg-white/[0.03] border border-white/[0.08] rounded-2xl overflow-hidden h-full flex flex-col">
                     <div class="p-4 sm:p-5 border-b border-white/[0.05]">
                         <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                             <div>
@@ -27,7 +27,7 @@
                         </div>
                     </div>
 
-                    <div class="p-4 sm:p-6 grid gap-6 lg:grid-cols-2 items-stretch">
+                    <div class="p-4 sm:p-6 grid gap-6 lg:grid-cols-2 items-stretch flex-1">
                         <!-- QR Card -->
                         <div class="bg-white/[0.02] border border-white/[0.06] rounded-2xl p-5 flex flex-col items-center text-center h-full" x-data="{ loaded: false }">
                             <div class="flex items-center gap-2 text-sm text-white/70 mb-4">
@@ -123,7 +123,7 @@
             </div>
 
             <!-- Transaction History -->
-            <div class="lg:col-span-4 space-y-4">
+            <div class="lg:col-span-4 h-full flex flex-col gap-4">
                 <div class="bg-white/[0.03] border border-white/[0.08] rounded-2xl p-4">
                     <h3 class="text-sm font-semibold text-white mb-3">Hướng dẫn nhanh</h3>
                     <div class="space-y-2 text-sm text-white/70">
@@ -138,7 +138,7 @@
                     </div>
                 </div>
 
-                <div class="bg-white/[0.03] border border-white/[0.08] rounded-2xl overflow-hidden h-full lg:sticky lg:top-24">
+                <div class="bg-white/[0.03] border border-white/[0.08] rounded-2xl overflow-hidden lg:sticky lg:top-24 flex flex-col flex-1 min-h-0">
                     <div class="p-4 sm:p-5 border-b border-white/[0.05] flex items-center justify-between">
                         <h2 class="text-lg font-semibold text-white flex items-center gap-2">
                             <span class="inline-flex w-6 h-6 items-center justify-center rounded-full bg-white/5">
@@ -148,7 +148,7 @@
                         </h2>
                         <span class="text-xs text-white/40">5 giao dịch gần nhất</span>
                     </div>
-                    <div class="divide-y divide-white/[0.05] max-h-[680px] overflow-y-auto">
+                    <div class="divide-y divide-white/[0.05] overflow-y-auto flex-1 min-h-0">
                     @forelse($transactions as $tx)
                         <div class="flex items-center justify-between p-4 hover:bg-white/[0.02] transition-colors">
                             <div class="flex items-start gap-3">
