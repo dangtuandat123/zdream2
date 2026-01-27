@@ -407,12 +407,29 @@
                                 <span>Loại file ảnh</span>
                                 <i class="fa-solid fa-circle-question text-white/30" style="font-size: 12px;" title="PNG rõ nét hơn, JPEG nhẹ hơn và tải nhanh hơn."></i>
                             </label>
-                            <select wire:model.live="outputFormat"
-                                    class="w-full px-3 py-2 rounded-lg bg-white/[0.03] border border-white/[0.08] text-white/90 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500/40">
-                                @foreach($outputFormats as $format)
-                                    <option value="{{ $format }}">{{ strtoupper($format) }}</option>
-                                @endforeach
-                            </select>
+                            <div wire:ignore
+                                 x-data="{ value: @entangle('outputFormat').live }"
+                                 x-init="
+                                    const $el = window.$($refs.outputFormat);
+                                    if (!$el.hasClass('select2-hidden-accessible')) {
+                                        $el.select2({
+                                            minimumResultsForSearch: 5,
+                                            dropdownAutoWidth: false,
+                                            width: '100%'
+                                        });
+                                    }
+                                    $el.on('change', () => { value = $el.val(); });
+                                    $watch('value', (v) => {
+                                        $el.val(v).trigger('change.select2');
+                                    });
+                                 ">
+                                <select x-ref="outputFormat"
+                                        class="w-full px-3 py-2 rounded-lg bg-white/[0.03] border border-white/[0.08] text-white/90 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500/40">
+                                    @foreach($outputFormats as $format)
+                                        <option value="{{ $format }}">{{ strtoupper($format) }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
                             <p class="text-xs text-white/40 mt-2">
                                 PNG rõ nét hơn nhưng nặng; JPEG nhẹ hơn và tải nhanh hơn.
                             </p>
