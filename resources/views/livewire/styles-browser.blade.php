@@ -67,7 +67,7 @@
             </div>
 
             <!-- Filters -->
-            <div class="flex flex-col sm:flex-row sm:items-center gap-2">
+            <div class="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-2">
                 <div class="w-full sm:min-w-[160px]" wire:ignore x-data="select2Livewire({ model: @entangle('price').live, minResults: 9999 })">
                     <select x-ref="select" data-no-select2="true" class="w-full px-3 py-2.5 rounded-xl bg-white/[0.04] border border-white/[0.08] text-white text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-purple-500/40">
                         <option value="">Tất cả giá</option>
@@ -86,7 +86,7 @@
                 </div>
 
                 @if(trim($search) !== '' || $price !== '')
-                    <button type="button" wire:click="resetFilters" class="w-full sm:w-auto h-11 px-4 rounded-xl bg-red-500/15 border border-red-500/30 text-red-300 text-sm hover:bg-red-500/25 transition-colors inline-flex items-center justify-center gap-2">
+                    <button type="button" wire:click="resetFilters" class="w-full sm:w-auto h-11 px-4 rounded-xl bg-red-500/15 border border-red-500/30 text-red-300 text-sm hover:bg-red-500/25 transition-colors inline-flex items-center justify-center gap-2 whitespace-nowrap">
                         <i class="fa-solid fa-xmark text-[12px]"></i>
                         Xóa lọc
                     </button>
