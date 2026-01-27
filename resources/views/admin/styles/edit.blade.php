@@ -175,6 +175,29 @@
                         </div>
                         
                         <div class="max-h-96 overflow-y-auto space-y-4 p-4 rounded-xl bg-white/[0.02] border border-white/[0.05]">
+                            
+                            <!-- Custom Input Option -->
+                            <div x-show="search.length > 0" class="mb-4 pb-4 border-b border-white/[0.05]">
+                                <button 
+                                    type="button"
+                                    @click="selectedModelId = search"
+                                    class="w-full p-3 rounded-lg border border-dashed border-purple-500/50 bg-purple-500/10 hover:bg-purple-500/20 text-left transition-all group">
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <span class="text-purple-300 font-medium text-sm block mb-1">Sử dụng Model ID tùy chỉnh</span>
+                                            <span class="text-white/60 text-xs font-mono" x-text="search"></span>
+                                        </div>
+                                        <i class="fa-solid fa-plus text-purple-400 group-hover:scale-110 transition-transform"></i>
+                                    </div>
+                                </button>
+                            </div>
+
+                            <!-- Selected Custom Model Display (if not in list) -->
+                            <div x-show="selectedModelId && !allModels.find(m => m.id === selectedModelId)" class="mb-4 p-3 rounded-lg bg-green-500/10 border border-green-500/30">
+                                <p class="text-xs text-green-400 mb-1">Đang chọn (Custom):</p>
+                                <p class="text-sm text-white font-mono break-all" x-text="selectedModelId"></p>
+                            </div>
+
                             <template x-for="(models, provider) in filteredGroups" :key="provider">
                                 <div>
                                     <h4 class="text-sm font-semibold text-white/60 mb-2 flex items-center gap-2">
@@ -224,7 +247,7 @@
                                 </div>
                             </template>
                             
-                            <div x-show="Object.keys(filteredGroups).length === 0" class="text-center py-8 text-white/40">
+                            <div x-show="Object.keys(filteredGroups).length === 0 && search.length === 0" class="text-center py-8 text-white/40">
                                 <i class="fa-solid fa-search mb-2" style="font-size: 24px;"></i>
                                 <p class="text-sm">No models found</p>
                             </div>

@@ -253,6 +253,8 @@ class ImageGenerator extends Component
                 return collect($modelManager->fetchModels())->pluck('id')->toArray();
             });
             
+            /* 
+            // DISABLED: Allow custom models manually entered by admin
             if (!empty($imageCapableModels) && !in_array($this->style->openrouter_model_id, $imageCapableModels)) {
                 $this->errorMessage = 'Model AI của style này không còn hỗ trợ. Vui lòng liên hệ admin.';
                 Log::error('Style uses non-image-capable model', [
@@ -261,6 +263,7 @@ class ImageGenerator extends Component
                 ]);
                 return;
             }
+            */
         } catch (\Exception $e) {
             // [BUG FIX P3-05] Fallback: nếu API fail, cho phép generate nhưng log warning
             Log::warning('ModelManager validation skipped due to API error', [

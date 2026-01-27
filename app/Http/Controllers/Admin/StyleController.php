@@ -83,18 +83,7 @@ public function create(): View
                 'required', 
                 'string', 
                 'max:255',
-                function ($attribute, $value, $fail) {
-                    // Fetch models (cached)
-                    $models = $this->modelManager->fetchModels();
-                    $validIds = array_column($models, 'id');
-                    
-                    if (!in_array($value, $validIds)) {
-                        // Allow if it's a known fallback or user explicitly wants to force it
-                        // But warn if it's completely unknown
-                        // For now, we enforce it must be in the list of image models
-                        $fail("Model ID '{$value}' không hợp lệ hoặc không hỗ trợ tạo ảnh (không tìm thấy trong danh sách image models).");
-                    }
-                },
+                // REMOVED: Strict validation against fetched models to allow manual input
             ],
             'base_prompt' => 'required|string|max:10000', // Limit prompt length
             // HIGH-05 FIX: Validate aspect_ratio against supported list
@@ -219,14 +208,7 @@ public function edit(Style $style): View
                 'required', 
                 'string', 
                 'max:255',
-                function ($attribute, $value, $fail) {
-                    $models = $this->modelManager->fetchModels();
-                    $validIds = array_column($models, 'id');
-                    
-                    if (!in_array($value, $validIds)) {
-                        $fail("Model ID '{$value}' không hợp lệ hoặc không hỗ trợ tạo ảnh.");
-                    }
-                },
+                // REMOVED: Strict validation against fetched models to allow manual input
             ],
             'base_prompt' => 'required|string|max:10000',
             // HIGH-05 FIX: Validate aspect_ratio against supported list
