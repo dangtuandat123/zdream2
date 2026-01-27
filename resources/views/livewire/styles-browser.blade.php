@@ -1,4 +1,36 @@
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+    <!-- Hero -->
+    <section class="relative mb-6 overflow-hidden rounded-3xl border border-white/[0.08] bg-[radial-gradient(120%_120%_at_100%_0%,rgba(34,211,238,0.18)_0%,rgba(10,10,15,0.9)_55%,rgba(10,10,15,1)_100%)]">
+        <div class="absolute -top-24 -right-16 h-64 w-64 rounded-full bg-cyan-500/20 blur-3xl"></div>
+        <div class="absolute -bottom-24 -left-12 h-64 w-64 rounded-full bg-fuchsia-500/15 blur-3xl"></div>
+        <div class="absolute inset-0 opacity-30 [background-image:linear-gradient(120deg,rgba(255,255,255,0.06)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.04)_1px,transparent_1px)] [background-size:36px_36px]"></div>
+
+        <div class="relative px-4 sm:px-8 py-6 sm:py-10">
+            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+                <div class="max-w-2xl">
+                    <div class="inline-flex items-center gap-2 rounded-full border border-white/[0.1] bg-white/[0.03] px-3 py-1 text-[11px] text-white/70">
+                        <span class="inline-flex h-2 w-2 rounded-full bg-emerald-400"></span>
+                        Có sẵn {{ $styles->total() }} phong cách
+                    </div>
+                    <h1 class="mt-3 text-2xl sm:text-4xl lg:text-5xl font-extrabold text-white tracking-tight">
+                        Chọn phong cách, tạo ảnh nhanh và đẹp
+                    </h1>
+                    <p class="mt-2 text-white/60 text-sm sm:text-base">
+                        Chỉ cần chọn style và nhập vài từ gợi ý. ZDream sẽ tự hoàn thiện ảnh.
+                    </p>
+                    <div class="mt-4 flex flex-wrap items-center gap-3">
+                        <a href="#styles-grid" class="h-10 sm:h-11 px-4 sm:px-5 rounded-xl bg-white text-gray-900 text-sm font-semibold inline-flex items-center gap-2 hover:bg-gray-100 transition-colors">
+                            Xem bộ sưu tập
+                            <i class="fa-solid fa-arrow-down text-[12px]"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="hidden sm:block"></div>
+            </div>
+        </div>
+    </section>
+
     <!-- Header -->
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
@@ -64,7 +96,7 @@
         </div>
     </div>
 
-    <div wire:loading.class="opacity-60" class="transition-opacity">
+    <div id="styles-grid" wire:loading.class="opacity-60" class="transition-opacity scroll-mt-24">
         <!-- Styles Grid -->
         @if($styles->isEmpty())
             <div class="bg-white/[0.03] border border-white/[0.08] rounded-2xl text-center py-16">
