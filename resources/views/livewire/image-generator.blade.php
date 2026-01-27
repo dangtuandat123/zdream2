@@ -245,10 +245,10 @@
         <div class="flex items-center justify-center w-7 h-7 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs font-bold shadow-lg shadow-purple-500/30">
             {{ $step++ }}
         </div>
-        <h3 class="text-white font-bold text-sm uppercase tracking-wide">
-            Cấu hình nâng cao
-            <span class="text-white/40 text-xs font-normal normal-case ml-1">(Tùy chọn)</span>
-        </h3>
+    <h3 class="text-white font-bold text-sm uppercase tracking-wide">
+        Tuỳ chỉnh nâng cao
+        <span class="text-white/40 text-xs font-normal normal-case ml-1">(Không bắt buộc)</span>
+    </h3>
     </div>
     <div class="bg-white/[0.03] border border-white/[0.08] rounded-xl overflow-hidden" x-data="{ open: false }">
         <button 
@@ -259,8 +259,8 @@
                     <i class="fa-solid fa-gear text-cyan-400" style="font-size: 14px;"></i>
                 </div>
                 <div>
-                    <span class="text-white font-medium">Tùy chọn nâng cao</span>
-                    <p class="text-xs text-white/40">Tỉ lệ & tham số nâng cao</p>
+                    <span class="text-white font-medium">Tuỳ chỉnh nâng cao</span>
+                    <p class="text-xs text-white/40">Hình dáng & thiết lập thêm</p>
                 </div>
             </div>
             <div class="flex items-center gap-3">
@@ -277,12 +277,23 @@
              x-transition:leave-start="opacity-100 transform translate-y-0"
              x-transition:leave-end="opacity-0 transform -translate-y-2"
              class="border-t border-white/[0.05]">
-            <div class="p-4 space-y-4">
+            <div class="p-4 md:p-6 space-y-6 md:space-y-7">
+                <!-- Friendly note -->
+                <div class="bg-cyan-500/10 border border-cyan-500/20 rounded-xl px-4 py-3">
+                    <div class="flex items-start gap-3">
+                        <i class="fa-solid fa-circle-info text-cyan-400 mt-0.5" style="font-size: 14px;"></i>
+                        <div>
+                            <p class="text-sm text-white/80 font-medium">Không chắc thì cứ để mặc định</p>
+                            <p class="text-xs text-white/50 mt-1">Các tuỳ chọn dưới đây chỉ để tinh chỉnh thêm, không bắt buộc.</p>
+                        </div>
+                    </div>
+                </div>
                 <!-- Aspect Ratio Selector -->
-                <div>
-                    <label class="block text-sm font-medium text-white/60 mb-3 inline-flex items-center gap-2">
+                <div class="bg-white/[0.02] border border-white/[0.06] rounded-xl p-4 md:p-5">
+                    <label class="block text-sm font-semibold text-white/80 mb-3 inline-flex items-center gap-2">
                         <i class="fa-solid fa-crop" style="font-size: 14px;"></i>
                         <span>Dáng ảnh (vuông/ngang/dọc)</span>
+                        <i class="fa-solid fa-circle-question text-white/30" style="font-size: 12px;" title="Chọn dáng ảnh phù hợp: vuông, ngang hoặc dọc."></i>
                     </label>
                     <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
                         @foreach($aspectRatios as $ratio => $label)
@@ -290,10 +301,10 @@
                                 type="button"
                                 wire:click="$set('selectedAspectRatio', '{{ $ratio }}')"
                                 wire:key="ratio-{{ Str::slug($ratio) }}"
-                                class="py-2.5 px-2 text-[10px] sm:text-xs rounded-xl border transition-all duration-200 text-center font-medium
+                                class="py-2.5 px-2 text-[11px] sm:text-xs rounded-xl border transition-all duration-200 text-center font-semibold
                                     {{ $selectedAspectRatio === $ratio 
                                         ? 'bg-cyan-500/10 border-cyan-500/50 text-cyan-400 shadow-[0_0_15px_rgba(6,182,212,0.15)] ring-1 ring-cyan-500/30' 
-                                        : 'bg-white/[0.03] border-white/[0.08] text-white/50 hover:bg-white/[0.06] hover:border-white/[0.15]' 
+                                        : 'bg-white/[0.03] border-white/[0.08] text-white/60 hover:bg-white/[0.06] hover:border-white/[0.15]' 
                                     }}">
                                 {{ $label }}
                             </button>
@@ -302,7 +313,7 @@
                     
                     {{-- Aspect ratio hint for models without native support --}}
                     @if(!$supportsAspectRatio)
-                        <p class="text-yellow-400/70 text-xs mt-2 flex items-center gap-1">
+                        <p class="text-yellow-400/70 text-xs mt-3 flex items-center gap-2">
                             <i class="fa-solid fa-info-circle"></i>
                             <span>Mẫu này chưa có tuỳ chọn dáng ảnh riêng, hệ thống sẽ tự cân kích thước phù hợp.</span>
                         </p>
@@ -310,10 +321,11 @@
                 </div>
 
                 @if($supportsWidthHeight)
-                    <div class="bg-white/[0.02] border border-white/[0.06] rounded-xl p-4">
-                        <label class="block text-sm font-medium text-white/60 mb-2 inline-flex items-center gap-2">
+                    <div class="bg-white/[0.02] border border-white/[0.06] rounded-xl p-4 md:p-5">
+                        <label class="block text-sm font-semibold text-white/80 mb-2 inline-flex items-center gap-2">
                             <i class="fa-solid fa-ruler-combined" style="font-size: 12px;"></i>
                             <span>Kích thước ảnh (rộng × cao)</span>
+                            <i class="fa-solid fa-circle-question text-white/30" style="font-size: 12px;" title="Nhập kích thước theo pixel. Để trống để hệ thống tự chọn."></i>
                         </label>
                         <div class="grid grid-cols-2 gap-3">
                             <div>
@@ -337,10 +349,11 @@
 
                 <!-- Image Size Selector (chỉ cho Gemini models) -->
                 @if($supportsImageConfig)
-                    <div>
-                        <label class="block text-sm font-medium text-white/60 mb-3 inline-flex items-center gap-2">
+                    <div class="bg-white/[0.02] border border-white/[0.06] rounded-xl p-4 md:p-5">
+                        <label class="block text-sm font-semibold text-white/80 mb-3 inline-flex items-center gap-2">
                             <i class="fa-solid fa-expand" style="font-size: 14px;"></i>
                             <span>Chất lượng ảnh</span>
+                            <i class="fa-solid fa-circle-question text-white/30" style="font-size: 12px;" title="Chất lượng càng cao thì thời gian xử lý càng lâu."></i>
                         </label>
                         <div class="grid grid-cols-3 gap-3">
                             @foreach($imageSizes as $size => $label)
@@ -362,12 +375,13 @@
                 @endif
 
                 <!-- Advanced Controls -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
                     @if($supportsSeed)
-                        <div class="bg-white/[0.02] border border-white/[0.06] rounded-xl p-3">
-                            <label class="block text-sm font-medium text-white/60 mb-2 inline-flex items-center gap-2">
+                        <div class="bg-white/[0.02] border border-white/[0.06] rounded-xl p-4">
+                            <label class="block text-sm font-semibold text-white/80 mb-2 inline-flex items-center gap-2">
                                 <i class="fa-solid fa-hashtag" style="font-size: 12px;"></i>
                                 <span>Mã giữ kết quả</span>
+                                <i class="fa-solid fa-circle-question text-white/30" style="font-size: 12px;" title="Nhập mã để lần sau ra ảnh gần giống nhau."></i>
                             </label>
                             <div class="flex items-center gap-2">
                                 <input type="number" min="0" step="1" wire:model.live="seed"
@@ -387,10 +401,11 @@
                     @endif
 
                     @if($supportsOutputFormat)
-                        <div class="bg-white/[0.02] border border-white/[0.06] rounded-xl p-3">
-                            <label class="block text-sm font-medium text-white/60 mb-2 inline-flex items-center gap-2">
+                        <div class="bg-white/[0.02] border border-white/[0.06] rounded-xl p-4">
+                            <label class="block text-sm font-semibold text-white/80 mb-2 inline-flex items-center gap-2">
                                 <i class="fa-solid fa-file-image" style="font-size: 12px;"></i>
                                 <span>Loại file ảnh</span>
+                                <i class="fa-solid fa-circle-question text-white/30" style="font-size: 12px;" title="PNG rõ nét hơn, JPEG nhẹ hơn và tải nhanh hơn."></i>
                             </label>
                             <select wire:model.live="outputFormat"
                                     class="w-full px-3 py-2 rounded-lg bg-white/[0.03] border border-white/[0.08] text-white/90 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500/40">
@@ -405,130 +420,139 @@
                     @endif
                 </div>
 
-                @if($supportsSteps)
-                    @php
-                        $stepsMin = $stepsRange['min'] ?? 1;
-                        $stepsMax = $stepsRange['max'] ?? 50;
-                    @endphp
-                    <div class="bg-white/[0.02] border border-white/[0.06] rounded-xl p-3">
-                        <div class="flex items-center justify-between mb-2">
-                            <label class="text-sm font-medium text-white/60 inline-flex items-center gap-2">
-                                <i class="fa-solid fa-stairs" style="font-size: 12px;"></i>
-                                <span>Độ chi tiết</span>
-                            </label>
-                            <span class="text-xs text-white/50">{{ $steps ?? ($stepsRange['default'] ?? $stepsMin) }}</span>
-                        </div>
-                        <input type="range"
-                               min="{{ $stepsMin }}"
-                               max="{{ $stepsMax }}"
-                               step="1"
-                               wire:model.live="steps"
-                               class="w-full accent-cyan-500">
-                        <div class="flex justify-between text-[10px] text-white/30 mt-1">
-                            <span>{{ $stepsMin }}</span>
-                            <span>{{ $stepsMax }}</span>
-                        </div>
-                        <p class="text-xs text-white/40 mt-2">
-                            Tăng lên thì ảnh chi tiết hơn nhưng lâu hơn (chỉ vài mẫu có tuỳ chọn này).
-                        </p>
-                    </div>
-                @endif
+                @if($supportsSteps || $supportsGuidance || $supportsSafetyTolerance || $supportsImagePromptStrength)
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                        @if($supportsSteps)
+                            @php
+                                $stepsMin = $stepsRange['min'] ?? 1;
+                                $stepsMax = $stepsRange['max'] ?? 50;
+                            @endphp
+                            <div class="bg-white/[0.02] border border-white/[0.06] rounded-xl p-4">
+                                <div class="flex items-center justify-between mb-2">
+                                    <label class="text-sm font-semibold text-white/80 inline-flex items-center gap-2">
+                                        <i class="fa-solid fa-stairs" style="font-size: 12px;"></i>
+                                        <span>Độ chi tiết</span>
+                                        <i class="fa-solid fa-circle-question text-white/30" style="font-size: 12px;" title="Càng cao thì ảnh càng chi tiết nhưng xử lý lâu hơn."></i>
+                                    </label>
+                                    <span class="text-xs text-white/50">{{ $steps ?? ($stepsRange['default'] ?? $stepsMin) }}</span>
+                                </div>
+                                <input type="range"
+                                       min="{{ $stepsMin }}"
+                                       max="{{ $stepsMax }}"
+                                       step="1"
+                                       wire:model.live="steps"
+                                       class="w-full accent-cyan-500">
+                                <div class="flex justify-between text-[10px] text-white/30 mt-1">
+                                    <span>{{ $stepsMin }}</span>
+                                    <span>{{ $stepsMax }}</span>
+                                </div>
+                                <p class="text-xs text-white/40 mt-2">
+                                    Tăng lên thì ảnh chi tiết hơn nhưng lâu hơn (chỉ vài mẫu có tuỳ chọn này).
+                                </p>
+                            </div>
+                        @endif
 
-                @if($supportsGuidance)
-                    @php
-                        $guidanceMin = $guidanceRange['min'] ?? 1.5;
-                        $guidanceMax = $guidanceRange['max'] ?? 10;
-                    @endphp
-                    <div class="bg-white/[0.02] border border-white/[0.06] rounded-xl p-3">
-                        <div class="flex items-center justify-between mb-2">
-                            <label class="text-sm font-medium text-white/60 inline-flex items-center gap-2">
-                                <i class="fa-solid fa-sliders" style="font-size: 12px;"></i>
-                                <span>Độ bám theo mô tả</span>
-                            </label>
-                            <span class="text-xs text-white/50">{{ $guidance ?? ($guidanceRange['default'] ?? $guidanceMin) }}</span>
-                        </div>
-                        <input type="range"
-                               min="{{ $guidanceMin }}"
-                               max="{{ $guidanceMax }}"
-                               step="0.1"
-                               wire:model.live="guidance"
-                               class="w-full accent-cyan-500">
-                        <div class="flex justify-between text-[10px] text-white/30 mt-1">
-                            <span>{{ $guidanceMin }}</span>
-                            <span>{{ $guidanceMax }}</span>
-                        </div>
-                        <p class="text-xs text-white/40 mt-2">
-                            Cao hơn → ảnh bám theo mô tả hơn; thấp hơn → tự do sáng tạo hơn.
-                        </p>
-                    </div>
-                @endif
+                        @if($supportsGuidance)
+                            @php
+                                $guidanceMin = $guidanceRange['min'] ?? 1.5;
+                                $guidanceMax = $guidanceRange['max'] ?? 10;
+                            @endphp
+                            <div class="bg-white/[0.02] border border-white/[0.06] rounded-xl p-4">
+                                <div class="flex items-center justify-between mb-2">
+                                    <label class="text-sm font-semibold text-white/80 inline-flex items-center gap-2">
+                                        <i class="fa-solid fa-sliders" style="font-size: 12px;"></i>
+                                        <span>Độ bám theo mô tả</span>
+                                        <i class="fa-solid fa-circle-question text-white/30" style="font-size: 12px;" title="Cao hơn thì ảnh bám theo mô tả hơn."></i>
+                                    </label>
+                                    <span class="text-xs text-white/50">{{ $guidance ?? ($guidanceRange['default'] ?? $guidanceMin) }}</span>
+                                </div>
+                                <input type="range"
+                                       min="{{ $guidanceMin }}"
+                                       max="{{ $guidanceMax }}"
+                                       step="0.1"
+                                       wire:model.live="guidance"
+                                       class="w-full accent-cyan-500">
+                                <div class="flex justify-between text-[10px] text-white/30 mt-1">
+                                    <span>{{ $guidanceMin }}</span>
+                                    <span>{{ $guidanceMax }}</span>
+                                </div>
+                                <p class="text-xs text-white/40 mt-2">
+                                    Cao hơn → ảnh bám theo mô tả hơn; thấp hơn → tự do sáng tạo hơn.
+                                </p>
+                            </div>
+                        @endif
 
-                @if($supportsSafetyTolerance)
-                    @php
-                        $safeMin = $safetyToleranceRange['min'] ?? 0;
-                        $safeMax = $safetyToleranceRange['max'] ?? 6;
-                    @endphp
-                    <div class="bg-white/[0.02] border border-white/[0.06] rounded-xl p-3">
-                        <div class="flex items-center justify-between mb-2">
-                            <label class="text-sm font-medium text-white/60 inline-flex items-center gap-2">
-                                <i class="fa-solid fa-shield-halved" style="font-size: 12px;"></i>
-                                <span>Mức lọc nội dung</span>
-                            </label>
-                            <span class="text-xs text-white/50">{{ $safetyTolerance ?? ($safetyToleranceRange['default'] ?? $safeMin) }}</span>
-                        </div>
-                        <input type="range"
-                               min="{{ $safeMin }}"
-                               max="{{ $safeMax }}"
-                               step="1"
-                               wire:model.live="safetyTolerance"
-                               class="w-full accent-cyan-500">
-                        <div class="flex justify-between text-[10px] text-white/30 mt-1">
-                            <span>{{ $safeMin }}</span>
-                            <span>{{ $safeMax }}</span>
-                        </div>
-                        <p class="text-xs text-white/40 mt-2">
-                            0 = lọc chặt, số cao hơn = lọc nhẹ hơn (tuỳ mẫu).
-                        </p>
-                    </div>
-                @endif
+                        @if($supportsSafetyTolerance)
+                            @php
+                                $safeMin = $safetyToleranceRange['min'] ?? 0;
+                                $safeMax = $safetyToleranceRange['max'] ?? 6;
+                            @endphp
+                            <div class="bg-white/[0.02] border border-white/[0.06] rounded-xl p-4">
+                                <div class="flex items-center justify-between mb-2">
+                                    <label class="text-sm font-semibold text-white/80 inline-flex items-center gap-2">
+                                        <i class="fa-solid fa-shield-halved" style="font-size: 12px;"></i>
+                                        <span>Mức lọc nội dung</span>
+                                        <i class="fa-solid fa-circle-question text-white/30" style="font-size: 12px;" title="0 = lọc chặt, số cao hơn = lọc nhẹ hơn."></i>
+                                    </label>
+                                    <span class="text-xs text-white/50">{{ $safetyTolerance ?? ($safetyToleranceRange['default'] ?? $safeMin) }}</span>
+                                </div>
+                                <input type="range"
+                                       min="{{ $safeMin }}"
+                                       max="{{ $safeMax }}"
+                                       step="1"
+                                       wire:model.live="safetyTolerance"
+                                       class="w-full accent-cyan-500">
+                                <div class="flex justify-between text-[10px] text-white/30 mt-1">
+                                    <span>{{ $safeMin }}</span>
+                                    <span>{{ $safeMax }}</span>
+                                </div>
+                                <p class="text-xs text-white/40 mt-2">
+                                    0 = lọc chặt, số cao hơn = lọc nhẹ hơn (tuỳ mẫu).
+                                </p>
+                            </div>
+                        @endif
 
-                @if($supportsImagePromptStrength)
-                    @php
-                        $ipsMin = $imagePromptStrengthRange['min'] ?? 0;
-                        $ipsMax = $imagePromptStrengthRange['max'] ?? 1;
-                    @endphp
-                    <div class="bg-white/[0.02] border border-white/[0.06] rounded-xl p-3">
-                        <div class="flex items-center justify-between mb-2">
-                            <label class="text-sm font-medium text-white/60 inline-flex items-center gap-2">
-                                <i class="fa-solid fa-blender" style="font-size: 12px;"></i>
-                                <span>Ảnh tham chiếu ảnh hưởng</span>
-                            </label>
-                            <span class="text-xs text-white/50">{{ $imagePromptStrength ?? ($imagePromptStrengthRange['default'] ?? $ipsMin) }}</span>
-                        </div>
-                        <input type="range"
-                               min="{{ $ipsMin }}"
-                               max="{{ $ipsMax }}"
-                               step="0.05"
-                               wire:model.live="imagePromptStrength"
-                               class="w-full accent-cyan-500">
-                        <div class="flex justify-between text-[10px] text-white/30 mt-1">
-                            <span>{{ $ipsMin }}</span>
-                            <span>{{ $ipsMax }}</span>
-                        </div>
-                        <p class="text-xs text-white/40 mt-2">
-                            Thấp → ảnh tham chiếu ảnh hưởng ít; cao → ảnh tham chiếu ảnh hưởng mạnh.
-                        </p>
+                        @if($supportsImagePromptStrength)
+                            @php
+                                $ipsMin = $imagePromptStrengthRange['min'] ?? 0;
+                                $ipsMax = $imagePromptStrengthRange['max'] ?? 1;
+                            @endphp
+                            <div class="bg-white/[0.02] border border-white/[0.06] rounded-xl p-4">
+                                <div class="flex items-center justify-between mb-2">
+                                    <label class="text-sm font-semibold text-white/80 inline-flex items-center gap-2">
+                                        <i class="fa-solid fa-blender" style="font-size: 12px;"></i>
+                                        <span>Ảnh tham chiếu ảnh hưởng</span>
+                                        <i class="fa-solid fa-circle-question text-white/30" style="font-size: 12px;" title="0 = ảnh tham chiếu ảnh hưởng ít, 1 = ảnh ảnh hưởng mạnh."></i>
+                                    </label>
+                                    <span class="text-xs text-white/50">{{ $imagePromptStrength ?? ($imagePromptStrengthRange['default'] ?? $ipsMin) }}</span>
+                                </div>
+                                <input type="range"
+                                       min="{{ $ipsMin }}"
+                                       max="{{ $ipsMax }}"
+                                       step="0.05"
+                                       wire:model.live="imagePromptStrength"
+                                       class="w-full accent-cyan-500">
+                                <div class="flex justify-between text-[10px] text-white/30 mt-1">
+                                    <span>{{ $ipsMin }}</span>
+                                    <span>{{ $ipsMax }}</span>
+                                </div>
+                                <p class="text-xs text-white/40 mt-2">
+                                    Thấp → ảnh tham chiếu ảnh hưởng ít; cao → ảnh tham chiếu ảnh hưởng mạnh.
+                                </p>
+                            </div>
+                        @endif
                     </div>
                 @endif
 
                 @if($supportsPromptUpsampling || $supportsRaw)
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
                         @if($supportsPromptUpsampling)
-                            <div class="bg-white/[0.02] border border-white/[0.06] rounded-xl p-3">
+                            <div class="bg-white/[0.02] border border-white/[0.06] rounded-xl p-4">
                                 <label class="flex items-center gap-2 text-sm text-white/70">
                                     <input type="checkbox" wire:model.live="promptUpsampling"
                                            class="w-4 h-4 rounded bg-white/[0.03] border-white/[0.15] text-cyan-500 focus:ring-cyan-500/40">
                                     <span>Tự làm rõ mô tả</span>
+                                    <i class="fa-solid fa-circle-question text-white/30" style="font-size: 12px;" title="Hệ thống tự thêm chi tiết khi bạn mô tả ngắn."></i>
                                 </label>
                                 <p class="text-xs text-white/40 mt-2">
                                     Hệ thống tự thêm chi tiết khi bạn mô tả ngắn, giúp ảnh đẹp hơn.
@@ -536,11 +560,12 @@
                             </div>
                         @endif
                         @if($supportsRaw)
-                            <div class="bg-white/[0.02] border border-white/[0.06] rounded-xl p-3">
+                            <div class="bg-white/[0.02] border border-white/[0.06] rounded-xl p-4">
                                 <label class="flex items-center gap-2 text-sm text-white/70">
                                     <input type="checkbox" wire:model.live="raw"
                                            class="w-4 h-4 rounded bg-white/[0.03] border-white/[0.15] text-cyan-500 focus:ring-cyan-500/40">
                                     <span>Phong cách tự nhiên</span>
+                                    <i class="fa-solid fa-circle-question text-white/30" style="font-size: 12px;" title="Ảnh trông tự nhiên, ít hiệu ứng 'vẽ'."></i>
                                 </label>
                                 <p class="text-xs text-white/40 mt-2">
                                     Ảnh trông tự nhiên, ít “vẽ”. Chỉ một số mẫu hỗ trợ.
