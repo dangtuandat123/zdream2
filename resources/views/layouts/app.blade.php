@@ -119,6 +119,54 @@
         .card-anim:hover::after {
             opacity: 0.6;
         }
+        .hero-blob {
+            position: absolute;
+            width: 280px;
+            height: 280px;
+            border-radius: 9999px;
+            filter: blur(24px);
+            opacity: 0.8;
+            mix-blend-mode: screen;
+            animation: hero-blob 14s ease-in-out infinite;
+        }
+        .hero-blob-1 {
+            top: -80px;
+            right: 10%;
+            background: radial-gradient(circle at 30% 30%, rgba(34,211,238,0.55), rgba(14,116,144,0.0) 60%);
+        }
+        .hero-blob-2 {
+            bottom: -90px;
+            left: 8%;
+            width: 320px;
+            height: 320px;
+            background: radial-gradient(circle at 40% 40%, rgba(232,121,249,0.5), rgba(124,58,237,0.0) 60%);
+            animation-duration: 18s;
+        }
+        .hero-blob-3 {
+            top: 30%;
+            left: 55%;
+            width: 220px;
+            height: 220px;
+            background: radial-gradient(circle at 40% 40%, rgba(74,222,128,0.45), rgba(16,185,129,0.0) 60%);
+            animation-duration: 16s;
+        }
+        .hero-sheen {
+            position: absolute;
+            inset: -30%;
+            background: conic-gradient(from 180deg, rgba(255,255,255,0.06), transparent 40%, rgba(255,255,255,0.06) 60%, transparent);
+            animation: hero-rotate 20s linear infinite;
+            opacity: 0.35;
+            mix-blend-mode: soft-light;
+        }
+        @keyframes hero-blob {
+            0% { transform: translate3d(0, 0, 0) scale(1); }
+            50% { transform: translate3d(18px, -14px, 0) scale(1.06); }
+            100% { transform: translate3d(0, 0, 0) scale(1); }
+        }
+        @keyframes hero-rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
         @keyframes float-slow {
             0% { transform: translate3d(0, 0, 0); }
             50% { transform: translate3d(0, -10px, 0); }
@@ -137,7 +185,9 @@
             .anim-float-slow,
             .anim-float-slower,
             .anim-pulse-soft,
-            .btn-glow::after {
+            .btn-glow::after,
+            .hero-blob,
+            .hero-sheen {
                 animation: none;
                 transition: none;
             }

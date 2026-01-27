@@ -1,8 +1,12 @@
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
     <!-- Hero -->
-    <section class="relative mb-6 overflow-hidden rounded-3xl border border-white/[0.08] bg-[radial-gradient(120%_120%_at_100%_0%,rgba(34,211,238,0.18)_0%,rgba(10,10,15,0.9)_55%,rgba(10,10,15,1)_100%)]">
-        <div class="absolute -top-24 -right-16 h-64 w-64 rounded-full bg-cyan-500/20 blur-3xl anim-float-slow"></div>
-        <div class="absolute -bottom-24 -left-12 h-64 w-64 rounded-full bg-fuchsia-500/15 blur-3xl anim-float-slower"></div>
+    <section class="relative mb-6 overflow-hidden rounded-3xl border border-white/[0.08] bg-[radial-gradient(120%_120%_at_100%_0%,rgba(34,211,238,0.22)_0%,rgba(10,10,15,0.92)_55%,rgba(10,10,15,1)_100%)]">
+        <div class="absolute inset-0 pointer-events-none">
+            <div class="hero-blob hero-blob-1"></div>
+            <div class="hero-blob hero-blob-2"></div>
+            <div class="hero-blob hero-blob-3"></div>
+            <div class="hero-sheen"></div>
+        </div>
         <div class="absolute inset-0 opacity-30 [background-image:linear-gradient(120deg,rgba(255,255,255,0.06)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.04)_1px,transparent_1px)] [background-size:36px_36px]"></div>
 
         <div class="relative px-4 sm:px-8 py-6 sm:py-10">
@@ -42,14 +46,15 @@
     <!-- Filters -->
     <div class="mb-5">
         <div class="rounded-2xl bg-white/[0.03] border border-white/[0.06] p-3 sm:p-4 lg:p-0 lg:bg-transparent lg:border-0">
-            <div class="flex flex-col gap-3 lg:flex-row lg:items-center">
+            <div class="grid gap-3 lg:grid-cols-[1fr_auto] lg:items-center">
             <!-- Search -->
-            <div class="flex-1">
+            <div class="min-w-0">
                 <div class="relative">
                     <i class="fa-solid fa-search absolute left-3 top-1/2 -translate-y-1/2 text-white/40"></i>
                     <input
                         type="text"
-                        wire:model.live.debounce.400ms="search"
+                        wire:model.debounce.400ms="search"
+                        wire:key="styles-search-input"
                         placeholder="Tìm kiếm style..."
                         class="w-full h-12 sm:h-11 pl-10 pr-10 rounded-xl bg-white/[0.04] border border-white/[0.08] text-white text-sm sm:text-base placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-purple-500/40"
                     >
@@ -67,8 +72,8 @@
             </div>
 
             <!-- Filters -->
-            <div class="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-2">
-                <div class="w-full sm:min-w-[160px]" wire:ignore x-data="select2Livewire({ model: @entangle('price').live, minResults: 9999 })">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:flex lg:items-center gap-2">
+                <div class="min-w-0 sm:min-w-[160px]" wire:ignore x-data="select2Livewire({ model: @entangle('price').live, minResults: 9999 })">
                     <select x-ref="select" data-no-select2="true" class="w-full px-3 py-2.5 rounded-xl bg-white/[0.04] border border-white/[0.08] text-white text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-purple-500/40">
                         <option value="">Tất cả giá</option>
                         @foreach($priceRanges as $key => $label)
@@ -77,7 +82,7 @@
                     </select>
                 </div>
 
-                <div class="w-full sm:min-w-[180px]" wire:ignore x-data="select2Livewire({ model: @entangle('sort').live, minResults: 9999 })">
+                <div class="min-w-0 sm:min-w-[180px]" wire:ignore x-data="select2Livewire({ model: @entangle('sort').live, minResults: 9999 })">
                     <select x-ref="select" data-no-select2="true" class="w-full px-3 py-2.5 rounded-xl bg-white/[0.04] border border-white/[0.08] text-white text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-purple-500/40">
                         @foreach($sortOptions as $key => $label)
                             <option value="{{ $key }}">{{ $label }}</option>
