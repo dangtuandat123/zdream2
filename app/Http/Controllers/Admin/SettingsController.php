@@ -37,6 +37,7 @@ class SettingsController extends Controller
             'bfl_base_url' => 'nullable|url|max:500',
             'site_name' => 'nullable|string|max:255',
             'default_credits' => 'nullable|integer|min:0',
+            'credit_exchange_rate' => 'nullable|integer|min:1',
             'image_expiry_days' => 'nullable|integer|min:1|max:365',
         ]);
 
@@ -80,6 +81,14 @@ class SettingsController extends Controller
                 'type' => 'integer',
                 'group' => 'general',
                 'label' => 'Xu mặc định',
+            ]);
+        }
+
+        if (isset($validated['credit_exchange_rate'])) {
+            Setting::set('credit_exchange_rate', $validated['credit_exchange_rate'], [
+                'type' => 'integer',
+                'group' => 'general',
+                'label' => 'Tỉ lệ VND/Xu',
             ]);
         }
 

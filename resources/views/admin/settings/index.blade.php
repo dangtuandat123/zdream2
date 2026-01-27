@@ -132,6 +132,25 @@
                     </div>
 
                     <div>
+                        <label for="credit_exchange_rate" class="block text-sm font-medium text-white/70 mb-2">
+                            Tỉ lệ VND / 1 Xu
+                        </label>
+                        <input 
+                            id="credit_exchange_rate" 
+                            type="number" 
+                            name="credit_exchange_rate" 
+                            value="{{ \App\Models\Setting::get('credit_exchange_rate', 1000) }}"
+                            min="1"
+                            class="w-full px-4 py-3 rounded-xl bg-white/[0.03] border border-white/[0.08] text-white/90 focus:outline-none focus:ring-2 focus:ring-purple-500/40 transition-all">
+                        <p class="mt-1 text-sm text-white/40">
+                            Ví dụ: 1000 nghĩa là 1.000 VND = 1 Xu.
+                        </p>
+                        @error('credit_exchange_rate')
+                            <p class="mt-1 text-sm text-red-400">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <div>
                         <label for="image_expiry_days" class="block text-sm font-medium text-white/70 mb-2">
                             Số ngày lưu ảnh (trước khi tự động xóa)
                         </label>
