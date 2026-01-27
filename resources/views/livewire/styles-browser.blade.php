@@ -24,7 +24,7 @@
                         Chỉ cần chọn style và nhập vài từ gợi ý. ZDream sẽ tự hoàn thiện ảnh.
                     </p>
                     <div class="mt-4 flex flex-wrap items-center gap-3">
-                        <a href="#styles-grid" class="h-10 sm:h-11 px-4 sm:px-5 rounded-xl bg-white text-gray-900 text-sm font-semibold inline-flex items-center gap-2 hover:bg-gray-100 transition-colors btn-glow btn-pop">
+                        <a href="#styles-title" class="h-10 sm:h-11 px-4 sm:px-5 rounded-xl bg-white text-gray-900 text-sm font-semibold inline-flex items-center gap-2 hover:bg-gray-100 transition-colors btn-glow btn-pop">
                             Xem bộ sưu tập
                             <i class="fa-solid fa-arrow-down text-[12px]"></i>
                         </a>
@@ -37,7 +37,7 @@
     </section>
 
     <!-- Header -->
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+    <div id="styles-title" class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 scroll-mt-24">
         <div>
             <h1 class="text-2xl sm:text-3xl font-bold text-white">Khám phá Styles</h1>
             <p class="text-white/50 text-sm mt-1">{{ $styles->total() }} styles đang sẵn sàng</p>
