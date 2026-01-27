@@ -2,6 +2,9 @@
     <!-- Hero -->
     <section class="styles-hero mb-6">
         <div class="styles-hero-grid" aria-hidden="true"></div>
+        <div class="styles-hero-sheen" aria-hidden="true"></div>
+        <div class="styles-hero-orb styles-hero-orb-1" aria-hidden="true"></div>
+        <div class="styles-hero-orb styles-hero-orb-2" aria-hidden="true"></div>
 
         <div class="styles-hero-inner px-4 sm:px-8 py-6 sm:py-10">
             <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">

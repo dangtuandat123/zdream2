@@ -207,6 +207,55 @@
             background-size: 40px 40px;
             pointer-events: none;
             z-index: 0;
+            animation: styles-grid-drift 26s linear infinite;
+        }
+        .styles-hero-sheen {
+            position: absolute;
+            inset: -20%;
+            background: conic-gradient(from 120deg, rgba(255,255,255,0.06), transparent 35%, rgba(255,255,255,0.08) 50%, transparent 65%);
+            opacity: 0.35;
+            mix-blend-mode: soft-light;
+            animation: styles-sheen-rotate 24s linear infinite;
+            pointer-events: none;
+            z-index: 0;
+        }
+        .styles-hero-orb {
+            position: absolute;
+            width: 260px;
+            height: 260px;
+            border-radius: 9999px;
+            filter: blur(26px);
+            opacity: 0.55;
+            mix-blend-mode: screen;
+            animation: styles-orb-float 14s ease-in-out infinite;
+            pointer-events: none;
+            z-index: 0;
+        }
+        .styles-hero-orb-1 {
+            top: -120px;
+            right: 12%;
+            background: radial-gradient(circle at 30% 30%, rgba(244,114,182,0.55), rgba(168,85,247,0) 60%);
+        }
+        .styles-hero-orb-2 {
+            bottom: -140px;
+            left: 10%;
+            width: 320px;
+            height: 320px;
+            background: radial-gradient(circle at 35% 35%, rgba(59,130,246,0.45), rgba(37,99,235,0) 60%);
+            animation-duration: 18s;
+        }
+        @keyframes styles-grid-drift {
+            0% { background-position: 0 0; }
+            100% { background-position: 120px 60px; }
+        }
+        @keyframes styles-sheen-rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        @keyframes styles-orb-float {
+            0% { transform: translate3d(0, 0, 0) scale(1); }
+            50% { transform: translate3d(18px, -12px, 0) scale(1.05); }
+            100% { transform: translate3d(0, 0, 0) scale(1); }
         }
         .styles-hero-inner {
             position: relative;
@@ -247,7 +296,10 @@
             .btn-glow::after,
             .hero-blob,
             .hero-sheen,
-            .hero-art {
+            .hero-art,
+            .styles-hero-grid,
+            .styles-hero-sheen,
+            .styles-hero-orb {
                 animation: none;
                 transition: none;
             }
@@ -257,6 +309,9 @@
         body.is-scrolling .hero-art,
         body.is-scrolling .hero-blob,
         body.is-scrolling .hero-sheen,
+        body.is-scrolling .styles-hero-grid,
+        body.is-scrolling .styles-hero-sheen,
+        body.is-scrolling .styles-hero-orb,
         body.is-scrolling .anim-float-slow,
         body.is-scrolling .anim-float-slower,
         body.is-scrolling .anim-pulse-soft {
