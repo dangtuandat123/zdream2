@@ -1,4 +1,5 @@
 <div class="space-y-4 md:space-y-6">
+    @php $step = 1; @endphp
     
     <!-- Image Upload Slots (Dynamic từ Admin config) -->
     @php
@@ -7,6 +8,13 @@
     
     @if(!empty($imageSlots))
         <div class="space-y-3">
+            <!-- Step Header -->
+            <div class="flex items-center gap-3 px-1">
+                <div class="flex items-center justify-center w-7 h-7 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs font-bold shadow-lg shadow-purple-500/30">
+                    {{ $step++ }}
+                </div>
+                <h3 class="text-white font-bold text-sm uppercase tracking-wide">Tải ảnh lên</h3>
+            </div>
             <!-- Upload Limits Warning -->
             <div class="bg-blue-500/10 border border-blue-500/20 rounded-lg px-3 py-2 flex items-start gap-2">
                 <i class="fa-solid fa-info-circle text-blue-400 mt-0.5" style="font-size: 12px;"></i>
@@ -29,6 +37,8 @@
                         <span>{{ $slotLabel }}</span>
                         @if($isRequired)
                             <span class="text-red-400">*</span>
+                        @else
+                            <span class="text-white/30 text-xs font-normal">(Tùy chọn)</span>
                         @endif
                     </label>
                     
@@ -78,6 +88,16 @@
 
     <!-- ========== DROPDOWN: Option thêm (mặc định mở nếu có options) ========== -->
     @if($optionGroups->isNotEmpty() || $style->allow_user_custom_prompt)
+        <!-- Step Header -->
+        <div class="flex items-center gap-3 px-1 mb-2">
+            <div class="flex items-center justify-center w-7 h-7 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs font-bold shadow-lg shadow-purple-500/30">
+                {{ $step++ }}
+            </div>
+            <h3 class="text-white font-bold text-sm uppercase tracking-wide">
+                Tùy chỉnh chi tiết
+                <span class="text-white/40 text-xs font-normal normal-case ml-1">(Tùy chọn)</span>
+            </h3>
+        </div>
         <div class="bg-white/[0.03] border border-white/[0.08] rounded-xl overflow-hidden" x-data="{ open: {{ $optionGroups->isNotEmpty() ? 'true' : 'false' }} }">
             <button 
                 @click="open = !open" 
@@ -188,7 +208,7 @@
                             <label class="block text-sm font-medium text-white/60 mb-2 inline-flex items-center gap-2">
                                 <i class="fa-solid fa-pencil" style="font-size: 14px;"></i>
                                 <span>Mô tả thêm</span>
-                                <span class="text-white/30 text-xs font-normal">(tùy chọn)</span>
+                                <span class="text-white/30 text-xs font-normal">(Tùy chọn)</span>
                             </label>
                             <textarea 
                                 wire:model.live.debounce.300ms="customInput"
@@ -212,6 +232,16 @@
     @endif
 
     <!-- ========== DROPDOWN: Tùy chọn nâng cao ========== -->
+    <!-- Step Header -->
+    <div class="flex items-center gap-3 px-1 mb-2">
+        <div class="flex items-center justify-center w-7 h-7 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs font-bold shadow-lg shadow-purple-500/30">
+            {{ $step++ }}
+        </div>
+        <h3 class="text-white font-bold text-sm uppercase tracking-wide">
+            Cấu hình nâng cao
+            <span class="text-white/40 text-xs font-normal normal-case ml-1">(Tùy chọn)</span>
+        </h3>
+    </div>
     <div class="bg-white/[0.03] border border-white/[0.08] rounded-xl overflow-hidden" x-data="{ open: false }">
         <button 
             @click="open = !open" 
@@ -301,6 +331,13 @@
     </div>
 
     <!-- Generate Section -->
+    <!-- Step Header -->
+    <div class="flex items-center gap-3 px-1 mb-2">
+        <div class="flex items-center justify-center w-7 h-7 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs font-bold shadow-lg shadow-purple-500/30">
+            {{ $step++ }}
+        </div>
+        <h3 class="text-white font-bold text-sm uppercase tracking-wide">Hoàn tất & Tạo ảnh</h3>
+    </div>
     <div class="bg-white/[0.03] border border-white/[0.08] rounded-xl p-4 md:p-5">
         <div class="flex items-center justify-between mb-4 pb-4 border-b border-white/[0.05]">
             <span class="text-white/50">Chi phí</span>
