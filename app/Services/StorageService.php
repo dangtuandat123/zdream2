@@ -16,12 +16,13 @@ class StorageService
 {
     protected string $disk;
     protected string $basePath;
-    protected int $maxBytes = 20971520; // 20MB max image size
+    protected int $maxBytes = 20971520; // default 20MB, override via config
 
     public function __construct()
     {
         $this->disk = 'minio';
         $this->basePath = 'generated-images';
+        $this->maxBytes = (int) config('services_custom.bfl.max_image_bytes', 26214400);
     }
 
     /**

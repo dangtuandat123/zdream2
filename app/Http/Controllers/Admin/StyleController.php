@@ -72,8 +72,12 @@ public function create(): View
      */
     public function store(Request $request): RedirectResponse
     {
-        $minDim = (int) config('services_custom.bfl.min_dimension', 256);
-        $maxDim = (int) config('services_custom.bfl.max_dimension', 1408);
+        $modelId = (string) $request->input('bfl_model_id', '');
+        $cap = $this->bflService->getModelCapabilities($modelId);
+        $minDim = (int) ($cap['min_dimension'] ?? config('services_custom.bfl.min_dimension', 256));
+        $maxDim = (int) ($cap['max_dimension'] ?? config('services_custom.bfl.max_dimension', 1408));
+        $multiple = (int) ($cap['dimension_multiple'] ?? config('services_custom.bfl.dimension_multiple', 32));
+        $multiple = $multiple > 0 ? $multiple : 1;
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
@@ -92,8 +96,16 @@ public function create(): View
             // HIGH-05 FIX: Validate aspect_ratio against supported list
             'aspect_ratio' => ['nullable', 'string', 'max:20', Rule::in(array_keys($this->bflService->getAspectRatios()))],
             'config_payload' => 'nullable|array',
-            'config_payload.width' => ['nullable', 'integer', "min:{$minDim}", "max:{$maxDim}", 'required_with:config_payload.height'],
-            'config_payload.height' => ['nullable', 'integer', "min:{$minDim}", "max:{$maxDim}", 'required_with:config_payload.width'],
+            'config_payload.width' => ['nullable', 'integer', "min:{$minDim}", "max:{$maxDim}", 'required_with:config_payload.height', function ($attribute, $value, $fail) use ($multiple) {
+                if ($value !== null && $value % $multiple !== 0) {
+                    $fail("Width phải là bội số của {$multiple}.");
+                }
+            }],
+            'config_payload.height' => ['nullable', 'integer', "min:{$minDim}", "max:{$maxDim}", 'required_with:config_payload.width', function ($attribute, $value, $fail) use ($multiple) {
+                if ($value !== null && $value % $multiple !== 0) {
+                    $fail("Height phải là bội số của {$multiple}.");
+                }
+            }],
             'config_payload.seed' => 'nullable|integer|min:0',
             'config_payload.steps' => 'nullable|integer|min:1|max:50',
             'config_payload.guidance' => 'nullable|numeric|min:1.5|max:10',
@@ -212,8 +224,12 @@ public function edit(Style $style): View
      */
     public function update(Request $request, Style $style): RedirectResponse
     {
-        $minDim = (int) config('services_custom.bfl.min_dimension', 256);
-        $maxDim = (int) config('services_custom.bfl.max_dimension', 1408);
+        $modelId = (string) $request->input('bfl_model_id', $style->bfl_model_id);
+        $cap = $this->bflService->getModelCapabilities($modelId);
+        $minDim = (int) ($cap['min_dimension'] ?? config('services_custom.bfl.min_dimension', 256));
+        $maxDim = (int) ($cap['max_dimension'] ?? config('services_custom.bfl.max_dimension', 1408));
+        $multiple = (int) ($cap['dimension_multiple'] ?? config('services_custom.bfl.dimension_multiple', 32));
+        $multiple = $multiple > 0 ? $multiple : 1;
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
@@ -233,8 +249,16 @@ public function edit(Style $style): View
             // HIGH-05 FIX: Validate aspect_ratio against supported list
             'aspect_ratio' => ['nullable', 'string', 'max:20', Rule::in(array_keys($this->bflService->getAspectRatios()))],
             'config_payload' => 'nullable|array',
-            'config_payload.width' => ['nullable', 'integer', "min:{$minDim}", "max:{$maxDim}", 'required_with:config_payload.height'],
-            'config_payload.height' => ['nullable', 'integer', "min:{$minDim}", "max:{$maxDim}", 'required_with:config_payload.width'],
+            'config_payload.width' => ['nullable', 'integer', "min:{$minDim}", "max:{$maxDim}", 'required_with:config_payload.height', function ($attribute, $value, $fail) use ($multiple) {
+                if ($value !== null && $value % $multiple !== 0) {
+                    $fail("Width phải là bội số của {$multiple}.");
+                }
+            }],
+            'config_payload.height' => ['nullable', 'integer', "min:{$minDim}", "max:{$maxDim}", 'required_with:config_payload.width', function ($attribute, $value, $fail) use ($multiple) {
+                if ($value !== null && $value % $multiple !== 0) {
+                    $fail("Height phải là bội số của {$multiple}.");
+                }
+            }],
             'config_payload.seed' => 'nullable|integer|min:0',
             'config_payload.steps' => 'nullable|integer|min:1|max:50',
             'config_payload.guidance' => 'nullable|numeric|min:1.5|max:10',

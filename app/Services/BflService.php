@@ -21,7 +21,7 @@ class BflService
     protected string $baseUrl;
     protected int $timeout;
     protected int $pollTimeout;
-    protected int $maxImageBytes = 10485760; // 10MB
+    protected int $maxImageBytes = 10485760; // default 10MB, override via config
 
     public function __construct()
     {
@@ -35,6 +35,7 @@ class BflService
 
         $this->timeout = (int) config('services_custom.bfl.timeout', 120);
         $this->pollTimeout = (int) config('services_custom.bfl.poll_timeout', 120);
+        $this->maxImageBytes = (int) config('services_custom.bfl.max_image_bytes', 26214400);
     }
 
     /**
@@ -149,6 +150,9 @@ class BflService
             'steps' => null,
             'guidance' => null,
             'image_prompt_strength' => null,
+            'min_dimension' => (int) config('services_custom.bfl.min_dimension', 256),
+            'max_dimension' => (int) config('services_custom.bfl.max_dimension', 1408),
+            'dimension_multiple' => (int) config('services_custom.bfl.dimension_multiple', 32),
         ], $model);
     }
 
@@ -301,6 +305,23 @@ class BflService
         return $cap['image_prompt_strength'] ?? null;
     }
 
+    protected function formatApiError(\Illuminate\Http\Client\Response $response): string
+    {
+        $status = $response->status();
+        $body = $response->body();
+        $truncatedBody = strlen($body) > 1000 ? substr($body, 0, 1000) . '...[TRUNCATED]' : $body;
+
+        return match ($status) {
+            400 => 'Yêu cầu không hợp lệ (400). ' . $truncatedBody,
+            402 => 'BFL đã hết credits (402). Vui lòng nạp thêm credits.',
+            403 => 'BFL API key không có quyền (403).',
+            422 => 'Dữ liệu gửi lên không hợp lệ (422). ' . $truncatedBody,
+            429 => 'BFL đang quá tải hoặc đạt giới hạn tác vụ (429). Vui lòng thử lại sau.',
+            500, 503 => 'BFL đang gặp sự cố ('.$status.'). Vui lòng thử lại sau.',
+            default => 'BFL API error: ' . $status . ' - ' . $truncatedBody,
+        };
+    }
+
     /**
      * Tạo ảnh từ Style và options
      *
@@ -316,7 +337,18 @@ class BflService
         array $generationOverrides = []
     ): array {
         $finalPrompt = $style->buildFinalPrompt($selectedOptionIds, $userCustomInput);
-        $modelId = $this->normalizeModelId($style->bfl_model_id ?? $style->openrouter_model_id ?? '');
+        $rawModelId = $style->bfl_model_id ?? $style->openrouter_model_id ?? '';
+
+        // Reject non-BFL model IDs that still contain external provider prefixes
+        if (str_contains($rawModelId, '/') && !str_starts_with($rawModelId, 'black-forest-labs/')) {
+            return [
+                'success' => false,
+                'error' => 'Model không hợp lệ cho BFL. Vui lòng chọn model FLUX.',
+                'final_prompt' => $finalPrompt,
+            ];
+        }
+
+        $modelId = $this->normalizeModelId($rawModelId);
 
         Log::debug('BFL generateImage input', [
             'style_id' => $style->id,
@@ -369,11 +401,9 @@ class BflService
         try {
             $response = $this->clientForPost()->post($this->baseUrl . '/v1/' . $modelId, $payload);
             if (!$response->successful()) {
-                $body = $response->body();
-                $truncatedBody = strlen($body) > 2000 ? substr($body, 0, 2000) . '...[TRUNCATED]' : $body;
                 return [
                     'success' => false,
-                    'error' => 'API error: ' . $response->status() . ' - ' . $truncatedBody,
+                    'error' => $this->formatApiError($response),
                     'final_prompt' => $finalPrompt,
                 ];
             }
@@ -434,6 +464,7 @@ class BflService
         $config = $style->config_payload ?? [];
         $overrides = is_array($generationOverrides) ? $generationOverrides : [];
         $ratio = $overrides['aspect_ratio'] ?? $aspectRatio ?? ($config['aspect_ratio'] ?? null);
+        $constraints = $this->getDimensionConstraints($modelId);
 
         $overrideWidth = $overrides['width'] ?? null;
         $overrideHeight = $overrides['height'] ?? null;
@@ -446,23 +477,23 @@ class BflService
         } else {
             if ($this->supportsWidthHeight($modelId)) {
                 if ($hasCustomDimensions) {
-                    $minDim = (int) config('services_custom.bfl.min_dimension', 256);
-                    $maxDim = (int) config('services_custom.bfl.max_dimension', 1408);
-
+                    $minDim = (int) ($constraints['min'] ?? 256);
+                    $maxDim = (int) ($constraints['max'] ?? 1408);
                     $width = (int) $overrideWidth;
                     $height = (int) $overrideHeight;
 
                     $width = max($minDim, min($width, $maxDim));
                     $height = max($minDim, min($height, $maxDim));
 
-                    $multiple = (int) config('services_custom.bfl.dimension_multiple', 32);
+                    $multiple = (int) ($constraints['multiple'] ?? 1);
+                    $multiple = $multiple > 0 ? $multiple : 1;
                     $width = $this->roundToMultiple($width, $multiple);
                     $height = $this->roundToMultiple($height, $multiple);
 
                     $payload['width'] = $width;
                     $payload['height'] = $height;
                 } else {
-                    $dimensions = $this->resolveDimensions($ratio, $imageSize, array_merge($config, $overrides));
+                    $dimensions = $this->resolveDimensions($ratio, $imageSize, array_merge($config, $overrides), $constraints);
                     if ($dimensions) {
                         $payload['width'] = $dimensions['width'];
                         $payload['height'] = $dimensions['height'];
@@ -537,6 +568,8 @@ class BflService
     {
         $started = time();
         $pollInterval = 0.5;
+        $maxInterval = 5.0;
+        $attempts = 0;
         $pollUrl = $pollingUrl ?: ($this->baseUrl . '/v1/get_result');
         $maxExecution = (int) ini_get('max_execution_time');
         $pollTimeout = $this->pollTimeout;
@@ -547,6 +580,7 @@ class BflService
         }
 
         while ((time() - $started) < $pollTimeout) {
+            $attempts++;
             usleep((int) ($pollInterval * 1000000));
 
             try {
@@ -561,6 +595,10 @@ class BflService
                 }
 
                 if (!$response->successful()) {
+                    if ($response->status() === 429) {
+                        $pollInterval = min($maxInterval, $pollInterval * 1.5);
+                        usleep(500000);
+                    }
                     continue;
                 }
 
@@ -582,10 +620,22 @@ class BflService
                 }
 
                 if (in_array($status, ['Error', 'Failed', 'Request Moderated', 'Content Moderated', 'Task not found'], true)) {
+                    $message = match ($status) {
+                        'Request Moderated' => 'Yêu cầu bị từ chối do nội dung không phù hợp (moderation).',
+                        'Content Moderated' => 'Kết quả bị chặn do nội dung không phù hợp (moderation).',
+                        'Task not found' => 'Không tìm thấy task (có thể đã hết hạn).',
+                        'Failed' => 'Tác vụ thất bại khi xử lý.',
+                        default => 'Lỗi khi xử lý ảnh.',
+                    };
                     return [
                         'success' => false,
-                        'error' => 'BFL status: ' . $status,
+                        'error' => $message,
                     ];
+                }
+
+                // Gradual backoff to reduce API pressure
+                if ($attempts % 10 === 0) {
+                    $pollInterval = min($maxInterval, $pollInterval * 1.5);
                 }
             } catch (\Exception $e) {
                 Log::warning('BFL polling error', ['error' => $e->getMessage()]);
@@ -747,12 +797,25 @@ class BflService
     /**
      * Resolve width/height theo aspect ratio + imageSize
      */
-    protected function resolveDimensions(?string $aspectRatio, ?string $imageSize, array $config): ?array
+    protected function resolveDimensions(?string $aspectRatio, ?string $imageSize, array $config, array $constraints = []): ?array
     {
         if (!empty($config['width']) && !empty($config['height'])) {
+            $minDim = (int) ($constraints['min'] ?? config('services_custom.bfl.min_dimension', 256));
+            $maxDim = (int) ($constraints['max'] ?? config('services_custom.bfl.max_dimension', 1408));
+            $multiple = (int) ($constraints['multiple'] ?? config('services_custom.bfl.dimension_multiple', 32));
+            $multiple = $multiple > 0 ? $multiple : 1;
+
+            $width = (int) $config['width'];
+            $height = (int) $config['height'];
+
+            $width = max($minDim, min($width, $maxDim));
+            $height = max($minDim, min($height, $maxDim));
+            $width = $this->roundToMultiple($width, $multiple);
+            $height = $this->roundToMultiple($height, $multiple);
+
             return [
-                'width' => (int) $config['width'],
-                'height' => (int) $config['height'],
+                'width' => $width,
+                'height' => $height,
             ];
         }
 
@@ -773,10 +836,11 @@ class BflService
             $height = (int) round($height * $scale);
         }
 
-        $maxDim = (int) config('services_custom.bfl.max_dimension', 1408);
-        $minDim = (int) config('services_custom.bfl.min_dimension', 256);
+        $maxDim = (int) ($constraints['max'] ?? config('services_custom.bfl.max_dimension', 1408));
+        $minDim = (int) ($constraints['min'] ?? config('services_custom.bfl.min_dimension', 256));
 
-        $multiple = (int) config('services_custom.bfl.dimension_multiple', 32);
+        $multiple = (int) ($constraints['multiple'] ?? config('services_custom.bfl.dimension_multiple', 32));
+        $multiple = $multiple > 0 ? $multiple : 1;
         $width = $this->roundToMultiple($width, $multiple);
         $height = $this->roundToMultiple($height, $multiple);
 
@@ -796,6 +860,17 @@ class BflService
             '4K' => 1.5,
             default => 1.0,
         };
+    }
+
+    protected function getDimensionConstraints(string $modelId): array
+    {
+        $cap = $this->getModelCapabilities($modelId);
+
+        return [
+            'min' => (int) ($cap['min_dimension'] ?? config('services_custom.bfl.min_dimension', 256)),
+            'max' => (int) ($cap['max_dimension'] ?? config('services_custom.bfl.max_dimension', 1408)),
+            'multiple' => (int) ($cap['dimension_multiple'] ?? config('services_custom.bfl.dimension_multiple', 32)),
+        ];
     }
 
     protected function roundToMultiple(int $value, int $multiple): int

@@ -13,6 +13,7 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 /**
  * GenerateImageJob
@@ -36,9 +37,9 @@ class GenerateImageJob implements ShouldQueue
     public array $backoff = [30, 60];
 
     /**
-     * Timeout cho job (3 phút)
+     * Timeout cho job (7 phút)
      */
-    public int $timeout = 180;
+    public int $timeout = 420;
 
     /**
      * Constructor
@@ -97,6 +98,8 @@ class GenerateImageJob implements ShouldQueue
                 'style_id' => $style->id,
             ]);
 
+            $resolvedInputImages = $this->resolveInputImages();
+
             // Gọi BFL API
             $result = $bflService->generateImage(
                 $style,
@@ -104,7 +107,7 @@ class GenerateImageJob implements ShouldQueue
                 $this->customInput,
                 $this->aspectRatio,
                 $this->imageSize,
-                $this->inputImagesBase64,
+                $resolvedInputImages,
                 $this->generationOverrides
             );
 
@@ -159,6 +162,74 @@ class GenerateImageJob implements ShouldQueue
             ]);
 
             $this->handleFailure($generatedImage, $user, $walletService, 'System error: ' . $e->getMessage());
+        } finally {
+            $this->cleanupTempImages();
+        }
+    }
+
+    /**
+     * Convert temp file paths to base64 data URLs for BFL
+     */
+    protected function resolveInputImages(): array
+    {
+        $result = [];
+        foreach ($this->inputImagesBase64 as $key => $value) {
+            if (!is_string($value)) {
+                continue;
+            }
+
+            if (str_starts_with($value, 'data:image/')) {
+                $result[$key] = $value;
+                continue;
+            }
+
+            if (str_starts_with($value, 'minio:')) {
+                $minioPath = substr($value, 6);
+                if (Storage::disk('minio')->exists($minioPath)) {
+                    $content = Storage::disk('minio')->get($minioPath);
+                    $finfo = new \finfo(FILEINFO_MIME_TYPE);
+                    $mime = $finfo->buffer($content) ?: 'image/jpeg';
+                    $result[$key] = 'data:' . $mime . ';base64,' . base64_encode($content);
+                    continue;
+                }
+            }
+
+            if (Storage::disk('local')->exists($value)) {
+                $content = Storage::disk('local')->get($value);
+                $finfo = new \finfo(FILEINFO_MIME_TYPE);
+                $mime = $finfo->buffer($content) ?: 'image/jpeg';
+                $result[$key] = 'data:' . $mime . ';base64,' . base64_encode($content);
+                continue;
+            }
+
+            // Fallback: assume raw base64 or URL is still usable
+            $result[$key] = $value;
+        }
+
+        return $result;
+    }
+
+    /**
+     * Cleanup temp images after job finishes
+     */
+    protected function cleanupTempImages(): void
+    {
+        foreach ($this->inputImagesBase64 as $value) {
+            if (!is_string($value)) {
+                continue;
+            }
+
+            if (str_starts_with($value, 'minio:')) {
+                $minioPath = substr($value, 6);
+                if (Storage::disk('minio')->exists($minioPath)) {
+                    Storage::disk('minio')->delete($minioPath);
+                }
+                continue;
+            }
+
+            if (Storage::disk('local')->exists($value)) {
+                Storage::disk('local')->delete($value);
+            }
         }
     }
 

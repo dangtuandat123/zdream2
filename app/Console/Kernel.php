@@ -34,7 +34,7 @@ class Kernel extends ConsoleKernel
      */
     protected function cleanupStalledProcessingJobs(): void
     {
-        $cutoffMinutes = 10;
+        $cutoffMinutes = (int) config('services_custom.bfl.processing_timeout_minutes', 10);
         $cutoff = now()->subMinutes($cutoffMinutes);
         
         $stalledImages = \App\Models\GeneratedImage::where('status', \App\Models\GeneratedImage::STATUS_PROCESSING)

@@ -11,6 +11,7 @@ use App\Services\StorageService;
 use App\Services\WalletService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Attributes\On;
 use Livewire\Component;
 use Livewire\WithFileUploads;
@@ -116,7 +117,7 @@ class ImageGenerator extends Component
     public int $pollingInterval = 2000;
     
     // Timeout cho async processing (phút) - sau đó sẽ refund
-    private const PROCESSING_TIMEOUT_MINUTES = 5;
+    protected int $processingTimeoutMinutes = 5;
 
     /**
      * Mount component với Style
@@ -137,6 +138,7 @@ class ImageGenerator extends Component
         $this->dimensionMin = (int) config('services_custom.bfl.min_dimension', 256);
         $this->dimensionMax = (int) config('services_custom.bfl.max_dimension', 1408);
         $this->dimensionMultiple = (int) config('services_custom.bfl.dimension_multiple', 32);
+        $this->processingTimeoutMinutes = (int) config('services_custom.bfl.processing_timeout_minutes', 10);
 
         // BFL không dùng image_size như OpenRouter/Gemini
         $this->supportsImageConfig = false;
@@ -251,6 +253,34 @@ class ImageGenerator extends Component
     }
 
     /**
+     * Lưu ảnh upload tạm thời (để tránh đẩy base64 vào queue payload)
+     */
+    protected function storeUploadedImagesTemp(int $userId): array
+    {
+        $result = [];
+
+        foreach ($this->uploadedImages as $key => $image) {
+            if ($image && method_exists($image, 'storeAs')) {
+                try {
+                    $ext = $image->getClientOriginalExtension() ?: 'jpg';
+                    $filename = 'input_' . $key . '_' . uniqid('', true) . '.' . $ext;
+                    $path = $image->storeAs("tmp/bfl-inputs/user-{$userId}", $filename, 'minio');
+                    if ($path) {
+                        $result[$key] = 'minio:' . $path;
+                    }
+                } catch (\Exception $e) {
+                    Log::warning('Failed to store temp image', [
+                        'key' => $key,
+                        'error' => $e->getMessage(),
+                    ]);
+                }
+            }
+        }
+
+        return $result;
+    }
+
+    /**
      * Lấy danh sách key của image slots
      */
     protected function getImageSlotKeys(): array
@@ -290,6 +320,13 @@ class ImageGenerator extends Component
         $this->guidanceRange = $cap['guidance'] ?? [];
         $this->safetyToleranceRange = $cap['safety_tolerance'] ?? ['min' => 0, 'max' => 6, 'default' => 2];
         $this->imagePromptStrengthRange = $cap['image_prompt_strength'] ?? [];
+
+        $this->dimensionMin = (int) ($cap['min_dimension'] ?? config('services_custom.bfl.min_dimension', 256));
+        $this->dimensionMax = (int) ($cap['max_dimension'] ?? config('services_custom.bfl.max_dimension', 1408));
+        $this->dimensionMultiple = (int) ($cap['dimension_multiple'] ?? config('services_custom.bfl.dimension_multiple', 32));
+        if ($this->dimensionMultiple < 1) {
+            $this->dimensionMultiple = 1;
+        }
     }
 
     /**
@@ -529,8 +566,34 @@ class ImageGenerator extends Component
             );
             $creditsDeducted = true;
 
-            // Lấy base64 images trước khi dispatch (vì UploadedFile không serialize được)
-            $inputImagesBase64 = $this->getUploadedImagesBase64();
+            $uploadedCount = count(array_filter($this->uploadedImages));
+            $inputImagesPayload = [];
+            if ($this->useAsyncMode) {
+                $inputImagesPayload = $this->storeUploadedImagesTemp($user->id);
+                if ($uploadedCount > 0 && count($inputImagesPayload) < $uploadedCount) {
+                    foreach ($inputImagesPayload as $path) {
+                        if (!is_string($path)) {
+                            continue;
+                        }
+
+                        if (str_starts_with($path, 'minio:')) {
+                            $minioPath = substr($path, 6);
+                            if (Storage::disk('minio')->exists($minioPath)) {
+                                Storage::disk('minio')->delete($minioPath);
+                            }
+                            continue;
+                        }
+
+                        if (Storage::disk('local')->exists($path)) {
+                            Storage::disk('local')->delete($path);
+                        }
+                    }
+                    throw new \RuntimeException('Không thể lưu ảnh tạm thời. Vui lòng thử lại.');
+                }
+            } else {
+                // Sync mode: dùng base64 trực tiếp
+                $inputImagesPayload = $this->getUploadedImagesBase64();
+            }
 
             // ASYNC MODE: Dispatch job và bắt đầu polling
             if ($this->useAsyncMode) {
@@ -540,7 +603,7 @@ class ImageGenerator extends Component
                     $this->customInput ?: null,
                     $this->selectedAspectRatio,
                     $this->selectedImageSize,
-                    $inputImagesBase64,
+                    $inputImagesPayload,
                     $generationOverrides
                 );
 
@@ -565,7 +628,7 @@ class ImageGenerator extends Component
                 $this->customInput ?: null,
                 $this->selectedAspectRatio,
                 $this->selectedImageSize,
-                $inputImagesBase64,
+                $inputImagesPayload,
                 $generationOverrides
             );
 
@@ -722,14 +785,14 @@ class ImageGenerator extends Component
             // HIGH-02 FIX: Watchdog - kiểm tra timeout
             $processingMinutes = now()->diffInMinutes($image->created_at);
             
-            if ($processingMinutes >= self::PROCESSING_TIMEOUT_MINUTES) {
+            if ($processingMinutes >= $this->processingTimeoutMinutes) {
                 Log::warning('Watchdog: Job timeout detected', [
                     'image_id' => $image->id,
                     'processing_minutes' => $processingMinutes,
                 ]);
                 
                 // Mark as failed và refund credits
-                $image->markAsFailed('Timeout: Job không hoàn thành sau ' . self::PROCESSING_TIMEOUT_MINUTES . ' phút');
+                $image->markAsFailed('Timeout: Job không hoàn thành sau ' . $this->processingTimeoutMinutes . ' phút');
                 
                 // Refund credits - [BUG FIX P4-02] Check nếu đã refund trước đó
                 $user = $image->user;

@@ -354,7 +354,7 @@
                     @if(!$supportsAspectRatio)
                         <p class="text-yellow-400/70 text-xs mt-3 flex items-center gap-2">
                             <i class="fa-solid fa-info-circle"></i>
-                            <span>Mẫu này chưa có tuỳ chọn dáng ảnh riêng, hệ thống sẽ tự cân kích thước phù hợp.</span>
+                            <span>Dáng ảnh sẽ được quy đổi sang kích thước tương ứng để tạo ảnh.</span>
                         </p>
                     @endif
                 </div>

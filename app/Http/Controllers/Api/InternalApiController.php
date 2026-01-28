@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Setting;
 use App\Models\User;
 use App\Models\WalletTransaction;
 use App\Services\WalletService;
@@ -150,8 +151,10 @@ class InternalApiController extends Controller
                 }
                 
                 // Chưa có, tạo mới
-                // [FIX API-01] Chuyển đổi VND → Xu (1.000 VND = 1 Xu)
-                $creditsToAdd = $validated['amount'] / 1000;
+                // [FIX API-01] Chuyển đổi VND → Xu theo settings
+                $exchangeRate = (int) (Setting::get('credit_exchange_rate', 1000) ?: 1000);
+                $exchangeRate = $exchangeRate > 0 ? $exchangeRate : 1000;
+                $creditsToAdd = $validated['amount'] / $exchangeRate;
                 
                 $transaction = $this->walletService->addCredits(
                     $user,

@@ -15,7 +15,10 @@ return [
         'api_key' => env('BFL_API_KEY'),
         'base_url' => env('BFL_BASE_URL', 'https://api.bfl.ai'),
         'timeout' => 120,
-        'poll_timeout' => 120,
+        'poll_timeout' => 300,
+        // Maximum bytes allowed for downloading/processing BFL images (25MB)
+        'max_image_bytes' => 26214400,
+        'processing_timeout_minutes' => 10,
         'max_dimension' => 1440,
         'min_dimension' => 64,
         'dimension_multiple' => 32,
@@ -40,6 +43,9 @@ return [
                 'max_input_images' => 8,
                 'output_formats' => ['jpeg', 'png'],
                 'safety_tolerance' => ['min' => 0, 'max' => 5, 'default' => 2],
+                'min_dimension' => 64,
+                'max_dimension' => 2048,
+                'dimension_multiple' => 16,
             ],
             [
                 'id' => 'flux-2-pro',
@@ -59,6 +65,9 @@ return [
                 'max_input_images' => 8,
                 'output_formats' => ['jpeg', 'png'],
                 'safety_tolerance' => ['min' => 0, 'max' => 5, 'default' => 2],
+                'min_dimension' => 64,
+                'max_dimension' => 2048,
+                'dimension_multiple' => 16,
             ],
             [
                 'id' => 'flux-2-flex',
@@ -81,6 +90,9 @@ return [
                 'steps' => ['min' => 1, 'max' => 50, 'default' => 50],
                 'guidance' => ['min' => 1.5, 'max' => 10, 'default' => 5],
                 'safety_tolerance' => ['min' => 0, 'max' => 5, 'default' => 2],
+                'min_dimension' => 64,
+                'max_dimension' => 2048,
+                'dimension_multiple' => 16,
             ],
             [
                 'id' => 'flux-2-klein-4b',
@@ -100,6 +112,9 @@ return [
                 'max_input_images' => 4,
                 'output_formats' => ['jpeg', 'png'],
                 'safety_tolerance' => ['min' => 0, 'max' => 5, 'default' => 2],
+                'min_dimension' => 64,
+                'max_dimension' => 2048,
+                'dimension_multiple' => 16,
             ],
             [
                 'id' => 'flux-2-klein-9b',
@@ -119,6 +134,9 @@ return [
                 'max_input_images' => 4,
                 'output_formats' => ['jpeg', 'png'],
                 'safety_tolerance' => ['min' => 0, 'max' => 5, 'default' => 2],
+                'min_dimension' => 64,
+                'max_dimension' => 2048,
+                'dimension_multiple' => 16,
             ],
             [
                 'id' => 'flux-kontext-pro',
@@ -177,6 +195,9 @@ return [
                 'uses_image_prompt' => true,
                 'output_formats' => ['jpeg', 'png'],
                 'safety_tolerance' => ['min' => 0, 'max' => 6, 'default' => 2],
+                'min_dimension' => 256,
+                'max_dimension' => 1440,
+                'dimension_multiple' => 32,
             ],
             [
                 'id' => 'flux-pro-1.1-ultra',
@@ -237,6 +258,9 @@ return [
                 'steps' => ['min' => 1, 'max' => 50, 'default' => 28],
                 'guidance' => ['min' => 1.5, 'max' => 5, 'default' => 3],
                 'safety_tolerance' => ['min' => 0, 'max' => 6, 'default' => 2],
+                'min_dimension' => 256,
+                'max_dimension' => 1440,
+                'dimension_multiple' => 32,
             ],
         ],
 
