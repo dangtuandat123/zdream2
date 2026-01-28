@@ -166,7 +166,7 @@
                                             flex items-center justify-center">
                                             <i class="fa-solid fa-ban {{ $isDefaultSelected ? 'text-cyan-400' : 'text-white/30' }}" style="font-size: 20px;"></i>
                                         </div>
-                                        <span class="w-full text-center text-xs font-medium truncate {{ $isDefaultSelected ? 'text-cyan-400' : 'text-white/50' }}">Mặc định</span>
+                                        <span class="w-full text-center text-xs font-medium leading-snug whitespace-normal break-words min-h-8 {{ $isDefaultSelected ? 'text-cyan-400' : 'text-white/50' }}">Mặc định</span>
                                     </button>
 
                                     {{-- Style options --}}
@@ -202,7 +202,7 @@
                                                     <i class="fa-solid fa-wand-magic-sparkles {{ $isSelected ? 'text-cyan-400' : 'text-white/30' }}" style="font-size: 18px;"></i>
                                                 @endif
                                             </div>
-                                            <span class="w-full text-center text-xs font-medium truncate {{ $isSelected ? 'text-cyan-400' : 'text-white/50' }}">{{ $option->label }}</span>
+                                            <span class="w-full text-center text-xs font-medium leading-snug whitespace-normal break-words min-h-8 {{ $isSelected ? 'text-cyan-400' : 'text-white/50' }}">{{ $option->label }}</span>
                                         </button>
                                     @endforeach
                                 </div>
