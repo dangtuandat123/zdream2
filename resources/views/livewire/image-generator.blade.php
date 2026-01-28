@@ -295,16 +295,16 @@
                                 <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
                                 Chọn cách thiết lập kích thước
                             </div>
-                            <div class="inline-flex rounded-xl bg-black/20 border border-cyan-500/30 p-1">
+                            <div class="grid grid-cols-2 sm:inline-flex rounded-xl bg-black/20 border border-cyan-500/30 p-1 w-full sm:w-auto">
                                 <button type="button"
                                         wire:click="$set('sizeMode','ratio')"
-                                        class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all
+                                        class="w-full sm:w-auto px-3 py-1.5 rounded-lg text-xs font-semibold transition-all
                                             {{ $sizeMode === 'ratio' ? 'bg-cyan-500/30 text-cyan-200 shadow-[0_0_12px_rgba(6,182,212,0.35)]' : 'text-white/60 hover:text-white/80' }}">
                                     Theo dáng ảnh
                                 </button>
                                 <button type="button"
                                         wire:click="$set('sizeMode','custom')"
-                                        class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all
+                                        class="w-full sm:w-auto px-3 py-1.5 rounded-lg text-xs font-semibold transition-all
                                             {{ $sizeMode === 'custom' ? 'bg-cyan-500/30 text-cyan-200 shadow-[0_0_12px_rgba(6,182,212,0.35)]' : 'text-white/60 hover:text-white/80' }}">
                                     Nhập kích thước
                                 </button>
@@ -423,16 +423,18 @@
                                 <span>Mã giữ kết quả</span>
                                 <i class="fa-solid fa-circle-question text-white/30" style="font-size: 12px;" title="Nhập mã để lần sau ra ảnh gần giống nhau."></i>
                             </label>
-                            <div class="flex items-center gap-2">
+                            <div class="flex flex-col sm:flex-row items-stretch gap-2">
                                 <input type="number" min="0" step="1" wire:model.live="seed"
                                        placeholder="Auto"
                                        class="w-full h-9 px-3 rounded-lg bg-white/[0.03] border border-white/[0.08] text-white/90 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500/40">
-                                <button type="button" wire:click="randomizeSeed" class="h-9 px-3 rounded-lg bg-cyan-500/15 border border-cyan-500/30 text-cyan-300 text-xs font-semibold inline-flex items-center justify-center hover:bg-cyan-500/25 transition-colors">
-                                    Random
-                                </button>
-                                <button type="button" wire:click="clearSeed" class="h-9 px-3 rounded-lg bg-white/[0.05] border border-white/[0.1] text-white/50 text-xs font-semibold inline-flex items-center justify-center hover:bg-white/[0.1] transition-colors">
-                                    Auto
-                                </button>
+                                <div class="grid grid-cols-2 sm:flex sm:items-center gap-2 sm:gap-2 w-full sm:w-auto">
+                                    <button type="button" wire:click="randomizeSeed" class="w-full flex-1 sm:w-auto sm:flex-none h-9 px-3 rounded-lg bg-cyan-500/15 border border-cyan-500/30 text-cyan-300 text-xs font-semibold inline-flex items-center justify-center hover:bg-cyan-500/25 transition-colors">
+                                        Random
+                                    </button>
+                                    <button type="button" wire:click="clearSeed" class="w-full flex-1 sm:w-auto sm:flex-none h-9 px-3 rounded-lg bg-white/[0.05] border border-white/[0.1] text-white/50 text-xs font-semibold inline-flex items-center justify-center hover:bg-white/[0.1] transition-colors">
+                                        Auto
+                                    </button>
+                                </div>
                             </div>
                             <p class="text-xs text-white/40 mt-2">
                                 Nhập mã để lần sau ra ảnh gần giống. Để trống sẽ ngẫu nhiên mỗi lần.
