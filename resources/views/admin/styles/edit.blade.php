@@ -275,6 +275,228 @@
                         @enderror
                     </div>
 
+                    <!-- Prompt Template -->
+                    @php
+                        $configPayload = $style->config_payload ?? [];
+                        $promptDefaults = $configPayload['prompt_defaults'] ?? [];
+                    @endphp
+                    <div class="bg-white/[0.02] border border-white/[0.06] rounded-xl p-4">
+                        <h3 class="text-sm font-semibold text-white/70 mb-3">Thiết kế Prompt (nâng cao)</h3>
+                        <p class="text-xs text-white/40 mb-3">
+                            Mỗi ô dưới đây là một phần của prompt. Nếu ô trống thì hệ thống sẽ tự bỏ qua.
+                        </p>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-4 text-xs">
+                            <div class="rounded-lg bg-white/[0.02] border border-white/[0.06] p-3">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <span class="text-white/80 font-medium">Prompt gốc</span>
+                                    <span class="text-white/50 font-mono">{{ '{' }}{base}{{ '}' }}</span>
+                                </div>
+                                <p class="text-white/40">Mô tả nền tảng của style.</p>
+                                <p class="text-white/60 mt-1">VD: “Ảnh chân dung chuyên nghiệp”</p>
+                            </div>
+                            <div class="rounded-lg bg-white/[0.02] border border-white/[0.06] p-3">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <span class="text-white/80 font-medium">Chủ thể</span>
+                                    <span class="text-white/50 font-mono">{{ '{' }}{subject}{{ '}' }}</span>
+                                </div>
+                                <p class="text-white/40">Ai/cái gì xuất hiện trong ảnh.</p>
+                                <p class="text-white/60 mt-1">VD: “cô gái”, “chú mèo”</p>
+                            </div>
+                            <div class="rounded-lg bg-white/[0.02] border border-white/[0.06] p-3">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <span class="text-white/80 font-medium">Hành động</span>
+                                    <span class="text-white/50 font-mono">{{ '{' }}{action}{{ '}' }}</span>
+                                </div>
+                                <p class="text-white/40">Chủ thể đang làm gì.</p>
+                                <p class="text-white/60 mt-1">VD: “đang cười”, “đang chạy”</p>
+                            </div>
+                            <div class="rounded-lg bg-white/[0.02] border border-white/[0.06] p-3">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <span class="text-white/80 font-medium">Phong cách</span>
+                                    <span class="text-white/50 font-mono">{{ '{' }}{style}{{ '}' }}</span>
+                                </div>
+                                <p class="text-white/40">Chất liệu/phong cách hình ảnh.</p>
+                                <p class="text-white/60 mt-1">VD: “anime”, “cinematic”</p>
+                            </div>
+                            <div class="rounded-lg bg-white/[0.02] border border-white/[0.06] p-3">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <span class="text-white/80 font-medium">Bối cảnh</span>
+                                    <span class="text-white/50 font-mono">{{ '{' }}{context}{{ '}' }}</span>
+                                </div>
+                                <p class="text-white/40">Không gian/xuất hiện ở đâu.</p>
+                                <p class="text-white/60 mt-1">VD: “phố đêm”, “phòng studio”</p>
+                            </div>
+                            <div class="rounded-lg bg-white/[0.02] border border-white/[0.06] p-3">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <span class="text-white/80 font-medium">Cảm xúc</span>
+                                    <span class="text-white/50 font-mono">{{ '{' }}{mood}{{ '}' }}</span>
+                                </div>
+                                <p class="text-white/40">Không khí/nhịp cảm xúc.</p>
+                                <p class="text-white/60 mt-1">VD: “ấm áp”, “bí ẩn”</p>
+                            </div>
+                            <div class="rounded-lg bg-white/[0.02] border border-white/[0.06] p-3">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <span class="text-white/80 font-medium">Ánh sáng</span>
+                                    <span class="text-white/50 font-mono">{{ '{' }}{lighting}{{ '}' }}</span>
+                                </div>
+                                <p class="text-white/40">Kiểu ánh sáng chính.</p>
+                                <p class="text-white/60 mt-1">VD: “neon”, “ánh sáng mềm”</p>
+                            </div>
+                            <div class="rounded-lg bg-white/[0.02] border border-white/[0.06] p-3">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <span class="text-white/80 font-medium">Màu sắc</span>
+                                    <span class="text-white/50 font-mono">{{ '{' }}{color}{{ '}' }}</span>
+                                </div>
+                                <p class="text-white/40">Tông màu chủ đạo.</p>
+                                <p class="text-white/60 mt-1">VD: “tông xanh tím”</p>
+                            </div>
+                            <div class="rounded-lg bg-white/[0.02] border border-white/[0.06] p-3">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <span class="text-white/80 font-medium">Chi tiết</span>
+                                    <span class="text-white/50 font-mono">{{ '{' }}{details}{{ '}' }}</span>
+                                </div>
+                                <p class="text-white/40">Mức độ chi tiết mong muốn.</p>
+                                <p class="text-white/60 mt-1">VD: “siêu chi tiết”, “tóc rõ nét”</p>
+                            </div>
+                            <div class="rounded-lg bg-white/[0.02] border border-white/[0.06] p-3">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <span class="text-white/80 font-medium">Kỹ thuật</span>
+                                    <span class="text-white/50 font-mono">{{ '{' }}{technical}{{ '}' }}</span>
+                                </div>
+                                <p class="text-white/40">Thông số/kiểu chụp.</p>
+                                <p class="text-white/60 mt-1">VD: “85mm, f/1.4, bokeh”</p>
+                            </div>
+                            <div class="rounded-lg bg-white/[0.02] border border-white/[0.06] p-3">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <span class="text-white/80 font-medium">Tuỳ chọn</span>
+                                    <span class="text-white/50 font-mono">{{ '{' }}{custom}{{ '}' }}</span>
+                                </div>
+                                <p class="text-white/40">Nội dung người dùng nhập thêm.</p>
+                                <p class="text-white/60 mt-1">VD: “nụ cười nhẹ”</p>
+                            </div>
+                            <div class="rounded-lg bg-white/[0.02] border border-white/[0.06] p-3">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <span class="text-white/80 font-medium">Khác</span>
+                                    <span class="text-white/50 font-mono">{{ '{' }}{misc}{{ '}' }}</span>
+                                </div>
+                                <p class="text-white/40">Ghi chú bổ sung nếu cần.</p>
+                                <p class="text-white/60 mt-1">VD: “tập trung vào mắt”</p>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-4">
+                            <div>
+                                <label class="block text-xs text-white/50 mb-1">Chủ thể (subject)</label>
+                                <input type="text" name="config_payload[prompt_defaults][subject]" value="{{ old('config_payload.prompt_defaults.subject', $promptDefaults['subject'] ?? '') }}"
+                                       class="w-full px-3 py-2 rounded-lg bg-white/[0.03] border border-white/[0.08] text-white/90 text-xs focus:outline-none focus:ring-2 focus:ring-cyan-500/40"
+                                       placeholder="VD: cô gái, chú mèo">
+                                <p class="text-[11px] text-white/40 mt-1">Ai/cái gì xuất hiện trong ảnh.</p>
+                            </div>
+                            <div>
+                                <label class="block text-xs text-white/50 mb-1">Hành động (action)</label>
+                                <input type="text" name="config_payload[prompt_defaults][action]" value="{{ old('config_payload.prompt_defaults.action', $promptDefaults['action'] ?? '') }}"
+                                       class="w-full px-3 py-2 rounded-lg bg-white/[0.03] border border-white/[0.08] text-white/90 text-xs focus:outline-none focus:ring-2 focus:ring-cyan-500/40"
+                                       placeholder="VD: đang cười, đang chạy">
+                                <p class="text-[11px] text-white/40 mt-1">Chủ thể đang làm gì.</p>
+                            </div>
+                            <div>
+                                <label class="block text-xs text-white/50 mb-1">Phong cách (style)</label>
+                                <input type="text" name="config_payload[prompt_defaults][style]" value="{{ old('config_payload.prompt_defaults.style', $promptDefaults['style'] ?? '') }}"
+                                       class="w-full px-3 py-2 rounded-lg bg-white/[0.03] border border-white/[0.08] text-white/90 text-xs focus:outline-none focus:ring-2 focus:ring-cyan-500/40"
+                                       placeholder="VD: anime, cinematic">
+                                <p class="text-[11px] text-white/40 mt-1">Chất liệu/phong cách hình ảnh.</p>
+                            </div>
+                            <div>
+                                <label class="block text-xs text-white/50 mb-1">Bối cảnh (context)</label>
+                                <input type="text" name="config_payload[prompt_defaults][context]" value="{{ old('config_payload.prompt_defaults.context', $promptDefaults['context'] ?? '') }}"
+                                       class="w-full px-3 py-2 rounded-lg bg-white/[0.03] border border-white/[0.08] text-white/90 text-xs focus:outline-none focus:ring-2 focus:ring-cyan-500/40"
+                                       placeholder="VD: phố đêm, phòng studio">
+                                <p class="text-[11px] text-white/40 mt-1">Không gian/xuất hiện ở đâu.</p>
+                            </div>
+                            <div>
+                                <label class="block text-xs text-white/50 mb-1">Cảm xúc (mood)</label>
+                                <input type="text" name="config_payload[prompt_defaults][mood]" value="{{ old('config_payload.prompt_defaults.mood', $promptDefaults['mood'] ?? '') }}"
+                                       class="w-full px-3 py-2 rounded-lg bg-white/[0.03] border border-white/[0.08] text-white/90 text-xs focus:outline-none focus:ring-2 focus:ring-cyan-500/40"
+                                       placeholder="VD: ấm áp, bí ẩn">
+                                <p class="text-[11px] text-white/40 mt-1">Không khí/nhịp cảm xúc.</p>
+                            </div>
+                            <div>
+                                <label class="block text-xs text-white/50 mb-1">Ánh sáng (lighting)</label>
+                                <input type="text" name="config_payload[prompt_defaults][lighting]" value="{{ old('config_payload.prompt_defaults.lighting', $promptDefaults['lighting'] ?? '') }}"
+                                       class="w-full px-3 py-2 rounded-lg bg-white/[0.03] border border-white/[0.08] text-white/90 text-xs focus:outline-none focus:ring-2 focus:ring-cyan-500/40"
+                                       placeholder="VD: neon, ánh sáng mềm">
+                                <p class="text-[11px] text-white/40 mt-1">Kiểu ánh sáng chính.</p>
+                            </div>
+                            <div>
+                                <label class="block text-xs text-white/50 mb-1">Màu sắc (color)</label>
+                                <input type="text" name="config_payload[prompt_defaults][color]" value="{{ old('config_payload.prompt_defaults.color', $promptDefaults['color'] ?? '') }}"
+                                       class="w-full px-3 py-2 rounded-lg bg-white/[0.03] border border-white/[0.08] text-white/90 text-xs focus:outline-none focus:ring-2 focus:ring-cyan-500/40"
+                                       placeholder="VD: tông xanh tím">
+                                <p class="text-[11px] text-white/40 mt-1">Tông màu chủ đạo.</p>
+                            </div>
+                            <div>
+                                <label class="block text-xs text-white/50 mb-1">Chi tiết (details)</label>
+                                <input type="text" name="config_payload[prompt_defaults][details]" value="{{ old('config_payload.prompt_defaults.details', $promptDefaults['details'] ?? '') }}"
+                                       class="w-full px-3 py-2 rounded-lg bg-white/[0.03] border border-white/[0.08] text-white/90 text-xs focus:outline-none focus:ring-2 focus:ring-cyan-500/40"
+                                       placeholder="VD: siêu chi tiết, tóc rõ nét">
+                                <p class="text-[11px] text-white/40 mt-1">Mức độ chi tiết mong muốn.</p>
+                            </div>
+                            <div>
+                                <label class="block text-xs text-white/50 mb-1">Kỹ thuật (technical)</label>
+                                <input type="text" name="config_payload[prompt_defaults][technical]" value="{{ old('config_payload.prompt_defaults.technical', $promptDefaults['technical'] ?? '') }}"
+                                       class="w-full px-3 py-2 rounded-lg bg-white/[0.03] border border-white/[0.08] text-white/90 text-xs focus:outline-none focus:ring-2 focus:ring-cyan-500/40"
+                                       placeholder="VD: 85mm, f/1.4, bokeh">
+                                <p class="text-[11px] text-white/40 mt-1">Thông số/kiểu chụp.</p>
+                            </div>
+                            <div>
+                                <label class="block text-xs text-white/50 mb-1">Tuỳ chọn (custom)</label>
+                                <input type="text" name="config_payload[prompt_defaults][custom]" value="{{ old('config_payload.prompt_defaults.custom', $promptDefaults['custom'] ?? '') }}"
+                                       class="w-full px-3 py-2 rounded-lg bg-white/[0.03] border border-white/[0.08] text-white/90 text-xs focus:outline-none focus:ring-2 focus:ring-cyan-500/40"
+                                       placeholder="VD: nụ cười nhẹ">
+                                <p class="text-[11px] text-white/40 mt-1">Nội dung bổ sung cố định (khác với người dùng nhập).</p>
+                            </div>
+                            <div>
+                                <label class="block text-xs text-white/50 mb-1">Khác (misc)</label>
+                                <input type="text" name="config_payload[prompt_defaults][misc]" value="{{ old('config_payload.prompt_defaults.misc', $promptDefaults['misc'] ?? '') }}"
+                                       class="w-full px-3 py-2 rounded-lg bg-white/[0.03] border border-white/[0.08] text-white/90 text-xs focus:outline-none focus:ring-2 focus:ring-cyan-500/40"
+                                       placeholder="VD: tập trung vào mắt">
+                                <p class="text-[11px] text-white/40 mt-1">Ghi chú bổ sung nếu cần.</p>
+                            </div>
+                        </div>
+                        <div class="space-y-3">
+                            <div>
+                                <label class="block text-xs text-white/50 mb-1">Mẫu prompt (Template)</label>
+                                <textarea name="config_payload[prompt_template]" rows="3"
+                                          class="w-full px-3 py-2 rounded-lg bg-white/[0.03] border border-white/[0.08] text-white/90 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-cyan-500/40"
+                                          placeholder="{{ '{' }}{context}{{ '}' }}, {{ '{' }}{subject}{{ '}' }}, {{ '{' }}{action}{{ '}' }}, {{ '{' }}{style}{{ '}' }}">{{ old('config_payload.prompt_template', $configPayload['prompt_template'] ?? '') }}</textarea>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs text-white/50 mb-1">Tiền tố (Prefix)</label>
+                                    <input type="text" name="config_payload[prompt_prefix]" value="{{ old('config_payload.prompt_prefix', $configPayload['prompt_prefix'] ?? '') }}"
+                                           class="w-full px-3 py-2 rounded-lg bg-white/[0.03] border border-white/[0.08] text-white/90 text-xs focus:outline-none focus:ring-2 focus:ring-cyan-500/40"
+                                           placeholder="VD: Giữ bố cục, chỉ thay đổi phần mô tả:">
+                                </div>
+                                <div>
+                                    <label class="block text-xs text-white/50 mb-1">Hậu tố (Suffix)</label>
+                                    <input type="text" name="config_payload[prompt_suffix]" value="{{ old('config_payload.prompt_suffix', $configPayload['prompt_suffix'] ?? '') }}"
+                                           class="w-full px-3 py-2 rounded-lg bg-white/[0.03] border border-white/[0.08] text-white/90 text-xs focus:outline-none focus:ring-2 focus:ring-cyan-500/40"
+                                           placeholder="VD: chi tiết cao, nét sắc">
+                                </div>
+                            </div>
+                            @php
+                                $promptStrategyValue = old('config_payload.prompt_strategy', $configPayload['prompt_strategy'] ?? '');
+                            @endphp
+                            <div>
+                                <label class="block text-xs text-white/50 mb-1">Chiến lược sắp xếp</label>
+                                <select name="config_payload[prompt_strategy]" class="w-full px-3 py-2 rounded-lg bg-white/[0.03] border border-white/[0.08] text-white/90 text-xs focus:outline-none focus:ring-2 focus:ring-cyan-500/40">
+                                    <option value="">Mặc định</option>
+                                    <option value="standard" {{ $promptStrategyValue === 'standard' ? 'selected' : '' }}>Chuẩn (Chủ thể → Hành động → Phong cách → Bối cảnh)</option>
+                                    <option value="narrative" {{ $promptStrategyValue === 'narrative' ? 'selected' : '' }}>Kể chuyện (Ưu tiên bối cảnh)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
                     @php
                         $currentRatio = $style->config_payload['aspect_ratio'] ?? '';
                     @endphp

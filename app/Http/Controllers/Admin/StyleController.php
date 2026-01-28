@@ -114,6 +114,22 @@ public function create(): View
             'config_payload.output_format' => ['nullable', 'string', Rule::in(['jpeg', 'png'])],
             'config_payload.raw' => 'nullable|boolean',
             'config_payload.image_prompt_strength' => 'nullable|numeric|min:0|max:1',
+            'config_payload.prompt_template' => 'nullable|string|max:2000',
+            'config_payload.prompt_prefix' => 'nullable|string|max:500',
+            'config_payload.prompt_suffix' => 'nullable|string|max:500',
+            'config_payload.prompt_strategy' => ['nullable', 'string', Rule::in(['standard', 'narrative'])],
+            'config_payload.prompt_defaults' => 'nullable|array',
+            'config_payload.prompt_defaults.subject' => 'nullable|string|max:500',
+            'config_payload.prompt_defaults.action' => 'nullable|string|max:500',
+            'config_payload.prompt_defaults.style' => 'nullable|string|max:500',
+            'config_payload.prompt_defaults.context' => 'nullable|string|max:500',
+            'config_payload.prompt_defaults.mood' => 'nullable|string|max:500',
+            'config_payload.prompt_defaults.lighting' => 'nullable|string|max:500',
+            'config_payload.prompt_defaults.color' => 'nullable|string|max:500',
+            'config_payload.prompt_defaults.details' => 'nullable|string|max:500',
+            'config_payload.prompt_defaults.technical' => 'nullable|string|max:500',
+            'config_payload.prompt_defaults.custom' => 'nullable|string|max:500',
+            'config_payload.prompt_defaults.misc' => 'nullable|string|max:500',
             'allow_user_custom_prompt' => 'nullable',
             'is_active' => 'nullable',
             'is_featured' => 'nullable',
@@ -267,6 +283,22 @@ public function edit(Style $style): View
             'config_payload.output_format' => ['nullable', 'string', Rule::in(['jpeg', 'png'])],
             'config_payload.raw' => 'nullable|boolean',
             'config_payload.image_prompt_strength' => 'nullable|numeric|min:0|max:1',
+            'config_payload.prompt_template' => 'nullable|string|max:2000',
+            'config_payload.prompt_prefix' => 'nullable|string|max:500',
+            'config_payload.prompt_suffix' => 'nullable|string|max:500',
+            'config_payload.prompt_strategy' => ['nullable', 'string', Rule::in(['standard', 'narrative'])],
+            'config_payload.prompt_defaults' => 'nullable|array',
+            'config_payload.prompt_defaults.subject' => 'nullable|string|max:500',
+            'config_payload.prompt_defaults.action' => 'nullable|string|max:500',
+            'config_payload.prompt_defaults.style' => 'nullable|string|max:500',
+            'config_payload.prompt_defaults.context' => 'nullable|string|max:500',
+            'config_payload.prompt_defaults.mood' => 'nullable|string|max:500',
+            'config_payload.prompt_defaults.lighting' => 'nullable|string|max:500',
+            'config_payload.prompt_defaults.color' => 'nullable|string|max:500',
+            'config_payload.prompt_defaults.details' => 'nullable|string|max:500',
+            'config_payload.prompt_defaults.technical' => 'nullable|string|max:500',
+            'config_payload.prompt_defaults.custom' => 'nullable|string|max:500',
+            'config_payload.prompt_defaults.misc' => 'nullable|string|max:500',
             'allow_user_custom_prompt' => 'nullable',
             'is_active' => 'nullable',
             'is_featured' => 'nullable',
@@ -596,6 +628,26 @@ public function edit(Style $style): View
             return $base;
         }
 
+        if (array_key_exists('prompt_defaults', $input)) {
+            $defaults = $input['prompt_defaults'];
+            if (!is_array($defaults)) {
+                unset($base['prompt_defaults']);
+            } else {
+                $cleanDefaults = [];
+                foreach ($defaults as $slot => $value) {
+                    $value = trim((string) $value);
+                    if ($value !== '') {
+                        $cleanDefaults[$slot] = $value;
+                    }
+                }
+                if (empty($cleanDefaults)) {
+                    unset($base['prompt_defaults']);
+                } else {
+                    $base['prompt_defaults'] = $cleanDefaults;
+                }
+            }
+        }
+
         $map = [
             'seed' => 'int',
             'steps' => 'int',
@@ -607,6 +659,10 @@ public function edit(Style $style): View
             'image_prompt_strength' => 'float',
             'width' => 'int',
             'height' => 'int',
+            'prompt_template' => 'string',
+            'prompt_prefix' => 'string',
+            'prompt_suffix' => 'string',
+            'prompt_strategy' => 'string',
         ];
 
         foreach ($map as $key => $type) {

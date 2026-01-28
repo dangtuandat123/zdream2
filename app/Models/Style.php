@@ -205,42 +205,220 @@ class Style extends Model
     public function buildFinalPrompt(array $selectedOptionIds = [], ?string $userCustomInput = null): string
     {
         $prompt = trim($this->base_prompt);
-        $fragments = [];
+        $config = is_array($this->config_payload) ? $this->config_payload : [];
+        $modelId = strtolower((string) ($this->bfl_model_id ?? ''));
 
-        // Collect all option fragments
-        if (!empty($selectedOptionIds)) {
-            $options = $this->options()
-                ->whereIn('id', $selectedOptionIds)
-                ->orderBy('sort_order')
-                ->get();
-                
-            foreach ($options as $option) {
-                $fragment = $this->normalizePromptFragment($option->prompt_fragment);
-                if (!empty($fragment)) {
-                    $fragments[] = $fragment;
-                }
-            }
+        $fragmentsBySlot = $this->collectPromptFragmentsBySlot($selectedOptionIds, $userCustomInput);
+        $template = trim((string) ($config['prompt_template'] ?? ''));
+        $strategy = trim((string) ($config['prompt_strategy'] ?? ''));
+
+        if ($template !== '') {
+            $prompt = $this->applyPromptTemplate($template, $prompt, $fragmentsBySlot);
+        } else {
+            $orderedFragments = $this->buildOrderedPromptFragments($modelId, $strategy, $prompt, $fragmentsBySlot);
+            $prompt = implode(self::PROMPT_SEPARATOR, $orderedFragments);
         }
 
-        // Add user custom input (nếu được phép và có nội dung)
-        if ($this->allow_user_custom_prompt && !empty($userCustomInput)) {
-            $fragment = $this->normalizePromptFragment($userCustomInput);
-            if (!empty($fragment)) {
-                $fragments[] = $fragment;
-            }
+        $prefix = trim((string) ($config['prompt_prefix'] ?? ''));
+        $suffix = trim((string) ($config['prompt_suffix'] ?? ''));
+
+        if ($prefix !== '') {
+            $prompt = $prefix . self::PROMPT_SEPARATOR . ltrim($prompt, ', ;');
+        }
+        if ($suffix !== '') {
+            $prompt = rtrim($prompt, ', ;') . self::PROMPT_SEPARATOR . $suffix;
         }
 
-        // Join all fragments with separator
-        if (!empty($fragments)) {
-            // Đảm bảo base_prompt không kết thúc bằng separator
-            $prompt = rtrim($prompt, ', ;');
-            $prompt .= self::PROMPT_SEPARATOR . implode(self::PROMPT_SEPARATOR, $fragments);
-        }
+        $prompt = $this->cleanupPrompt($prompt);
 
         // Enforce max length để tránh API rejection
         if (mb_strlen($prompt) > self::MAX_PROMPT_LENGTH) {
             $prompt = mb_substr($prompt, 0, self::MAX_PROMPT_LENGTH - 3) . '...';
         }
+
+        return $prompt;
+    }
+
+    /**
+     * Collect prompt fragments and group by semantic slots (subject/action/style/context/etc.)
+     */
+    protected function collectPromptFragmentsBySlot(array $selectedOptionIds = [], ?string $userCustomInput = null): array
+    {
+        $slots = $this->getPromptSlots();
+        $fragmentsBySlot = array_fill_keys($slots, []);
+        $config = is_array($this->config_payload) ? $this->config_payload : [];
+        $defaults = $config['prompt_defaults'] ?? [];
+
+        if (is_array($defaults)) {
+            foreach ($slots as $slot) {
+                $defaultValue = $defaults[$slot] ?? '';
+                if ($defaultValue !== null && $defaultValue !== '') {
+                    $fragment = $this->normalizePromptFragment((string) $defaultValue);
+                    if ($fragment !== '') {
+                        $fragmentsBySlot[$slot][] = $fragment;
+                    }
+                }
+            }
+        }
+
+        if (!empty($selectedOptionIds)) {
+            $options = $this->options()
+                ->whereIn('id', $selectedOptionIds)
+                ->orderBy('sort_order')
+                ->get();
+
+            foreach ($options as $option) {
+                $fragment = $this->normalizePromptFragment($option->prompt_fragment);
+                if ($fragment === '') {
+                    continue;
+                }
+                $slot = $this->classifyGroupName((string) $option->group_name);
+                $fragmentsBySlot[$slot][] = $fragment;
+            }
+        }
+
+        if ($this->allow_user_custom_prompt && !empty($userCustomInput)) {
+            $fragment = $this->normalizePromptFragment($userCustomInput);
+            if ($fragment !== '') {
+                $fragmentsBySlot['custom'][] = $fragment;
+            }
+        }
+
+        return $fragmentsBySlot;
+    }
+
+    /**
+     * Prompt slots that we support.
+     */
+    protected function getPromptSlots(): array
+    {
+        return [
+            'subject',
+            'action',
+            'style',
+            'context',
+            'mood',
+            'lighting',
+            'color',
+            'details',
+            'technical',
+            'custom',
+            'misc',
+        ];
+    }
+
+    /**
+     * Map group_name -> semantic slot.
+     */
+    protected function classifyGroupName(string $groupName): string
+    {
+        $normalized = strtolower(Str::ascii($groupName));
+        $normalized = preg_replace('/\s+/', ' ', trim($normalized));
+
+        $match = function (array $keywords) use ($normalized): bool {
+            foreach ($keywords as $keyword) {
+                if (str_contains($normalized, $keyword)) {
+                    return true;
+                }
+            }
+            return false;
+        };
+
+        if ($match(['chu the', 'nhan vat', 'doi tuong', 'subject', 'character', 'person', 'animal'])) {
+            return 'subject';
+        }
+        if ($match(['hanh dong', 'action', 'pose', 'tu the', 'cu chi', 'gesture'])) {
+            return 'action';
+        }
+        if ($match(['phong cach', 'style', 'art', 'aesthetic', 'vibe', 'trend'])) {
+            return 'style';
+        }
+        if ($match(['boi canh', 'background', 'scene', 'setting', 'dia diem', 'moi truong', 'khung canh'])) {
+            return 'context';
+        }
+        if ($match(['cam xuc', 'mood', 'tone', 'khong khi', 'atmosphere'])) {
+            return 'mood';
+        }
+        if ($match(['anh sang', 'lighting', 'light'])) {
+            return 'lighting';
+        }
+        if ($match(['mau', 'color', 'palette', 'hex'])) {
+            return 'color';
+        }
+        if ($match(['chi tiet', 'detail', 'texture', 'chat lieu', 'material', 'pattern'])) {
+            return 'details';
+        }
+        if ($match(['ky thuat', 'technical', 'camera', 'lens', 'photography', 'render', 'do net', 'resolution', 'quality'])) {
+            return 'technical';
+        }
+
+        return 'misc';
+    }
+
+    /**
+     * Build ordered fragments based on model strategy.
+     */
+    protected function buildOrderedPromptFragments(string $modelId, string $strategy, string $basePrompt, array $fragmentsBySlot): array
+    {
+        $isKlein = str_contains($modelId, 'klein');
+        $isNarrative = $strategy === 'narrative' || $isKlein;
+
+        $slotText = [];
+        foreach ($fragmentsBySlot as $slot => $fragments) {
+            if (!empty($fragments)) {
+                $slotText[$slot] = implode(self::PROMPT_SEPARATOR, $fragments);
+            }
+        }
+
+        $order = $isNarrative
+            ? ['context', 'subject', 'action', 'mood', 'style', 'lighting', 'color', 'details', 'technical', 'custom', 'misc']
+            : ['subject', 'action', 'style', 'context', 'mood', 'lighting', 'color', 'details', 'technical', 'custom', 'misc'];
+
+        $parts = [];
+        if (!empty($basePrompt)) {
+            $parts[] = $basePrompt;
+        }
+
+        foreach ($order as $slot) {
+            if (!empty($slotText[$slot])) {
+                $parts[] = $slotText[$slot];
+            }
+        }
+
+        return $parts;
+    }
+
+    /**
+     * Apply prompt template with placeholders like {{subject}}, {{style}}, {{context}}, {{custom}}, {{base}}
+     */
+    protected function applyPromptTemplate(string $template, string $basePrompt, array $fragmentsBySlot): string
+    {
+        $slotText = [];
+        foreach ($fragmentsBySlot as $slot => $fragments) {
+            $slotText[$slot] = !empty($fragments)
+                ? implode(self::PROMPT_SEPARATOR, $fragments)
+                : '';
+        }
+
+        $replacements = array_merge([
+            '{{base}}' => $basePrompt,
+        ], collect($slotText)->mapWithKeys(fn ($value, $slot) => ['{{' . $slot . '}}' => $value])->toArray());
+
+        $prompt = strtr($template, $replacements);
+
+        return $this->cleanupPrompt($prompt);
+    }
+
+    /**
+     * Cleanup prompt: remove double separators and trim.
+     */
+    protected function cleanupPrompt(string $prompt): string
+    {
+        $prompt = preg_replace('/\s+,/', ',', $prompt);
+        $prompt = preg_replace('/,+/', ',', $prompt);
+        $prompt = preg_replace('/\s{2,}/', ' ', $prompt);
+        $prompt = trim($prompt);
+        $prompt = trim($prompt, ',;');
 
         return $prompt;
     }
