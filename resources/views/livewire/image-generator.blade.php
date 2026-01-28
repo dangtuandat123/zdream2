@@ -139,7 +139,7 @@
                                     <span class="w-1 h-4 bg-gradient-to-b from-purple-400 to-pink-500 rounded-full"></span>
                                     {{ $groupName }}
                                 </h3>
-                                <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                                <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
                                     {{-- Default option --}}
                                     @php 
                                         $isDefaultSelected = !isset($selectedOptions[$groupName]) || $selectedOptions[$groupName] === null;
@@ -149,9 +149,9 @@
                                         wire:click="selectOption(@js($groupName), null)"
                                         wire:key="option-{{ Str::slug($groupName) }}-default"
                                         title="Mặc định"
-                                        class="relative flex flex-col items-center gap-2 p-2 rounded-2xl transition-all duration-300 
+                                        class="relative flex flex-col items-center gap-1.5 p-1.5 rounded-2xl transition-all duration-300 
                                             {{ $isDefaultSelected 
-                                                ? 'bg-gradient-to-br from-cyan-500/20 to-cyan-500/20 shadow-[0_0_20px_rgba(6,182,212,0.3)]' 
+                                                ? 'bg-cyan-500/10 ring-1 ring-cyan-400/40 shadow-[0_0_14px_rgba(6,182,212,0.25)]' 
                                                 : 'hover:bg-white/[0.05]' }}">
                                         {{-- Selected indicator --}}
                                         @if($isDefaultSelected)
@@ -160,14 +160,14 @@
                                             </div>
                                         @endif
                                         {{-- Icon container - hình vuông --}}
-                                        <div class="w-20 h-20 sm:w-24 sm:h-24 aspect-square rounded-xl transition-all duration-300
+                                        <div class="w-18 h-18 sm:w-20 sm:h-20 aspect-square rounded-xl transition-all duration-300
                                             {{ $isDefaultSelected 
-                                                ? 'bg-gradient-to-br from-cyan-500/30 to-cyan-500/30 border-2 border-cyan-400/50' 
+                                                ? 'bg-cyan-500/15 ring-1 ring-cyan-400/50' 
                                                 : 'bg-[#1a1a2e] border border-white/10 hover:border-white/20' }}
                                             flex items-center justify-center">
                                             <i class="fa-solid fa-ban {{ $isDefaultSelected ? 'text-cyan-400' : 'text-white/30' }}" style="font-size: 20px;"></i>
                                         </div>
-                                        <span class="text-sm font-semibold text-center leading-snug max-w-[120px] break-words whitespace-normal min-h-[2.25rem] {{ $isDefaultSelected ? 'text-cyan-400' : 'text-white/60' }}">Mặc định</span>
+                                        <span class="text-xs font-semibold text-center leading-snug max-w-[110px] break-words whitespace-normal min-h-7 {{ $isDefaultSelected ? 'text-cyan-400' : 'text-white/60' }}">Mặc định</span>
                                     </button>
 
                                     {{-- Style options --}}
@@ -180,9 +180,9 @@
                                             wire:click="selectOption(@js($groupName), {{ $option->id }})"
                                             wire:key="option-{{ $option->id }}"
                                             title="{{ $option->label }}"
-                                            class="relative flex flex-col items-center gap-2 p-2 rounded-2xl transition-all duration-300
+                                            class="relative flex flex-col items-center gap-1.5 p-1.5 rounded-2xl transition-all duration-300
                                                 {{ $isSelected 
-                                                    ? 'bg-gradient-to-br from-cyan-500/20 to-cyan-500/20 shadow-[0_0_20px_rgba(6,182,212,0.3)]' 
+                                                    ? 'bg-cyan-500/10 ring-1 ring-cyan-400/40 shadow-[0_0_14px_rgba(6,182,212,0.25)]' 
                                                     : 'hover:bg-white/[0.05]' }}">
                                             {{-- Selected indicator --}}
                                             @if($isSelected)
@@ -191,9 +191,9 @@
                                                 </div>
                                             @endif
                                             {{-- Thumbnail container - hình vuông --}}
-                                            <div class="w-20 h-20 sm:w-24 sm:h-24 aspect-square rounded-xl overflow-hidden transition-all duration-300
+                                            <div class="w-18 h-18 sm:w-20 sm:h-20 aspect-square rounded-xl overflow-hidden transition-all duration-300
                                                 {{ $isSelected 
-                                                    ? 'border-2 border-cyan-400/50 shadow-[0_0_15px_rgba(6,182,212,0.4)]' 
+                                                    ? 'ring-1 ring-cyan-400/50 shadow-[0_0_12px_rgba(6,182,212,0.25)]' 
                                                     : 'border border-white/10 hover:border-white/20' }}
                                                 bg-[#1a1a2e] flex items-center justify-center">
                                                 @if($option->thumbnail_url)
@@ -204,7 +204,7 @@
                                                     <i class="fa-solid fa-wand-magic-sparkles {{ $isSelected ? 'text-cyan-400' : 'text-white/30' }}" style="font-size: 18px;"></i>
                                                 @endif
                                             </div>
-                                            <span class="text-sm font-semibold text-center leading-snug max-w-[120px] break-words whitespace-normal min-h-[2.25rem] {{ $isSelected ? 'text-cyan-400' : 'text-white/60' }}">{{ $option->label }}</span>
+                                            <span class="text-xs font-semibold text-center leading-snug max-w-[110px] break-words whitespace-normal min-h-7 {{ $isSelected ? 'text-cyan-400' : 'text-white/60' }}">{{ $option->label }}</span>
                                         </button>
                                     @endforeach
                                 </div>
