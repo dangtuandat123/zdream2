@@ -116,7 +116,7 @@
                         Chỉ cần vài từ gợi ý. ZDream tự lo phần còn lại.
                     </p>
                     <div class="flex flex-col gap-3 items-center">
-                        <a href="#styles" class="w-full max-w-xs px-6 py-3.5 rounded-xl bg-gradient-to-r from-pink-500 via-fuchsia-500 to-purple-500 text-white font-semibold shadow-lg shadow-fuchsia-500/35 hover:shadow-fuchsia-500/55 transition-all inline-flex items-center justify-center gap-2">
+                        <a href="{{ route('styles.index') }}" class="w-full max-w-xs px-6 py-3.5 rounded-xl bg-gradient-to-r from-pink-500 via-fuchsia-500 to-purple-500 text-white font-semibold shadow-lg shadow-fuchsia-500/35 hover:shadow-fuchsia-500/55 transition-all inline-flex items-center justify-center gap-2">
                             <i class="fa-solid fa-wand-magic-sparkles" style="font-size: 16px;"></i>
                             <span>Bắt đầu ngay</span>
                         </a>
@@ -143,7 +143,7 @@
                         Chỉ cần chọn phong cách và vài từ gợi ý. ZDream tự hoàn thiện phần còn lại.
                     </p>
                     <div class="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center lg:justify-start">
-                        <a href="#styles" class="px-6 sm:px-8 py-3.5 sm:py-4 rounded-xl bg-gradient-to-r from-pink-500 via-fuchsia-500 to-purple-500 text-white font-semibold text-base sm:text-lg shadow-lg shadow-fuchsia-500/35 hover:shadow-fuchsia-500/55 transition-all inline-flex items-center justify-center gap-2">
+                        <a href="{{ route('styles.index') }}" class="px-6 sm:px-8 py-3.5 sm:py-4 rounded-xl bg-gradient-to-r from-pink-500 via-fuchsia-500 to-purple-500 text-white font-semibold text-base sm:text-lg shadow-lg shadow-fuchsia-500/35 hover:shadow-fuchsia-500/55 transition-all inline-flex items-center justify-center gap-2">
                             <i class="fa-solid fa-wand-magic-sparkles" style="font-size: 18px;"></i>
                             <span>Bắt đầu ngay</span>
                         </a>
