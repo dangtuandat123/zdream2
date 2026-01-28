@@ -246,18 +246,20 @@ class GenerateImageJob implements ShouldQueue
 
         // Refund credits
         try {
-            $walletService->refundCredits(
-                $user,
-                $generatedImage->credits_used,
-                $errorMessage,
-                (string) $generatedImage->id
-            );
+            if ($generatedImage->credits_used > 0) {
+                $walletService->refundCredits(
+                    $user,
+                    $generatedImage->credits_used,
+                    $errorMessage,
+                    (string) $generatedImage->id
+                );
 
-            Log::info('Credits refunded for failed generation', [
-                'image_id' => $generatedImage->id,
-                'user_id' => $user->id,
-                'amount' => $generatedImage->credits_used,
-            ]);
+                Log::info('Credits refunded for failed generation', [
+                    'image_id' => $generatedImage->id,
+                    'user_id' => $user->id,
+                    'amount' => $generatedImage->credits_used,
+                ]);
+            }
 
         } catch (\Throwable $e) {
             Log::error('Failed to refund credits', [

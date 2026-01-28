@@ -497,9 +497,11 @@ class ImageGenerator extends Component
             return;
         }
 
-        // Kiểm tra đủ credits
-        if (!$user->hasEnoughCredits($this->style->price)) {
-            $this->errorMessage = "Bạn không đủ credits. Cần: {$this->style->price}, Hiện có: {$user->credits}";
+        $creditCost = max(0, (float) ($this->style->price ?? 0));
+
+        // Kiểm tra đủ credits (chỉ khi có giá)
+        if ($creditCost > 0 && !$user->hasEnoughCredits($creditCost)) {
+            $this->errorMessage = "Bạn không đủ credits. Cần: {$creditCost}, Hiện có: {$user->credits}";
             return;
         }
 
@@ -569,18 +571,20 @@ class ImageGenerator extends Component
                 'user_custom_input' => $this->customInput ?: null,
                 'generation_params' => $generationParams,
                 'status' => GeneratedImage::STATUS_PROCESSING,
-                'credits_used' => $this->style->price,
+                'credits_used' => $creditCost,
             ]);
 
-            // Trừ credits
-            $walletService->deductCredits(
-                $user,
-                $this->style->price,
-                "Tạo ảnh Style: {$this->style->name}",
-                'generation',
-                (string) $generatedImage->id
-            );
-            $creditsDeducted = true;
+            // Trừ credits (chỉ khi có giá)
+            if ($creditCost > 0) {
+                $walletService->deductCredits(
+                    $user,
+                    $creditCost,
+                    "Tạo ảnh Style: {$this->style->name}",
+                    'generation',
+                    (string) $generatedImage->id
+                );
+                $creditsDeducted = true;
+            }
 
             $uploadedCount = count(array_filter($this->uploadedImages));
             $inputImagesPayload = [];
@@ -738,7 +742,10 @@ class ImageGenerator extends Component
             $this->errorMessage = config('app.debug')
                 ? 'Có lỗi xảy ra: ' . $e->getMessage() . $refundMsg
                 : 'Có lỗi xảy ra trong quá trình tạo ảnh.' . $refundMsg;
-                
+            
+            if ($this->useAsyncMode && !$this->lastImageId) {
+                $this->isGenerating = false;
+            }
         } finally {
             // Chỉ tắt isGenerating nếu SYNC mode
             if (!$this->useAsyncMode) {
@@ -759,6 +766,10 @@ class ImageGenerator extends Component
         }
 
         if (!$this->lastImageId) {
+            if ($this->isGenerating) {
+                $this->isGenerating = false;
+                $this->errorMessage = 'Không tìm thấy yêu cầu tạo ảnh. Vui lòng thử lại.';
+            }
             return;
         }
 
