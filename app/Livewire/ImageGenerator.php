@@ -298,6 +298,9 @@ class ImageGenerator extends Component
     protected function applyDefaultAdvancedSettings(): void
     {
         $config = $this->style->config_payload ?? [];
+        $modelId = $this->style->bfl_model_id ?? $this->style->openrouter_model_id ?? '';
+        $cap = app(BflService::class)->getModelCapabilities($modelId);
+        $defaultPromptUpsampling = (bool) ($cap['prompt_upsampling_default'] ?? false);
 
         $this->seed = $this->supportsSeed && array_key_exists('seed', $config)
             ? (int) $config['seed']
@@ -312,7 +315,7 @@ class ImageGenerator extends Component
             : null;
 
         $this->promptUpsampling = $this->supportsPromptUpsampling
-            ? (array_key_exists('prompt_upsampling', $config) ? (bool) $config['prompt_upsampling'] : false)
+            ? (array_key_exists('prompt_upsampling', $config) ? (bool) $config['prompt_upsampling'] : $defaultPromptUpsampling)
             : null;
 
         $this->safetyTolerance = $this->supportsSafetyTolerance

@@ -16,8 +16,8 @@ return [
         'base_url' => env('BFL_BASE_URL', 'https://api.bfl.ai'),
         'timeout' => 120,
         'poll_timeout' => 120,
-        'max_dimension' => 1408,
-        'min_dimension' => 256,
+        'max_dimension' => 1440,
+        'min_dimension' => 64,
         'dimension_multiple' => 32,
 
         // Danh sách models BFL (Jan 2026)
@@ -71,6 +71,7 @@ return [
                 'supports_steps' => true,
                 'supports_guidance' => true,
                 'supports_prompt_upsampling' => true,
+                'prompt_upsampling_default' => true,
                 'supports_output_format' => true,
                 'supports_safety_tolerance' => true,
                 'supports_raw' => false,
