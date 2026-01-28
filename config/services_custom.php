@@ -14,6 +14,8 @@ return [
     'bfl' => [
         'api_key' => env('BFL_API_KEY'),
         'base_url' => env('BFL_BASE_URL', 'https://api.bfl.ai'),
+        // Allow disabling SSL verification in local/dev (self-signed certs)
+        'verify_ssl' => env('BFL_VERIFY_SSL', true),
         'timeout' => 120,
         'poll_timeout' => 300,
         // Maximum bytes allowed for downloading/processing BFL images (25MB)

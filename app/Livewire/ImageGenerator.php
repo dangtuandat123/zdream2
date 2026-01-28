@@ -267,9 +267,25 @@ class ImageGenerator extends Component
                     $path = $image->storeAs("tmp/bfl-inputs/user-{$userId}", $filename, 'minio');
                     if ($path) {
                         $result[$key] = 'minio:' . $path;
+                        continue;
                     }
                 } catch (\Exception $e) {
-                    Log::warning('Failed to store temp image', [
+                    Log::warning('Failed to store temp image on MinIO, fallback to local', [
+                        'key' => $key,
+                        'error' => $e->getMessage(),
+                    ]);
+                }
+
+                // Fallback to local disk when MinIO fails (e.g. SSL issues)
+                try {
+                    $ext = $image->getClientOriginalExtension() ?: 'jpg';
+                    $filename = 'input_' . $key . '_' . uniqid('', true) . '.' . $ext;
+                    $localPath = $image->storeAs("tmp/bfl-inputs/user-{$userId}", $filename, 'local');
+                    if ($localPath) {
+                        $result[$key] = $localPath;
+                    }
+                } catch (\Exception $e) {
+                    Log::warning('Failed to store temp image on local', [
                         'key' => $key,
                         'error' => $e->getMessage(),
                     ]);

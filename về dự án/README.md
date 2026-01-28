@@ -8,6 +8,13 @@
 
 Nền tảng tạo ảnh AI cho người dùng phổ thông. Người dùng chọn **Style** (mẫu phong cách), chọn vài tùy chọn đơn giản, hệ thống tự ghép prompt và gọi API nhà cung cấp AI để tạo ảnh. Hệ thống có **ví nội bộ (credits/xu)**, lịch sử giao dịch, lịch sử ảnh và khu vực quản trị để cấu hình Style, model AI, giá, API key, v.v.
 
+### Công nghệ/tích hợp đang dùng và vai trò
+- **Backend (Laravel 12)**: xử lý API, xác thực, business logic, job queue, giao tiếp DB.
+- **Frontend (React CSR)**: giao diện SPA, tương tác realtime (polling), form/UX.
+- **MinIO (S3-compatible)**: lưu trữ ảnh, trả ảnh bằng pre‑signed URL.
+- **BFL (bfl.ai / FLUX)**: nhà cung cấp mô hình AI tạo ảnh.
+- **VietQR**: tạo QR chuyển khoản và nhận callback nạp tiền tự động.
+
 ### Giá trị cốt lõi
 - **Zero‑prompt**: không yêu cầu người dùng hiểu prompt kỹ thuật.
 - **Trải nghiệm nhanh**: hiển thị trạng thái xử lý, phản hồi rõ ràng.
@@ -201,7 +208,7 @@ Nền tảng tạo ảnh AI cho người dùng phổ thông. Người dùng ch�
 
 ### 8.2. `styles`
 - `name`, `slug`, `thumbnail_url`, `description`, `price`.
-- `bfl_model_id` (model hiện tại), `openrouter_model_id` (legacy).
+- `provider_model_id` (cột hiện tại: `bfl_model_id`), `legacy_provider_model_id` (cột hiện tại: `openrouter_model_id`).
 - `base_prompt`, `config_payload` (JSON).
 - `is_active`, `allow_user_custom_prompt`, `sort_order`.
 - `image_slots` (JSON), `system_images` (JSON).
@@ -219,7 +226,7 @@ Nền tảng tạo ảnh AI cho người dùng phổ thông. Người dùng ch�
 - `user_id`, `style_id`.
 - `final_prompt`, `selected_options` (JSON), `user_custom_input`.
 - `generation_params` (JSON).
-- `storage_path`, `bfl_task_id`, `openrouter_id` (legacy).
+- `storage_path`, `provider_task_id` (cột hiện tại: `bfl_task_id`), `legacy_provider_task_id` (cột hiện tại: `openrouter_id`).
 - `status` (`pending|processing|completed|failed`), `error_message`.
 - `credits_used`, timestamps, soft delete.
 

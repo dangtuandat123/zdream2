@@ -22,6 +22,7 @@ class BflService
     protected int $timeout;
     protected int $pollTimeout;
     protected int $maxImageBytes = 10485760; // default 10MB, override via config
+    protected bool $verifySsl = true;
 
     public function __construct()
     {
@@ -36,6 +37,7 @@ class BflService
         $this->timeout = (int) config('services_custom.bfl.timeout', 120);
         $this->pollTimeout = (int) config('services_custom.bfl.poll_timeout', 120);
         $this->maxImageBytes = (int) config('services_custom.bfl.max_image_bytes', 26214400);
+        $this->verifySsl = (bool) config('services_custom.bfl.verify_ssl', true);
     }
 
     /**
@@ -47,7 +49,8 @@ class BflService
             'x-key' => $this->apiKey,
             'accept' => 'application/json',
             'Content-Type' => 'application/json',
-        ])->timeout($this->timeout)
+        ])->withOptions(['verify' => $this->verifySsl])
+          ->timeout($this->timeout)
           ->connectTimeout(10)
           ->retry(2, 500);
     }
@@ -61,7 +64,8 @@ class BflService
             'x-key' => $this->apiKey,
             'accept' => 'application/json',
             'Content-Type' => 'application/json',
-        ])->timeout($this->timeout)
+        ])->withOptions(['verify' => $this->verifySsl])
+          ->timeout($this->timeout)
           ->connectTimeout(15)
           ->retry(3, function (int $attempt) {
               return min(1000 * pow(2, $attempt - 1), 4000);
@@ -605,7 +609,7 @@ class BflService
                 $data = $response->json();
                 $status = $data['status'] ?? '';
 
-                if ($status === 'Ready') {
+                if ($status === 'Ready' || strtolower((string) $status) === 'completed') {
                     $imageBase64 = $this->extractImageFromResult($data);
                     if (!$imageBase64) {
                         return [
@@ -655,29 +659,87 @@ class BflService
     {
         $result = $data['result'] ?? null;
         if (!is_array($result)) {
-            return null;
+            $result = [];
         }
 
         $sample = $result['sample'] ?? null;
-        if (is_array($sample)) {
-            $sample = $sample[0] ?? null;
-        }
-        if (empty($sample) && isset($result['samples']) && is_array($result['samples'])) {
-            $sample = $result['samples'][0] ?? null;
-        }
-        if (empty($sample) && isset($result['image'])) {
-            $sample = $result['image'];
+        $sampleUrl = $this->extractSampleUrl($sample);
+
+        if (empty($sampleUrl) && isset($result['samples']) && is_array($result['samples'])) {
+            $sampleUrl = $this->extractSampleUrl($result['samples'][0] ?? null);
         }
 
+        if (empty($sampleUrl) && isset($result['image'])) {
+            $sampleUrl = $this->extractSampleUrl($result['image']);
+        }
+
+        if (empty($sampleUrl) && isset($result['url'])) {
+            $sampleUrl = $this->extractSampleUrl($result['url']);
+        }
+
+        if (empty($sampleUrl) && isset($result['image_url'])) {
+            $sampleUrl = $this->extractSampleUrl($result['image_url']);
+        }
+
+        if (empty($sampleUrl) && isset($result['output'])) {
+            $sampleUrl = $this->extractSampleUrl($result['output']);
+        }
+
+        if (empty($sampleUrl) && isset($result['outputs']) && is_array($result['outputs'])) {
+            $sampleUrl = $this->extractSampleUrl($result['outputs'][0] ?? null);
+        }
+
+        if (empty($sampleUrl) && isset($data['preview']) && is_array($data['preview'])) {
+            $sampleUrl = $this->extractSampleUrl($data['preview']['sample'] ?? ($data['preview']['url'] ?? null));
+        }
+
+        if (is_string($sampleUrl) && $sampleUrl !== '') {
+            if (str_starts_with($sampleUrl, 'data:image/')) {
+                return $sampleUrl;
+            }
+            if ($this->isBase64Image($sampleUrl)) {
+                return 'data:image/png;base64,' . $sampleUrl;
+            }
+            if (filter_var($sampleUrl, FILTER_VALIDATE_URL)) {
+                return $this->downloadImageAsBase64($sampleUrl);
+            }
+        }
+
+        // Debug: log result keys when Ready but no image found
+        Log::warning('BFL result missing sample image', [
+            'result_keys' => array_keys($result),
+            'result_preview' => substr(json_encode($result), 0, 800),
+            'status' => $data['status'] ?? null,
+            'has_preview' => isset($data['preview']),
+        ]);
+
+        return null;
+    }
+
+    /**
+     * Extract sample URL from various shapes (string | array)
+     */
+    protected function extractSampleUrl($sample): ?string
+    {
         if (is_string($sample)) {
-            if (str_starts_with($sample, 'data:image/')) {
-                return $sample;
+            return $sample;
+        }
+
+        if (is_array($sample)) {
+            // Common shapes: { url: "" } or { image_url: "" } or { image: "" }
+            if (!empty($sample['url'])) {
+                return $sample['url'];
             }
-            if ($this->isBase64Image($sample)) {
-                return 'data:image/png;base64,' . $sample;
+            if (!empty($sample['image_url'])) {
+                return $sample['image_url'];
             }
-            if (filter_var($sample, FILTER_VALIDATE_URL)) {
-                return $this->downloadImageAsBase64($sample);
+            if (!empty($sample['image'])) {
+                return $sample['image'];
+            }
+
+            // Array of strings or objects
+            if (isset($sample[0])) {
+                return $this->extractSampleUrl($sample[0]);
             }
         }
 
@@ -911,8 +973,14 @@ class BflService
         }
 
         try {
-            $response = Http::timeout(30)->get($url);
+            $response = Http::withOptions(['verify' => $this->verifySsl])
+                ->timeout(30)
+                ->get($url);
             if (!$response->successful()) {
+                Log::warning('Failed to download image (non-200)', [
+                    'url' => $url,
+                    'status' => $response->status(),
+                ]);
                 return null;
             }
 
@@ -920,11 +988,20 @@ class BflService
             $mime = strtolower(trim(explode(';', $contentType)[0]));
 
             if (!str_starts_with($mime, 'image/')) {
+                Log::warning('Downloaded content is not image', [
+                    'url' => $url,
+                    'content_type' => $contentType,
+                ]);
                 return null;
             }
 
             $body = $response->body();
             if (strlen($body) > $this->maxImageBytes) {
+                Log::warning('Downloaded image exceeds max bytes', [
+                    'url' => $url,
+                    'bytes' => strlen($body),
+                    'max_bytes' => $this->maxImageBytes,
+                ]);
                 return null;
             }
 
