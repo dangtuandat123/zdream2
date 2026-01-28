@@ -83,6 +83,10 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
         return view('admin.dashboard');
     })->name('dashboard');
 
+    // Styles import
+    Route::get('styles/import', [AdminStyleController::class, 'importForm'])->name('styles.import');
+    Route::post('styles/import', [AdminStyleController::class, 'importStore'])->name('styles.import.store');
+
     // CRUD Styles (loại show vì không cần)
     Route::resource('styles', AdminStyleController::class)->except(['show']);
 

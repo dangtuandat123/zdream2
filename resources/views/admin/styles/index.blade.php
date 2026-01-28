@@ -10,9 +10,14 @@
                 </h1>
                 <p class="text-white/50 text-sm mt-1">{{ $styles->count() }} styles</p>
             </div>
-            <a href="{{ route('admin.styles.create') }}" class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white font-medium flex items-center gap-2 hover:shadow-[0_8px_30px_rgba(168,85,247,0.5)] transition-all">
-                <i class="fa-solid fa-plus w-4 h-4"></i> Tạo Style
-            </a>
+            <div class="flex items-center gap-3">
+                <a href="{{ route('admin.styles.import') }}" class="px-4 py-2.5 rounded-xl bg-white/[0.05] border border-white/[0.1] text-white/80 font-medium flex items-center gap-2 hover:bg-white/[0.1] transition-all">
+                    <i class="fa-solid fa-file-import w-4 h-4"></i> Import
+                </a>
+                <a href="{{ route('admin.styles.create') }}" class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white font-medium flex items-center gap-2 hover:shadow-[0_8px_30px_rgba(168,85,247,0.5)] transition-all">
+                    <i class="fa-solid fa-plus w-4 h-4"></i> T?o Style
+                </a>
+            </div>
         </div>
 
         @if(session('success'))

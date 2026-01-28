@@ -67,6 +67,159 @@ public function create(): View
         'tags' => $tags,
     ]);
 }
+
+    /**
+     * Form import styles
+     */
+    public function importForm(): View
+    {
+        return view('admin.styles.import');
+    }
+
+    /**
+     * Import styles from JSON
+     */
+    public function importStore(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'import_file' => 'nullable|file|mimes:json,txt',
+            'import_text' => 'nullable|string',
+            'dry_run' => 'nullable',
+        ]);
+
+        $content = '';
+        if ($request->hasFile('import_file')) {
+            $content = (string) file_get_contents($request->file('import_file')->getRealPath());
+        } elseif (!empty($validated['import_text'])) {
+            $content = (string) $validated['import_text'];
+        }
+
+        $content = trim($content);
+        if ($content === '') {
+            return redirect()->back()->with('error', 'Vui lòng chọn file JSON hoặc dán nội dung JSON để import.');
+        }
+
+        $payload = json_decode($content, true);
+        if (!is_array($payload)) {
+            return redirect()->back()->with('error', 'JSON không hợp lệ. Vui lòng kiểm tra lại định dạng.');
+        }
+
+        $stylesData = $payload['styles'] ?? $payload;
+        if (!is_array($stylesData)) {
+            return redirect()->back()->with('error', 'Không tìm thấy danh sách styles trong JSON.');
+        }
+
+        $dryRun = $request->boolean('dry_run');
+        $created = 0;
+        $skipped = 0;
+        $errors = [];
+
+        foreach ($stylesData as $index => $styleData) {
+            if (!is_array($styleData)) {
+                $skipped++;
+                $errors[] = "Style #{$index}: Dữ liệu không hợp lệ.";
+                continue;
+            }
+
+            $name = trim((string) ($styleData['name'] ?? ''));
+            $basePrompt = trim((string) ($styleData['base_prompt'] ?? ''));
+            $modelId = trim((string) ($styleData['bfl_model_id'] ?? $styleData['model_id'] ?? ''));
+
+            if ($name === '' || $basePrompt === '' || $modelId === '') {
+                $skipped++;
+                $errors[] = "Style #{$index}: Thiếu name/base_prompt/bfl_model_id.";
+                continue;
+            }
+
+            $slugInput = trim((string) ($styleData['slug'] ?? ''));
+            $slug = $slugInput !== '' ? $slugInput : Str::slug($name);
+            $slug = $this->generateUniqueSlug($slug);
+
+            $price = is_numeric($styleData['price'] ?? null) ? (float) $styleData['price'] : 2;
+            $sortOrder = (int) ($styleData['sort_order'] ?? 0);
+
+            $configPayload = is_array($styleData['config_payload'] ?? null) ? $styleData['config_payload'] : [];
+            if (!empty($styleData['aspect_ratio']) && empty($configPayload['aspect_ratio'])) {
+                $configPayload['aspect_ratio'] = $styleData['aspect_ratio'];
+            }
+            if (!empty($styleData['prompt_defaults']) && empty($configPayload['prompt_defaults'])) {
+                $configPayload['prompt_defaults'] = $styleData['prompt_defaults'];
+            }
+            $configPayload = $this->mergeAdvancedConfig($configPayload, $configPayload);
+            $configPayload = !empty($configPayload) ? $configPayload : null;
+
+            $imageSlots = $this->processImageSlots($styleData['image_slots'] ?? []);
+            $systemImages = $this->normalizeSystemImages($styleData['system_images'] ?? []);
+
+            $tagId = null;
+            if (!empty($styleData['tag_id'])) {
+                $tagCandidate = (int) $styleData['tag_id'];
+                $tagId = Tag::where('id', $tagCandidate)->exists() ? $tagCandidate : null;
+            } elseif (!empty($styleData['tag'])) {
+                $tagName = trim((string) $styleData['tag']);
+                if ($tagName !== '') {
+                    $tag = Tag::firstOrCreate(['name' => $tagName]);
+                    $tagId = $tag->id;
+                }
+            }
+
+            if ($dryRun) {
+                $created++;
+                continue;
+            }
+
+            try {
+                DB::transaction(function () use (
+                    $styleData,
+                    $name,
+                    $slug,
+                    $basePrompt,
+                    $modelId,
+                    $price,
+                    $sortOrder,
+                    $configPayload,
+                    $imageSlots,
+                    $systemImages,
+                    $tagId,
+                    &$created
+                ) {
+                    $style = Style::create([
+                        'name' => $name,
+                        'slug' => $slug,
+                        'description' => $styleData['description'] ?? null,
+                        'thumbnail_url' => $styleData['thumbnail_url'] ?? null,
+                        'price' => $price,
+                        'sort_order' => $sortOrder,
+                        'bfl_model_id' => $modelId,
+                        'base_prompt' => $basePrompt,
+                        'config_payload' => $configPayload,
+                        'image_slots' => $imageSlots,
+                        'system_images' => $systemImages,
+                        'allow_user_custom_prompt' => !empty($styleData['allow_user_custom_prompt']),
+                        'is_active' => array_key_exists('is_active', $styleData) ? (bool) $styleData['is_active'] : true,
+                        'tag_id' => $tagId,
+                    ]);
+
+                    $this->importOptions($style, $styleData['options'] ?? []);
+
+                    $created++;
+                });
+            } catch (\Throwable $e) {
+                $skipped++;
+                $errors[] = "Style #{$index}: " . $e->getMessage();
+            }
+        }
+
+        $summary = "Import xong: {$created} style" . ($dryRun ? ' (dry-run)' : '') . ". Bỏ qua: {$skipped}.";
+        if (!empty($errors)) {
+            Log::warning('Style import errors', ['errors' => $errors]);
+            return redirect()->back()->with('error', $summary . ' Có lỗi ở một số style, xem log để biết chi tiết.');
+        }
+
+        return redirect()
+            ->route('admin.styles.index')
+            ->with('success', $summary);
+    }
     /**
      * Lưu Style mới
      */
@@ -694,5 +847,93 @@ public function edit(Style $style): View
         }
 
         return $base;
+    }
+
+    /**
+     * Generate unique slug for imported styles
+     */
+    private function generateUniqueSlug(string $slugBase): string
+    {
+        $slugBase = Str::slug($slugBase);
+        if ($slugBase === '') {
+            $slugBase = 'style';
+        }
+
+        $slug = $slugBase;
+        $counter = 1;
+        while (Style::where('slug', $slug)->exists()) {
+            $slug = $slugBase . '-' . $counter;
+            $counter++;
+        }
+
+        return $slug;
+    }
+
+    /**
+     * Import options with full fields
+     */
+    private function importOptions(Style $style, array $options): void
+    {
+        if (empty($options)) {
+            return;
+        }
+
+        foreach ($options as $index => $optionData) {
+            if (!is_array($optionData)) {
+                continue;
+            }
+
+            $label = trim((string) ($optionData['label'] ?? ''));
+            $groupName = trim((string) ($optionData['group_name'] ?? ''));
+            $fragment = trim((string) ($optionData['prompt_fragment'] ?? ''));
+
+            if ($label === '' || $groupName === '' || $fragment === '') {
+                continue;
+            }
+
+            $style->options()->create([
+                'label' => $label,
+                'group_name' => $groupName,
+                'prompt_fragment' => $fragment,
+                'icon' => $optionData['icon'] ?? null,
+                'thumbnail' => $optionData['thumbnail'] ?? null,
+                'sort_order' => isset($optionData['sort_order']) ? (int) $optionData['sort_order'] : $index,
+                'is_default' => !empty($optionData['is_default']),
+            ]);
+        }
+    }
+
+    /**
+     * Normalize system_images import payload
+     */
+    private function normalizeSystemImages(array $systemImages): ?array
+    {
+        if (empty($systemImages)) {
+            return null;
+        }
+
+        $result = [];
+        foreach ($systemImages as $index => $img) {
+            if (!is_array($img)) {
+                continue;
+            }
+
+            $url = trim((string) ($img['url'] ?? $img['image_url'] ?? ''));
+            if ($url === '') {
+                continue;
+            }
+
+            $key = $img['key'] ?? ('sys_' . Str::random(10) . '_' . $index);
+
+            $result[] = [
+                'key' => $key,
+                'label' => $img['label'] ?? ('System Image ' . ($index + 1)),
+                'description' => $img['description'] ?? '',
+                'path' => $img['path'] ?? '',
+                'url' => $url,
+            ];
+        }
+
+        return !empty($result) ? $result : null;
     }
 }
