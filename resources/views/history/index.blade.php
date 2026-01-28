@@ -19,6 +19,36 @@
         .image-card-hover:hover img {
             transform: scale(1.05);
         }
+        .history-filters .filter-select {
+            width: 100%;
+            height: 44px;
+            padding: 0 36px 0 12px;
+            border-radius: 0.75rem;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.12);
+            color: rgba(255,255,255,0.9);
+            font-size: 0.875rem;
+            line-height: 44px;
+            appearance: none;
+            background-image: linear-gradient(45deg, transparent 50%, rgba(255,255,255,0.6) 50%), linear-gradient(135deg, rgba(255,255,255,0.6) 50%, transparent 50%);
+            background-position: calc(100% - 18px) 18px, calc(100% - 12px) 18px;
+            background-size: 6px 6px, 6px 6px;
+            background-repeat: no-repeat;
+        }
+        .history-filters .filter-select:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(168,85,247,0.35);
+            border-color: rgba(168,85,247,0.6);
+        }
+        .history-filters .filter-reset {
+            height: 44px;
+            padding: 0 14px;
+            border-radius: 0.75rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+        }
     </style>
 
     <div class="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
@@ -36,9 +66,9 @@
         </div>
 
         <!-- Filters -->
-        <div class="flex flex-wrap items-center gap-3 mb-6">
+        <div class="flex flex-wrap items-center gap-3 mb-6 history-filters">
             <form method="GET" action="{{ route('history.index') }}" id="filter-form" class="flex flex-wrap items-center gap-3">
-                <div class="w-40">
+                <div class="w-52">
                     <select name="status" class="filter-select">
                         <option value="">Tất cả trạng thái</option>
                         <option value="completed" {{ request('status') == 'completed' ? 'selected' : '' }}>Hoàn thành</option>
@@ -47,7 +77,7 @@
                     </select>
                 </div>
                 @if(isset($styles) && $styles->isNotEmpty())
-                    <div class="w-40">
+                    <div class="w-52">
                         <select name="style_id" class="filter-select">
                             <option value="">Tất cả styles</option>
                             @foreach($styles as $style)
@@ -57,7 +87,7 @@
                     </div>
                 @endif
                 @if(request('status') || request('style_id'))
-                    <a href="{{ route('history.index') }}" class="px-3 py-2 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-sm hover:bg-red-500/20 transition-colors">
+                    <a href="{{ route('history.index') }}" class="filter-reset bg-red-500/10 border border-red-500/30 text-red-400 text-sm hover:bg-red-500/20 transition-colors">
                         <i class="fa-solid fa-times mr-1"></i> Xóa lọc
                     </a>
                 @endif
