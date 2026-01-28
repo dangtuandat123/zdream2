@@ -657,13 +657,32 @@
             </div>
         </div>
 
+        @php
+            $requiredSlotKeys = collect($imageSlots ?? [])
+                ->filter(fn ($slot) => !empty($slot['required']))
+                ->pluck('key')
+                ->filter()
+                ->values()
+                ->all();
+            $hasAllRequiredImages = true;
+            if (!empty($requiredSlotKeys)) {
+                foreach ($requiredSlotKeys as $requiredKey) {
+                    if (empty($uploadedImages[$requiredKey])) {
+                        $hasAllRequiredImages = false;
+                        break;
+                    }
+                }
+            }
+        @endphp
+
         @auth
             @if($user && $user->hasEnoughCredits($style->price ?? 0))
                 @if(!$isGenerating)
                     <button 
                         wire:click="generate"
                         wire:loading.attr="disabled"
-                        class="w-full py-3.5 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold text-base transition-all duration-300 inline-flex items-center justify-center gap-2 hover:shadow-[0_8px_30px_rgba(168,85,247,0.5)] hover:-translate-y-0.5 disabled:opacity-60 disabled:cursor-wait">
+                        @disabled(!$hasAllRequiredImages)
+                        class="w-full py-3.5 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold text-base transition-all duration-300 inline-flex items-center justify-center gap-2 hover:shadow-[0_8px_30px_rgba(168,85,247,0.5)] hover:-translate-y-0.5 disabled:opacity-40 disabled:cursor-not-allowed">
                         <span wire:loading.remove wire:target="generate" class="inline-flex items-center gap-2">
                             <i class="fa-solid fa-wand-magic-sparkles" style="font-size: 18px;"></i>
                             <span>Tạo ảnh</span>
@@ -673,6 +692,11 @@
                             <span>ZDream đang tạo ảnh...</span>
                         </span>
                     </button>
+                    @if(!$hasAllRequiredImages)
+                        <p class="text-xs text-orange-300/80 mt-2 text-center">
+                            Vui lòng tải đủ ảnh bắt buộc để tiếp tục.
+                        </p>
+                    @endif
                 @endif
             @else
                 <a href="{{ route('wallet.index') }}" class="w-full py-3.5 rounded-xl bg-white/[0.05] border border-white/[0.1] text-white font-medium text-base inline-flex items-center justify-center gap-2 hover:bg-white/[0.1] transition-all">
