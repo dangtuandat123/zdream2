@@ -785,12 +785,14 @@
                 <!-- Backdrop (Enhanced Glassmorphism) -->
                 <div class="absolute inset-0 bg-[#0a0a0f]/80 backdrop-blur-xl transition-opacity"></div>
 
-                <!-- Close Button -->
-                <button 
-                    @click="close()"
-                    class="absolute top-4 right-4 md:top-6 md:right-6 z-[100000] w-10 h-10 md:w-12 md:h-12 rounded-full bg-white/10 hover:bg-white/20 text-white/60 hover:text-white flex items-center justify-center transition-all duration-300 hover:rotate-90 backdrop-blur-md border border-white/10 group shadow-lg">
-                    <i class="fa-solid fa-xmark text-lg md:text-xl group-hover:scale-110 transition-transform"></i>
-                </button>
+                <!-- Close Button (ẩn khi đang tạo ảnh) -->
+                @if(!$isGenerating)
+                    <button 
+                        @click="close()"
+                        class="absolute top-4 right-4 md:top-6 md:right-6 z-[100000] w-10 h-10 md:w-12 md:h-12 rounded-full bg-white/10 hover:bg-white/20 text-white/60 hover:text-white flex items-center justify-center transition-all duration-300 hover:rotate-90 backdrop-blur-md border border-white/10 group shadow-lg">
+                        <i class="fa-solid fa-xmark text-lg md:text-xl group-hover:scale-110 transition-transform"></i>
+                    </button>
+                @endif
 
                 <!-- MODAL CONTENT -->
                 <div class="relative w-full h-full flex flex-col items-center justify-center z-10 p-4 md:p-6">
@@ -880,9 +882,6 @@
                                     </div>
                                     <h3 class="text-xl font-bold text-white">Hoàn tất!</h3>
                                     <p class="text-sm text-white/50">Ảnh của bạn đã sẵn sàng</p>
-                                    <p class="text-xs text-white/40 mt-2">
-                                        Model: <span class="font-mono text-white/70">{{ $style->bfl_model_id ?? $style->openrouter_model_id }}</span>
-                                    </p>
                                 </div>
 
                                 <!-- Download Button -->
