@@ -350,7 +350,7 @@
         .select2-container--default .select2-selection--single {
             background: rgba(255, 255, 255, 0.03);
             border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 0.5rem;
+            border-radius: 0.75rem;
             height: 48px;
             padding: 10px 12px;
         }
@@ -384,13 +384,13 @@
         .select2-dropdown {
             background: #1a1a24;
             border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 0.5rem;
+            border-radius: 0.75rem;
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
         }
         .select2-container--default .select2-search--dropdown .select2-search__field {
             background: rgba(255, 255, 255, 0.05);
             border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 0.375rem;
+            border-radius: 0.75rem;
             color: white;
             padding: 8px 12px;
         }

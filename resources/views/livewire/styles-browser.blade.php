@@ -54,7 +54,7 @@
                         wire:model.live.debounce.400ms="search"
                         wire:key="styles-search-input"
                         placeholder="Tìm kiếm style..."
-                        class="w-full h-12 sm:h-11 pl-10 pr-10 rounded-xl bg-white/[0.04] border border-white/[0.08] text-white text-sm sm:text-base placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-purple-500/40"
+                        class="w-full h-11 pl-10 pr-10 rounded-xl bg-white/[0.04] border border-white/[0.08] text-white text-sm sm:text-base placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-purple-500/40"
                     >
                     @if(trim($search) !== '')
                         <button
@@ -70,9 +70,9 @@
             </div>
 
             <!-- Filters -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:flex lg:items-center gap-2">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:flex lg:items-center gap-3">
                 <div class="min-w-0 sm:min-w-[160px]" wire:ignore x-data="select2Livewire({ model: @entangle('price').live, minResults: 9999 })">
-                    <select x-ref="select" data-no-select2="true" class="w-full px-3 py-2.5 rounded-xl bg-white/[0.04] border border-white/[0.08] text-white text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-purple-500/40">
+                    <select x-ref="select" data-no-select2="true" class="w-full h-11 px-3 rounded-xl bg-white/[0.04] border border-white/[0.08] text-white text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-purple-500/40">
                         <option value="">Tất cả giá</option>
                         @foreach($priceRanges as $key => $label)
                             <option value="{{ $key }}">{{ $label }}</option>
@@ -81,7 +81,7 @@
                 </div>
 
                 <div class="min-w-0 sm:min-w-[180px]" wire:ignore x-data="select2Livewire({ model: @entangle('tag').live, minResults: 9999 })">
-                    <select x-ref="select" data-no-select2="true" class="w-full px-3 py-2.5 rounded-xl bg-white/[0.04] border border-white/[0.08] text-white text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-purple-500/40">
+                    <select x-ref="select" data-no-select2="true" class="w-full h-11 px-3 rounded-xl bg-white/[0.04] border border-white/[0.08] text-white text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-purple-500/40">
                         <option value="">Tất cả chủ đề</option>
                         @foreach($tags as $tagItem)
                             <option value="{{ $tagItem->id }}">{{ $tagItem->name }}</option>
@@ -90,7 +90,7 @@
                 </div>
 
                 <div class="min-w-0 sm:min-w-[180px]" wire:ignore x-data="select2Livewire({ model: @entangle('sort').live, minResults: 9999 })">
-                    <select x-ref="select" data-no-select2="true" class="w-full px-3 py-2.5 rounded-xl bg-white/[0.04] border border-white/[0.08] text-white text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-purple-500/40">
+                    <select x-ref="select" data-no-select2="true" class="w-full h-11 px-3 rounded-xl bg-white/[0.04] border border-white/[0.08] text-white text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-purple-500/40">
                         @foreach($sortOptions as $key => $label)
                             <option value="{{ $key }}">{{ $label }}</option>
                         @endforeach
