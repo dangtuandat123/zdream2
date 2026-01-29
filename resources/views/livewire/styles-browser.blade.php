@@ -97,7 +97,7 @@
                     </select>
                 </div>
 
-                @if(trim($search) !== '' || $price !== '' || $tag !== '')
+                @if(trim($search) !== '' || $price !== '' || $tag !== '' || $sort !== 'popular')
                     <button type="button" wire:click="resetFilters" class="w-full sm:w-auto h-11 px-4 rounded-xl bg-red-500/15 border border-red-500/30 text-red-300 text-sm hover:bg-red-500/25 transition-colors inline-flex items-center justify-center gap-2 whitespace-nowrap">
                         <i class="fa-solid fa-xmark text-[12px]"></i>
                         Xóa lọc
