@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Support\Livewire\ComponentRegistryStub;
+use Illuminate\Pagination\Paginator;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -22,6 +23,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        Paginator::defaultView('vendor.pagination.zdream');
+        Paginator::defaultSimpleView('vendor.pagination.zdream-simple');
     }
 }
