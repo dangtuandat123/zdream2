@@ -139,7 +139,7 @@
                                     <span class="w-1 h-4 bg-gradient-to-b from-purple-400 to-pink-500 rounded-full"></span>
                                     {{ $groupName }}
                                 </h3>
-                                <div class="flex flex-wrap gap-3">
+                                <div class="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-3">
                                     {{-- Default option --}}
                                     @php 
                                         $isDefaultSelected = !isset($selectedOptions[$groupName]) || $selectedOptions[$groupName] === null;
@@ -148,7 +148,7 @@
                                         type="button"
                                         wire:click="selectOption(@js($groupName), null)"
                                         wire:key="option-{{ Str::slug($groupName) }}-default"
-                                        class="relative w-24 sm:w-28 flex flex-col items-center gap-1.5 p-1.5 rounded-xl transition-all duration-300 
+                                        class="relative w-full flex flex-col items-center gap-1.5 p-1.5 rounded-xl transition-all duration-300 
                                             {{ $isDefaultSelected 
                                                 ? 'bg-gradient-to-br from-cyan-500/20 to-cyan-500/20 shadow-[0_0_20px_rgba(6,182,212,0.3)]' 
                                                 : 'hover:bg-white/[0.05]' }}">
@@ -178,7 +178,7 @@
                                             type="button"
                                             wire:click="selectOption(@js($groupName), {{ $option->id }})"
                                             wire:key="option-{{ $option->id }}"
-                                            class="relative w-24 sm:w-28 flex flex-col items-center gap-1.5 p-1.5 rounded-xl transition-all duration-300
+                                        class="relative w-full flex flex-col items-center gap-1.5 p-1.5 rounded-xl transition-all duration-300
                                                 {{ $isSelected 
                                                     ? 'bg-gradient-to-br from-cyan-500/20 to-cyan-500/20 shadow-[0_0_20px_rgba(6,182,212,0.3)]' 
                                                     : 'hover:bg-white/[0.05]' }}">
