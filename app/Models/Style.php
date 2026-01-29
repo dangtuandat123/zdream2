@@ -357,6 +357,15 @@ class Style extends Model
         if ($match(['mau', 'color', 'palette', 'hex'])) {
             return 'color';
         }
+        if ($match([
+            'trang phuc', 'outfit', 'clothes', 'clothing', 'wardrobe',
+            'phu kien', 'accessory', 'accessories',
+            'toc', 'hair', 'hairstyle',
+            'makeup', 'trang diem', 'mat', 'face', 'skin',
+            'giay', 'shoe', 'bag', 'tui', 'hat', 'non',
+        ])) {
+            return 'details';
+        }
         if ($match(['chi tiet', 'detail', 'texture', 'chat lieu', 'material', 'pattern'])) {
             return 'details';
         }

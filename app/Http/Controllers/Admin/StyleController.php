@@ -599,9 +599,25 @@ public function edit(Style $style): View
             return null;
         }
 
-        return collect($slots)->map(function ($slot) {
+        $used = [];
+
+        return collect($slots)->map(function ($slot) use (&$used) {
+            $key = $slot['key'] ?? Str::slug($slot['label'] ?? 'slot') . '_' . Str::random(6);
+            $key = trim((string) $key);
+            if ($key === '') {
+                $key = 'slot_' . Str::random(8);
+            }
+
+            $base = $key;
+            $counter = 1;
+            while (in_array($key, $used, true)) {
+                $key = $base . '_' . $counter;
+                $counter++;
+            }
+            $used[] = $key;
+
             return [
-                'key' => $slot['key'] ?? Str::slug($slot['label'] ?? 'slot') . '_' . Str::random(6),
+                'key' => $key,
                 'label' => $slot['label'] ?? '',
                 'description' => $slot['description'] ?? '',
                 'required' => isset($slot['required']) && ($slot['required'] === true || $slot['required'] === '1' || $slot['required'] === 'on'),
@@ -1068,6 +1084,7 @@ public function edit(Style $style): View
             return;
         }
 
+        $defaultUsed = [];
         foreach ($options as $index => $optionData) {
             if (!is_array($optionData)) {
                 continue;
@@ -1094,6 +1111,15 @@ public function edit(Style $style): View
                 continue;
             }
 
+            $isDefault = !empty($optionData['is_default']);
+            if ($isDefault) {
+                if (isset($defaultUsed[$groupName])) {
+                    $isDefault = false;
+                } else {
+                    $defaultUsed[$groupName] = true;
+                }
+            }
+
             $style->options()->create([
                 'label' => $label,
                 'group_name' => $groupName,
@@ -1101,7 +1127,7 @@ public function edit(Style $style): View
                 'icon' => $optionData['icon'] ?? null,
                 'thumbnail' => $optionData['thumbnail'] ?? null,
                 'sort_order' => isset($optionData['sort_order']) ? (int) $optionData['sort_order'] : $index,
-                'is_default' => !empty($optionData['is_default']),
+                'is_default' => $isDefault,
             ]);
         }
     }

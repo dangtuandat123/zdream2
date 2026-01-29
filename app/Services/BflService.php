@@ -33,6 +33,10 @@ class BflService
         if ($this->baseUrl === '') {
             $this->baseUrl = 'https://api.bfl.ai';
         }
+        // Normalize: nếu admin nhập kèm /v1 thì loại bỏ để tránh /v1/v1
+        if (str_ends_with($this->baseUrl, '/v1')) {
+            $this->baseUrl = substr($this->baseUrl, 0, -3);
+        }
 
         $this->timeout = (int) config('services_custom.bfl.timeout', 120);
         $this->pollTimeout = (int) config('services_custom.bfl.poll_timeout', 120);

@@ -62,8 +62,17 @@ class StyleOption extends Model
         if (empty($this->thumbnail)) {
             return null;
         }
-        
-        return '/storage/' . $this->thumbnail;
+
+        $value = (string) $this->thumbnail;
+        if (filter_var($value, FILTER_VALIDATE_URL)) {
+            return $value;
+        }
+
+        if (str_starts_with($value, '/storage/')) {
+            return $value;
+        }
+
+        return '/storage/' . ltrim($value, '/');
     }
 
     // =========================================
