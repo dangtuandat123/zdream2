@@ -15,7 +15,7 @@
                     <i class="fa-solid fa-file-import w-4 h-4"></i> Import
                 </a>
                 <a href="{{ route('admin.styles.create') }}" class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white font-medium flex items-center gap-2 hover:shadow-[0_8px_30px_rgba(168,85,247,0.5)] transition-all">
-                    <i class="fa-solid fa-plus w-4 h-4"></i> T?o Style
+                    <i class="fa-solid fa-plus w-4 h-4"></i> Tạo Style
                 </a>
             </div>
         </div>
