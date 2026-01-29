@@ -564,8 +564,8 @@
     <!-- ========== MOBILE MENU OVERLAY ========== -->
     <div id="menu-overlay" class="fixed inset-0 z-[60] md:hidden opacity-0 pointer-events-none transition-opacity duration-300">
         <div class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
-        <div id="mobile-menu" class="mobile-menu closed absolute right-0 top-0 h-full w-72 max-w-[85vw] bg-[#0a0a0f]/98 backdrop-blur-[24px] border-l border-white/[0.08]">
-            <div class="p-4 border-b border-white/[0.05] flex items-center justify-between">
+        <div id="mobile-menu" class="mobile-menu closed absolute right-0 top-0 h-full w-72 max-w-[85vw] bg-[#0a0a0f]/98 backdrop-blur-[24px] border-l border-white/[0.08] overflow-y-auto overscroll-contain">
+            <div class="sticky top-0 z-10 p-4 border-b border-white/[0.05] bg-[#0a0a0f]/95 backdrop-blur flex items-center justify-between">
                 <span class="text-white/80 font-medium">Menu</span>
                 <button id="close-menu-btn" class="w-8 h-8 rounded-lg bg-white/[0.05] flex items-center justify-center text-white/60 hover:text-white">
                     <i class="fa-solid fa-xmark w-4 h-4"></i>
