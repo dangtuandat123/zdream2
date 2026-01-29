@@ -148,7 +148,7 @@
                                         type="button"
                                         wire:click="selectOption(@js($groupName), null)"
                                         wire:key="option-{{ Str::slug($groupName) }}-default"
-                                        class="relative w-full flex flex-col items-center gap-1.5 p-1.5 rounded-xl transition-all duration-300 
+                                        class="relative w-full min-w-0 flex flex-col items-center gap-1.5 p-1.5 rounded-xl transition-all duration-300 
                                             {{ $isDefaultSelected 
                                                 ? 'bg-gradient-to-br from-cyan-500/20 to-cyan-500/20 shadow-[0_0_20px_rgba(6,182,212,0.3)]' 
                                                 : 'hover:bg-white/[0.05]' }}">
@@ -159,14 +159,14 @@
                                             </div>
                                         @endif
                                         {{-- Icon container - hình vuông --}}
-                                        <div class="w-20 h-20 sm:w-24 sm:h-24 aspect-square rounded-md transition-all duration-300
+                                        <div class="w-full aspect-square max-w-[120px] sm:max-w-[140px] mx-auto rounded-md transition-all duration-300
                                             {{ $isDefaultSelected 
                                                 ? 'bg-gradient-to-br from-cyan-500/30 to-cyan-500/30 border-2 border-cyan-400/50' 
                                                 : 'bg-[#1a1a2e] border border-white/10 hover:border-white/20' }}
                                             flex items-center justify-center">
                                             <i class="fa-solid fa-ban {{ $isDefaultSelected ? 'text-cyan-400' : 'text-white/30' }}" style="font-size: 20px;"></i>
                                         </div>
-                                        <span class="w-full text-center text-xs font-medium leading-snug whitespace-normal break-words min-h-8 {{ $isDefaultSelected ? 'text-cyan-400' : 'text-white/50' }}">Mặc định</span>
+                                        <span class="w-full text-center text-[11px] sm:text-xs font-medium leading-snug whitespace-normal break-words min-h-8 {{ $isDefaultSelected ? 'text-cyan-400' : 'text-white/50' }}">Mặc định</span>
                                     </button>
 
                                     {{-- Style options --}}
@@ -178,7 +178,7 @@
                                             type="button"
                                             wire:click="selectOption(@js($groupName), {{ $option->id }})"
                                             wire:key="option-{{ $option->id }}"
-                                        class="relative w-full flex flex-col items-center gap-1.5 p-1.5 rounded-xl transition-all duration-300
+                                            class="relative w-full min-w-0 flex flex-col items-center gap-1.5 p-1.5 rounded-xl transition-all duration-300
                                                 {{ $isSelected 
                                                     ? 'bg-gradient-to-br from-cyan-500/20 to-cyan-500/20 shadow-[0_0_20px_rgba(6,182,212,0.3)]' 
                                                     : 'hover:bg-white/[0.05]' }}">
@@ -189,7 +189,7 @@
                                                 </div>
                                             @endif
                                             {{-- Thumbnail container - hình vuông --}}
-                                            <div class="w-20 h-20 sm:w-24 sm:h-24 aspect-square rounded-md overflow-hidden transition-all duration-300
+                                            <div class="w-full aspect-square max-w-[120px] sm:max-w-[140px] mx-auto rounded-md overflow-hidden transition-all duration-300
                                                 {{ $isSelected 
                                                     ? 'border-2 border-cyan-400/50 shadow-[0_0_15px_rgba(6,182,212,0.4)]' 
                                                     : 'border border-white/10 hover:border-white/20' }}
@@ -202,7 +202,7 @@
                                                     <i class="fa-solid fa-wand-magic-sparkles {{ $isSelected ? 'text-cyan-400' : 'text-white/30' }}" style="font-size: 18px;"></i>
                                                 @endif
                                             </div>
-                                            <span class="w-full text-center text-xs font-medium leading-snug whitespace-normal break-words min-h-8 {{ $isSelected ? 'text-cyan-400' : 'text-white/50' }}">{{ $option->label }}</span>
+                                            <span class="w-full text-center text-[11px] sm:text-xs font-medium leading-snug whitespace-normal break-words min-h-8 {{ $isSelected ? 'text-cyan-400' : 'text-white/50' }}">{{ $option->label }}</span>
                                         </button>
                                     @endforeach
                                 </div>
