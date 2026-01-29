@@ -192,10 +192,6 @@
                     <p class="text-white/50 text-sm">Chọn style yêu thích của bạn</p>
                 </div>
             </div>
-            <a href="{{ route('styles.index') }}" class="self-start sm:self-auto px-4 py-2 rounded-xl bg-white/[0.05] border border-white/[0.1] text-white/70 text-sm font-medium hover:bg-white/[0.1] hover:text-white transition-all inline-flex items-center gap-2">
-                <span>Xem tất cả</span>
-                <i class="fa-solid fa-arrow-right w-3 h-3"></i>
-            </a>
         </div>
 
         @if($styles->isEmpty())
@@ -253,6 +249,12 @@
                         </div>
                     </a>
                 @endforeach
+            <div class="flex justify-center mt-8">
+                <a href="{{ route('styles.index') }}" class="px-6 sm:px-8 py-3 rounded-xl bg-gradient-to-r from-pink-500 via-fuchsia-500 to-purple-500 text-white font-semibold text-sm sm:text-base shadow-lg shadow-fuchsia-500/35 hover:shadow-fuchsia-500/55 hover:from-pink-400 hover:to-purple-400 transition-all inline-flex items-center gap-2">
+                    <span>Xem tất cả Styles</span>
+                    <i class="fa-solid fa-arrow-right w-3.5 h-3.5"></i>
+                </a>
+            </div>
             </div>
         @endif
     </section>

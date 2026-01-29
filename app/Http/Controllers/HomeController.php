@@ -18,31 +18,21 @@ class HomeController extends Controller
      */
     public function index(): View
     {
-        $featuredStyles = Style::query()
+        $startOfMonth = now()->startOfMonth();
+        $endOfMonth = now()->endOfMonth();
+
+        $styles = Style::query()
             ->active()
-            ->featured()
             ->with('tag')
             ->withCount('generatedImages')
+            ->withCount(['generatedImages as month_generated_count' => function ($query) use ($startOfMonth, $endOfMonth) {
+                $query->whereBetween('created_at', [$startOfMonth, $endOfMonth]);
+            }])
+            ->orderByDesc('month_generated_count')
             ->orderByDesc('generated_images_count')
             ->take(8)
             ->get();
 
-        if ($featuredStyles->count() < 8) {
-            $missing = 8 - $featuredStyles->count();
-            $fallback = Style::query()
-                ->active()
-                ->whereNotIn('id', $featuredStyles->pluck('id'))
-                ->with('tag')
-                ->withCount('generatedImages')
-                ->orderByDesc('generated_images_count')
-                ->take($missing)
-                ->get();
-
-            $featuredStyles = $featuredStyles->concat($fallback);
-        }
-
-        return view('home', [
-            'styles' => $featuredStyles,
-        ]);
+        return view('home', compact('styles'));
     }
 }
