@@ -89,7 +89,7 @@ class StylesBrowser extends Component
             default => $query->ordered(),
         };
 
-        $styles = $query->paginate(16);
+        $styles = $query->paginate(12);
 
         $priceRanges = [
             'free' => 'Miễn phí',

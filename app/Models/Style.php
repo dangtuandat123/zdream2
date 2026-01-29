@@ -42,6 +42,7 @@ class Style extends Model
         'base_prompt',
         'config_payload',
         'is_active',
+        'is_featured',
         'tag_id',
         'allow_user_custom_prompt',
         'image_slots',
@@ -55,6 +56,7 @@ class Style extends Model
         'image_slots' => 'array',
         'system_images' => 'array',
         'is_active' => 'boolean',
+        'is_featured' => 'boolean',
         'tag_id' => 'integer',
         'allow_user_custom_prompt' => 'boolean',
         'sort_order' => 'integer',
@@ -139,6 +141,14 @@ class Style extends Model
     public function scopeActive($query)
     {
         return $query->where('is_active', true);
+    }
+
+    /**
+     * Scope: Chỉ lấy style nổi bật
+     */
+    public function scopeFeatured($query)
+    {
+        return $query->where('is_featured', true);
     }
 
     /**

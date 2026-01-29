@@ -18,14 +18,31 @@ class HomeController extends Controller
      */
     public function index(): View
     {
-        $styles = Style::query()
+        $featuredStyles = Style::query()
             ->active()
-            ->with('tag') // Eager load tag relationship
+            ->featured()
+            ->with('tag')
             ->withCount('generatedImages')
             ->orderByDesc('generated_images_count')
-            ->take(50) // Limit để tránh slow query
+            ->take(8)
             ->get();
 
-        return view('home', compact('styles'));
+        if ($featuredStyles->count() < 8) {
+            $missing = 8 - $featuredStyles->count();
+            $fallback = Style::query()
+                ->active()
+                ->whereNotIn('id', $featuredStyles->pluck('id'))
+                ->with('tag')
+                ->withCount('generatedImages')
+                ->orderByDesc('generated_images_count')
+                ->take($missing)
+                ->get();
+
+            $featuredStyles = $featuredStyles->concat($fallback);
+        }
+
+        return view('home', [
+            'styles' => $featuredStyles,
+        ]);
     }
 }
