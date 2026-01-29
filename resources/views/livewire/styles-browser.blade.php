@@ -43,7 +43,7 @@
 
     <!-- Filters -->
     <div class="mb-5 styles-filter">
-        <div class="rounded-2xl bg-white/[0.03] border border-white/[0.06] p-3 sm:p-4 lg:p-0 lg:bg-transparent lg:border-0">
+        <div class="p-0 sm:p-4 lg:p-0 sm:rounded-2xl sm:bg-white/[0.03] sm:border sm:border-white/[0.06] lg:bg-transparent lg:border-0">
             <div class="grid gap-3 lg:grid-cols-[1fr_auto] lg:items-center">
             <!-- Search -->
             <div class="min-w-0">
@@ -51,7 +51,7 @@
                     <i class="fa-solid fa-search absolute left-3 top-1/2 -translate-y-1/2 text-white/40"></i>
                     <input
                         type="text"
-                        wire:model.debounce.400ms="search"
+                        wire:model.live.debounce.400ms="search"
                         wire:key="styles-search-input"
                         placeholder="Tìm kiếm style..."
                         class="w-full h-12 sm:h-11 pl-10 pr-10 rounded-xl bg-white/[0.04] border border-white/[0.08] text-white text-sm sm:text-base placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-purple-500/40"
