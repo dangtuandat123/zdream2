@@ -71,7 +71,7 @@
 
             <!-- Filters -->
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:flex lg:items-center gap-3">
-                <div class="min-w-0 sm:min-w-[160px]" wire:ignore x-data="select2Livewire({ model: @entangle('price').live, minResults: 9999 })">
+                <div class="relative min-w-0 sm:min-w-[160px]" wire:ignore x-data="select2Livewire({ model: @entangle('price').live, minResults: 9999 })">
                     <select x-ref="select" data-no-select2="true" class="w-full h-11 px-3 rounded-xl bg-white/[0.04] border border-white/[0.08] text-white text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-purple-500/40">
                         <option value="">Tất cả giá</option>
                         @foreach($priceRanges as $key => $label)
@@ -80,7 +80,7 @@
                     </select>
                 </div>
 
-                <div class="min-w-0 sm:min-w-[180px]" wire:ignore x-data="select2Livewire({ model: @entangle('tag').live, minResults: 9999 })">
+                <div class="relative min-w-0 sm:min-w-[180px]" wire:ignore x-data="select2Livewire({ model: @entangle('tag').live, minResults: 9999 })">
                     <select x-ref="select" data-no-select2="true" class="w-full h-11 px-3 rounded-xl bg-white/[0.04] border border-white/[0.08] text-white text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-purple-500/40">
                         <option value="">Tất cả chủ đề</option>
                         @foreach($tags as $tagItem)
@@ -89,7 +89,7 @@
                     </select>
                 </div>
 
-                <div class="min-w-0 sm:min-w-[180px]" wire:ignore x-data="select2Livewire({ model: @entangle('sort').live, minResults: 9999 })">
+                <div class="relative min-w-0 sm:min-w-[180px]" wire:ignore x-data="select2Livewire({ model: @entangle('sort').live, minResults: 9999 })">
                     <select x-ref="select" data-no-select2="true" class="w-full h-11 px-3 rounded-xl bg-white/[0.04] border border-white/[0.08] text-white text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-purple-500/40">
                         @foreach($sortOptions as $key => $label)
                             <option value="{{ $key }}">{{ $label }}</option>
@@ -191,10 +191,12 @@
             minResults,
             init() {
                 const $select = $(this.$refs.select);
+                const $dropdownParent = $select.parent();
                 $select.select2({
                     minimumResultsForSearch: this.minResults,
                     dropdownAutoWidth: false,
-                    width: '100%'
+                    width: '100%',
+                    dropdownParent: $dropdownParent
                 });
 
                 $select.val(this.model).trigger('change.select2');
