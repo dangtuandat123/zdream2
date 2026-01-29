@@ -800,6 +800,7 @@ class ImageGenerator extends Component
         if ($image->status === GeneratedImage::STATUS_COMPLETED) {
             $this->isGenerating = false;
             $this->generatedImageUrl = $image->image_url;
+            $this->dispatch('imageGenerated');
             
         } elseif ($image->status === GeneratedImage::STATUS_FAILED) {
             $this->isGenerating = false;
@@ -807,6 +808,7 @@ class ImageGenerator extends Component
             $this->errorMessage = $image->error_message 
                 ? 'Lỗi: ' . $image->error_message . '. Credits đã được hoàn lại.'
                 : 'Tạo ảnh thất bại. Credits đã được hoàn lại.';
+            $this->dispatch('imageGenerated');
             
         } elseif ($image->status === GeneratedImage::STATUS_PROCESSING) {
             // HIGH-02 FIX: Watchdog - kiểm tra timeout

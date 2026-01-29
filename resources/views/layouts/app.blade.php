@@ -458,7 +458,7 @@
                         <!-- Xu Display -->
                         <a href="{{ route('wallet.index') }}" class="hidden sm:flex items-center gap-1.5 px-3 h-9 rounded-full bg-white/[0.03] border border-white/[0.08] text-white/80 hover:bg-white/[0.05] transition-all">
                             <i class="fa-solid fa-gem text-cyan-400" style="font-size: 14px;"></i>
-                            <span class="font-semibold text-sm text-white/95">{{ number_format(auth()->user()->credits, 0) }}</span>
+                            <span class="font-semibold text-sm text-white/95"><livewire:header-credits /></span>
                         </a>
 
                         <!-- Nạp Xu Button -->
@@ -510,7 +510,7 @@
                                     <a href="{{ route('wallet.index') }}" class="flex items-center gap-3 px-4 py-2.5 text-sm text-white/70 hover:text-white hover:bg-white/[0.05] transition-colors">
                                         <i class="fa-solid fa-wallet w-4 text-yellow-400"></i>
                                         Ví tiền
-                                        <span class="ml-auto text-xs text-cyan-400 font-medium">{{ number_format(auth()->user()->credits, 0) }} Xu</span>
+                                        <span class="ml-auto text-xs text-cyan-400 font-medium"><livewire:header-credits /> Xu</span>
                                     </a>
                                 </div>
 
@@ -539,7 +539,7 @@
                         <!-- Mobile: Xu Display -->
                         <a href="{{ route('wallet.index') }}" class="sm:hidden h-9 px-3 rounded-full bg-white/[0.03] border border-white/[0.08] flex items-center gap-2 text-white/80">
                             <i class="fa-solid fa-gem w-4 h-4 text-cyan-400"></i>
-                            <span class="font-semibold text-sm text-white/95">{{ number_format(auth()->user()->credits, 0) }}</span>
+                            <span class="font-semibold text-sm text-white/95"><livewire:header-credits /></span>
                         </a>
                     @else
                         <a href="{{ route('login') }}" class="hidden sm:inline-flex items-center justify-center h-9 px-4 rounded-full bg-white/[0.03] border border-white/[0.1] text-white/80 text-sm font-medium hover:bg-white/[0.06] transition-all leading-none">Đăng nhập</a>
@@ -570,7 +570,7 @@
                             <span class="text-white/60 text-sm">Số dư</span>
                             <i class="fa-solid fa-gem w-4 h-4 text-cyan-400"></i>
                         </div>
-                        <div class="text-2xl font-bold text-white mb-3">{{ number_format(auth()->user()->credits, 0) }} Xu</div>
+                        <div class="text-2xl font-bold text-white mb-3"><livewire:header-credits /> Xu</div>
                         <div class="w-full py-2.5 rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 text-white font-medium text-sm flex items-center justify-center gap-2 shadow-lg shadow-purple-500/25">
                             <i class="fa-solid fa-plus w-3.5 h-3.5"></i> Nạp thêm Xu
                         </div>
@@ -616,7 +616,7 @@
                             <a href="{{ route('wallet.index') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm text-white/70 hover:text-white hover:bg-white/[0.05] transition-colors">
                                 <i class="fa-solid fa-wallet w-4 text-yellow-400"></i>
                                 Ví tiền
-                                <span class="ml-auto text-xs text-cyan-400 font-medium">{{ number_format(auth()->user()->credits, 0) }} Xu</span>
+                                <span class="ml-auto text-xs text-cyan-400 font-medium"><livewire:header-credits /> Xu</span>
                             </a>
                         </div>
                     </div>
