@@ -1,92 +1,168 @@
-# Hướng dẫn tạo Style đẹp & import nhanh (GenZ-friendly)
+# Hướng dẫn tạo Style đẹp & import nhanh (GenZ‑friendly, chuẩn A‑Z)
 
-Tài liệu này giúp **ai cũng có thể tạo style đẹp** và **import hàng loạt** vào admin.  
-Mục tiêu: phong cách hiện đại, dễ viral, hợp thị hiếu GenZ.
-
----
-
-## 1) Công thức tạo style “đẹp + dễ dùng”
-
-### 1.1. Tư duy cơ bản
-- **GenZ thích nhanh – rõ – có vibe**: chỉ cần mô tả ngắn là ra ảnh đẹp.
-- **Tập trung vào 1 chủ đề chính** (tránh quá nhiều ý trong 1 style).
-- **Ưu tiên thẩm mỹ mạng xã hội**: ánh sáng sạch, màu nổi bật, bố cục rõ.
-
-### 1.2. Khung prompt tiêu chuẩn (gợi ý)
-> **Subject + Action + Style + Context + Mood + Lighting + Color + Details + Technical**
-
-Trong admin bạn có các ô nhập sẵn cho từng phần, chỉ cần điền từng ô:
-
-| Slot | Ý nghĩa | Ví dụ nhanh |
-|------|---------|------------|
-| subject | Chủ thể | cô gái / chú mèo |
-| action | Hành động | đang cười / đang chạy |
-| style | Phong cách | cinematic / anime / editorial |
-| context | Bối cảnh | phố đêm / studio |
-| mood | Cảm xúc | ấm áp / bí ẩn |
-| lighting | Ánh sáng | soft light / neon |
-| color | Màu sắc | tông xanh tím |
-| details | Chi tiết | tóc rõ nét / da mịn |
-| technical | Kỹ thuật | 85mm, f/1.4, bokeh |
-| custom | Tuỳ chọn | mô tả thêm |
-| misc | Khác | tập trung vào mắt |
-
-> **Mẹo**: Chỉ cần 3–6 slot là đủ đẹp. Đừng điền tất cả nếu không cần.
+Tài liệu này giúp **bất kỳ ai** cũng có thể tạo style chất lượng cao, dễ viral và dễ import vào admin.  
+Mục tiêu: **dễ hiểu – dễ dùng – ra ảnh đẹp ngay** với phong cách hợp thị hiếu GenZ.
 
 ---
 
-## 2) Cách đặt tên & “vibe” GenZ
-
-**Gợi ý format tên style:**
-- “Neon City GenZ”
-- “Mirror Selfie Aesthetic”
-- “Soft Portrait 2K”
-
-**Từ khoá vibe phổ biến:**
-`aesthetic, dreamy, cinematic, soft light, neon, minimal, clean, magazine, editorial`
+## 0) Checklist nhanh trước khi làm
+- ✅ Biết rõ style muốn phục vụ **1 chủ đề chính** (tránh lan man).
+- ✅ Có 3–5 ví dụ ảnh tham khảo (Pinterest/Instagram/TikTok).
+- ✅ Xác định **vibe** + **màu chủ đạo** + **bố cục**.
+- ✅ Chọn model phù hợp (chất lượng hoặc tốc độ).
+- ✅ Chuẩn bị thumbnail rõ vibe + đẹp ngay từ card.
 
 ---
 
-## 3) Thiết kế Options thông minh
+## 1) Chọn model phù hợp (cực quan trọng)
 
-### 3.1. Chia theo nhóm (group_name)
-Nên dùng các tên nhóm **dễ hiểu** để hệ thống tự map đúng slot:
-- `Chủ thể`, `Hành động`, `Phong cách`, `Bối cảnh`, `Cảm xúc`, `Ánh sáng`, `Màu sắc`, `Chi tiết`, `Kỹ thuật`
+> Mục tiêu: **đúng model → đúng chất lượng → đúng chi phí**.
 
-### 3.2. Ví dụ option:
+Gợi ý lựa chọn (tùy nhu cầu thực tế):
+- **Model thiên về chất lượng cao**: dùng cho ảnh chân dung, editorial, quảng cáo, ảnh sản phẩm.
+- **Model thiên về tốc độ**: dùng cho trải nghiệm nhanh, thử nghiệm, ảnh casual/social.
+- **Model hỗ trợ ảnh tham chiếu**: dùng cho style cần giữ gương mặt/pose/texture.
+- **Model hỗ trợ tuỳ chỉnh nâng cao** (width/height/steps/guidance…): dùng cho style cần kiểm soát kỹ.
+
+> **Nguyên tắc:**  
+> - Style “premium/viral” → ưu tiên chất lượng.  
+> - Style “nhanh/giải trí” → ưu tiên tốc độ.  
+> - Style “giữ mặt/ảnh tham chiếu” → model có input image.
+
+---
+
+## 2) Kiến trúc Prompt: chuẩn hoá để AI hiểu nhanh
+
+### 2.1. Prompt template (khung ghép)
+Hệ thống hỗ trợ placeholder để ghép prompt, phần nào trống sẽ tự bỏ qua:
+
 ```
-label: "Áo hoodie"
+{{base}}, {{subject}}, {{action}}, {{style}}, {{context}}, {{mood}}, {{lighting}}, {{color}}, {{details}}, {{technical}}, {{custom}}, {{misc}}
+```
+
+### 2.2. Ý nghĩa từng phần (dễ hiểu – dễ nhập)
+| Slot | Ý nghĩa | Ví dụ gợi ý |
+|------|--------|-------------|
+| **base** | Prompt nền chung (xương sống) | “highly detailed, clean composition” |
+| **subject** | Chủ thể chính | “cô gái”, “mèo”, “nhân vật chibi” |
+| **action** | Hành động | “đang cười”, “đang chạy” |
+| **style** | Phong cách hình ảnh | “cinematic”, “anime”, “editorial” |
+| **context** | Bối cảnh | “phố đêm”, “studio trắng” |
+| **mood** | Cảm xúc | “ấm áp”, “bí ẩn” |
+| **lighting** | Ánh sáng | “soft light”, “neon glow” |
+| **color** | Màu chủ đạo | “tông tím hồng”, “pastel” |
+| **details** | Chi tiết nhấn mạnh | “da mịn”, “bokeh đẹp” |
+| **technical** | Góc máy/kỹ thuật | “85mm, f/1.4, shallow DOF” |
+| **custom** | Tuỳ chỉnh riêng (admin) | “outfit Y2K” |
+| **misc** | Phụ trợ khác | “focus on eyes” |
+
+> **Mẹo quan trọng:**  
+> - Không cần điền hết. 4–6 slot tốt nhất.  
+> - Base + Subject + Style + Lighting thường đủ đẹp.  
+> - Đừng nhồi quá nhiều mô tả → ảnh bị rối.
+
+---
+
+## 3) Thiết kế Options (cực quan trọng với UX)
+
+### 3.1. Nhóm option hợp lý
+Nên đặt tên nhóm **dễ hiểu, phổ thông**:
+- Chủ thể
+- Hành động
+- Phong cách
+- Bối cảnh
+- Cảm xúc
+- Ánh sáng
+- Màu sắc
+- Chi tiết
+- Kỹ thuật
+
+### 3.2. Quy tắc tạo option
+- **Label ngắn** (1–3 từ).
+- **Prompt fragment rõ nghĩa** (đừng viết quá dài).
+- **1 nhóm chỉ 4–8 option** để dễ chọn.
+- **Option mặc định** nên an toàn và đẹp.
+
+Ví dụ option chuẩn:
+```
+label: "Hoodie"
 group_name: "Trang phục"
 prompt_fragment: "hoodie, casual streetwear"
 ```
 
 ---
 
-## 4) Luôn cập nhật theo trend (gợi ý)
+## 4) Ảnh tham chiếu & System Image
 
-Để style luôn hợp xu hướng:
-- Quan sát trend TikTok/Instagram (filter đang hot, màu hot, “vibe” hot).
-- Cập nhật **thumbnail** theo đúng vibe.
-- Mỗi 2–4 tuần nên thêm style mới, bỏ style cũ ít dùng.
+### 4.1. Khi nào cần ảnh tham chiếu
+- Style yêu cầu giữ gương mặt người dùng.
+- Style cần texture hoặc pose cố định.
+
+### 4.2. System Image (ảnh nền chuẩn)
+System image nên dùng khi bạn muốn **đồng bộ tone & vibe** cho style.
+
+Ví dụ:
+- Style “neo‑city” → system image là background thành phố neon.
+- Style “studio portrait” → system image là nền studio trắng.
 
 ---
 
-## 5) Cấu trúc JSON để import
+## 5) Cách xác định giá Style (Xu)
 
-### 5.1. Schema chuẩn
+Gợi ý:
+- Style “nhanh/đơn giản” → giá thấp.
+- Style “premium/chất lượng cao” → giá cao hơn.
+- Style có nhiều option nâng cao → tăng giá nhẹ.
+
+> **Nguyên tắc:** Người dùng luôn sẵn sàng trả nhiều hơn nếu ảnh “ra đẹp ngay lần đầu”.
+
+---
+
+## 6) Tìm style viral theo mùa (có hệ thống)
+
+### 6.1. Mùa & dịp hot
+- Tết, Valentine, 8/3, 20/10
+- Noel, Halloween, Back‑to‑school
+- Summer travel, beach, festival
+
+### 6.2. Nguồn trend
+- TikTok: filter, effect, color trend
+- Instagram: aesthetic theme, creator style
+- Pinterest: moodboard, color palette
+
+### 6.3. Công thức “trend score”
+Chọn style đạt **≥ 7/10**:
+- 3 điểm: dễ viral (màu nổi, vibe lạ)
+- 2 điểm: hợp mùa/dịp
+- 2 điểm: dễ dùng (prompt ngắn)
+- 1 điểm: dễ chia sẻ (mạng xã hội đẹp)
+
+---
+
+## 7) Quy trình test trước khi đưa lên
+
+1. Chọn 3 ảnh test khác nhau
+2. Test với 2–3 option
+3. So sánh ảnh → chỉnh base prompt hoặc defaults
+4. Đảm bảo **đẹp ≥ 80%** trước khi public
+
+---
+
+## 8) JSON Import chuẩn (để nhập nhanh)
+
 ```json
 {
   "version": 1,
   "styles": [
     {
-      "name": "Portrait Studio GenZ",
-      "slug": "portrait-studio-genz",
+      "name": "Neon Night Portrait",
+      "slug": "neon-night-portrait",
       "thumbnail_url": "https://...",
-      "description": "Phong cách chân dung trẻ trung",
+      "description": "Chân dung neon vibe thành phố đêm",
       "price": 2,
       "sort_order": 0,
-      "bfl_model_id": "flux-dev",
-      "base_prompt": "Professional portrait, clean background",
+      "bfl_model_id": "flux-2-pro",
+      "base_prompt": "portrait, cinematic lighting, clean composition",
       "tag": "HOT",
       "allow_user_custom_prompt": true,
       "is_active": true,
@@ -94,13 +170,13 @@ prompt_fragment: "hoodie, casual streetwear"
         "aspect_ratio": "1:1",
         "prompt_strategy": "standard",
         "prompt_defaults": {
-          "lighting": "soft studio light",
-          "mood": "fresh, confident"
+          "lighting": "neon glow",
+          "mood": "mysterious"
         }
       },
       "options": [
         {
-          "label": "Áo hoodie",
+          "label": "Hoodie",
           "group_name": "Trang phục",
           "prompt_fragment": "hoodie, casual streetwear",
           "is_default": true
@@ -116,8 +192,8 @@ prompt_fragment: "hoodie, casual streetwear"
       ],
       "system_images": [
         {
-          "label": "Mẫu nền",
-          "description": "Giữ tone màu",
+          "label": "Nền neon",
+          "description": "Giữ tone neon",
           "url": "https://..."
         }
       ]
@@ -126,33 +202,9 @@ prompt_fragment: "hoodie, casual streetwear"
 }
 ```
 
-### 5.2. Các trường quan trọng
-- **name, base_prompt, bfl_model_id**: bắt buộc
-- **config_payload.prompt_defaults**: nơi đặt từng slot prompt theo ô riêng
-- **options**: giúp người dùng lựa chọn nhanh
-- **system_images**: dùng URL, hệ thống sẽ tự tải ảnh làm tham chiếu
-
 ---
 
-## 6) Checklist trước khi import
+## 9) Kết luận
+Style đẹp nhất không phải style dài nhất, mà là style **đúng vibe, đúng model, đúng prompt**.
 
-✅ Thumbnail rõ vibe  
-✅ Base prompt đủ ngắn gọn  
-✅ Options phân nhóm hợp lý  
-✅ Prompt mặc định không quá dài  
-✅ Đã test 1–2 ảnh xem ra ổn
-
----
-
-## 7) Gợi ý mẫu style GenZ nhanh
-
-**Tên**: “Neon Night Portrait”  
-**Base prompt**: “Professional portrait, neon lighting, cinematic vibe”  
-**Defaults**:  
-- mood: “mysterious”  
-- lighting: “neon glow”  
-- color: “blue/purple palette”  
-
----
-
-Nếu bạn muốn, tôi có thể tạo sẵn file JSON 20–50 style mẫu để import ngay.
+Nếu cần mình có thể tạo sẵn 20–50 style mẫu (JSON import) để bạn nhập ngay.
