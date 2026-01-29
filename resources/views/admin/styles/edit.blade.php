@@ -610,6 +610,20 @@
                         <label for="is_active" class="text-sm text-white/70">Kích hoạt style</label>
                     </div>
 
+                    <div class="flex items-center gap-3">
+                        <input type="checkbox" id="is_featured" name="is_featured" value="1"
+                               class="w-5 h-5 rounded bg-white/[0.03] border-white/[0.15] text-purple-500 focus:ring-purple-500/50"
+                               {{ old('is_featured', $style->is_featured) ? 'checked' : '' }}>
+                        <label for="is_featured" class="text-sm text-white/70">N?i b?t (Home)</label>
+                    </div>
+
+                    <div class="flex items-center gap-3">
+                        <input type="checkbox" id="is_new" name="is_new" value="1"
+                               class="w-5 h-5 rounded bg-white/[0.03] border-white/[0.15] text-purple-500 focus:ring-purple-500/50"
+                               {{ old('is_new', $style->is_new) ? 'checked' : '' }}>
+                        <label for="is_new" class="text-sm text-white/70">M?i (Badge)</label>
+                    </div>
+
                     <div>
                         <label for="tag_id" class="block text-sm font-medium text-white/70 mb-2">Tag hiển thị</label>
                         <select id="tag_id" name="tag_id"

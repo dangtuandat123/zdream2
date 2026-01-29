@@ -113,6 +113,7 @@ public function create(): View
         $created = 0;
         $skipped = 0;
         $errors = [];
+        $warnings = [];
 
         foreach ($stylesData as $index => $styleData) {
             if (!is_array($styleData)) {
@@ -145,6 +146,7 @@ public function create(): View
             if (!empty($styleData['prompt_defaults']) && empty($configPayload['prompt_defaults'])) {
                 $configPayload['prompt_defaults'] = $styleData['prompt_defaults'];
             }
+            $configPayload = $this->sanitizeConfigPayloadForImport($configPayload, $modelId, $warnings, $index);
             $configPayload = $this->mergeAdvancedConfig($configPayload, $configPayload);
             $configPayload = !empty($configPayload) ? $configPayload : null;
 
@@ -162,6 +164,8 @@ public function create(): View
                     $tagId = $tag->id;
                 }
             }
+            $isFeatured = array_key_exists('is_featured', $styleData) ? (bool) $styleData['is_featured'] : false;
+            $isNew = array_key_exists('is_new', $styleData) ? (bool) $styleData['is_new'] : false;
 
             if ($dryRun) {
                 $created++;
@@ -197,6 +201,8 @@ public function create(): View
                         'system_images' => $systemImages,
                         'allow_user_custom_prompt' => !empty($styleData['allow_user_custom_prompt']),
                         'is_active' => array_key_exists('is_active', $styleData) ? (bool) $styleData['is_active'] : true,
+                        'is_featured' => $isFeatured,
+                        'is_new' => $isNew,
                         'tag_id' => $tagId,
                     ]);
 
@@ -214,6 +220,10 @@ public function create(): View
         if (!empty($errors)) {
             Log::warning('Style import errors', ['errors' => $errors]);
             return redirect()->back()->with('error', $summary . ' Có lỗi ở một số style, xem log để biết chi tiết.');
+        }
+
+        if (!empty($warnings)) {
+            Log::warning('Style import warnings', ['warnings' => $warnings]);
         }
 
         return redirect()
@@ -344,6 +354,8 @@ public function create(): View
                     'system_images' => $systemImages,
                     'allow_user_custom_prompt' => $request->boolean('allow_user_custom_prompt'),
                     'is_active' => $request->boolean('is_active'),
+                    'is_featured' => $request->boolean('is_featured'),
+                    'is_new' => $request->boolean('is_new'),
                     'tag_id' => $request->input('tag_id') ?: null,
                 ]);
 
@@ -515,6 +527,8 @@ public function edit(Style $style): View
                     'system_images' => !empty($systemImages) ? $systemImages : null,
                     'allow_user_custom_prompt' => $request->boolean('allow_user_custom_prompt'),
                     'is_active' => $request->boolean('is_active'),
+                    'is_featured' => $request->boolean('is_featured'),
+                    'is_new' => $request->boolean('is_new'),
                     'tag_id' => $request->input('tag_id') ?: null,
                 ]);
 
@@ -850,6 +864,182 @@ public function edit(Style $style): View
     }
 
     /**
+     * Sanitize config_payload for import (align with create/edit validation)
+     */
+    private function sanitizeConfigPayloadForImport(array $payload, string $modelId, array &$warnings, int $index): array
+    {
+        if (empty($payload)) {
+            return [];
+        }
+
+        $cap = $this->bflService->getModelCapabilities($modelId);
+        $minDim = (int) ($cap['min_dimension'] ?? config('services_custom.bfl.min_dimension', 256));
+        $maxDim = (int) ($cap['max_dimension'] ?? config('services_custom.bfl.max_dimension', 1408));
+        $multiple = (int) ($cap['dimension_multiple'] ?? config('services_custom.bfl.dimension_multiple', 32));
+        $multiple = $multiple > 0 ? $multiple : 1;
+
+        $aspectRatios = array_keys($this->bflService->getAspectRatios());
+        $outputFormats = $cap['output_formats'] ?? ['jpeg', 'png'];
+        $safetyRange = $cap['safety_tolerance'] ?? ['min' => 0, 'max' => 6];
+        $stepsRange = $cap['steps'] ?? null;
+        $guidanceRange = $cap['guidance'] ?? null;
+        $imagePromptStrengthRange = $cap['image_prompt_strength'] ?? ['min' => 0, 'max' => 1];
+
+        // prompt_defaults
+        if (array_key_exists('prompt_defaults', $payload)) {
+            if (!is_array($payload['prompt_defaults'])) {
+                unset($payload['prompt_defaults']);
+                $warnings[] = "Style #{$index}: prompt_defaults không hợp lệ, đã bỏ qua.";
+            } else {
+                $cleanDefaults = [];
+                foreach ($payload['prompt_defaults'] as $slot => $value) {
+                    $value = trim((string) $value);
+                    if ($value !== '') {
+                        $cleanDefaults[$slot] = $value;
+                    }
+                }
+                $payload['prompt_defaults'] = $cleanDefaults;
+            }
+        }
+
+        // aspect_ratio
+        if (isset($payload['aspect_ratio'])) {
+            $ratio = (string) $payload['aspect_ratio'];
+            if ($ratio === '' || (!empty($aspectRatios) && !in_array($ratio, $aspectRatios, true))) {
+                unset($payload['aspect_ratio']);
+                $warnings[] = "Style #{$index}: aspect_ratio không hợp lệ, đã bỏ qua.";
+            }
+        }
+
+        // seed
+        if (isset($payload['seed'])) {
+            $seed = (int) $payload['seed'];
+            if ($seed < 0) {
+                unset($payload['seed']);
+                $warnings[] = "Style #{$index}: seed không hợp lệ, đã bỏ qua.";
+            } else {
+                $payload['seed'] = $seed;
+            }
+        }
+
+        // steps
+        if (isset($payload['steps'])) {
+            $steps = (int) $payload['steps'];
+            if (is_array($stepsRange) && isset($stepsRange['min'], $stepsRange['max'])) {
+                $min = (int) $stepsRange['min'];
+                $max = (int) $stepsRange['max'];
+                if ($steps < $min || $steps > $max) {
+                    unset($payload['steps']);
+                    $warnings[] = "Style #{$index}: steps ngoài khoảng, đã bỏ qua.";
+                } else {
+                    $payload['steps'] = $steps;
+                }
+            } else {
+                $payload['steps'] = $steps;
+            }
+        }
+
+        // guidance
+        if (isset($payload['guidance'])) {
+            $guidance = (float) $payload['guidance'];
+            if (is_array($guidanceRange) && isset($guidanceRange['min'], $guidanceRange['max'])) {
+                $min = (float) $guidanceRange['min'];
+                $max = (float) $guidanceRange['max'];
+                if ($guidance < $min || $guidance > $max) {
+                    unset($payload['guidance']);
+                    $warnings[] = "Style #{$index}: guidance không hợp lệ, đã bỏ qua.";
+                } else {
+                    $payload['guidance'] = $guidance;
+                }
+            } else {
+                $payload['guidance'] = $guidance;
+            }
+        }
+
+        // safety_tolerance
+        if (isset($payload['safety_tolerance'])) {
+            $value = (int) $payload['safety_tolerance'];
+            $min = (int) ($safetyRange['min'] ?? 0);
+            $max = (int) ($safetyRange['max'] ?? 6);
+            if ($value < $min || $value > $max) {
+                unset($payload['safety_tolerance']);
+                $warnings[] = "Style #{$index}: safety_tolerance không hợp lệ, đã bỏ qua.";
+            } else {
+                $payload['safety_tolerance'] = $value;
+            }
+        }
+
+        // output_format
+        if (isset($payload['output_format'])) {
+            $format = (string) $payload['output_format'];
+            if ($format === '' || !in_array($format, $outputFormats, true)) {
+                unset($payload['output_format']);
+                $warnings[] = "Style #{$index}: output_format không hợp lệ, đã bỏ qua.";
+            } else {
+                $payload['output_format'] = $format;
+            }
+        }
+
+        // raw / prompt_upsampling
+        if (isset($payload['raw'])) {
+            $payload['raw'] = (bool) $payload['raw'];
+        }
+        if (isset($payload['prompt_upsampling'])) {
+            $payload['prompt_upsampling'] = (bool) $payload['prompt_upsampling'];
+        }
+
+        // image_prompt_strength
+        if (isset($payload['image_prompt_strength'])) {
+            $value = (float) $payload['image_prompt_strength'];
+            $min = (float) ($imagePromptStrengthRange['min'] ?? 0);
+            $max = (float) ($imagePromptStrengthRange['max'] ?? 1);
+            if ($value < $min || $value > $max) {
+                unset($payload['image_prompt_strength']);
+                $warnings[] = "Style #{$index}: image_prompt_strength không hợp lệ, đã bỏ qua.";
+            } else {
+                $payload['image_prompt_strength'] = $value;
+            }
+        }
+
+        // width/height
+        $hasWidth = array_key_exists('width', $payload);
+        $hasHeight = array_key_exists('height', $payload);
+        if ($hasWidth || $hasHeight) {
+            if (!$hasWidth || !$hasHeight) {
+                unset($payload['width'], $payload['height']);
+                $warnings[] = "Style #{$index}: width/height thiếu cặp, đã bỏ qua.";
+            } else {
+                $width = (int) $payload['width'];
+                $height = (int) $payload['height'];
+                if ($width < $minDim || $width > $maxDim || $height < $minDim || $height > $maxDim) {
+                    unset($payload['width'], $payload['height']);
+                    $warnings[] = "Style #{$index}: width/height vượt giới hạn, đã bỏ qua.";
+                } elseif (($width % $multiple) !== 0 || ($height % $multiple) !== 0) {
+                    unset($payload['width'], $payload['height']);
+                    $warnings[] = "Style #{$index}: width/height không đúng bội số, đã bỏ qua.";
+                } else {
+                    $payload['width'] = $width;
+                    $payload['height'] = $height;
+                }
+            }
+        }
+
+        // prompt_* strings
+        foreach (['prompt_template', 'prompt_prefix', 'prompt_suffix', 'prompt_strategy'] as $key) {
+            if (array_key_exists($key, $payload)) {
+                $value = trim((string) $payload[$key]);
+                if ($value === '') {
+                    unset($payload[$key]);
+                } else {
+                    $payload[$key] = $value;
+                }
+            }
+        }
+
+        return $payload;
+    }
+
+    /**
      * Generate unique slug for imported styles
      */
     private function generateUniqueSlug(string $slugBase): string
@@ -886,6 +1076,19 @@ public function edit(Style $style): View
             $label = trim((string) ($optionData['label'] ?? ''));
             $groupName = trim((string) ($optionData['group_name'] ?? ''));
             $fragment = trim((string) ($optionData['prompt_fragment'] ?? ''));
+
+            $label = trim($label, "\"'");
+            $groupName = trim($groupName, "\"'");
+
+            if (mb_strlen($label) > 255) {
+                $label = mb_substr($label, 0, 255);
+            }
+            if (mb_strlen($groupName) > 255) {
+                $groupName = mb_substr($groupName, 0, 255);
+            }
+            if (mb_strlen($fragment) > 4000) {
+                $fragment = mb_substr($fragment, 0, 4000);
+            }
 
             if ($label === '' || $groupName === '' || $fragment === '') {
                 continue;
