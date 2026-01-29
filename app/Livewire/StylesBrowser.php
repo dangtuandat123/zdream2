@@ -14,6 +14,16 @@ class StylesBrowser extends Component
 
     protected string $paginationTheme = 'tailwind';
 
+    public function paginationView(): string
+    {
+        return 'vendor.pagination.zdream';
+    }
+
+    public function paginationSimpleView(): string
+    {
+        return 'vendor.pagination.zdream-simple';
+    }
+
     #[Url(as: 'search')]
     public string $search = '';
 
