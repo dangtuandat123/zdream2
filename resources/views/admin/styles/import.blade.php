@@ -1,4 +1,4 @@
-<x-app-layout>
+﻿<x-app-layout>
     <x-slot name="title">Import Styles - Admin | ZDream</x-slot>
 
     <div class="max-w-3xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
@@ -60,10 +60,12 @@
         { "label": "Áo hoodie", "group_name": "Trang phục", "prompt_fragment": "hoodie", "is_default": true }
       ],
       "image_slots": [
-        { "key": "ref_1", "label": "Ảnh tham chiếu", "description": "Ảnh gương mặt rõ", "required": true }
+        { "key": "image", "label": "Ảnh gốc", "description": "Ảnh cần chỉnh sửa", "required": true },
+        { "key": "mask", "label": "Mask (tùy chọn)", "description": "Đen = giữ, trắng = chỉnh", "required": false }
       ],
       "system_images": [
-        { "label": "Mẫu nền", "description": "Giữ tone màu", "url": "https://..." }
+        { "label": "Mẫu nền", "description": "Giữ tone màu", "url": "https://..." },
+        { "label": "System image (blob)", "description": "Ảnh tham chiếu lưu trên BFL blob", "blob_path": "blob:xxxxx/xxxxx" }
       ]
     }
   ]
@@ -103,3 +105,5 @@
         </div>
     </div>
 </x-app-layout>
+
+

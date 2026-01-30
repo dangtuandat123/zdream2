@@ -23,6 +23,7 @@ class BflService
     protected int $pollTimeout;
     protected int $maxImageBytes = 10485760; // default 10MB, override via config
     protected bool $verifySsl = true;
+    protected int $maxPostAttempts = 3;
 
     public function __construct()
     {
@@ -42,6 +43,7 @@ class BflService
         $this->pollTimeout = (int) config('services_custom.bfl.poll_timeout', 120);
         $this->maxImageBytes = (int) config('services_custom.bfl.max_image_bytes', 26214400);
         $this->verifySsl = (bool) config('services_custom.bfl.verify_ssl', true);
+        $this->maxPostAttempts = (int) config('services_custom.bfl.max_post_attempts', 3);
     }
 
     /**
@@ -56,7 +58,16 @@ class BflService
         ])->withOptions(['verify' => $this->verifySsl])
           ->timeout($this->timeout)
           ->connectTimeout(10)
-          ->retry(2, 500);
+          ->retry(2, 500, function (\Exception $exception) {
+              if ($exception instanceof \Illuminate\Http\Client\ConnectionException) {
+                  return true;
+              }
+              if ($exception instanceof \Illuminate\Http\Client\RequestException) {
+                  $status = $exception->response->status();
+                  return in_array($status, [429, 500, 502, 503, 504]);
+              }
+              return false;
+          });
     }
 
     /**
@@ -71,7 +82,7 @@ class BflService
         ])->withOptions(['verify' => $this->verifySsl])
           ->timeout($this->timeout)
           ->connectTimeout(15)
-          ->retry(3, function (int $attempt) {
+          ->retry($this->maxPostAttempts, function (int $attempt) {
               return min(1000 * pow(2, $attempt - 1), 4000);
           }, function (\Exception $exception) {
               if ($exception instanceof \Illuminate\Http\Client\ConnectionException) {
@@ -139,6 +150,7 @@ class BflService
     {
         $model = $this->getModelConfig($modelId) ?? [];
         return array_merge([
+            'generation_mode' => 't2i',
             'supports_text_input' => true,
             'supports_image_input' => false,
             'supports_aspect_ratio' => false,
@@ -151,6 +163,8 @@ class BflService
             'supports_safety_tolerance' => false,
             'supports_raw' => false,
             'supports_image_prompt_strength' => false,
+            'supports_mask' => false,
+            'supports_blob_path' => false,
             'max_input_images' => 0,
             'uses_image_prompt' => false,
             'output_formats' => ['jpeg', 'png'],
@@ -158,6 +172,7 @@ class BflService
             'steps' => null,
             'guidance' => null,
             'image_prompt_strength' => null,
+            'prompt_upsampling_default' => false,
             'min_dimension' => (int) config('services_custom.bfl.min_dimension', 256),
             'max_dimension' => (int) config('services_custom.bfl.max_dimension', 1408),
             'dimension_multiple' => (int) config('services_custom.bfl.dimension_multiple', 32),
@@ -179,6 +194,8 @@ class BflService
             'black-forest-labs/flux.2-flex' => 'flux-2-flex',
             'black-forest-labs/flux.2-klein-4b' => 'flux-2-klein-4b',
             'black-forest-labs/flux.2-klein-9b' => 'flux-2-klein-9b',
+            'black-forest-labs/flux-pro-1.0-fill' => 'flux-pro-1.0-fill',
+            'black-forest-labs/flux-pro-1.0-fill-finetuned' => 'flux-pro-1.0-fill-finetuned',
             'black-forest-labs/flux-kontext-pro' => 'flux-kontext-pro',
             'black-forest-labs/flux-kontext-max' => 'flux-kontext-max',
             'black-forest-labs/flux-1.1-pro' => 'flux-pro-1.1',
@@ -187,6 +204,8 @@ class BflService
             'black-forest-labs/flux-dev' => 'flux-dev',
             'flux-1.1-pro' => 'flux-pro-1.1',
             'flux-1.1-pro-ultra' => 'flux-pro-1.1-ultra',
+            'flux-pro-1.0-fill' => 'flux-pro-1.0-fill',
+            'flux-pro-1.0-fill-finetuned' => 'flux-pro-1.0-fill-finetuned',
             'flux.2-max' => 'flux-2-max',
             'flux.2-pro' => 'flux-2-pro',
             'flux.2-flex' => 'flux-2-flex',
@@ -281,6 +300,24 @@ class BflService
     {
         $cap = $this->getModelCapabilities($modelId);
         return (bool) ($cap['supports_image_prompt_strength'] ?? false);
+    }
+
+    public function supportsMask(string $modelId): bool
+    {
+        $cap = $this->getModelCapabilities($modelId);
+        return (bool) ($cap['supports_mask'] ?? false);
+    }
+
+    public function supportsBlobPath(string $modelId): bool
+    {
+        $cap = $this->getModelCapabilities($modelId);
+        return (bool) ($cap['supports_blob_path'] ?? false);
+    }
+
+    protected function isFillModel(string $modelId): bool
+    {
+        $cap = $this->getModelCapabilities($modelId);
+        return (($cap['generation_mode'] ?? '') === 'fill');
     }
 
     public function getOutputFormats(string $modelId): array
@@ -382,7 +419,15 @@ class BflService
 
         // Collect input images (user + system) with meta (label/description)
         $inputItems = $this->collectInputImagesWithMeta($style, $inputImages);
-        $normalizedImages = array_values(array_map(fn ($item) => $item['value'], $inputItems));
+        $blobPath = $this->extractBlobPathFromItems($inputItems);
+        if ($blobPath !== null && !$this->supportsBlobPath($modelId)) {
+            Log::warning('Blob path provided but model does not support it, ignoring', [
+                'model_id' => $modelId,
+            ]);
+            $blobPath = null;
+        }
+        $nonBlobItems = array_values(array_filter($inputItems, fn ($item) => empty($item['is_blob'])));
+        $normalizedImages = array_values(array_map(fn ($item) => $item['value'], $nonBlobItems));
         $maxImages = $this->maxInputImages($modelId);
 
         if ($maxImages === 0 && !empty($normalizedImages)) {
@@ -399,14 +444,33 @@ class BflService
                 'count' => count($normalizedImages),
                 'max' => $maxImages,
             ]);
-            $inputItems = array_slice($inputItems, 0, $maxImages);
-            $normalizedImages = array_values(array_map(fn ($item) => $item['value'], $inputItems));
+            $nonBlobItems = array_slice($nonBlobItems, 0, $maxImages);
+            $normalizedImages = array_values(array_map(fn ($item) => $item['value'], $nonBlobItems));
         }
 
         // Append image descriptions to prompt AFTER truncation
-        $finalPrompt = $this->appendImageDescriptionsFromMeta($finalPrompt, $inputItems);
+        $finalPrompt = $this->appendImageDescriptionsFromMeta($finalPrompt, $nonBlobItems);
 
-        $payload = $this->buildPayload($style, $finalPrompt, $modelId, $aspectRatio, $imageSize, $normalizedImages, $generationOverrides);
+        if ($this->isFillModel($modelId)) {
+            $fillInputs = $this->extractFillInputs($inputImages, $inputItems);
+            if (empty($fillInputs['image'])) {
+                return [
+                    'success' => false,
+                    'error' => 'Thiếu ảnh gốc để inpaint/outpaint.',
+                    'final_prompt' => $finalPrompt,
+                ];
+            }
+            $payload = $this->buildFillPayload(
+                $finalPrompt,
+                $modelId,
+                $fillInputs['image'],
+                $fillInputs['mask'] ?? null,
+                $generationOverrides,
+                $style->config_payload ?? []
+            );
+        } else {
+            $payload = $this->buildPayload($style, $finalPrompt, $modelId, $aspectRatio, $imageSize, $normalizedImages, $generationOverrides, $blobPath);
+        }
 
         try {
             $response = $this->clientForPost()->post($this->baseUrl . '/v1/' . $modelId, $payload);
@@ -465,7 +529,8 @@ class BflService
         ?string $aspectRatio,
         ?string $imageSize,
         array $inputImages,
-        array $generationOverrides = []
+        array $generationOverrides = [],
+        ?string $blobPath = null
     ): array {
         $payload = [
             'prompt' => $prompt,
@@ -557,15 +622,83 @@ class BflService
             $payload[$key] = $value;
         }
 
-        if (!empty($inputImages)) {
+        if (!empty($inputImages) || $blobPath !== null) {
+            if ($blobPath !== null && $this->supportsBlobPath($modelId)) {
+                $payload['input_image_blob_path'] = $blobPath;
+            }
+
             if ($this->usesImagePrompt($modelId)) {
-                $payload['image_prompt'] = $inputImages[0];
+                if (!empty($inputImages)) {
+                    $payload['image_prompt'] = $inputImages[0];
+                }
             } else {
+                $startIndex = $blobPath !== null ? 1 : 0;
                 foreach ($inputImages as $index => $img) {
-                    $field = $index === 0 ? 'input_image' : 'input_image_' . ($index + 1);
+                    $fieldIndex = $index + 1 + $startIndex;
+                    $field = $fieldIndex === 1 ? 'input_image' : 'input_image_' . $fieldIndex;
                     $payload[$field] = $img;
                 }
             }
+        }
+
+        return $payload;
+    }
+
+    /**
+     * Build payload for FLUX Fill (inpaint/outpaint)
+     */
+    protected function buildFillPayload(
+        string $prompt,
+        string $modelId,
+        string $image,
+        ?string $mask,
+        array $generationOverrides = [],
+        array $config = []
+    ): array {
+        $payload = [
+            'image' => $image,
+            'prompt' => $prompt,
+        ];
+
+        if (!empty($mask)) {
+            $payload['mask'] = $mask;
+        }
+
+        $allowedKeys = [
+            'seed',
+            'guidance',
+            'steps',
+            'safety_tolerance',
+            'output_format',
+            'prompt_upsampling',
+        ];
+
+        $supported = [
+            'seed' => $this->supportsSeed($modelId),
+            'guidance' => $this->supportsGuidance($modelId),
+            'steps' => $this->supportsSteps($modelId),
+            'safety_tolerance' => $this->supportsSafetyTolerance($modelId),
+            'output_format' => $this->supportsOutputFormat($modelId),
+            'prompt_upsampling' => $this->supportsPromptUpsampling($modelId),
+        ];
+
+        foreach ($allowedKeys as $key) {
+            if (($supported[$key] ?? false) === false) {
+                continue;
+            }
+
+            $value = null;
+            if (array_key_exists($key, $generationOverrides)) {
+                $value = $generationOverrides[$key];
+            } elseif (array_key_exists($key, $config)) {
+                $value = $config[$key];
+            }
+
+            if ($value === null) {
+                continue;
+            }
+
+            $payload[$key] = $value;
         }
 
         return $payload;
@@ -760,6 +893,9 @@ class BflService
         $parts = [];
 
         foreach ($items as $item) {
+            if (!empty($item['is_blob'])) {
+                continue;
+            }
             $desc = (string) ($item['description'] ?? '');
             $label = (string) ($item['label'] ?? '');
             $desc = trim($desc);
@@ -787,6 +923,20 @@ class BflService
         $slotMeta = collect($imageSlots)->keyBy('key')->toArray();
         $slotKeys = collect($imageSlots)->pluck('key')->all();
 
+        if (isset($inputImages['blob_path'])) {
+            $blobValue = $this->normalizeInputImage((string) $inputImages['blob_path']);
+            if ($blobValue !== null && $this->isBlobPath($blobValue)) {
+                $items[] = [
+                    'value' => $blobValue,
+                    'key' => 'blob_path',
+                    'label' => 'Blob path',
+                    'description' => '',
+                    'source' => 'blob',
+                    'is_blob' => true,
+                ];
+            }
+        }
+
         foreach ($slotKeys as $key) {
             if (!isset($inputImages[$key])) {
                 continue;
@@ -800,6 +950,7 @@ class BflService
                     'label' => (string) ($meta['label'] ?? $key),
                     'description' => (string) ($meta['description'] ?? ''),
                     'source' => 'user',
+                    'is_blob' => $this->isBlobPath($normalized),
                 ];
             }
         }
@@ -817,23 +968,27 @@ class BflService
                     'label' => (string) $key,
                     'description' => '',
                     'source' => 'user',
+                    'is_blob' => $this->isBlobPath($normalized),
                 ];
             }
         }
 
         foreach ($style->system_images ?? [] as $index => $sysImg) {
+            $blob = (string) ($sysImg['blob_path'] ?? '');
             $url = (string) ($sysImg['url'] ?? '');
-            if ($url === '') {
+            $value = $blob !== '' ? $blob : $url;
+            if ($value === '') {
                 continue;
             }
-            $normalized = $this->normalizeInputImage($url);
+            $normalized = $this->normalizeInputImage($value);
             if ($normalized) {
                 $items[] = [
                     'value' => $normalized,
                     'key' => (string) ($sysImg['key'] ?? ('system_' . $index)),
                     'label' => (string) ($sysImg['label'] ?? 'System Image'),
                     'description' => (string) ($sysImg['description'] ?? ''),
-                    'source' => 'system',
+                    'source' => $blob !== '' ? 'blob' : 'system',
+                    'is_blob' => $this->isBlobPath($normalized),
                 ];
             }
         }
@@ -884,6 +1039,70 @@ class BflService
     }
 
     /**
+     * Extract image + mask for fill models
+     * @return array{image: string|null, mask: string|null}
+     */
+    protected function extractFillInputs(array $inputImages, array $items): array
+    {
+        $image = null;
+        $mask = null;
+
+        $priorityImageKeys = ['image', 'input_image', 'ref_1'];
+        $priorityMaskKeys = ['mask', 'mask_image', 'ref_mask'];
+
+        foreach ($priorityImageKeys as $key) {
+            if (!isset($inputImages[$key])) {
+                continue;
+            }
+            $normalized = $this->normalizeInputImage((string) $inputImages[$key]);
+            if ($normalized && !$this->isBlobPath($normalized)) {
+                $image = $normalized;
+                break;
+            }
+        }
+
+        foreach ($priorityMaskKeys as $key) {
+            if (!isset($inputImages[$key])) {
+                continue;
+            }
+            $normalized = $this->normalizeInputImage((string) $inputImages[$key]);
+            if ($normalized && !$this->isBlobPath($normalized)) {
+                $mask = $normalized;
+                break;
+            }
+        }
+
+        if ($image === null && !empty($items)) {
+            foreach ($items as $item) {
+                if (!empty($item['is_blob'])) {
+                    continue;
+                }
+                $image = $item['value'] ?? null;
+                if ($image) {
+                    break;
+                }
+            }
+        }
+
+        if ($mask === null && count($items) > 1) {
+            foreach ($items as $item) {
+                if (!empty($item['is_blob'])) {
+                    continue;
+                }
+                if ($item['value'] !== $image) {
+                    $mask = $item['value'];
+                    break;
+                }
+            }
+        }
+
+        return [
+            'image' => $image,
+            'mask' => $mask,
+        ];
+    }
+
+    /**
      * Convert input image (data URL/base64/URL) to raw base64
      */
     protected function normalizeInputImage(string $value): ?string
@@ -891,6 +1110,11 @@ class BflService
         $value = trim($value);
         if ($value === '') {
             return null;
+        }
+
+        $blobPath = $this->normalizeBlobPath($value);
+        if ($blobPath !== null) {
+            return 'blob:' . $blobPath;
         }
 
         if (str_starts_with($value, 'data:image/')) {
@@ -906,6 +1130,40 @@ class BflService
             return $value;
         }
 
+        return null;
+    }
+
+    protected function isBlobPath(string $value): bool
+    {
+        return str_starts_with($value, 'blob:');
+    }
+
+    protected function normalizeBlobPath(string $value): ?string
+    {
+        $value = trim($value);
+        if ($value === '') {
+            return null;
+        }
+        if (str_starts_with($value, 'blob:')) {
+            return substr($value, 5);
+        }
+        if (str_starts_with($value, 'blob://')) {
+            return substr($value, 7);
+        }
+        if (str_starts_with($value, 'bfl://')) {
+            return substr($value, 6);
+        }
+        return null;
+    }
+
+    protected function extractBlobPathFromItems(array $items): ?string
+    {
+        foreach ($items as $item) {
+            $value = $item['value'] ?? null;
+            if (is_string($value) && $this->isBlobPath($value)) {
+                return substr($value, 5);
+            }
+        }
         return null;
     }
 

@@ -1180,7 +1180,8 @@ public function edit(Style $style): View
             }
 
             $url = trim((string) ($img['url'] ?? $img['image_url'] ?? ''));
-            if ($url === '') {
+            $blobPath = trim((string) ($img['blob_path'] ?? ''));
+            if ($url === '' && $blobPath === '') {
                 continue;
             }
 
@@ -1192,6 +1193,7 @@ public function edit(Style $style): View
                 'description' => $img['description'] ?? '',
                 'path' => $img['path'] ?? '',
                 'url' => $url,
+                'blob_path' => $blobPath,
             ];
         }
 

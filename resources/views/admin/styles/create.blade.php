@@ -306,6 +306,9 @@
                         @error('base_prompt')
                             <p class="mt-1 text-sm text-red-400">{{ $message }}</p>
                         @enderror
+                        <p class="mt-2 text-xs text-white/50">
+                            Lưu ý: FLUX không dùng “negative prompt”. Hãy mô tả rõ điều bạn muốn xuất hiện trong ảnh.
+                        </p>
                     </div>
 
                     <!-- Prompt Template -->

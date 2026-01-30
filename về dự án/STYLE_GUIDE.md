@@ -43,6 +43,8 @@ Trong admin có các ô nhập sẵn cho từng slot:
 | custom | Tuỳ chọn | mô tả thêm |
 | misc | Khác | tập trung vào mắt |
 
+> **Lưu ý:** FLUX **không hỗ trợ negative prompt**. Hãy mô tả rõ điều bạn muốn xuất hiện trong prompt chính.
+
 > Mẹo: chỉ cần 3–6 slot là đủ đẹp. Đừng điền tất cả nếu không cần.
 
 ---
@@ -69,11 +71,16 @@ prompt_fragment: "hoodie, casual streetwear"
 - `key` **duy nhất**, không trùng nhau.
 - `required: true` → bắt buộc upload đủ mới tạo ảnh.
 - `label` hiển thị cho người dùng.
+- Nếu dùng **inpaint/outpaint (Flux Fill)**:  
+  - `image` = ảnh gốc  
+  - `mask` = ảnh mask (đen = giữ, trắng = chỉnh)
 
 ### 4.2. System Images
 - Dùng để “ép vibe” (tone, background, chất liệu...).
 - Khuyến nghị dùng **URL công khai** (CDN/Storage public).
 - Nếu file nội bộ, hãy upload lên storage và lấy URL public trước khi import.
+- Có thể dùng **blob path** (BFL blob) nếu đã upload trước, ví dụ:  
+  `blob_path: "blob:xxxxx/xxxxx"`
 
 ---
 
@@ -137,10 +144,16 @@ prompt_fragment: "hoodie, casual streetwear"
       ],
       "image_slots": [
         {
-          "key": "ref_1",
-          "label": "Ảnh tham chiếu",
-          "description": "Ảnh gương mặt rõ",
+          "key": "image",
+          "label": "Ảnh gốc",
+          "description": "Ảnh cần chỉnh sửa",
           "required": true
+        },
+        {
+          "key": "mask",
+          "label": "Mask (tùy chọn)",
+          "description": "Đen = giữ nguyên, trắng = chỉnh sửa",
+          "required": false
         }
       ],
       "system_images": [
@@ -148,6 +161,11 @@ prompt_fragment: "hoodie, casual streetwear"
           "label": "Mẫu nền",
           "description": "Giữ tone màu",
           "url": "https://..."
+        },
+        {
+          "label": "System image (blob)",
+          "description": "Ảnh tham chiếu lưu trên BFL blob",
+          "blob_path": "blob:xxxxx/xxxxx"
         }
       ]
     }
@@ -160,7 +178,8 @@ prompt_fragment: "hoodie, casual streetwear"
 - **slug**: nên chuẩn URL và duy nhất.
 - **options**: mỗi group chỉ 1 default.
 - **image_slots.key**: duy nhất, không trùng.
-- **system_images.url**: URL công khai.
+- **system_images.url**: URL công khai (hoặc `blob_path`).
+- **inpaint/outpaint**: dùng `bfl_model_id = flux-pro-1.0-fill` hoặc `flux-pro-1.0-fill-finetuned`.
 
 ---
 
