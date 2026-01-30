@@ -805,32 +805,61 @@ public function edit(Style $style): View
     {
         $rules = [];
 
-        $stepsRange = $cap['steps'] ?? null;
-        if (is_array($stepsRange)) {
-            $min = (int) ($stepsRange['min'] ?? 1);
-            $max = (int) ($stepsRange['max'] ?? 200);
+        // steps
+        if (!empty($cap['supports_steps'])) {
+            $stepsRange = $cap['steps'] ?? null;
+            if (is_array($stepsRange) && isset($stepsRange['min'], $stepsRange['max'])) {
+                $min = (int) $stepsRange['min'];
+                $max = (int) $stepsRange['max'];
+                $rules['config_payload.steps'] = ['nullable', 'integer', "min:{$min}", "max:{$max}"];
+            } else {
+                $rules['config_payload.steps'] = ['nullable', 'integer', 'min:1'];
+            }
         }
 
-        $guidanceRange = $cap['guidance'] ?? null;
-        if (is_array($guidanceRange)) {
-            $min = (float) ($guidanceRange['min'] ?? 1);
-            $max = (float) ($guidanceRange['max'] ?? 20);
+        // guidance
+        if (!empty($cap['supports_guidance'])) {
+            $guidanceRange = $cap['guidance'] ?? null;
+            if (is_array($guidanceRange) && isset($guidanceRange['min'], $guidanceRange['max'])) {
+                $min = (float) $guidanceRange['min'];
+                $max = (float) $guidanceRange['max'];
+                $rules['config_payload.guidance'] = ['nullable', 'numeric', "min:{$min}", "max:{$max}"];
+            } else {
+                $rules['config_payload.guidance'] = ['nullable', 'numeric', 'min:0'];
+            }
         }
 
-        $safetyRange = $cap['safety_tolerance'] ?? null;
-        if (is_array($safetyRange)) {
-            $min = (int) ($safetyRange['min'] ?? 0);
-            $max = (int) ($safetyRange['max'] ?? 6);
+        // safety_tolerance
+        if (!empty($cap['supports_safety_tolerance'])) {
+            $safetyRange = $cap['safety_tolerance'] ?? null;
+            if (is_array($safetyRange) && isset($safetyRange['min'], $safetyRange['max'])) {
+                $min = (int) $safetyRange['min'];
+                $max = (int) $safetyRange['max'];
+                $rules['config_payload.safety_tolerance'] = ['nullable', 'integer', "min:{$min}", "max:{$max}"];
+            } else {
+                $rules['config_payload.safety_tolerance'] = ['nullable', 'integer', 'min:0', 'max:6'];
+            }
         }
 
-        $outputFormats = $cap['output_formats'] ?? null;
-        if (is_array($outputFormats) && !empty($outputFormats)) {
+        // output_format
+        if (!empty($cap['supports_output_format'])) {
+            $outputFormats = $cap['output_formats'] ?? ['jpeg', 'png'];
+            $outputFormats = array_values(array_filter($outputFormats));
+            if (!empty($outputFormats)) {
+                $rules['config_payload.output_format'] = ['nullable', Rule::in($outputFormats)];
+            }
         }
 
-        $imagePromptStrengthRange = $cap['image_prompt_strength'] ?? null;
-        if (is_array($imagePromptStrengthRange)) {
-            $min = (float) ($imagePromptStrengthRange['min'] ?? 0);
-            $max = (float) ($imagePromptStrengthRange['max'] ?? 1);
+        // image_prompt_strength
+        if (!empty($cap['supports_image_prompt_strength'])) {
+            $strengthRange = $cap['image_prompt_strength'] ?? null;
+            if (is_array($strengthRange) && isset($strengthRange['min'], $strengthRange['max'])) {
+                $min = (float) $strengthRange['min'];
+                $max = (float) $strengthRange['max'];
+                $rules['config_payload.image_prompt_strength'] = ['nullable', 'numeric', "min:{$min}", "max:{$max}"];
+            } else {
+                $rules['config_payload.image_prompt_strength'] = ['nullable', 'numeric', 'min:0', 'max:1'];
+            }
         }
 
         return $rules;
@@ -1134,11 +1163,11 @@ public function edit(Style $style): View
             if (mb_strlen($label) > 255) {
                 $label = mb_substr($label, 0, 255);
             }
-            if (mb_strlen($groupName) > 255) {
-                $groupName = mb_substr($groupName, 0, 255);
+            if (mb_strlen($groupName) > 100) {
+                $groupName = mb_substr($groupName, 0, 100);
             }
-            if (mb_strlen($fragment) > 4000) {
-                $fragment = mb_substr($fragment, 0, 4000);
+            if (mb_strlen($fragment) > 500) {
+                $fragment = mb_substr($fragment, 0, 500);
             }
 
             if ($label === '' || $groupName === '' || $fragment === '') {

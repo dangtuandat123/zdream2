@@ -632,9 +632,8 @@ class BflService
                     $payload['image_prompt'] = $inputImages[0];
                 }
             } else {
-                $startIndex = $blobPath !== null ? 1 : 0;
                 foreach ($inputImages as $index => $img) {
-                    $fieldIndex = $index + 1 + $startIndex;
+                    $fieldIndex = $index + 1;
                     $field = $fieldIndex === 1 ? 'input_image' : 'input_image_' . $fieldIndex;
                     $payload[$field] = $img;
                 }
