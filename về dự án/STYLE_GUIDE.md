@@ -139,6 +139,9 @@ prompt_fragment: "hoodie, casual streetwear"
           "label": "Áo hoodie",
           "group_name": "Trang phục",
           "prompt_fragment": "hoodie, casual streetwear",
+          "icon": "fa-solid fa-shirt",
+          "thumbnail": "https://...",
+          "sort_order": 0,
           "is_default": true
         }
       ],
@@ -160,7 +163,8 @@ prompt_fragment: "hoodie, casual streetwear"
         {
           "label": "Mẫu nền",
           "description": "Giữ tone màu",
-          "url": "https://..."
+          "url": "https://...",
+          "path": "system-images/hero_001.webp"
         },
         {
           "label": "System image (blob)",
@@ -176,9 +180,9 @@ prompt_fragment: "hoodie, casual streetwear"
 ### 7.2. Các trường quan trọng
 - **name, base_prompt, bfl_model_id**: bắt buộc.
 - **slug**: nên chuẩn URL và duy nhất.
-- **options**: mỗi group chỉ 1 default.
+- **options**: mỗi group chỉ 1 default; có thể thêm `icon`, `thumbnail`, `sort_order`.
 - **image_slots.key**: duy nhất, không trùng.
-- **system_images.url**: URL công khai (hoặc `blob_path`).
+- **system_images.url**: URL công khai (hoặc `blob_path` / `path` MinIO).
 - **inpaint/outpaint**: dùng `bfl_model_id = flux-pro-1.0-fill` hoặc `flux-pro-1.0-fill-finetuned`.
 
 ---

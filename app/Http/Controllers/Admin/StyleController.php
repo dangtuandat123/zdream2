@@ -292,10 +292,11 @@ public function create(): View
             'config_payload.prompt_defaults.technical' => 'nullable|string|max:500',
             'config_payload.prompt_defaults.custom' => 'nullable|string|max:500',
             'config_payload.prompt_defaults.misc' => 'nullable|string|max:500',
-            'allow_user_custom_prompt' => 'nullable',
-            'is_active' => 'nullable',
-            'is_featured' => 'nullable',
-            'is_new' => 'nullable',
+            'allow_user_custom_prompt' => 'nullable|boolean',
+            'is_active' => 'nullable|boolean',
+            'is_featured' => 'nullable|boolean',
+            'is_new' => 'nullable|boolean',
+            'tag_id' => 'nullable|integer|exists:tags,id',
             
             // Image Slots (Dynamic array)
             'image_slots' => 'nullable|array|max:10', // Max 10 slots
@@ -311,6 +312,10 @@ public function create(): View
             // C2 FIX: Reject quotes in group_name to prevent HTML injection in wire:click
             'options.*.group_name' => ['required_with:options', 'string', 'max:100', 'regex:/^[^\'\"]+$/'],
             'options.*.prompt_fragment' => 'required_with:options|string|max:500',
+            'options.*.icon' => 'nullable|string|max:100',
+            'options.*.thumbnail' => 'nullable|string|max:500',
+            'options.*.sort_order' => 'nullable|integer|min:0',
+            'options.*.is_default' => 'nullable|boolean',
             
             // System images files validation
             'system_images_files' => 'nullable|array|max:5', // Max 5 system images
@@ -460,10 +465,11 @@ public function edit(Style $style): View
             'config_payload.prompt_defaults.technical' => 'nullable|string|max:500',
             'config_payload.prompt_defaults.custom' => 'nullable|string|max:500',
             'config_payload.prompt_defaults.misc' => 'nullable|string|max:500',
-            'allow_user_custom_prompt' => 'nullable',
-            'is_active' => 'nullable',
-            'is_featured' => 'nullable',
-            'is_new' => 'nullable',
+            'allow_user_custom_prompt' => 'nullable|boolean',
+            'is_active' => 'nullable|boolean',
+            'is_featured' => 'nullable|boolean',
+            'is_new' => 'nullable|boolean',
+            'tag_id' => 'nullable|integer|exists:tags,id',
             
             'image_slots' => 'nullable|array|max:10',
             // [FIX loi.md M8] Add distinct to prevent duplicate keys in update
@@ -478,6 +484,10 @@ public function edit(Style $style): View
             // C2 FIX: Reject quotes in group_name to prevent HTML injection in wire:click
             'options.*.group_name' => ['required_with:options', 'string', 'max:100', 'regex:/^[^\'\"]+$/'],
             'options.*.prompt_fragment' => 'required_with:options|string|max:500',
+            'options.*.icon' => 'nullable|string|max:100',
+            'options.*.thumbnail' => 'nullable|string|max:500',
+            'options.*.sort_order' => 'nullable|integer|min:0',
+            'options.*.is_default' => 'nullable|boolean',
             
             'existing_system_images' => 'nullable|array',
             'removed_system_images' => 'nullable|array',
@@ -626,14 +636,28 @@ public function edit(Style $style): View
      */
     private function createOptions(Style $style, array $options): void
     {
+        $defaultUsed = [];
         foreach ($options as $index => $optionData) {
+            $groupName = $optionData['group_name'] ?? '';
+            $isDefault = !empty($optionData['is_default']);
+            if ($isDefault) {
+                if (isset($defaultUsed[$groupName])) {
+                    $isDefault = false;
+                } else {
+                    $defaultUsed[$groupName] = true;
+                }
+            }
             $style->options()->create([
                 'label' => $optionData['label'],
                 'group_name' => $optionData['group_name'],
                 'prompt_fragment' => $optionData['prompt_fragment'],
-                'sort_order' => $index,
+                'icon' => $optionData['icon'] ?? null,
+                'thumbnail' => $optionData['thumbnail'] ?? null,
+                'sort_order' => isset($optionData['sort_order']) ? (int) $optionData['sort_order'] : $index,
+                'is_default' => $isDefault,
             ]);
         }
+
     }
 
     /**
@@ -642,8 +666,14 @@ public function edit(Style $style): View
     private function syncOptions(Style $style, array $options): void
     {
         $existingOptionIds = [];
+        $defaultGroups = [];
 
         foreach ($options as $index => $optionData) {
+            $groupName = $optionData['group_name'] ?? '';
+            $isDefault = !empty($optionData['is_default']);
+            if ($isDefault) {
+                $defaultGroups[$groupName] = true;
+            }
             if (!empty($optionData['id'])) {
                 // Update existing option - verify it belongs to this style
                 $option = StyleOption::where('id', $optionData['id'])
@@ -655,7 +685,10 @@ public function edit(Style $style): View
                         'label' => $optionData['label'],
                         'group_name' => $optionData['group_name'],
                         'prompt_fragment' => $optionData['prompt_fragment'],
-                        'sort_order' => $index,
+                        'icon' => array_key_exists('icon', $optionData) ? ($optionData['icon'] ?: null) : $option->icon,
+                        'thumbnail' => array_key_exists('thumbnail', $optionData) ? ($optionData['thumbnail'] ?: null) : $option->thumbnail,
+                        'sort_order' => isset($optionData['sort_order']) ? (int) $optionData['sort_order'] : $index,
+                        'is_default' => $isDefault,
                     ]);
                     $existingOptionIds[] = $option->id;
                 }
@@ -665,7 +698,10 @@ public function edit(Style $style): View
                     'label' => $optionData['label'],
                     'group_name' => $optionData['group_name'],
                     'prompt_fragment' => $optionData['prompt_fragment'],
-                    'sort_order' => $index,
+                    'icon' => $optionData['icon'] ?? null,
+                    'thumbnail' => $optionData['thumbnail'] ?? null,
+                    'sort_order' => isset($optionData['sort_order']) ? (int) $optionData['sort_order'] : $index,
+                    'is_default' => $isDefault,
                 ]);
                 $existingOptionIds[] = $newOption->id;
             }
@@ -673,6 +709,22 @@ public function edit(Style $style): View
 
         // Delete removed options
         $style->options()->whereNotIn('id', $existingOptionIds)->delete();
+
+        foreach (array_keys($defaultGroups) as $groupName) {
+            $defaultOption = $style->options()
+                ->where('group_name', $groupName)
+                ->where('is_default', true)
+                ->orderBy('sort_order')
+                ->orderBy('id')
+                ->first();
+
+            if ($defaultOption) {
+                $style->options()
+                    ->where('group_name', $groupName)
+                    ->where('id', '!=', $defaultOption->id)
+                    ->update(['is_default' => false]);
+            }
+        }
     }
 
     /**
@@ -1212,7 +1264,21 @@ public function edit(Style $style): View
 
             $url = trim((string) ($img['url'] ?? $img['image_url'] ?? ''));
             $blobPath = trim((string) ($img['blob_path'] ?? ''));
-            if ($url === '' && $blobPath === '') {
+            $path = trim((string) ($img['path'] ?? ''));
+
+            if ($url === '' && $blobPath === '' && $path !== '') {
+                if (filter_var($path, FILTER_VALIDATE_URL)) {
+                    $url = $path;
+                } else {
+                    try {
+                        $url = Storage::disk('minio')->url($path);
+                    } catch (\Throwable $e) {
+                        $url = '';
+                    }
+                }
+            }
+
+            if ($url === '' && $blobPath === '' && $path === '') {
                 continue;
             }
 
@@ -1222,7 +1288,7 @@ public function edit(Style $style): View
                 'key' => $key,
                 'label' => $img['label'] ?? ('System Image ' . ($index + 1)),
                 'description' => $img['description'] ?? '',
-                'path' => $img['path'] ?? '',
+                'path' => $path,
                 'url' => $url,
                 'blob_path' => $blobPath,
             ];
