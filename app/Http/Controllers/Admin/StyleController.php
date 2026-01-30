@@ -185,6 +185,8 @@ public function create(): View
                     $imageSlots,
                     $systemImages,
                     $tagId,
+                    $isFeatured,
+                    $isNew,
                     &$created
                 ) {
                     $style = Style::create([
