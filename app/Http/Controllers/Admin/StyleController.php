@@ -440,13 +440,8 @@ public function edit(Style $style): View
                 }
             }],
             'config_payload.seed' => 'nullable|integer|min:0',
-            'config_payload.steps' => 'nullable|integer|min:1|max:50',
-            'config_payload.guidance' => 'nullable|numeric|min:1.5|max:10',
             'config_payload.prompt_upsampling' => 'nullable|boolean',
-            'config_payload.safety_tolerance' => 'nullable|integer|min:0|max:6',
-            'config_payload.output_format' => ['nullable', 'string', Rule::in(['jpeg', 'png'])],
             'config_payload.raw' => 'nullable|boolean',
-            'config_payload.image_prompt_strength' => 'nullable|numeric|min:0|max:1',
             'config_payload.prompt_template' => 'nullable|string|max:2000',
             'config_payload.prompt_prefix' => 'nullable|string|max:500',
             'config_payload.prompt_suffix' => 'nullable|string|max:500',
@@ -812,33 +807,28 @@ public function edit(Style $style): View
         if (is_array($stepsRange)) {
             $min = (int) ($stepsRange['min'] ?? 1);
             $max = (int) ($stepsRange['max'] ?? 200);
-            $rules['config_payload.steps'] = "nullable|integer|min:{$min}|max:{$max}";
         }
 
         $guidanceRange = $cap['guidance'] ?? null;
         if (is_array($guidanceRange)) {
             $min = (float) ($guidanceRange['min'] ?? 1);
             $max = (float) ($guidanceRange['max'] ?? 20);
-            $rules['config_payload.guidance'] = "nullable|numeric|min:{$min}|max:{$max}";
         }
 
         $safetyRange = $cap['safety_tolerance'] ?? null;
         if (is_array($safetyRange)) {
             $min = (int) ($safetyRange['min'] ?? 0);
             $max = (int) ($safetyRange['max'] ?? 6);
-            $rules['config_payload.safety_tolerance'] = "nullable|integer|min:{$min}|max:{$max}";
         }
 
         $outputFormats = $cap['output_formats'] ?? null;
         if (is_array($outputFormats) && !empty($outputFormats)) {
-            $rules['config_payload.output_format'] = ['nullable', 'string', Rule::in($outputFormats)];
         }
 
         $imagePromptStrengthRange = $cap['image_prompt_strength'] ?? null;
         if (is_array($imagePromptStrengthRange)) {
             $min = (float) ($imagePromptStrengthRange['min'] ?? 0);
             $max = (float) ($imagePromptStrengthRange['max'] ?? 1);
-            $rules['config_payload.image_prompt_strength'] = "nullable|numeric|min:{$min}|max:{$max}";
         }
 
         return $rules;

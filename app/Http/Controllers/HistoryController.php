@@ -32,7 +32,7 @@ class HistoryController extends Controller
 
         // Filter by status
         if ($status = $request->get('status')) {
-            if (in_array($status, ['completed', 'processing', 'failed', 'pending'])) {
+            if (in_array($status, ['completed', 'processing', 'failed'])) {
                 $query->where('status', $status);
             }
         }
