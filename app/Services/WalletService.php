@@ -143,6 +143,22 @@ class WalletService
         string $reason,
         ?string $referenceId = null
     ): WalletTransaction {
+        if ($referenceId) {
+            $existing = WalletTransaction::where('user_id', $user->id)
+                ->where('source', WalletTransaction::SOURCE_REFUND)
+                ->where('reference_id', $referenceId)
+                ->first();
+
+            if ($existing) {
+                Log::info('Skip duplicate refund (already refunded)', [
+                    'user_id' => $user->id,
+                    'reference_id' => $referenceId,
+                    'transaction_id' => $existing->id,
+                ]);
+                return $existing;
+            }
+        }
+
         return $this->addCredits(
             $user,
             $amount,

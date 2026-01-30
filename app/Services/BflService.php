@@ -380,11 +380,9 @@ class BflService
             ];
         }
 
-        // Append image descriptions to prompt
-        $finalPrompt = $this->appendImageDescriptions($style, $finalPrompt, $inputImages);
-
-        // Collect input images (user + system)
-        $normalizedImages = $this->collectInputImages($style, $inputImages);
+        // Collect input images (user + system) with meta (label/description)
+        $inputItems = $this->collectInputImagesWithMeta($style, $inputImages);
+        $normalizedImages = array_values(array_map(fn ($item) => $item['value'], $inputItems));
         $maxImages = $this->maxInputImages($modelId);
 
         if ($maxImages === 0 && !empty($normalizedImages)) {
@@ -401,8 +399,12 @@ class BflService
                 'count' => count($normalizedImages),
                 'max' => $maxImages,
             ]);
-            $normalizedImages = array_slice($normalizedImages, 0, $maxImages);
+            $inputItems = array_slice($inputItems, 0, $maxImages);
+            $normalizedImages = array_values(array_map(fn ($item) => $item['value'], $inputItems));
         }
+
+        // Append image descriptions to prompt AFTER truncation
+        $finalPrompt = $this->appendImageDescriptionsFromMeta($finalPrompt, $inputItems);
 
         $payload = $this->buildPayload($style, $finalPrompt, $modelId, $aspectRatio, $imageSize, $normalizedImages, $generationOverrides);
 
@@ -753,27 +755,17 @@ class BflService
     /**
      * Append descriptions for input/system images to prompt
      */
-    protected function appendImageDescriptions(Style $style, string $prompt, array $inputImages): string
+    protected function appendImageDescriptionsFromMeta(string $prompt, array $items): string
     {
         $parts = [];
 
-        $imageSlots = $style->image_slots ?? [];
-        $slotMeta = collect($imageSlots)->keyBy('key')->toArray();
-
-        foreach ($inputImages as $key => $value) {
-            $meta = $slotMeta[$key] ?? [];
-            $desc = $meta['description'] ?? '';
-            $label = $meta['label'] ?? $key;
-            if (!empty($desc)) {
-                $parts[] = "{$label}: {$desc}";
-            }
-        }
-
-        foreach ($style->system_images ?? [] as $sysImg) {
-            $desc = $sysImg['description'] ?? '';
-            $label = $sysImg['label'] ?? 'System Image';
-            if (!empty($desc)) {
-                $parts[] = "{$label}: {$desc}";
+        foreach ($items as $item) {
+            $desc = (string) ($item['description'] ?? '');
+            $label = (string) ($item['label'] ?? '');
+            $desc = trim($desc);
+            $label = trim($label);
+            if ($desc !== '') {
+                $parts[] = $label !== '' ? "{$label}: {$desc}" : $desc;
             }
         }
 
@@ -782,6 +774,71 @@ class BflService
         }
 
         return $prompt;
+    }
+
+    /**
+     * Collect user input images + system images with meta
+     * @return array<int, array{value: string, key: string, label: string, description: string, source: string}>
+     */
+    protected function collectInputImagesWithMeta(Style $style, array $inputImages): array
+    {
+        $items = [];
+        $imageSlots = $style->image_slots ?? [];
+        $slotMeta = collect($imageSlots)->keyBy('key')->toArray();
+        $slotKeys = collect($imageSlots)->pluck('key')->all();
+
+        foreach ($slotKeys as $key) {
+            if (!isset($inputImages[$key])) {
+                continue;
+            }
+            $normalized = $this->normalizeInputImage($inputImages[$key]);
+            if ($normalized) {
+                $meta = $slotMeta[$key] ?? [];
+                $items[] = [
+                    'value' => $normalized,
+                    'key' => (string) $key,
+                    'label' => (string) ($meta['label'] ?? $key),
+                    'description' => (string) ($meta['description'] ?? ''),
+                    'source' => 'user',
+                ];
+            }
+        }
+
+        // Add any remaining inputs not in slots
+        foreach ($inputImages as $key => $value) {
+            if (in_array($key, $slotKeys, true)) {
+                continue;
+            }
+            $normalized = $this->normalizeInputImage($value);
+            if ($normalized) {
+                $items[] = [
+                    'value' => $normalized,
+                    'key' => (string) $key,
+                    'label' => (string) $key,
+                    'description' => '',
+                    'source' => 'user',
+                ];
+            }
+        }
+
+        foreach ($style->system_images ?? [] as $index => $sysImg) {
+            $url = (string) ($sysImg['url'] ?? '');
+            if ($url === '') {
+                continue;
+            }
+            $normalized = $this->normalizeInputImage($url);
+            if ($normalized) {
+                $items[] = [
+                    'value' => $normalized,
+                    'key' => (string) ($sysImg['key'] ?? ('system_' . $index)),
+                    'label' => (string) ($sysImg['label'] ?? 'System Image'),
+                    'description' => (string) ($sysImg['description'] ?? ''),
+                    'source' => 'system',
+                ];
+            }
+        }
+
+        return $items;
     }
 
     /**
