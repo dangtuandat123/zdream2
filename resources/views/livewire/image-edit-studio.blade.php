@@ -69,84 +69,77 @@
                                id="image-upload">
 
                         {{-- Toolbar (Static Position) --}}
-                        <div class="mb-4 flex items-center justify-between"
+                        {{-- Toolbar (Responsive & Sticky on Mobile?) --}}
+                        <div class="mb-4 bg-gray-800 rounded-xl border border-gray-700 shadow-lg p-2"
                              x-show="!['text', 'expand'].includes($wire.editMode)"
                              x-transition>
-                            <div class="flex items-center gap-2 px-4 py-2 bg-gray-800 rounded-xl border border-gray-700 shadow-sm">
-                                <span class="text-xs font-medium text-gray-400 uppercase tracking-wider mr-2">Công cụ</span>
-                                
-                                {{-- Change Image --}}
-                                {{-- Change Image --}}
-                                <label for="image-upload" 
-                                       class="px-3 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-lg transition-all cursor-pointer flex items-center gap-2 shadow-sm"
-                                       title="Đổi ảnh khác">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                                    Đổi ảnh
-                                </label>
+                            <div class="flex flex-wrap items-center justify-between gap-3">
+                                {{-- Group 1: Primary Action --}}
+                                <div class="flex-shrink-0">
+                                    <label for="image-upload" 
+                                           class="px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-green-600 to-green-500 hover:from-green-500 hover:to-green-400 rounded-lg transition-all cursor-pointer flex items-center gap-2 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+                                           title="Upload ảnh khác">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                        Đổi ảnh
+                                    </label>
+                                </div>
 
-                                <div class="w-px h-6 bg-gray-700 mx-2"></div>
-                                
-                                {{-- Brush Tool --}}
-                                <button type="button" 
-                                        @click="setTool('brush')"
-                                        :class="tool === 'brush' ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/50' : 'text-gray-400 hover:text-white hover:bg-gray-700'"
-                                        class="p-2 rounded-lg transition-all"
-                                        title="Cọ vẽ (Brush)">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
-                                </button>
+                                {{-- Divider (Hidden on small mobile) --}}
+                                <div class="hidden sm:block w-px h-8 bg-gray-700"></div>
 
-                                {{-- Rectangle Tool --}}
-                                <button type="button" 
-                                        @click="setTool('rect')"
-                                        :class="tool === 'rect' ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/50' : 'text-gray-400 hover:text-white hover:bg-gray-700'"
-                                        class="p-2 rounded-lg transition-all"
-                                        title="Vùng chọn (Rectangle)">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4h16v16H4z"></path></svg>
-                                </button>
+                                {{-- Group 2: Drawing Tools --}}
+                                <div class="flex items-center gap-2 overflow-x-auto max-w-full">
+                                    {{-- Brush --}}
+                                    <button type="button" 
+                                            @click="setTool('brush')"
+                                            :class="tool === 'brush' ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/50 ring-1 ring-blue-400' : 'bg-gray-700 text-gray-300 hover:bg-gray-600 hover:text-white'"
+                                            class="p-2 rounded-lg transition-all"
+                                            title="Cọ vẽ (Brush)">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                                    </button>
 
-                                <div class="w-px h-6 bg-gray-700 mx-2"></div>
+                                    {{-- Rectangle --}}
+                                    <button type="button" 
+                                            @click="setTool('rect')"
+                                            :class="tool === 'rect' ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/50 ring-1 ring-blue-400' : 'bg-gray-700 text-gray-300 hover:bg-gray-600 hover:text-white'"
+                                            class="p-2 rounded-lg transition-all"
+                                            title="Vùng chọn (Rectangle)">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4h16v16H4z"></path></svg>
+                                    </button>
 
-                                {{-- Undo --}}
-                                <button type="button" 
-                                        @click="undo()"
-                                        :disabled="historyStep <= 0"
-                                        :class="historyStep > 0 ? 'text-gray-300 hover:text-white hover:bg-gray-700' : 'text-gray-600 cursor-not-allowed'"
-                                        class="p-2 rounded-lg transition-all"
-                                        title="Hoàn tác (Undo)">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" /></svg>
-                                </button>
+                                    {{-- Brush Size --}}
+                                    <div x-show="tool === 'brush'" 
+                                         class="flex items-center gap-2 bg-gray-900/50 px-3 py-1.5 rounded-lg border border-gray-700 ml-2">
+                                        <span class="text-xs text-gray-400">Size</span>
+                                        <input type="range" x-model.number="brushSize" min="5" max="100" class="w-20 md:w-24 h-1.5 bg-gray-600 rounded-lg appearance-none cursor-pointer accent-blue-500">
+                                        <span class="text-xs text-gray-400 w-5 text-right" x-text="brushSize"></span>
+                                    </div>
+                                </div>
 
-                                {{-- Redo --}}
-                                <button type="button" 
-                                        @click="redo()"
-                                        :disabled="historyStep >= history.length - 1"
-                                        :class="historyStep < history.length - 1 ? 'text-gray-300 hover:text-white hover:bg-gray-700' : 'text-gray-600 cursor-not-allowed'"
-                                        class="p-2 rounded-lg transition-all"
-                                        title="Làm lại (Redo)">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 10h-10a8 8 0 00-8 8v2M21 10l-6 6m6-6l-6-6" /></svg>
-                                </button>
+                                {{-- Divider --}}
+                                <div class="hidden sm:block w-px h-8 bg-gray-700"></div>
 
-                                <div class="w-px h-6 bg-gray-700 mx-2"></div>
+                                {{-- Group 3: History & Actions --}}
+                                <div class="flex items-center gap-2 ml-auto sm:ml-0">
+                                    <button type="button" @click="undo()" :disabled="historyStep <= 0" class="p-2 rounded-lg transition-all text-gray-400 hover:bg-gray-700 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed" title="Hoàn tác">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" /></svg>
+                                    </button>
+                                    <button type="button" @click="redo()" :disabled="historyStep >= history.length - 1" class="p-2 rounded-lg transition-all text-gray-400 hover:bg-gray-700 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed" title="Làm lại">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 10h-10a8 8 0 00-8 8v2M21 10l-6 6m6-6l-6-6" /></svg>
+                                    </button>
+                                    
+                                    <div class="w-px h-8 bg-gray-700 mx-1"></div>
 
-                                {{-- Brush Size --}}
-                                <div x-show="tool === 'brush'" class="flex items-center gap-3">
-                                    <span class="text-xs text-gray-400">Size</span>
-                                    <input type="range" x-model.number="brushSize" min="5" max="100" class="w-24 h-1.5 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-blue-500">
-                                    <span class="text-xs text-gray-400 w-6" x-text="brushSize"></span>
+                                    <button type="button" @click="clearMask()" class="px-3 py-2 text-sm text-red-400 bg-red-900/20 hover:bg-red-900/40 border border-red-900/30 rounded-lg transition-all flex items-center gap-2" title="Xóa toàn bộ mask">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                        <span class="hidden sm:inline">Xóa Mask</span>
+                                    </button>
                                 </div>
                             </div>
-
-                            {{-- Clear Button --}}
-                            <button type="button" 
-                                    @click="clearMask()"
-                                    class="px-4 py-2 text-sm text-red-400 hover:text-white hover:bg-red-500/20 bg-gray-800 border border-gray-700 rounded-xl transition-all flex items-center gap-2">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                                Xóa Mask
-                            </button>
                         </div>
 
                         {{-- Canvas Wrapper --}}
-                        <div class="relative bg-gray-900 rounded-lg overflow-hidden shadow-2xl ring-1 ring-white/10 flex items-center justify-center bg-[url('https://zdream.vn/images/transparent-bg.png')] bg-repeat">
+                        <div class="relative bg-gray-900 rounded-xl overflow-hidden shadow-2xl ring-1 ring-white/10 flex items-center justify-center bg-[url('https://zdream.vn/images/transparent-bg.png')] bg-repeat">
                             
                             {{-- Inner Wrapper for Alignment (Ignored by Livewire) --}}
                             <div wire:ignore class="relative inline-block max-w-full" style="line-height: 0;">
@@ -169,47 +162,54 @@
  
                             {{-- Processing Overlay (Outside wire:ignore) --}}
                             <div wire:loading.flex wire:target="processEdit" 
-                                 class="absolute inset-0 bg-gray-900/80 items-center justify-center z-50">
+                                 class="absolute inset-0 bg-gray-900/80 items-center justify-center z-50 backdrop-blur-sm">
                                 <div class="text-center">
                                     <svg class="animate-spin h-12 w-12 text-blue-500 mx-auto" fill="none" viewBox="0 0 24 24">
                                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                     </svg>
-                                    <p class="mt-4 text-white">Đang xử lý...</p>
+                                    <p class="mt-4 text-white font-medium">Đang xử lý AI...</p>
                                 </div>
                             </div>
                         </div>
 
                         {{-- Instructions --}}
-                        <p class="mt-3 text-sm text-gray-400">
-                            @if($editMode === 'expand')
-                                Chế độ Expand: Điều chỉnh số pixel mở rộng ở panel bên phải
-                            @else
-                                Dùng brush hoặc rectangle để vẽ vùng muốn chỉnh sửa (hiển thị màu đỏ mờ)
-                            @endif
-                        </p>
+                        <div class="mt-4 flex items-start gap-3 p-4 bg-gray-800/50 rounded-lg border border-gray-700/50">
+                             <svg class="w-5 h-5 text-blue-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                             <p class="text-sm text-gray-400">
+                                @if($editMode === 'expand')
+                                    <strong>Chế độ Expand:</strong> Điều chỉnh hướng mở rộng ở cột bên phải.
+                                @else
+                                    Dùng <strong>Brush</strong> hoặc <strong>Vùng chọn</strong> để tô màu đỏ lên khu vực muốn chỉnh sửa.
+                                @endif
+                            </p>
+                        </div>
                     </div>
                 @endif
 
                 {{-- Result Preview --}}
                 @if($resultImage)
-                    <div class="mt-6 pt-6 border-t border-gray-700">
-                        <h3 class="text-lg font-semibold text-white mb-4">Kết quả</h3>
-                        <div class="relative">
+                    <div class="mt-8 pt-8 border-t border-gray-700">
+                        <h3 class="text-xl font-bold text-white mb-6 flex items-center gap-2">
+                            <span class="w-2 h-8 bg-blue-500 rounded-full"></span>
+                            Kết quả AI
+                        </h3>
+                        <div class="relative group">
                             <img src="{{ $resultImage }}" 
                                  alt="Edited result" 
-                                 class="max-w-full h-auto rounded-lg mx-auto shadow-lg ring-1 ring-white/10">
+                                 class="max-w-full h-auto rounded-xl mx-auto shadow-2xl ring-1 ring-white/10 transition-transform duration-300 group-hover:scale-[1.01]">
+                             <div class="absolute inset-0 ring-2 ring-blue-500/50 rounded-xl pointer-events-none"></div>
                         </div>
-                        <div class="mt-4 flex gap-3 justify-center">
+                        <div class="mt-6 flex gap-4 justify-center">
                             <button wire:click="downloadResult"
-                                    class="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-white transition-colors">
-                                <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 rounded-xl text-white font-medium transition-all flex items-center gap-2 shadow-lg shadow-blue-900/30">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                                 </svg>
                                 Tải xuống
                             </button>
                             <button wire:click="resetEditor"
-                                    class="px-4 py-2 bg-gray-600 hover:bg-gray-500 rounded-lg text-white transition-colors">
+                                    class="px-6 py-2.5 bg-gray-700 hover:bg-gray-600 rounded-xl text-white font-medium transition-all shadow-lg">
                                 Tạo mới
                             </button>
                         </div>
@@ -217,8 +217,9 @@
                 @endif
             </div>
 
-            {{-- Right Column: Controls --}}
-            <div class="bg-gray-800 rounded-xl p-6 h-fit">
+            {{-- Right Column: Controls (Sticky on Desktop) --}}
+            <div class="lg:col-span-1">
+                <div class="bg-gray-800 rounded-xl p-6 shadow-xl border border-gray-700 lg:sticky lg:top-8 self-start">
                 <h2 class="text-xl font-semibold text-white mb-6">Chỉnh sửa</h2>
 
                 {{-- Edit Mode Selector --}}
@@ -359,6 +360,7 @@
                         Đang xử lý...
                     </span>
                 </button>
+            </div>
             </div>
         </div>
     </div>
