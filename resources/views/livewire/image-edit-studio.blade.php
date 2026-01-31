@@ -103,8 +103,8 @@
                          @reset-canvas.window="resetCanvas()">
                         
                         {{-- Canvas Wrapper - Image scales to fit, no scroll --}}
-                        <div class="relative bg-black/40 flex items-center justify-center bg-[url('https://zdream.vn/images/transparent-bg.png')] bg-repeat p-4">
-                            
+                        <div class="relative bg-black/40 flex items-center justify-center bg-[url('https://zdream.vn/images/transparent-bg.png')] bg-repeat p-4 cursor-crosshair"
+                             @mousedown="startDraw($event)">
                             {{-- Change Image Button (top-right corner) --}}
                             <label for="image-upload-canvas" 
                                    class="absolute top-3 right-3 z-20 flex items-center gap-2 px-3 py-2 rounded-lg bg-black/60 backdrop-blur-sm border border-white/20 hover:bg-black/80 hover:border-white/30 cursor-pointer transition-all group">
@@ -123,7 +123,6 @@
                                         @mousedown="startDraw($event)"
                                         @mousemove.window="draw($event)" 
                                         @mouseup.window="stopDraw($event)"
-                                        @mouseleave="stopDraw($event)"
                                         @touchstart="startDraw($event.touches[0])"
                                         @touchmove="draw($event.touches[0]); $event.preventDefault()"
                                         @touchend="stopDraw()">
