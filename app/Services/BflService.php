@@ -56,18 +56,18 @@ class BflService
             'accept' => 'application/json',
             'Content-Type' => 'application/json',
         ])->withOptions(['verify' => $this->verifySsl])
-          ->timeout($this->timeout)
-          ->connectTimeout(10)
-          ->retry(2, 500, function (\Exception $exception) {
-              if ($exception instanceof \Illuminate\Http\Client\ConnectionException) {
-                  return true;
-              }
-              if ($exception instanceof \Illuminate\Http\Client\RequestException) {
-                  $status = $exception->response->status();
-                  return in_array($status, [429, 500, 502, 503, 504]);
-              }
-              return false;
-          });
+            ->timeout($this->timeout)
+            ->connectTimeout(10)
+            ->retry(2, 500, function (\Exception $exception) {
+                if ($exception instanceof \Illuminate\Http\Client\ConnectionException) {
+                    return true;
+                }
+                if ($exception instanceof \Illuminate\Http\Client\RequestException) {
+                    $status = $exception->response->status();
+                    return in_array($status, [429, 500, 502, 503, 504]);
+                }
+                return false;
+            });
     }
 
     /**
@@ -80,20 +80,20 @@ class BflService
             'accept' => 'application/json',
             'Content-Type' => 'application/json',
         ])->withOptions(['verify' => $this->verifySsl])
-          ->timeout($this->timeout)
-          ->connectTimeout(15)
-          ->retry($this->maxPostAttempts, function (int $attempt) {
-              return min(1000 * pow(2, $attempt - 1), 4000);
-          }, function (\Exception $exception) {
-              if ($exception instanceof \Illuminate\Http\Client\ConnectionException) {
-                  return true;
-              }
-              if ($exception instanceof \Illuminate\Http\Client\RequestException) {
-                  $status = $exception->response->status();
-                  return in_array($status, [429, 500, 502, 503, 504]);
-              }
-              return false;
-          });
+            ->timeout($this->timeout)
+            ->connectTimeout(15)
+            ->retry($this->maxPostAttempts, function (int $attempt) {
+                return min(1000 * pow(2, $attempt - 1), 4000);
+            }, function (\Exception $exception) {
+                if ($exception instanceof \Illuminate\Http\Client\ConnectionException) {
+                    return true;
+                }
+                if ($exception instanceof \Illuminate\Http\Client\RequestException) {
+                    $status = $exception->response->status();
+                    return in_array($status, [429, 500, 502, 503, 504]);
+                }
+                return false;
+            });
     }
 
     /**
@@ -196,6 +196,7 @@ class BflService
             'black-forest-labs/flux.2-klein-9b' => 'flux-2-klein-9b',
             'black-forest-labs/flux-pro-1.0-fill' => 'flux-pro-1.0-fill',
             'black-forest-labs/flux-pro-1.0-fill-finetuned' => 'flux-pro-1.0-fill-finetuned',
+            'black-forest-labs/flux-pro-1.0-expand' => 'flux-pro-1.0-expand',
             'black-forest-labs/flux-kontext-pro' => 'flux-kontext-pro',
             'black-forest-labs/flux-kontext-max' => 'flux-kontext-max',
             'black-forest-labs/flux-1.1-pro' => 'flux-pro-1.1',
@@ -206,6 +207,7 @@ class BflService
             'flux-1.1-pro-ultra' => 'flux-pro-1.1-ultra',
             'flux-pro-1.0-fill' => 'flux-pro-1.0-fill',
             'flux-pro-1.0-fill-finetuned' => 'flux-pro-1.0-fill-finetuned',
+            'flux-pro-1.0-expand' => 'flux-pro-1.0-expand',
             'flux.2-max' => 'flux-2-max',
             'flux.2-pro' => 'flux-2-pro',
             'flux.2-flex' => 'flux-2-flex',
@@ -320,6 +322,12 @@ class BflService
         return (($cap['generation_mode'] ?? '') === 'fill');
     }
 
+    protected function isExpandModel(string $modelId): bool
+    {
+        $cap = $this->getModelCapabilities($modelId);
+        return (($cap['generation_mode'] ?? '') === 'expand');
+    }
+
     public function getOutputFormats(string $modelId): array
     {
         $cap = $this->getModelCapabilities($modelId);
@@ -362,7 +370,7 @@ class BflService
             403 => 'BFL API key không có quyền (403).',
             422 => 'Dữ liệu gửi lên không hợp lệ (422). ' . $truncatedBody,
             429 => 'BFL đang quá tải hoặc đạt giới hạn tác vụ (429). Vui lòng thử lại sau.',
-            500, 503 => 'BFL đang gặp sự cố ('.$status.'). Vui lòng thử lại sau.',
+            500, 503 => 'BFL đang gặp sự cố (' . $status . '). Vui lòng thử lại sau.',
             default => 'BFL API error: ' . $status . ' - ' . $truncatedBody,
         };
     }
@@ -426,8 +434,8 @@ class BflService
             ]);
             $blobPath = null;
         }
-        $nonBlobItems = array_values(array_filter($inputItems, fn ($item) => empty($item['is_blob'])));
-        $normalizedImages = array_values(array_map(fn ($item) => $item['value'], $nonBlobItems));
+        $nonBlobItems = array_values(array_filter($inputItems, fn($item) => empty($item['is_blob'])));
+        $normalizedImages = array_values(array_map(fn($item) => $item['value'], $nonBlobItems));
         $maxImages = $this->maxInputImages($modelId);
 
         if ($maxImages === 0 && !empty($normalizedImages)) {
@@ -445,7 +453,7 @@ class BflService
                 'max' => $maxImages,
             ]);
             $nonBlobItems = array_slice($nonBlobItems, 0, $maxImages);
-            $normalizedImages = array_values(array_map(fn ($item) => $item['value'], $nonBlobItems));
+            $normalizedImages = array_values(array_map(fn($item) => $item['value'], $nonBlobItems));
         }
 
         // Append image descriptions to prompt AFTER truncation
@@ -465,6 +473,38 @@ class BflService
                 $modelId,
                 $fillInputs['image'],
                 $fillInputs['mask'] ?? null,
+                $generationOverrides,
+                $style->config_payload ?? []
+            );
+        } elseif ($this->isExpandModel($modelId)) {
+            // Expand mode: extract image and expand directions
+            $expandImage = $normalizedImages[0] ?? null;
+            if (empty($expandImage)) {
+                return [
+                    'success' => false,
+                    'error' => 'Thiếu ảnh gốc để expand/outpaint.',
+                    'final_prompt' => $finalPrompt,
+                ];
+            }
+            $expandDirections = [
+                'top' => (int) ($generationOverrides['expand_top'] ?? 0),
+                'bottom' => (int) ($generationOverrides['expand_bottom'] ?? 0),
+                'left' => (int) ($generationOverrides['expand_left'] ?? 0),
+                'right' => (int) ($generationOverrides['expand_right'] ?? 0),
+            ];
+            // Validate at least one direction has pixels
+            if (array_sum($expandDirections) <= 0) {
+                return [
+                    'success' => false,
+                    'error' => 'Cần chỉ định ít nhất một hướng expand (top, bottom, left, right).',
+                    'final_prompt' => $finalPrompt,
+                ];
+            }
+            $payload = $this->buildExpandPayload(
+                $modelId,
+                $expandImage,
+                $expandDirections,
+                $finalPrompt,
                 $generationOverrides,
                 $style->config_payload ?? []
             );
@@ -661,6 +701,76 @@ class BflService
 
         if (!empty($mask)) {
             $payload['mask'] = $mask;
+        }
+
+        $allowedKeys = [
+            'seed',
+            'guidance',
+            'steps',
+            'safety_tolerance',
+            'output_format',
+            'prompt_upsampling',
+        ];
+
+        $supported = [
+            'seed' => $this->supportsSeed($modelId),
+            'guidance' => $this->supportsGuidance($modelId),
+            'steps' => $this->supportsSteps($modelId),
+            'safety_tolerance' => $this->supportsSafetyTolerance($modelId),
+            'output_format' => $this->supportsOutputFormat($modelId),
+            'prompt_upsampling' => $this->supportsPromptUpsampling($modelId),
+        ];
+
+        foreach ($allowedKeys as $key) {
+            if (($supported[$key] ?? false) === false) {
+                continue;
+            }
+
+            $value = null;
+            if (array_key_exists($key, $generationOverrides)) {
+                $value = $generationOverrides[$key];
+            } elseif (array_key_exists($key, $config)) {
+                $value = $config[$key];
+            }
+
+            if ($value === null) {
+                continue;
+            }
+
+            $payload[$key] = $value;
+        }
+
+        return $payload;
+    }
+
+    /**
+     * Build payload for FLUX Expand (outpainting)
+     *
+     * @param string $image Base64-encoded image
+     * @param array $expandDirections Keys: top, bottom, left, right (pixels to expand)
+     * @param string|null $prompt Optional context prompt
+     * @param array $generationOverrides
+     * @param array $config
+     * @return array
+     */
+    protected function buildExpandPayload(
+        string $modelId,
+        string $image,
+        array $expandDirections,
+        ?string $prompt = null,
+        array $generationOverrides = [],
+        array $config = []
+    ): array {
+        $payload = [
+            'image' => $image,
+            'expand_top' => (int) ($expandDirections['top'] ?? 0),
+            'expand_bottom' => (int) ($expandDirections['bottom'] ?? 0),
+            'expand_left' => (int) ($expandDirections['left'] ?? 0),
+            'expand_right' => (int) ($expandDirections['right'] ?? 0),
+        ];
+
+        if (!empty($prompt)) {
+            $payload['prompt'] = $prompt;
         }
 
         $allowedKeys = [
@@ -905,7 +1015,7 @@ class BflService
         }
 
         if (!empty($parts)) {
-            $prompt .= "\n" . implode("\n", array_map(fn ($p) => "[{$p}]", $parts));
+            $prompt .= "\n" . implode("\n", array_map(fn($p) => "[{$p}]", $parts));
         }
 
         return $prompt;
