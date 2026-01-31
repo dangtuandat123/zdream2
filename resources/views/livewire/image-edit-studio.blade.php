@@ -194,13 +194,13 @@
                         <p class="text-sm text-white/70">
                             @switch($editMode)
                                 @case('replace')
-                                    <span class="text-blue-300 font-medium">Thay thế:</span> Tô đỏ vùng muốn xóa, sau đó mô tả vật thể mới.
+                                    <span class="text-cyan-300 font-medium">Thay thế:</span> Tô vùng muốn xóa, sau đó mô tả vật thể mới.
                                     @break
                                 @case('text')
                                     <span class="text-blue-300 font-medium">Sửa text:</span> Không cần vẽ. Mô tả: Change "OLD" to "NEW".
                                     @break
                                 @case('background')
-                                    <span class="text-blue-300 font-medium">Background:</span> Tô đỏ lên chủ thể chính để giữ lại, AI thay nền xung quanh.
+                                    <span class="text-cyan-300 font-medium">Background:</span> Tô lên chủ thể chính để giữ lại, AI thay nền xung quanh.
                                     @break
                                 @case('expand')
                                     <span class="text-blue-300 font-medium">Expand:</span> Điều chỉnh slider bên phải để mở rộng ảnh.
@@ -292,7 +292,7 @@
                             <div class="text-sm text-white/60 leading-relaxed">
                                 @switch($editMode)
                                     @case('replace')
-                                        Dùng công cụ <span class="text-white bg-white/10 px-1.5 py-0.5 rounded text-xs">Brush</span> hoặc <span class="text-white bg-white/10 px-1.5 py-0.5 rounded text-xs">Rect</span> để tô vùng muốn thay thế.
+                                        Dùng công cụ <span class="text-blue-300 bg-blue-500/20 px-1.5 py-0.5 rounded text-xs font-medium border border-blue-500/40">Brush</span> hoặc <span class="text-blue-300 bg-blue-500/20 px-1.5 py-0.5 rounded text-xs font-medium border border-blue-500/40">Rect</span> để tô vùng muốn thay thế.
                                         @break
                                     @case('text')
                                         AI sẽ tự động phát hiện và sửa text. Mô tả rõ text cũ và mới trong prompt.
@@ -565,11 +565,19 @@
                 },
 
                 drawBrushStroke(x, y) {
-                    this.drawCtx.fillStyle = 'rgba(255, 50, 50, 0.5)';
+                    // Cyan color with consistent opacity (no stacking)
+                    this.drawCtx.globalCompositeOperation = 'source-over';
+                    this.drawCtx.fillStyle = 'rgba(0, 212, 255, 0.5)';  // Cyan
                     this.drawCtx.beginPath();
                     this.drawCtx.arc(x, y, this.brushSize, 0, Math.PI * 2);
                     this.drawCtx.fill();
                     
+                    // White stroke for better visibility
+                    this.drawCtx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
+                    this.drawCtx.lineWidth = 2;
+                    this.drawCtx.stroke();
+                    
+                    // Hidden mask (white on black)
                     this.maskCtx.fillStyle = 'white';
                     this.maskCtx.beginPath();
                     this.maskCtx.arc(x, y, this.brushSize, 0, Math.PI * 2);
@@ -581,9 +589,10 @@
                          this.drawCtx.putImageData(this.snapshot, 0, 0);
                     }
                     
-                    this.drawCtx.strokeStyle = 'rgba(255, 0, 0, 0.8)';
-                    this.drawCtx.lineWidth = 4;
-                    this.drawCtx.setLineDash([10, 10]);
+                    // Cyan dashed border for preview
+                    this.drawCtx.strokeStyle = 'rgba(0, 212, 255, 0.9)';  // Cyan
+                    this.drawCtx.lineWidth = 3;
+                    this.drawCtx.setLineDash([8, 8]);
                     this.drawCtx.strokeRect(this.startX, this.startY, currentX - this.startX, currentY - this.startY);
                     this.drawCtx.setLineDash([]);
                 },
@@ -599,9 +608,14 @@
                      const w = Math.abs(x2 - x1);
                      const h = Math.abs(y2 - y1);
 
-                     this.drawCtx.fillStyle = 'rgba(255, 50, 50, 0.5)';
+                     // Cyan fill with white border
+                     this.drawCtx.fillStyle = 'rgba(0, 212, 255, 0.4)';  // Cyan
                      this.drawCtx.fillRect(x, y, w, h);
+                     this.drawCtx.strokeStyle = 'rgba(255, 255, 255, 0.9)';
+                     this.drawCtx.lineWidth = 2;
+                     this.drawCtx.strokeRect(x, y, w, h);
 
+                     // Hidden mask
                      this.maskCtx.fillStyle = 'white';
                      this.maskCtx.fillRect(x, y, w, h);
                 },
