@@ -403,7 +403,7 @@
                 <div class="grid grid-cols-3 gap-3 px-5 mb-5 pb-5">
                     {{-- Download --}}
                     <button type="button"
-                            @click="
+                            @click.stop.prevent="
                                 fetch('{{ $resultImage }}')
                                     .then(res => res.blob())
                                     .then(blob => {
