@@ -498,6 +498,27 @@ class ImageEditStudio extends Component
         ]);
     }
 
+    /**
+     * Continue editing with result image as new source
+     */
+    public function continueEditing(): void
+    {
+        if (empty($this->resultImage)) {
+            return;
+        }
+
+        // Set result as new source
+        $this->sourceImage = $this->resultImage;
+        $this->resultImage = '';
+        $this->maskData = '';
+        $this->editPrompt = '';
+        $this->successMessage = '';
+        $this->errorMessage = '';
+
+        // Dispatch event to reload canvas with new image
+        $this->dispatch('image-loaded', ['src' => $this->sourceImage]);
+    }
+
     // =============================================
     // RENDER
     // =============================================

@@ -349,12 +349,12 @@
                                 <svg class="w-5 h-5 group-hover:rotate-12 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
                                 Tạo tác phẩm ({{ number_format($this->currentPrice, 2) }} Xu)
                             </span>
-                            <span wire:loading wire:target="processEdit" class="flex items-center gap-2">
-                                <svg class="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
+                            <span wire:loading wire:target="processEdit" class="flex items-center justify-center gap-2 whitespace-nowrap">
+                                <svg class="animate-spin h-5 w-5 flex-shrink-0" fill="none" viewBox="0 0 24 24">
                                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                 </svg>
-                                Đang xử lý...
+                                <span>Đang xử lý...</span>
                             </span>
                         </button>
                     </div>
@@ -372,48 +372,56 @@
              x-show="open"
              @keydown.escape.window="open = false; @this.set('resultImage', '')">
             
-            <div class="relative max-w-4xl w-full bg-[#0d0d15] rounded-2xl border border-white/10 shadow-2xl overflow-hidden animate-in zoom-in-95"
+            <div class="relative w-full max-w-2xl bg-gradient-to-b from-[#14141f] to-[#0d0d15] rounded-2xl border border-white/10 shadow-2xl overflow-hidden animate-in zoom-in-95"
                  @click.away="open = false; @this.set('resultImage', '')">
                 
                 {{-- Modal Header --}}
-                <div class="flex items-center justify-between p-4 border-b border-white/[0.08]">
+                <div class="flex items-center justify-between px-5 py-4 border-b border-white/[0.08]">
                     <div class="flex items-center gap-3">
-                        <div class="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center">
-                            <svg class="w-5 h-5 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                        <div class="w-10 h-10 rounded-full bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center shadow-lg shadow-green-500/25">
+                            <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
                         </div>
-                        <h3 class="text-lg font-semibold text-white">Kết quả AI</h3>
+                        <div>
+                            <h3 class="text-lg font-bold text-white">Kết quả AI</h3>
+                            <p class="text-xs text-white/50">Chỉnh sửa hoàn tất</p>
+                        </div>
                     </div>
                     <button @click="open = false; @this.set('resultImage', '')" 
-                            class="p-2 rounded-lg text-white/50 hover:bg-white/10 hover:text-white transition-all">
+                            class="p-2.5 rounded-xl text-white/50 hover:bg-white/10 hover:text-white transition-all">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
                     </button>
                 </div>
 
-                {{-- Modal Body --}}
-                <div class="p-4 max-h-[60vh] overflow-auto">
-                    <img src="{{ $resultImage }}" alt="Edited result" class="max-w-full h-auto mx-auto rounded-lg shadow-xl">
+                {{-- Modal Body - Image Preview --}}
+                <div class="p-5">
+                    <div class="relative rounded-xl overflow-hidden bg-black/40 border border-white/[0.05]">
+                        <img src="{{ $resultImage }}" alt="Edited result" class="w-full h-auto max-h-[50vh] object-contain">
+                    </div>
                 </div>
 
-                {{-- Modal Footer --}}
-                <div class="flex items-center justify-center gap-3 p-4 border-t border-white/[0.08]">
+                {{-- Modal Footer - Action Buttons --}}
+                <div class="grid grid-cols-3 gap-3 px-5 pb-5">
+                    {{-- Download --}}
                     <button wire:click="downloadResult"
-                            class="flex items-center gap-2 px-5 py-2.5 bg-white/[0.1] hover:bg-white/[0.15] rounded-xl text-white font-medium transition-all border border-white/10">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            class="flex flex-col items-center gap-1.5 py-3 px-4 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] border border-white/[0.08] hover:border-white/[0.15] text-white/80 hover:text-white transition-all group">
+                        <svg class="w-5 h-5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                         </svg>
-                        Tải xuống
+                        <span class="text-xs font-medium">Tải xuống</span>
                     </button>
                     
+                    {{-- New Edit --}}
                     <button wire:click="resetEditor"
-                            class="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 rounded-xl text-white font-medium transition-all shadow-lg shadow-blue-500/25">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
-                        Tạo mới
+                            class="flex flex-col items-center gap-1.5 py-3 px-4 rounded-xl bg-gradient-to-br from-blue-500/20 to-purple-500/20 hover:from-blue-500/30 hover:to-purple-500/30 border border-blue-500/30 hover:border-blue-500/50 text-white transition-all group">
+                        <svg class="w-5 h-5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+                        <span class="text-xs font-medium">Tạo mới</span>
                     </button>
 
-                    <button @click="@this.set('resultImage', ''); @this.set('sourceImage', $wire.resultImage)"
-                            class="flex items-center gap-2 px-5 py-2.5 bg-white/[0.1] hover:bg-white/[0.15] rounded-xl text-white font-medium transition-all border border-white/10">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
-                        Tiếp tục chỉnh
+                    {{-- Continue Editing --}}
+                    <button wire:click="continueEditing"
+                            class="flex flex-col items-center gap-1.5 py-3 px-4 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] border border-white/[0.08] hover:border-white/[0.15] text-white/80 hover:text-white transition-all group">
+                        <svg class="w-5 h-5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+                        <span class="text-xs font-medium">Tiếp tục</span>
                     </button>
                 </div>
             </div>
