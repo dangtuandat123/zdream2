@@ -1,7 +1,5 @@
-@extends('layouts.app')
+<x-app-layout>
+    <x-slot name="title">Image Edit Studio - {{ App\Models\Setting::get('site_name', 'ZDream') }}</x-slot>
 
-@section('title', 'Image Edit Studio - ' . config('app.name'))
-
-@section('content')
     <livewire:image-edit-studio />
-@endsection
+</x-app-layout>

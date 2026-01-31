@@ -1,12 +1,6 @@
-<div class="min-h-screen bg-[#0a0a0f] text-white/95 font-sans selection:bg-blue-500/30">
-    
-    {{-- Ambient Background Glows --}}
-    <div class="fixed top-0 left-0 w-full h-full overflow-hidden -z-10 pointer-events-none">
-        <div class="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-600/20 rounded-full blur-[120px] mix-blend-screen animate-pulse-slow"></div>
-        <div class="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-600/20 rounded-full blur-[120px] mix-blend-screen animate-pulse-slow" style="animation-delay: 2s"></div>
-    </div>
+<div class="text-white/95 font-sans selection:bg-blue-500/30">
 
-    <div class="container mx-auto px-4 py-6 max-w-7xl">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         {{-- ========================================== --}}
         {{-- HEADER: Title + Actions --}}
         {{-- ========================================== --}}
