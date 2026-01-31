@@ -42,7 +42,7 @@
         {{-- ========================================== --}}
         {{-- MAIN CONTENT GRID --}}
         {{-- ========================================== --}}
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
             
             {{-- ============================== --}}
             {{-- LEFT: Canvas Area (2 cols) --}}
@@ -343,14 +343,14 @@
                                 wire:loading.attr="disabled"
                                 wire:target="processEdit"
                                 @if(empty($sourceImage) || !$this->hasEnoughCredits) disabled @endif
-                                class="w-full py-3 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-500 hover:via-indigo-500 hover:to-purple-500 disabled:opacity-40 disabled:cursor-not-allowed rounded-xl text-white font-bold transition-all shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 flex items-center justify-center gap-2 group">
+                                class="w-full py-3 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-500 hover:via-indigo-500 hover:to-purple-500 disabled:opacity-40 disabled:cursor-not-allowed rounded-xl text-white font-bold transition-all shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 text-center group">
                             
-                            <span wire:loading.remove wire:target="processEdit" class="flex items-center gap-2">
+                            <span wire:loading.remove wire:target="processEdit" class="inline-flex items-center justify-center gap-2">
                                 <svg class="w-5 h-5 group-hover:rotate-12 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
-                                Tạo tác phẩm ({{ number_format($this->currentPrice, 2) }} Xu)
+                                <span>Tạo tác phẩm ({{ number_format($this->currentPrice, 2) }} Xu)</span>
                             </span>
-                            <span wire:loading wire:target="processEdit" class="flex items-center justify-center gap-2 whitespace-nowrap">
-                                <svg class="animate-spin h-5 w-5 flex-shrink-0" fill="none" viewBox="0 0 24 24">
+                            <span wire:loading wire:target="processEdit" class="inline-flex items-center justify-center gap-2">
+                                <svg class="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
                                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                 </svg>
@@ -400,9 +400,17 @@
                 </div>
 
                 {{-- Modal Footer - Action Buttons --}}
-                <div class="grid grid-cols-3 gap-3 px-5 pb-5">
+                <div class="grid grid-cols-3 gap-3 px-5 mb-5 pb-5">
                     {{-- Download --}}
-                    <button wire:click="downloadResult"
+                    <button type="button"
+                            @click="
+                                const link = document.createElement('a');
+                                link.href = '{{ $resultImage }}';
+                                link.download = 'edited-image-' + Date.now() + '.png';
+                                document.body.appendChild(link);
+                                link.click();
+                                document.body.removeChild(link);
+                            "
                             class="flex flex-col items-center gap-1.5 py-3 px-4 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] border border-white/[0.08] hover:border-white/[0.15] text-white/80 hover:text-white transition-all group">
                         <svg class="w-5 h-5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
