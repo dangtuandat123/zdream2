@@ -598,10 +598,10 @@
                          this.drawCtx.putImageData(this.snapshot, 0, 0);
                     }
                     
-                    // Cyan dashed border for preview
-                    this.drawCtx.strokeStyle = 'rgba(0, 212, 255, 0.9)';  // Cyan
-                    this.drawCtx.lineWidth = 3;
-                    this.drawCtx.setLineDash([8, 8]);
+                    // Bold cyan dashed border for clear preview
+                    this.drawCtx.strokeStyle = 'rgb(0, 212, 255)';  // Solid Cyan
+                    this.drawCtx.lineWidth = 8;
+                    this.drawCtx.setLineDash([10, 6]);
                     this.drawCtx.strokeRect(this.startX, this.startY, currentX - this.startX, currentY - this.startY);
                     this.drawCtx.setLineDash([]);
                 },
