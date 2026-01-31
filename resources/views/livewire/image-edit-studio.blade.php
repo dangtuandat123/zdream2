@@ -404,12 +404,22 @@
                     {{-- Download --}}
                     <button type="button"
                             @click="
-                                const link = document.createElement('a');
-                                link.href = '{{ $resultImage }}';
-                                link.download = 'edited-image-' + Date.now() + '.png';
-                                document.body.appendChild(link);
-                                link.click();
-                                document.body.removeChild(link);
+                                fetch('{{ $resultImage }}')
+                                    .then(res => res.blob())
+                                    .then(blob => {
+                                        const url = URL.createObjectURL(blob);
+                                        const link = document.createElement('a');
+                                        link.href = url;
+                                        link.download = 'edited-image-' + Date.now() + '.png';
+                                        document.body.appendChild(link);
+                                        link.click();
+                                        document.body.removeChild(link);
+                                        URL.revokeObjectURL(url);
+                                    })
+                                    .catch(err => {
+                                        // Fallback: open in new tab
+                                        window.open('{{ $resultImage }}', '_blank');
+                                    });
                             "
                             class="flex flex-col items-center gap-1.5 py-3 px-4 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] border border-white/[0.08] hover:border-white/[0.15] text-white/80 hover:text-white transition-all group">
                         <svg class="w-5 h-5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
