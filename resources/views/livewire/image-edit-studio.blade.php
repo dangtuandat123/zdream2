@@ -602,12 +602,9 @@
                      const w = Math.abs(x2 - x1);
                      const h = Math.abs(y2 - y1);
 
-                     // Solid cyan fill with white border
-                     this.drawCtx.fillStyle = 'rgb(0, 212, 255)';  // Solid Cyan
+                     // Solid cyan fill only (no border)
+                     this.drawCtx.fillStyle = 'rgb(0, 212, 255)';
                      this.drawCtx.fillRect(x, y, w, h);
-                     this.drawCtx.strokeStyle = 'rgb(255, 255, 255)';
-                     this.drawCtx.lineWidth = 2;
-                     this.drawCtx.strokeRect(x, y, w, h);
 
                      // Hidden mask
                      this.maskCtx.fillStyle = 'white';
