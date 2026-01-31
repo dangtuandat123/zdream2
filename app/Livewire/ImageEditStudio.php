@@ -2,11 +2,13 @@
 
 namespace App\Livewire;
 
+use App\Models\GeneratedImage;
 use App\Models\Setting;
 use App\Services\BflService;
 use App\Services\WalletService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 
@@ -93,6 +95,9 @@ class ImageEditStudio extends Component
 
     /** User's current balance */
     public float $userCredits = 0;
+
+    /** Last generated image ID (for continue editing) */
+    public ?int $lastGeneratedImageId = null;
 
     // =============================================
     // PROTECTED PROPERTIES
@@ -333,6 +338,9 @@ class ImageEditStudio extends Component
                     $user->refresh();
                     $this->userCredits = (float) $user->credits;
 
+                    // Save result to MinIO and history
+                    $this->saveResultToHistory($user, $modeLabel, $creditCost);
+
                     $this->successMessage = "Chỉnh sửa thành công! Đã trừ {$creditCost} Xu.";
                 } catch (\Exception $e) {
                     Log::error('ImageEditStudio: Failed to deduct credits', [
@@ -496,6 +504,75 @@ class ImageEditStudio extends Component
             'src' => $this->resultImage,
             'filename' => 'edited-image-' . time() . '.png',
         ]);
+    }
+
+    /**
+     * Save result image to MinIO and create history record
+     */
+    protected function saveResultToHistory($user, string $modeLabel, float $creditCost): void
+    {
+        try {
+            // Extract base64 content from data URI or use URL directly
+            $imageData = $this->resultImage;
+
+            if (str_starts_with($imageData, 'data:image')) {
+                // Base64 data URI
+                $parts = explode(',', $imageData);
+                $base64 = $parts[1] ?? '';
+                $imageContent = base64_decode($base64);
+            } elseif (str_starts_with($imageData, 'http')) {
+                // URL - download content
+                $imageContent = @file_get_contents($imageData);
+                if ($imageContent === false) {
+                    Log::warning('ImageEditStudio: Failed to download result image for storage');
+                    return;
+                }
+            } else {
+                Log::warning('ImageEditStudio: Unknown image format');
+                return;
+            }
+
+            // Generate storage path
+            $filename = 'edit-' . time() . '-' . uniqid() . '.png';
+            $storagePath = "generated/{$user->id}/{$filename}";
+
+            // Save to MinIO
+            Storage::disk('minio')->put($storagePath, $imageContent, 'public');
+
+            // Create GeneratedImage record
+            $generatedImage = GeneratedImage::create([
+                'user_id' => $user->id,
+                'style_id' => null, // Edit Studio không dùng style
+                'final_prompt' => $this->editPrompt,
+                'user_custom_input' => $this->editPrompt,
+                'generation_params' => [
+                    'mode' => $this->editMode,
+                    'mode_label' => $modeLabel,
+                    'source' => 'edit_studio',
+                ],
+                'storage_path' => $storagePath,
+                'status' => GeneratedImage::STATUS_COMPLETED,
+                'credits_used' => $creditCost,
+            ]);
+
+            $this->lastGeneratedImageId = $generatedImage->id;
+
+            // Update resultImage to use MinIO URL for continue editing
+            $this->resultImage = $generatedImage->image_url;
+
+            Log::info('ImageEditStudio: Saved result to history', [
+                'image_id' => $generatedImage->id,
+                'user_id' => $user->id,
+                'storage_path' => $storagePath,
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('ImageEditStudio: Failed to save result to history', [
+                'user_id' => $user->id,
+                'error' => $e->getMessage(),
+            ]);
+            // Don't throw - this is a non-critical error
+        }
     }
 
     /**
