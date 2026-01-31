@@ -123,6 +123,10 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('settings', [AdminSettingsController::class, 'index'])->name('settings.index');
     Route::put('settings', [AdminSettingsController::class, 'update'])->name('settings.update');
     Route::post('settings/refresh-models', [AdminSettingsController::class, 'refreshModels'])->name('settings.refresh-models');
+
+    // Edit Studio Settings
+    Route::get('edit-studio', [App\Http\Controllers\Admin\EditStudioSettingsController::class, 'index'])->name('edit-studio.index');
+    Route::put('edit-studio', [App\Http\Controllers\Admin\EditStudioSettingsController::class, 'update'])->name('edit-studio.update');
 });
 
 // =============================================

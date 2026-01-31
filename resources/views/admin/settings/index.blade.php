@@ -151,150 +151,23 @@
                 </div>
             </div>
 
-            <!-- Edit Studio Settings -->
+            <!-- Edit Studio Settings (Separate Page) -->
             <div class="bg-white/[0.03] border border-white/[0.08] rounded-2xl p-6">
-                <h2 class="text-lg font-semibold text-white mb-4 inline-flex items-center gap-2">
-                    <i class="fa-solid fa-wand-magic-sparkles text-cyan-400" style="font-size: 18px;"></i>
-                    <span>Edit Studio Settings</span>
-                </h2>
-                <p class="text-white/40 text-sm mb-6">Cấu hình models và prompts cho chức năng chỉnh sửa ảnh AI.</p>
-
-                <div class="space-y-6">
-                    <!-- Replace Mode -->
-                    <div class="bg-white/[0.02] rounded-xl p-4 border border-white/[0.05]">
-                        <h3 class="text-sm font-medium text-white/80 mb-3 flex items-center gap-2">
-                            <span class="w-6 h-6 rounded-lg bg-red-500/20 flex items-center justify-center">
-                                <i class="fa-solid fa-eraser text-red-400 text-xs"></i>
-                            </span>
-                            Replace Mode
-                        </h3>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label for="edit_studio_model_replace"
-                                    class="block text-xs font-medium text-white/50 mb-1">Model</label>
-                                <select name="edit_studio_model_replace" id="edit_studio_model_replace"
-                                    class="w-full px-3 py-2 rounded-lg bg-white/[0.05] border border-white/[0.1] text-white/90 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500/40">
-                                    @foreach($editModels['fill'] as $modelId => $modelName)
-                                        <option value="{{ $modelId }}" {{ $editStudioSettings['model_replace'] === $modelId ? 'selected' : '' }}>
-                                            {{ $modelName }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            <div>
-                                <label for="edit_studio_prompt_prefix_replace"
-                                    class="block text-xs font-medium text-white/50 mb-1">Prompt Prefix</label>
-                                <input type="text" name="edit_studio_prompt_prefix_replace"
-                                    id="edit_studio_prompt_prefix_replace"
-                                    value="{{ $editStudioSettings['prompt_prefix_replace'] }}"
-                                    placeholder="(Để trống nếu không cần)"
-                                    class="w-full px-3 py-2 rounded-lg bg-white/[0.05] border border-white/[0.1] text-white/90 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500/40">
-                            </div>
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <span class="w-10 h-10 rounded-xl bg-cyan-500/20 flex items-center justify-center">
+                            <i class="fa-solid fa-wand-magic-sparkles text-cyan-400"></i>
+                        </span>
+                        <div>
+                            <h2 class="text-lg font-semibold text-white">Edit Studio Settings</h2>
+                            <p class="text-white/40 text-sm">Cấu hình models và prompts cho chức năng chỉnh sửa ảnh AI</p>
                         </div>
                     </div>
-
-                    <!-- Text Mode -->
-                    <div class="bg-white/[0.02] rounded-xl p-4 border border-white/[0.05]">
-                        <h3 class="text-sm font-medium text-white/80 mb-3 flex items-center gap-2">
-                            <span class="w-6 h-6 rounded-lg bg-blue-500/20 flex items-center justify-center">
-                                <i class="fa-solid fa-font text-blue-400 text-xs"></i>
-                            </span>
-                            Text Mode
-                        </h3>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label for="edit_studio_model_text"
-                                    class="block text-xs font-medium text-white/50 mb-1">Model</label>
-                                <select name="edit_studio_model_text" id="edit_studio_model_text"
-                                    class="w-full px-3 py-2 rounded-lg bg-white/[0.05] border border-white/[0.1] text-white/90 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500/40">
-                                    @foreach($editModels['text'] as $modelId => $modelName)
-                                        <option value="{{ $modelId }}" {{ $editStudioSettings['model_text'] === $modelId ? 'selected' : '' }}>
-                                            {{ $modelName }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            <div>
-                                <label for="edit_studio_prompt_prefix_text"
-                                    class="block text-xs font-medium text-white/50 mb-1">Prompt Prefix</label>
-                                <input type="text" name="edit_studio_prompt_prefix_text"
-                                    id="edit_studio_prompt_prefix_text"
-                                    value="{{ $editStudioSettings['prompt_prefix_text'] }}"
-                                    placeholder="(Để trống nếu không cần)"
-                                    class="w-full px-3 py-2 rounded-lg bg-white/[0.05] border border-white/[0.1] text-white/90 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500/40">
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Background Mode -->
-                    <div class="bg-white/[0.02] rounded-xl p-4 border border-white/[0.05]">
-                        <h3 class="text-sm font-medium text-white/80 mb-3 flex items-center gap-2">
-                            <span class="w-6 h-6 rounded-lg bg-green-500/20 flex items-center justify-center">
-                                <i class="fa-solid fa-image text-green-400 text-xs"></i>
-                            </span>
-                            Background Mode
-                        </h3>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label for="edit_studio_model_background"
-                                    class="block text-xs font-medium text-white/50 mb-1">Model</label>
-                                <select name="edit_studio_model_background" id="edit_studio_model_background"
-                                    class="w-full px-3 py-2 rounded-lg bg-white/[0.05] border border-white/[0.1] text-white/90 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500/40">
-                                    @foreach($editModels['fill'] as $modelId => $modelName)
-                                        <option value="{{ $modelId }}" {{ $editStudioSettings['model_background'] === $modelId ? 'selected' : '' }}>
-                                            {{ $modelName }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            <div>
-                                <label for="edit_studio_prompt_prefix_background"
-                                    class="block text-xs font-medium text-white/50 mb-1">Prompt Prefix</label>
-                                <input type="text" name="edit_studio_prompt_prefix_background"
-                                    id="edit_studio_prompt_prefix_background"
-                                    value="{{ $editStudioSettings['prompt_prefix_background'] }}"
-                                    placeholder="Keep the main subject..."
-                                    class="w-full px-3 py-2 rounded-lg bg-white/[0.05] border border-white/[0.1] text-white/90 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500/40">
-                            </div>
-                        </div>
-                        <p class="text-xs text-white/40 mt-2">
-                            <i class="fa-solid fa-lightbulb mr-1 text-yellow-400"></i>
-                            Mặc định: "Keep the main subject exactly as is. Change the background to:"
-                        </p>
-                    </div>
-
-                    <!-- Expand Mode -->
-                    <div class="bg-white/[0.02] rounded-xl p-4 border border-white/[0.05]">
-                        <h3 class="text-sm font-medium text-white/80 mb-3 flex items-center gap-2">
-                            <span class="w-6 h-6 rounded-lg bg-purple-500/20 flex items-center justify-center">
-                                <i class="fa-solid fa-expand text-purple-400 text-xs"></i>
-                            </span>
-                            Expand Mode
-                        </h3>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label for="edit_studio_model_expand"
-                                    class="block text-xs font-medium text-white/50 mb-1">Model</label>
-                                <select name="edit_studio_model_expand" id="edit_studio_model_expand"
-                                    class="w-full px-3 py-2 rounded-lg bg-white/[0.05] border border-white/[0.1] text-white/90 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500/40">
-                                    @foreach($editModels['expand'] as $modelId => $modelName)
-                                        <option value="{{ $modelId }}" {{ $editStudioSettings['model_expand'] === $modelId ? 'selected' : '' }}>
-                                            {{ $modelName }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            <div>
-                                <label for="edit_studio_prompt_prefix_expand"
-                                    class="block text-xs font-medium text-white/50 mb-1">Prompt Prefix</label>
-                                <input type="text" name="edit_studio_prompt_prefix_expand"
-                                    id="edit_studio_prompt_prefix_expand"
-                                    value="{{ $editStudioSettings['prompt_prefix_expand'] }}"
-                                    placeholder="(Để trống nếu không cần)"
-                                    class="w-full px-3 py-2 rounded-lg bg-white/[0.05] border border-white/[0.1] text-white/90 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500/40">
-                            </div>
-                        </div>
-                    </div>
+                    <a href="{{ route('admin.edit-studio.index') }}" 
+                        class="px-4 py-2 rounded-xl bg-cyan-500/20 text-cyan-400 hover:bg-cyan-500/30 transition-all inline-flex items-center gap-2">
+                        <span>Cấu hình</span>
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </a>
                 </div>
             </div>
 
