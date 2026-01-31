@@ -423,6 +423,8 @@
                 
                 startX: 0,
                 startY: 0,
+                lastX: null,
+                lastY: null,
                 snapshot: null,
 
                 history: [],
@@ -519,9 +521,11 @@
                     const coords = this.getCanvasCoordinates(e);
                     this.startX = coords.x;
                     this.startY = coords.y;
+                    this.lastX = coords.x;
+                    this.lastY = coords.y;
                     
                     if (this.tool === 'brush') {
-                        this.drawBrushStroke(this.startX, this.startY);
+                        this.drawBrushStroke(this.startX, this.startY, this.startX, this.startY);
                     }
                 },
 
@@ -533,7 +537,9 @@
                     const y = coords.y;
                     
                     if (this.tool === 'brush') {
-                        this.drawBrushStroke(x, y);
+                        this.drawBrushStroke(this.lastX, this.lastY, x, y);
+                        this.lastX = x;
+                        this.lastY = y;
                     } else if (this.tool === 'rect') {
                         this.redrawPreviewRect(x, y);
                     }
@@ -549,6 +555,8 @@
                     
                     this.isDrawing = false;
                     this.snapshot = null;
+                    this.lastX = null;
+                    this.lastY = null;
                     this.saveState();
                     this.syncMaskToLivewire();
                 },
@@ -564,18 +572,26 @@
                     };
                 },
 
-                drawBrushStroke(x, y) {
-                    // Solid cyan - CSS opacity handles transparency (no stacking issue)
-                    this.drawCtx.fillStyle = 'rgb(0, 212, 255)';  // Solid Cyan
+                drawBrushStroke(fromX, fromY, toX, toY) {
+                    // Draw line between points for smooth continuous strokes
+                    this.drawCtx.strokeStyle = 'rgb(0, 212, 255)';
+                    this.drawCtx.lineWidth = this.brushSize * 2;
+                    this.drawCtx.lineCap = 'round';
+                    this.drawCtx.lineJoin = 'round';
                     this.drawCtx.beginPath();
-                    this.drawCtx.arc(x, y, this.brushSize, 0, Math.PI * 2);
-                    this.drawCtx.fill();
+                    this.drawCtx.moveTo(fromX, fromY);
+                    this.drawCtx.lineTo(toX, toY);
+                    this.drawCtx.stroke();
                     
-                    // Hidden mask (white on black)
-                    this.maskCtx.fillStyle = 'white';
+                    // Hidden mask - same line
+                    this.maskCtx.strokeStyle = 'white';
+                    this.maskCtx.lineWidth = this.brushSize * 2;
+                    this.maskCtx.lineCap = 'round';
+                    this.maskCtx.lineJoin = 'round';
                     this.maskCtx.beginPath();
-                    this.maskCtx.arc(x, y, this.brushSize, 0, Math.PI * 2);
-                    this.maskCtx.fill();
+                    this.maskCtx.moveTo(fromX, fromY);
+                    this.maskCtx.lineTo(toX, toY);
+                    this.maskCtx.stroke();
                 },
 
                 redrawPreviewRect(currentX, currentY) {
