@@ -58,6 +58,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Studio - Tạo ảnh
     Route::get('/studio/{style:slug}', [StudioController::class, 'show'])->name('studio.show');
 
+    // Direct Image Edit Studio
+    Route::get('/edit', function () {
+        return view('edit.index');
+    })->name('edit.index');
+
     // Wallet - Ví tiền
     Route::get('/wallet', [WalletController::class, 'index'])->name('wallet.index');
 

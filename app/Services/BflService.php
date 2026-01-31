@@ -1528,4 +1528,143 @@ class BflService
             FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE
         ) === false;
     }
+    // =============================================
+    // DIRECT EDIT METHODS (Bypass Style System)
+    // =============================================
+
+    /**
+     * Edit image with mask (Inpaint/Background Change)
+     * Model: flux-pro-1.0-fill
+     */
+    public function editWithMask(string $imageBase64, string $maskBase64, string $prompt, array $options = []): array
+    {
+        $modelId = 'flux-pro-1.0-fill'; // Default fill model
+
+        $payload = [
+            'image' => $imageBase64,
+            'mask' => $maskBase64,
+            'prompt' => $prompt,
+        ];
+
+        // Add optional params
+        if (isset($options['guidance']))
+            $payload['guidance'] = $options['guidance'];
+        if (isset($options['steps']))
+            $payload['steps'] = $options['steps'];
+        if (isset($options['safety_tolerance']))
+            $payload['safety_tolerance'] = $options['safety_tolerance'];
+        if (isset($options['output_format']))
+            $payload['output_format'] = $options['output_format'];
+
+        return $this->executeDirectGeneration($modelId, $payload);
+    }
+
+    /**
+     * Edit text in image
+     * Model: flux-kontext-pro
+     */
+    public function editText(string $imageBase64, string $prompt, array $options = []): array
+    {
+        $modelId = 'flux-kontext-pro';
+
+        $payload = [
+            'prompt' => $prompt,
+            'input_image' => $imageBase64,
+        ];
+
+        // Add optional params
+        if (isset($options['guidance']))
+            $payload['guidance'] = $options['guidance'];
+        if (isset($options['steps']))
+            $payload['steps'] = $options['steps'];
+        if (isset($options['safety_tolerance']))
+            $payload['safety_tolerance'] = $options['safety_tolerance'];
+        if (isset($options['output_format']))
+            $payload['output_format'] = $options['output_format'];
+
+        return $this->executeDirectGeneration($modelId, $payload);
+    }
+
+    /**
+     * Expand image (Outpainting)
+     * Model: flux-pro-1.0-expand
+     */
+    public function expandImage(string $imageBase64, array $expandDirections, string $prompt = null, array $options = []): array
+    {
+        $modelId = 'flux-pro-1.0-expand';
+
+        $payload = [
+            'image' => $imageBase64,
+            'expand_top' => (int) ($expandDirections['top'] ?? 0),
+            'expand_bottom' => (int) ($expandDirections['bottom'] ?? 0),
+            'expand_left' => (int) ($expandDirections['left'] ?? 0),
+            'expand_right' => (int) ($expandDirections['right'] ?? 0),
+        ];
+
+        if (!empty($prompt)) {
+            $payload['prompt'] = $prompt;
+        }
+
+        // Add optional params
+        if (isset($options['guidance']))
+            $payload['guidance'] = $options['guidance'];
+        if (isset($options['steps']))
+            $payload['steps'] = $options['steps'];
+        if (isset($options['safety_tolerance']))
+            $payload['safety_tolerance'] = $options['safety_tolerance'];
+        if (isset($options['output_format']))
+            $payload['output_format'] = $options['output_format'];
+
+        return $this->executeDirectGeneration($modelId, $payload);
+    }
+
+    /**
+     * Helper to execute API call and poll result
+     */
+    protected function executeDirectGeneration(string $modelId, array $payload): array
+    {
+        try {
+            $response = $this->clientForPost()->post($this->baseUrl . '/v1/' . $modelId, $payload);
+
+            if (!$response->successful()) {
+                return [
+                    'success' => false,
+                    'error' => $this->formatApiError($response),
+                ];
+            }
+
+            $data = $response->json();
+            $taskId = $data['id'] ?? null;
+            $pollingUrl = $data['polling_url'] ?? null;
+
+            if (empty($taskId)) {
+                return [
+                    'success' => false,
+                    'error' => 'Không nhận được task id từ BFL',
+                ];
+            }
+
+            $pollResult = $this->pollResult($taskId, $pollingUrl);
+
+            if ($pollResult['success']) {
+                return [
+                    'success' => true,
+                    'image_base64' => $pollResult['image_base64'],
+                    'bfl_task_id' => $taskId,
+                ];
+            }
+
+            return [
+                'success' => false,
+                'error' => $pollResult['error'] ?? 'Lỗi không xác định khi polling',
+            ];
+
+        } catch (\Exception $e) {
+            Log::error('BFL direct execution error', ['model' => $modelId, 'error' => $e->getMessage()]);
+            return [
+                'success' => false,
+                'error' => $e->getMessage(),
+            ];
+        }
+    }
 }
