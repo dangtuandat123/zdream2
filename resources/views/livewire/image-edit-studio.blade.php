@@ -25,19 +25,7 @@
                 </div>
             </div>
             
-            {{-- Header Actions --}}
-            <div class="flex items-center gap-3">
-                @if(!empty($sourceImage))
-                    <label for="image-upload-header" 
-                           class="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/[0.05] border border-white/[0.1] hover:bg-white/[0.1] hover:border-white/[0.2] cursor-pointer transition-all group">
-                        <svg class="w-4 h-4 text-white/60 group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                        </svg>
-                        <span class="text-sm font-medium text-white/80 group-hover:text-white">Đổi ảnh</span>
-                    </label>
-                    <input type="file" id="image-upload-header" wire:model="uploadedImage" accept="image/*" class="hidden">
-                @endif
-            </div>
+
         </div>
 
         {{-- ========================================== --}}
@@ -116,6 +104,16 @@
                         
                         {{-- Canvas Wrapper - Image scales to fit, no scroll --}}
                         <div class="relative bg-black/40 flex items-center justify-center bg-[url('https://zdream.vn/images/transparent-bg.png')] bg-repeat p-4">
+                            
+                            {{-- Change Image Button (top-right corner) --}}
+                            <label for="image-upload-canvas" 
+                                   class="absolute top-3 right-3 z-20 flex items-center gap-2 px-3 py-2 rounded-lg bg-black/60 backdrop-blur-sm border border-white/20 hover:bg-black/80 hover:border-white/30 cursor-pointer transition-all group">
+                                <svg class="w-4 h-4 text-white/70 group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                </svg>
+                                <span class="text-sm font-medium text-white/80 group-hover:text-white">Đổi ảnh</span>
+                            </label>
+                            <input type="file" id="image-upload-canvas" wire:model="uploadedImage" accept="image/*" class="hidden">
                             
                             <div wire:ignore class="relative inline-block" style="line-height: 0; max-width: 100%; max-height: 70vh;">
                                 <canvas x-ref="imageLayer" class="max-w-full max-h-[70vh] w-auto h-auto" style="display: block;"></canvas>
