@@ -372,7 +372,7 @@
              x-show="open"
              @keydown.escape.window="open = false; @this.set('resultImage', '')">
             
-            <div class="relative w-full max-w-2xl bg-gradient-to-b from-[#14141f] to-[#0d0d15] rounded-2xl border border-white/10 shadow-2xl overflow-hidden animate-in zoom-in-95">>
+            <div class="relative w-full max-w-2xl bg-gradient-to-b from-[#14141f] to-[#0d0d15] rounded-2xl border border-white/10 shadow-2xl overflow-hidden animate-in zoom-in-95">
                 
                 {{-- Modal Header --}}
                 <div class="flex items-center justify-between px-5 py-4 border-b border-white/[0.08]">
