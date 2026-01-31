@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -8,14 +9,15 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
-    <title>{{ $title ?? App\Models\Setting::get('site_name', 'ZDream') . ' - Biến Ảnh Thường Thành Tác Phẩm AI' }}</title>
+    <title>{{ $title ?? App\Models\Setting::get('site_name', 'ZDream') . ' - Biến Ảnh Thường Thành Tác Phẩm AI' }}
+    </title>
     <meta name="description" content="Chọn style → Upload ảnh → Nhận kết quả. Chỉ 3 bước, không cần prompt!">
 
     <!-- Fonts: Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    
+
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
@@ -24,94 +26,122 @@
 
     <!-- Vite Assets (CSS + JS với Alpine) -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
-    
+
     <!-- Livewire Styles -->
     @livewireStyles
-    
+
     <style>
-        body { font-family: 'Inter', sans-serif; background: #0a0a0f; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0a0a0f;
+        }
+
         .ambient-bg {
             position: fixed;
             inset: -10%;
             z-index: -1;
             will-change: transform, opacity;
             background:
-                radial-gradient(40% 30% at 20% 20%, rgba(56,189,248,0.22), transparent 70%),
-                radial-gradient(35% 30% at 80% 30%, rgba(232,121,249,0.18), transparent 70%),
-                radial-gradient(40% 35% at 50% 80%, rgba(34,197,94,0.12), transparent 72%),
-                linear-gradient(120deg, rgba(15,23,42,0.35), rgba(2,6,23,0.55));
+                radial-gradient(40% 30% at 20% 20%, rgba(56, 189, 248, 0.22), transparent 70%),
+                radial-gradient(35% 30% at 80% 30%, rgba(232, 121, 249, 0.18), transparent 70%),
+                radial-gradient(40% 35% at 50% 80%, rgba(34, 197, 94, 0.12), transparent 72%),
+                linear-gradient(120deg, rgba(15, 23, 42, 0.35), rgba(2, 6, 23, 0.55));
             opacity: 0.8;
             animation: ambient-drift 10s ease-in-out infinite;
             pointer-events: none;
         }
+
         .ambient-bg::after {
             content: '';
             position: absolute;
             inset: 10%;
             background:
-                radial-gradient(30% 25% at 30% 60%, rgba(34,211,238,0.16), transparent 70%),
-                radial-gradient(30% 25% at 70% 40%, rgba(244,114,182,0.14), transparent 70%);
+                radial-gradient(30% 25% at 30% 60%, rgba(34, 211, 238, 0.16), transparent 70%),
+                radial-gradient(30% 25% at 70% 40%, rgba(244, 114, 182, 0.14), transparent 70%);
             opacity: 0.5;
         }
+
         @keyframes ambient-drift {
-            0% { transform: translate3d(0, 0, 0); }
-            50% { transform: translate3d(1.5%, -1.5%, 0); }
-            100% { transform: translate3d(0, 0, 0); }
+            0% {
+                transform: translate3d(0, 0, 0);
+            }
+
+            50% {
+                transform: translate3d(1.5%, -1.5%, 0);
+            }
+
+            100% {
+                transform: translate3d(0, 0, 0);
+            }
         }
+
         @media (prefers-reduced-motion: reduce) {
+
             .ambient-bg,
             .ambient-bg::after {
                 animation: none;
             }
         }
+
         .anim-float-slow {
             animation: float-slow 8s ease-in-out infinite;
         }
+
         .anim-float-slower {
             animation: float-slower 12s ease-in-out infinite;
         }
+
         .anim-pulse-soft {
             animation: pulse-soft 4.5s ease-in-out infinite;
         }
+
         .btn-glow {
             position: relative;
             overflow: hidden;
         }
+
         .btn-glow::after {
             content: '';
             position: absolute;
             inset: -120% -30%;
-            background: linear-gradient(120deg, transparent 35%, rgba(255,255,255,0.45) 50%, transparent 65%);
+            background: linear-gradient(120deg, transparent 35%, rgba(255, 255, 255, 0.45) 50%, transparent 65%);
             transform: translateX(-60%);
             transition: transform 0.6s ease;
             pointer-events: none;
         }
+
         .btn-glow:hover::after {
             transform: translateX(60%);
         }
+
         .btn-pop {
             transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
+
         .btn-pop:hover {
             transform: translateY(-2px);
-            box-shadow: 0 10px 30px rgba(255,255,255,0.08);
+            box-shadow: 0 10px 30px rgba(255, 255, 255, 0.08);
         }
+
         .card-anim {
             position: relative;
             overflow: hidden;
         }
+
         .card-anim::after {
             content: '';
             position: absolute;
             inset: 0;
-            background: radial-gradient(60% 60% at 30% 20%, rgba(255,255,255,0.08), transparent 60%);
+            background: radial-gradient(60% 60% at 30% 20%, rgba(255, 255, 255, 0.08), transparent 60%);
             opacity: 0;
             transition: opacity 0.4s ease;
             pointer-events: none;
         }
+
         .card-anim:hover::after {
             opacity: 0.6;
         }
+
         .hero-blob {
             position: absolute;
             width: 280px;
@@ -122,56 +152,63 @@
             mix-blend-mode: screen;
             animation: hero-blob 14s ease-in-out infinite;
         }
+
         .hero-blob-1 {
             top: -80px;
             right: 10%;
-            background: radial-gradient(circle at 30% 30%, rgba(34,211,238,0.55), rgba(14,116,144,0.0) 60%);
+            background: radial-gradient(circle at 30% 30%, rgba(34, 211, 238, 0.55), rgba(14, 116, 144, 0.0) 60%);
         }
+
         .hero-blob-2 {
             bottom: -90px;
             left: 8%;
             width: 320px;
             height: 320px;
-            background: radial-gradient(circle at 40% 40%, rgba(232,121,249,0.5), rgba(124,58,237,0.0) 60%);
+            background: radial-gradient(circle at 40% 40%, rgba(232, 121, 249, 0.5), rgba(124, 58, 237, 0.0) 60%);
             animation-duration: 18s;
         }
+
         .hero-blob-3 {
             top: 30%;
             left: 55%;
             width: 220px;
             height: 220px;
-            background: radial-gradient(circle at 40% 40%, rgba(74,222,128,0.45), rgba(16,185,129,0.0) 60%);
+            background: radial-gradient(circle at 40% 40%, rgba(74, 222, 128, 0.45), rgba(16, 185, 129, 0.0) 60%);
             animation-duration: 16s;
         }
+
         .hero-sheen {
             position: absolute;
             inset: -30%;
-            background: conic-gradient(from 180deg, rgba(255,255,255,0.06), transparent 40%, rgba(255,255,255,0.06) 60%, transparent);
+            background: conic-gradient(from 180deg, rgba(255, 255, 255, 0.06), transparent 40%, rgba(255, 255, 255, 0.06) 60%, transparent);
             animation: hero-rotate 20s linear infinite;
             opacity: 0.35;
             mix-blend-mode: soft-light;
         }
+
         .hero-art {
             position: absolute;
             inset: -10%;
             background:
-                radial-gradient(40% 30% at 10% 30%, rgba(34,211,238,0.22), transparent 70%),
-                radial-gradient(35% 30% at 90% 20%, rgba(232,121,249,0.2), transparent 70%),
-                radial-gradient(40% 35% at 60% 80%, rgba(74,222,128,0.16), transparent 72%),
-                conic-gradient(from 0deg, rgba(255,255,255,0.06), transparent 30%, rgba(255,255,255,0.06) 60%, transparent);
+                radial-gradient(40% 30% at 10% 30%, rgba(34, 211, 238, 0.22), transparent 70%),
+                radial-gradient(35% 30% at 90% 20%, rgba(232, 121, 249, 0.2), transparent 70%),
+                radial-gradient(40% 35% at 60% 80%, rgba(74, 222, 128, 0.16), transparent 72%),
+                conic-gradient(from 0deg, rgba(255, 255, 255, 0.06), transparent 30%, rgba(255, 255, 255, 0.06) 60%, transparent);
             opacity: 0.6;
             animation: hero-pan 10s ease-in-out infinite;
             pointer-events: none;
             will-change: transform, opacity;
         }
+
         .styles-hero {
             position: relative;
             overflow: hidden;
             border-radius: 1.5rem;
             isolation: isolate;
-            background: radial-gradient(120% 120% at 100% 0%, rgba(34,211,238,0.18) 0%, rgba(10,10,15,0.92) 55%, rgba(10,10,15,1) 100%);
-            box-shadow: 0 25px 60px rgba(0,0,0,0.45), inset 0 0 0 1px rgba(255,255,255,0.08);
+            background: radial-gradient(120% 120% at 100% 0%, rgba(34, 211, 238, 0.18) 0%, rgba(10, 10, 15, 0.92) 55%, rgba(10, 10, 15, 1) 100%);
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.45), inset 0 0 0 1px rgba(255, 255, 255, 0.08);
         }
+
         .styles-hero::before {
             content: '';
             position: absolute;
@@ -186,53 +223,58 @@
             z-index: 0;
             animation: styles-hero-pan 14s ease-in-out infinite;
         }
+
         .styles-hero::after {
             content: '';
             position: absolute;
             inset: 0;
             background:
-                radial-gradient(60% 60% at 15% 20%, rgba(94,234,212,0.1), transparent 60%),
-                radial-gradient(50% 60% at 85% 10%, rgba(251,113,133,0.08), transparent 60%),
-                linear-gradient(180deg, rgba(10,10,15,0.12), rgba(10,10,15,0.48));
+                radial-gradient(60% 60% at 15% 20%, rgba(94, 234, 212, 0.1), transparent 60%),
+                radial-gradient(50% 60% at 85% 10%, rgba(251, 113, 133, 0.08), transparent 60%),
+                linear-gradient(180deg, rgba(10, 10, 15, 0.12), rgba(10, 10, 15, 0.48));
             opacity: 0.45;
             pointer-events: none;
             z-index: 0;
         }
+
         .styles-hero-grid {
             position: absolute;
             inset: 0;
             opacity: 0.32;
             background-image:
-                linear-gradient(120deg, rgba(255,255,255,0.06) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px);
+                linear-gradient(120deg, rgba(255, 255, 255, 0.06) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
             background-size: 26px 26px;
             pointer-events: none;
             z-index: 0;
             animation: styles-grid-drift 12s linear infinite;
         }
+
         .styles-hero-motion {
             position: absolute;
             inset: -20%;
             background:
-                radial-gradient(40% 40% at 15% 20%, rgba(244,114,182,0.25), transparent 60%),
-                radial-gradient(35% 35% at 85% 30%, rgba(139,92,246,0.22), transparent 60%),
-                radial-gradient(30% 30% at 60% 80%, rgba(59,130,246,0.2), transparent 60%);
+                radial-gradient(40% 40% at 15% 20%, rgba(244, 114, 182, 0.25), transparent 60%),
+                radial-gradient(35% 35% at 85% 30%, rgba(139, 92, 246, 0.22), transparent 60%),
+                radial-gradient(30% 30% at 60% 80%, rgba(59, 130, 246, 0.2), transparent 60%);
             opacity: 0.5;
             mix-blend-mode: screen;
             animation: styles-motion 10s ease-in-out infinite;
             pointer-events: none;
             z-index: 0;
         }
+
         .styles-hero-sheen {
             position: absolute;
             inset: -20%;
-            background: conic-gradient(from 120deg, rgba(255,255,255,0.06), transparent 35%, rgba(255,255,255,0.08) 50%, transparent 65%);
+            background: conic-gradient(from 120deg, rgba(255, 255, 255, 0.06), transparent 35%, rgba(255, 255, 255, 0.08) 50%, transparent 65%);
             opacity: 0.55;
             mix-blend-mode: soft-light;
             animation: styles-sheen-rotate 10s linear infinite;
             pointer-events: none;
             z-index: 0;
         }
+
         .styles-hero-orb {
             position: absolute;
             width: 260px;
@@ -245,75 +287,175 @@
             pointer-events: none;
             z-index: 0;
         }
+
         .styles-hero-orb-1 {
             top: -120px;
             right: 12%;
-            background: radial-gradient(circle at 30% 30%, rgba(244,114,182,0.55), rgba(168,85,247,0) 60%);
+            background: radial-gradient(circle at 30% 30%, rgba(244, 114, 182, 0.55), rgba(168, 85, 247, 0) 60%);
         }
+
         .styles-hero-orb-2 {
             bottom: -140px;
             left: 10%;
             width: 320px;
             height: 320px;
-            background: radial-gradient(circle at 35% 35%, rgba(59,130,246,0.45), rgba(37,99,235,0) 60%);
+            background: radial-gradient(circle at 35% 35%, rgba(59, 130, 246, 0.45), rgba(37, 99, 235, 0) 60%);
             animation-duration: 18s;
         }
+
         @keyframes styles-grid-drift {
-            0% { background-position: 0 0; }
-            100% { background-position: 320px 220px; }
+            0% {
+                background-position: 0 0;
+            }
+
+            100% {
+                background-position: 320px 220px;
+            }
         }
+
         @keyframes styles-sheen-rotate {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
         }
+
         @keyframes styles-motion {
-            0% { transform: translate3d(-3%, 2%, 0) rotate(0deg); }
-            50% { transform: translate3d(2%, -2%, 0) rotate(2deg); }
-            100% { transform: translate3d(-3%, 2%, 0) rotate(0deg); }
+            0% {
+                transform: translate3d(-3%, 2%, 0) rotate(0deg);
+            }
+
+            50% {
+                transform: translate3d(2%, -2%, 0) rotate(2deg);
+            }
+
+            100% {
+                transform: translate3d(-3%, 2%, 0) rotate(0deg);
+            }
         }
+
         @keyframes styles-hero-pan {
-            0% { background-position: 45% 50%; transform: scale(1.04) translate3d(0,0,0); }
-            50% { background-position: 70% 30%; transform: scale(1.1) translate3d(12px,-10px,0); }
-            100% { background-position: 45% 50%; transform: scale(1.04) translate3d(0,0,0); }
+            0% {
+                background-position: 45% 50%;
+                transform: scale(1.04) translate3d(0, 0, 0);
+            }
+
+            50% {
+                background-position: 70% 30%;
+                transform: scale(1.1) translate3d(12px, -10px, 0);
+            }
+
+            100% {
+                background-position: 45% 50%;
+                transform: scale(1.04) translate3d(0, 0, 0);
+            }
         }
+
         @keyframes styles-orb-float {
-            0% { transform: translate3d(0, 0, 0) scale(1); }
-            50% { transform: translate3d(46px, -26px, 0) scale(1.1); }
-            100% { transform: translate3d(0, 0, 0) scale(1); }
+            0% {
+                transform: translate3d(0, 0, 0) scale(1);
+            }
+
+            50% {
+                transform: translate3d(46px, -26px, 0) scale(1.1);
+            }
+
+            100% {
+                transform: translate3d(0, 0, 0) scale(1);
+            }
         }
+
         .styles-hero-inner {
             position: relative;
             z-index: 2;
         }
+
         @keyframes hero-blob {
-            0% { transform: translate3d(0, 0, 0) scale(1); }
-            50% { transform: translate3d(18px, -14px, 0) scale(1.06); }
-            100% { transform: translate3d(0, 0, 0) scale(1); }
+            0% {
+                transform: translate3d(0, 0, 0) scale(1);
+            }
+
+            50% {
+                transform: translate3d(18px, -14px, 0) scale(1.06);
+            }
+
+            100% {
+                transform: translate3d(0, 0, 0) scale(1);
+            }
         }
+
         @keyframes hero-rotate {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
         }
+
         @keyframes hero-pan {
-            0% { transform: translate3d(-2%, -1%, 0) scale(1); background-position: 0% 50%; }
-            50% { transform: translate3d(2%, -3%, 0) scale(1.03); background-position: 100% 50%; }
-            100% { transform: translate3d(-2%, -1%, 0) scale(1); background-position: 0% 50%; }
+            0% {
+                transform: translate3d(-2%, -1%, 0) scale(1);
+                background-position: 0% 50%;
+            }
+
+            50% {
+                transform: translate3d(2%, -3%, 0) scale(1.03);
+                background-position: 100% 50%;
+            }
+
+            100% {
+                transform: translate3d(-2%, -1%, 0) scale(1);
+                background-position: 0% 50%;
+            }
         }
+
         @keyframes float-slow {
-            0% { transform: translate3d(0, 0, 0); }
-            50% { transform: translate3d(0, -10px, 0); }
-            100% { transform: translate3d(0, 0, 0); }
+            0% {
+                transform: translate3d(0, 0, 0);
+            }
+
+            50% {
+                transform: translate3d(0, -10px, 0);
+            }
+
+            100% {
+                transform: translate3d(0, 0, 0);
+            }
         }
+
         @keyframes float-slower {
-            0% { transform: translate3d(0, 0, 0); }
-            50% { transform: translate3d(8px, -6px, 0); }
-            100% { transform: translate3d(0, 0, 0); }
+            0% {
+                transform: translate3d(0, 0, 0);
+            }
+
+            50% {
+                transform: translate3d(8px, -6px, 0);
+            }
+
+            100% {
+                transform: translate3d(0, 0, 0);
+            }
         }
+
         @keyframes pulse-soft {
-            0%, 100% { box-shadow: 0 0 0 rgba(34,211,238,0.0); }
-            50% { box-shadow: 0 0 24px rgba(34,211,238,0.25); }
+
+            0%,
+            100% {
+                box-shadow: 0 0 0 rgba(34, 211, 238, 0.0);
+            }
+
+            50% {
+                box-shadow: 0 0 24px rgba(34, 211, 238, 0.25);
+            }
         }
+
         @media (prefers-reduced-motion: reduce) {
+
             .anim-float-slow,
             .anim-float-slower,
             .anim-pulse-soft,
@@ -330,6 +472,7 @@
                 transition: none;
             }
         }
+
         body.is-scrolling .ambient-bg,
         body.is-scrolling .ambient-bg::after,
         body.is-scrolling .hero-art,
@@ -345,7 +488,7 @@
         body.is-scrolling .anim-pulse-soft {
             animation-play-state: paused;
         }
-        
+
         /* Select2 Dark Theme */
         .select2-container--default .select2-selection--single {
             background: rgba(255, 255, 255, 0.03);
@@ -354,33 +497,41 @@
             height: 48px;
             padding: 10px 12px;
         }
+
         .select2-container--default .select2-selection--single .select2-selection__rendered {
             color: rgba(255, 255, 255, 0.9);
             line-height: 28px;
             padding-left: 0;
         }
+
         .select2-container--default .select2-selection--single .select2-selection__arrow {
             height: 46px;
             right: 8px;
         }
+
         @media (min-width: 640px) {
             .select2-container--default .select2-selection--single {
                 height: 44px;
                 padding: 8px 12px;
             }
+
             .select2-container--default .select2-selection--single .select2-selection__rendered {
                 line-height: 26px;
             }
+
             .select2-container--default .select2-selection--single .select2-selection__arrow {
                 height: 42px;
             }
         }
+
         .select2-container--default .select2-selection--single .select2-selection__arrow b {
             border-color: rgba(255, 255, 255, 0.5) transparent transparent transparent;
         }
+
         .select2-container--default.select2-container--open .select2-selection--single .select2-selection__arrow b {
             border-color: transparent transparent rgba(255, 255, 255, 0.5) transparent;
         }
+
         .select2-dropdown {
             background: #1a1a24;
             border: 1px solid rgba(255, 255, 255, 0.1);
@@ -388,6 +539,7 @@
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
             box-sizing: border-box;
         }
+
         .select2-container--default .select2-search--dropdown .select2-search__field {
             background: rgba(255, 255, 255, 0.05);
             border: 1px solid rgba(255, 255, 255, 0.1);
@@ -395,66 +547,81 @@
             color: white;
             padding: 8px 12px;
         }
+
         .select2-container--default .select2-results__option {
             color: rgba(255, 255, 255, 0.8);
             padding: 10px 14px;
             background: transparent;
         }
+
         .select2-container--default .select2-results__option--highlighted[aria-selected] {
             background: linear-gradient(135deg, #a855f7, #ec4899) !important;
             color: white !important;
         }
+
         /* Option đã selected - luôn giữ màu tím */
         .select2-container--default .select2-results__option[aria-selected=true]:not(.select2-results__option--highlighted) {
             background: rgba(168, 85, 247, 0.2) !important;
             color: #c084fc !important;
             font-weight: 500;
         }
+
         /* Option đã selected + đang hover */
         .select2-container--default .select2-results__option--highlighted.select2-results__option[aria-selected=true] {
             background: linear-gradient(135deg, #a855f7, #ec4899) !important;
             color: white !important;
         }
+
         .select2-container--default .select2-selection--single:focus,
         .select2-container--default.select2-container--open .select2-selection--single {
             border-color: rgba(168, 85, 247, 0.5);
             box-shadow: 0 0 0 2px rgba(168, 85, 247, 0.2);
             outline: none;
         }
+
         .select2-container {
             width: 100% !important;
         }
+
         .styles-filter .select2-container {
             width: 100% !important;
         }
+
         .styles-filter .select2-dropdown {
             min-width: 0 !important;
             max-width: 100% !important;
         }
     </style>
 </head>
+
 <body class="min-h-screen text-white antialiased">
     <div class="ambient-bg" aria-hidden="true"></div>
 
     <!-- ========== HEADER ========== -->
-    <header id="header" class="fixed top-0 left-0 right-0 z-50 bg-[#0a0a0f]/80 backdrop-blur-[12px] border-b border-white/[0.03] transition-all duration-300">
+    <header id="header"
+        class="fixed top-0 left-0 right-0 z-50 bg-[#0a0a0f]/80 backdrop-blur-[12px] border-b border-white/[0.03] transition-all duration-300">
         <div class="max-w-7xl mx-auto px-4 sm:px-6">
             <div class="flex items-center justify-between h-14 sm:h-16">
                 <!-- Left: Logo + Nav -->
                 <div class="flex items-center gap-6">
                     <a href="{{ route('home') }}" class="flex items-center gap-2 group flex-shrink-0">
-                        <i class="fa-solid fa-wand-magic-sparkles w-5 h-5 text-purple-400 transition-transform duration-300 group-hover:rotate-12"></i>
-                        <span class="text-lg sm:text-xl font-bold bg-gradient-to-r from-purple-400 to-pink-500 bg-clip-text text-transparent">ZDream</span>
+                        <i
+                            class="fa-solid fa-wand-magic-sparkles w-5 h-5 text-purple-400 transition-transform duration-300 group-hover:rotate-12"></i>
+                        <span
+                            class="text-lg sm:text-xl font-bold bg-gradient-to-r from-purple-400 to-pink-500 bg-clip-text text-transparent">ZDream</span>
                     </a>
                     <nav class="hidden md:flex items-center gap-1">
-                        <a href="{{ route('home') }}" class="px-3 py-2 rounded-lg text-sm font-medium text-white/60 hover:text-white hover:bg-white/[0.05] transition-all inline-flex items-center gap-2">
+                        <a href="{{ route('home') }}"
+                            class="px-3 py-2 rounded-lg text-sm font-medium text-white/60 hover:text-white hover:bg-white/[0.05] transition-all inline-flex items-center gap-2">
                             <i class="fa-solid fa-house w-3.5 h-3.5"></i> Trang chủ
                         </a>
-                        <a href="{{ route('styles.index') }}" class="px-3 py-2 rounded-lg text-sm font-medium text-white/60 hover:text-white hover:bg-white/[0.05] transition-all inline-flex items-center gap-2">
+                        <a href="{{ route('styles.index') }}"
+                            class="px-3 py-2 rounded-lg text-sm font-medium text-white/60 hover:text-white hover:bg-white/[0.05] transition-all inline-flex items-center gap-2">
                             <i class="fa-solid fa-palette w-3.5 h-3.5"></i> Styles
                         </a>
                         @auth
-                            <a href="{{ route('history.index') }}" class="px-3 py-2 rounded-lg text-sm font-medium text-white/60 hover:text-white hover:bg-white/[0.05] transition-all inline-flex items-center gap-2">
+                            <a href="{{ route('history.index') }}"
+                                class="px-3 py-2 rounded-lg text-sm font-medium text-white/60 hover:text-white hover:bg-white/[0.05] transition-all inline-flex items-center gap-2">
                                 <i class="fa-solid fa-clock-rotate-left w-3.5 h-3.5"></i> Lịch sử
                             </a>
                         @endauth
@@ -464,37 +631,41 @@
                 <div class="flex items-center gap-2">
                     @auth
                         <!-- Xu Display -->
-                        <a href="{{ route('wallet.index') }}" class="hidden sm:flex items-center gap-1.5 px-3 h-9 rounded-full bg-white/[0.03] border border-white/[0.08] text-white/80 hover:bg-white/[0.05] transition-all">
+                        <a href="{{ route('wallet.index') }}"
+                            class="hidden sm:flex items-center gap-1.5 px-3 h-9 rounded-full bg-white/[0.03] border border-white/[0.08] text-white/80 hover:bg-white/[0.05] transition-all">
                             <i class="fa-solid fa-gem text-cyan-400" style="font-size: 14px;"></i>
                             <span class="font-semibold text-sm text-white/95"><livewire:header-credits /></span>
                         </a>
 
                         <!-- Nạp Xu Button -->
-                        <a href="{{ route('wallet.index') }}" class="hidden sm:inline-flex h-9 px-4 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white font-medium text-sm items-center justify-center gap-1.5 hover:from-purple-400 hover:to-pink-400 transition-all">
+                        <a href="{{ route('wallet.index') }}"
+                            class="hidden sm:inline-flex h-9 px-4 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white font-medium text-sm items-center justify-center gap-1.5 hover:from-purple-400 hover:to-pink-400 transition-all">
                             <i class="fa-solid fa-plus" style="font-size: 11px;"></i>
                             <span>Nạp Xu</span>
                         </a>
 
                         <!-- User Dropdown (Hidden on mobile, shown on sm+) -->
                         <div class="relative hidden sm:block" x-data="{ open: false }">
-                            <button @click="open = !open" @click.outside="open = false" class="flex items-center gap-2 h-9 px-1 rounded-full bg-white/[0.03] border border-white/[0.08] text-white/80 hover:bg-white/[0.05] transition-all">
-                                <div class="w-7 h-7 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white text-xs font-bold leading-none pr-[1px]">
+                            <button @click="open = !open" @click.outside="open = false"
+                                class="flex items-center gap-2 h-9 px-1 rounded-full bg-white/[0.03] border border-white/[0.08] text-white/80 hover:bg-white/[0.05] transition-all">
+                                <div
+                                    class="w-7 h-7 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white text-xs font-bold leading-none pr-[1px]">
                                     {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
                                 </div>
-                                <span class="hidden sm:block text-sm font-medium text-white/90 max-w-[150px] lg:max-w-[200px] truncate">{{ str_contains(auth()->user()->name, '@') ? Str::limit(Str::before(auth()->user()->name, '@'), 20) . '...' : Str::limit(auth()->user()->name, 20) }}</span>
-                                <i class="fa-solid fa-chevron-down text-[10px] text-white/50 transition-transform duration-200" :class="{ 'rotate-180': open }"></i>
+                                <span
+                                    class="hidden sm:block text-sm font-medium text-white/90 max-w-[150px] lg:max-w-[200px] truncate">{{ str_contains(auth()->user()->name, '@') ? Str::limit(Str::before(auth()->user()->name, '@'), 20) . '...' : Str::limit(auth()->user()->name, 20) }}</span>
+                                <i class="fa-solid fa-chevron-down text-[10px] text-white/50 transition-transform duration-200"
+                                    :class="{ 'rotate-180': open }"></i>
                             </button>
 
-                            <!-- Dropdown Menu -->      
-                            <div x-show="open" 
-                                 x-transition:enter="transition ease-out duration-200"
-                                 x-transition:enter-start="opacity-0 scale-95 -translate-y-2"
-                                 x-transition:enter-end="opacity-100 scale-100 translate-y-0"
-                                 x-transition:leave="transition ease-in duration-150"
-                                 x-transition:leave-start="opacity-100 scale-100"
-                                 x-transition:leave-end="opacity-0 scale-95"
-                                 class="absolute right-0 mt-2 w-56 rounded-xl bg-[#1a1a24] border border-white/[0.1] shadow-xl shadow-black/50 overflow-hidden z-50">
-                                
+                            <!-- Dropdown Menu -->
+                            <div x-show="open" x-transition:enter="transition ease-out duration-200"
+                                x-transition:enter-start="opacity-0 scale-95 -translate-y-2"
+                                x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                                x-transition:leave="transition ease-in duration-150"
+                                x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95"
+                                class="absolute right-0 mt-2 w-56 rounded-xl bg-[#1a1a24] border border-white/[0.1] shadow-xl shadow-black/50 overflow-hidden z-50">
+
                                 <!-- User Info -->
                                 <div class="p-3 border-b border-white/[0.05]">
                                     <p class="text-sm font-medium text-white truncate">{{ auth()->user()->name }}</p>
@@ -503,28 +674,34 @@
 
                                 <!-- Menu Links -->
                                 <div class="py-1">
-                                    <a href="{{ route('dashboard') }}" class="flex items-center gap-3 px-4 py-2.5 text-sm text-white/70 hover:text-white hover:bg-white/[0.05] transition-colors">
+                                    <a href="{{ route('dashboard') }}"
+                                        class="flex items-center gap-3 px-4 py-2.5 text-sm text-white/70 hover:text-white hover:bg-white/[0.05] transition-colors">
                                         <i class="fa-solid fa-gauge w-4 text-purple-400"></i>
                                         Dashboard
                                     </a>
-                                    <a href="{{ route('profile.edit') }}" class="flex items-center gap-3 px-4 py-2.5 text-sm text-white/70 hover:text-white hover:bg-white/[0.05] transition-colors">
+                                    <a href="{{ route('profile.edit') }}"
+                                        class="flex items-center gap-3 px-4 py-2.5 text-sm text-white/70 hover:text-white hover:bg-white/[0.05] transition-colors">
                                         <i class="fa-solid fa-user w-4 text-blue-400"></i>
                                         Hồ sơ cá nhân
                                     </a>
-                                    <a href="{{ route('history.index') }}" class="flex items-center gap-3 px-4 py-2.5 text-sm text-white/70 hover:text-white hover:bg-white/[0.05] transition-colors">
+                                    <a href="{{ route('history.index') }}"
+                                        class="flex items-center gap-3 px-4 py-2.5 text-sm text-white/70 hover:text-white hover:bg-white/[0.05] transition-colors">
                                         <i class="fa-solid fa-images w-4 text-green-400"></i>
                                         Ảnh của tôi
                                     </a>
-                                    <a href="{{ route('wallet.index') }}" class="flex items-center gap-3 px-4 py-2.5 text-sm text-white/70 hover:text-white hover:bg-white/[0.05] transition-colors">
+                                    <a href="{{ route('wallet.index') }}"
+                                        class="flex items-center gap-3 px-4 py-2.5 text-sm text-white/70 hover:text-white hover:bg-white/[0.05] transition-colors">
                                         <i class="fa-solid fa-wallet w-4 text-yellow-400"></i>
                                         Ví tiền
-                                        <span class="ml-auto text-xs text-cyan-400 font-medium"><livewire:header-credits /> Xu</span>
+                                        <span class="ml-auto text-xs text-cyan-400 font-medium"><livewire:header-credits />
+                                            Xu</span>
                                     </a>
                                 </div>
 
                                 @if(auth()->user()->is_admin)
                                     <div class="border-t border-white/[0.05] py-1">
-                                        <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-3 px-4 py-2.5 text-sm text-cyan-400 hover:bg-cyan-500/10 transition-colors">
+                                        <a href="{{ route('admin.dashboard') }}"
+                                            class="flex items-center gap-3 px-4 py-2.5 text-sm text-cyan-400 hover:bg-cyan-500/10 transition-colors">
                                             <i class="fa-solid fa-crown w-4"></i>
                                             Admin Panel
                                         </a>
@@ -535,7 +712,8 @@
                                 <div class="border-t border-white/[0.05] py-1">
                                     <form method="POST" action="{{ route('logout') }}">
                                         @csrf
-                                        <button type="submit" class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-400 hover:bg-red-500/10 transition-colors">
+                                        <button type="submit"
+                                            class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-400 hover:bg-red-500/10 transition-colors">
                                             <i class="fa-solid fa-right-from-bracket w-4"></i>
                                             Đăng xuất
                                         </button>
@@ -545,15 +723,21 @@
                         </div>
 
                         <!-- Mobile: Xu Display -->
-                        <a href="{{ route('wallet.index') }}" class="sm:hidden h-9 px-3 rounded-full bg-white/[0.03] border border-white/[0.08] flex items-center gap-2 text-white/80">
+                        <a href="{{ route('wallet.index') }}"
+                            class="sm:hidden h-9 px-3 rounded-full bg-white/[0.03] border border-white/[0.08] flex items-center gap-2 text-white/80">
                             <i class="fa-solid fa-gem w-4 h-4 text-cyan-400"></i>
                             <span class="font-semibold text-sm text-white/95"><livewire:header-credits /></span>
                         </a>
                     @else
-                        <a href="{{ route('login') }}" class="hidden sm:inline-flex items-center justify-center h-9 px-4 rounded-full bg-white/[0.03] border border-white/[0.1] text-white/80 text-sm font-medium hover:bg-white/[0.06] transition-all leading-none">Đăng nhập</a>
-                        <a href="{{ route('register') }}" class="hidden sm:inline-flex items-center justify-center h-9 px-4 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white text-sm font-medium hover:from-purple-400 hover:to-pink-400 transition-all leading-none">Đăng ký</a>
+                        <a href="{{ route('login') }}"
+                            class="hidden sm:inline-flex items-center justify-center h-9 px-4 rounded-full bg-white/[0.03] border border-white/[0.1] text-white/80 text-sm font-medium hover:bg-white/[0.06] transition-all leading-none">Đăng
+                            nhập</a>
+                        <a href="{{ route('register') }}"
+                            class="hidden sm:inline-flex items-center justify-center h-9 px-4 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white text-sm font-medium hover:from-purple-400 hover:to-pink-400 transition-all leading-none">Đăng
+                            ký</a>
                     @endauth
-                    <button id="menu-btn" class="md:hidden w-10 h-10 rounded-xl bg-white/[0.03] border border-white/[0.08] flex items-center justify-center text-white/80 hover:text-white hover:bg-white/[0.06] transition-all">
+                    <button id="menu-btn"
+                        class="md:hidden w-10 h-10 rounded-xl bg-white/[0.03] border border-white/[0.08] flex items-center justify-center text-white/80 hover:text-white hover:bg-white/[0.06] transition-all">
                         <i id="menu-icon-bars" class="fa-solid fa-bars w-4 h-4"></i>
                     </button>
                 </div>
@@ -562,74 +746,95 @@
     </header>
 
     <!-- ========== MOBILE MENU OVERLAY ========== -->
-    <div id="menu-overlay" class="fixed inset-0 z-[60] md:hidden opacity-0 pointer-events-none transition-opacity duration-300">
+    <div id="menu-overlay"
+        class="fixed inset-0 z-[60] md:hidden opacity-0 pointer-events-none transition-opacity duration-300">
         <div class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
-        <div id="mobile-menu" class="mobile-menu closed absolute right-0 top-0 h-full w-72 max-w-[85vw] bg-[#0a0a0f]/98 backdrop-blur-[24px] border-l border-white/[0.08] overflow-y-auto overscroll-contain">
-            <div class="sticky top-0 z-10 p-4 border-b border-white/[0.05] bg-[#0a0a0f]/40 backdrop-blur-xl flex items-center justify-between">
+        <div id="mobile-menu"
+            class="mobile-menu closed absolute right-0 top-0 h-full w-72 max-w-[85vw] bg-[#0a0a0f]/98 backdrop-blur-[24px] border-l border-white/[0.08] overflow-y-auto overscroll-contain">
+            <div
+                class="sticky top-0 z-10 p-4 border-b border-white/[0.05] bg-[#0a0a0f]/40 backdrop-blur-xl flex items-center justify-between">
                 <span class="text-white/80 font-medium">Menu</span>
-                <button id="close-menu-btn" class="w-8 h-8 rounded-lg bg-white/[0.05] flex items-center justify-center text-white/60 hover:text-white">
+                <button id="close-menu-btn"
+                    class="w-8 h-8 rounded-lg bg-white/[0.05] flex items-center justify-center text-white/60 hover:text-white">
                     <i class="fa-solid fa-xmark w-4 h-4"></i>
                 </button>
             </div>
             <div class="p-4 space-y-2">
                 @auth
-                    <a href="{{ route('wallet.index') }}" class="block p-4 rounded-xl bg-gradient-to-br from-purple-500/10 to-pink-500/10 border border-purple-500/20">
+                    <a href="{{ route('wallet.index') }}"
+                        class="block p-4 rounded-xl bg-gradient-to-br from-purple-500/10 to-pink-500/10 border border-purple-500/20">
                         <div class="flex items-center justify-between mb-3">
                             <span class="text-white/60 text-sm">Số dư</span>
                             <i class="fa-solid fa-gem w-4 h-4 text-cyan-400"></i>
                         </div>
                         <div class="text-2xl font-bold text-white mb-3"><livewire:header-credits /> Xu</div>
-                        <div class="w-full py-2.5 rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 text-white font-medium text-sm flex items-center justify-center gap-2 shadow-lg shadow-purple-500/25">
+                        <div
+                            class="w-full py-2.5 rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 text-white font-medium text-sm flex items-center justify-center gap-2 shadow-lg shadow-purple-500/25">
                             <i class="fa-solid fa-plus w-3.5 h-3.5"></i> Nạp thêm Xu
                         </div>
                     </a>
                 @endauth
                 <div class="h-px bg-white/[0.05] my-4"></div>
-                <a href="{{ route('home') }}" class="flex items-center justify-between px-4 py-3 rounded-xl bg-white/[0.02] hover:bg-white/[0.05] border border-white/[0.05] text-white/80 hover:text-white transition-all">
-                    <span class="flex items-center gap-3"><i class="fa-solid fa-house w-4 h-4 text-purple-400"></i> Trang chủ</span>
+                <a href="{{ route('home') }}"
+                    class="flex items-center justify-between px-4 py-3 rounded-xl bg-white/[0.02] hover:bg-white/[0.05] border border-white/[0.05] text-white/80 hover:text-white transition-all">
+                    <span class="flex items-center gap-3"><i class="fa-solid fa-house w-4 h-4 text-purple-400"></i>
+                        Trang chủ</span>
                     <i class="fa-solid fa-chevron-right w-3 h-3 text-white/30"></i>
                 </a>
-                <a href="{{ route('styles.index') }}" class="flex items-center justify-between px-4 py-3 rounded-xl bg-white/[0.02] hover:bg-white/[0.05] border border-white/[0.05] text-white/80 hover:text-white transition-all">
-                    <span class="flex items-center gap-3"><i class="fa-solid fa-palette w-4 h-4 text-purple-400"></i> Styles</span>
+                <a href="{{ route('styles.index') }}"
+                    class="flex items-center justify-between px-4 py-3 rounded-xl bg-white/[0.02] hover:bg-white/[0.05] border border-white/[0.05] text-white/80 hover:text-white transition-all">
+                    <span class="flex items-center gap-3"><i class="fa-solid fa-palette w-4 h-4 text-purple-400"></i>
+                        Styles</span>
                     <i class="fa-solid fa-chevron-right w-3 h-3 text-white/30"></i>
                 </a>
                 @auth
-                    <a href="{{ route('history.index') }}" class="flex items-center justify-between px-4 py-3 rounded-xl bg-white/[0.02] hover:bg-white/[0.05] border border-white/[0.05] text-white/80 hover:text-white transition-all">
-                        <span class="flex items-center gap-3"><i class="fa-solid fa-images w-4 h-4 text-purple-400"></i> Ảnh của tôi</span>
+                    <a href="{{ route('history.index') }}"
+                        class="flex items-center justify-between px-4 py-3 rounded-xl bg-white/[0.02] hover:bg-white/[0.05] border border-white/[0.05] text-white/80 hover:text-white transition-all">
+                        <span class="flex items-center gap-3"><i class="fa-solid fa-images w-4 h-4 text-purple-400"></i> Ảnh
+                            của tôi</span>
                         <i class="fa-solid fa-chevron-right w-3 h-3 text-white/30"></i>
                     </a>
-                    
+
                     <!-- User Menu Dropdown -->
                     <div x-data="{ userMenuOpen: false }" class="mt-2">
-                        <button @click="userMenuOpen = !userMenuOpen" class="w-full flex items-center justify-between px-4 py-3 rounded-xl bg-gradient-to-r from-purple-500/10 to-pink-500/10 hover:from-purple-500/20 hover:to-pink-500/20 border border-purple-500/30 text-white hover:text-white transition-all">
+                        <button @click="userMenuOpen = !userMenuOpen"
+                            class="w-full flex items-center justify-between px-4 py-3 rounded-xl bg-gradient-to-r from-purple-500/10 to-pink-500/10 hover:from-purple-500/20 hover:to-pink-500/20 border border-purple-500/30 text-white hover:text-white transition-all">
                             <span class="flex items-center gap-3">
-                                <div class="w-7 h-7 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white text-xs font-bold shadow-lg shadow-purple-500/30">
+                                <div
+                                    class="w-7 h-7 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white text-xs font-bold shadow-lg shadow-purple-500/30">
                                     {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
                                 </div>
-                                <span class="truncate max-w-[150px] font-medium">{{ str_contains(auth()->user()->name, '@') ? Str::before(auth()->user()->name, '@') : auth()->user()->name }}</span>
+                                <span
+                                    class="truncate max-w-[150px] font-medium">{{ str_contains(auth()->user()->name, '@') ? Str::before(auth()->user()->name, '@') : auth()->user()->name }}</span>
                             </span>
-                            <i class="fa-solid fa-chevron-down w-3 h-3 text-purple-400 transition-transform duration-200" :class="{ 'rotate-180': userMenuOpen }"></i>
+                            <i class="fa-solid fa-chevron-down w-3 h-3 text-purple-400 transition-transform duration-200"
+                                :class="{ 'rotate-180': userMenuOpen }"></i>
                         </button>
-                        
+
                         <!-- Dropdown Items -->
                         <div x-show="userMenuOpen" x-collapse class="mt-1 ml-4 space-y-1">
-                            <a href="{{ route('dashboard') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm text-white/70 hover:text-white hover:bg-white/[0.05] transition-colors">
+                            <a href="{{ route('dashboard') }}"
+                                class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm text-white/70 hover:text-white hover:bg-white/[0.05] transition-colors">
                                 <i class="fa-solid fa-gauge w-4 text-purple-400"></i>
                                 Dashboard
                             </a>
-                            <a href="{{ route('profile.edit') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm text-white/70 hover:text-white hover:bg-white/[0.05] transition-colors">
+                            <a href="{{ route('profile.edit') }}"
+                                class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm text-white/70 hover:text-white hover:bg-white/[0.05] transition-colors">
                                 <i class="fa-solid fa-user w-4 text-blue-400"></i>
                                 Hồ sơ cá nhân
                             </a>
-                            <a href="{{ route('wallet.index') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm text-white/70 hover:text-white hover:bg-white/[0.05] transition-colors">
+                            <a href="{{ route('wallet.index') }}"
+                                class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm text-white/70 hover:text-white hover:bg-white/[0.05] transition-colors">
                                 <i class="fa-solid fa-wallet w-4 text-yellow-400"></i>
                                 Ví tiền
-                                <span class="ml-auto text-xs text-cyan-400 font-medium"><livewire:header-credits /> Xu</span>
+                                <span class="ml-auto text-xs text-cyan-400 font-medium"><livewire:header-credits />
+                                    Xu</span>
                             </a>
                         </div>
                     </div>
                     @if(auth()->user()->is_admin)
-                        <a href="{{ route('admin.dashboard') }}" class="flex items-center justify-between px-4 py-3 rounded-xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 hover:bg-cyan-500/15 transition-all">
+                        <a href="{{ route('admin.dashboard') }}"
+                            class="flex items-center justify-between px-4 py-3 rounded-xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 hover:bg-cyan-500/15 transition-all">
                             <span class="flex items-center gap-3"><i class="fa-solid fa-crown w-4 h-4"></i> Admin Panel</span>
                             <i class="fa-solid fa-chevron-right w-3 h-3 text-cyan-400/50"></i>
                         </a>
@@ -637,17 +842,20 @@
                     <div class="h-px bg-white/[0.05] my-4"></div>
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
-                        <button type="submit" class="w-full py-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 font-medium flex items-center justify-center gap-2 hover:bg-red-500/15 transition-colors">
+                        <button type="submit"
+                            class="w-full py-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 font-medium flex items-center justify-center gap-2 hover:bg-red-500/15 transition-colors">
                             <i class="fa-solid fa-right-from-bracket w-4 h-4"></i> Đăng xuất
                         </button>
                     </form>
                 @else
                     <div class="h-px bg-white/[0.05] my-4"></div>
-                    <a href="{{ route('register') }}" class="w-full py-3 rounded-xl bg-white text-gray-900 font-medium inline-flex items-center justify-center gap-2 hover:bg-gray-100 transition-colors">
+                    <a href="{{ route('register') }}"
+                        class="w-full py-3 rounded-xl bg-white text-gray-900 font-medium inline-flex items-center justify-center gap-2 hover:bg-gray-100 transition-colors">
                         <i class="fa-solid fa-crown" style="font-size: 14px;"></i>
                         <span>Đăng ký miễn phí</span>
                     </a>
-                    <a href="{{ route('login') }}" class="w-full py-3 rounded-xl bg-white/[0.05] border border-white/[0.1] text-white/80 font-medium inline-flex items-center justify-center gap-2 hover:bg-white/[0.1] transition-colors mt-2">
+                    <a href="{{ route('login') }}"
+                        class="w-full py-3 rounded-xl bg-white/[0.05] border border-white/[0.1] text-white/80 font-medium inline-flex items-center justify-center gap-2 hover:bg-white/[0.1] transition-colors mt-2">
                         <i class="fa-solid fa-right-to-bracket" style="font-size: 14px;"></i>
                         <span>Đăng nhập</span>
                     </a>
@@ -667,30 +875,30 @@
             <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
                 <div class="flex items-center gap-2">
                     <i class="fa-solid fa-wand-magic-sparkles w-4 h-4 sm:w-5 sm:h-5 text-purple-400"></i>
-                    <span class="font-bold text-sm sm:text-base bg-gradient-to-r from-purple-400 to-pink-500 bg-clip-text text-transparent">ZDream</span>
+                    <span
+                        class="font-bold text-sm sm:text-base bg-gradient-to-r from-purple-400 to-pink-500 bg-clip-text text-transparent">ZDream</span>
                 </div>
                 <p class="text-white/40 text-xs sm:text-sm">© {{ date('Y') }} ZDream.vn</p>
                 <div class="flex gap-4 text-white/40">
-                    <a href="javascript:void(0)" class="hover:text-white/80 text-xs sm:text-sm" title="Sắp ra mắt">Điều khoản</a>
+                    <a href="javascript:void(0)" class="hover:text-white/80 text-xs sm:text-sm" title="Sắp ra mắt">Điều
+                        khoản</a>
                     <a href="mailto:support@zdream.vn" class="hover:text-white/80 text-xs sm:text-sm">Liên hệ</a>
                 </div>
             </div>
         </div>
     </footer>
-    
+
     <!-- Custom Scripts -->
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function() { 
             const menuBtn = document.getElementById('menu-btn');
             const closeMenuBtn = document.getElementById('close-menu-btn');
             const menuOverlay = document.getElementById('menu-overlay');
             const mobileMenu = document.getElementById('mobile-menu');
-            
-            const menuIconBars = document.getElementById('menu-icon-bars');
+             const menuIconBars = document.getElementById('menu-icon-bars');
             const menuIconXmark = document.getElementById('menu-icon-xmark');
             let menuIsOpen = false;
-            
-            function openMenu() {
+             function openMenu() {
                 menuOverlay.classList.remove('opacity-0', 'pointer-events-none');
                 menuOverlay.classList.add('opacity-100');
                 mobileMenu.classList.remove('closed');
@@ -701,8 +909,7 @@
                 if (menuIconXmark) menuIconXmark.style.display = 'inline-flex';
                 menuIsOpen = true;
             }
-            
-            function closeMenu() {
+             function closeMenu() {
                 menuOverlay.classList.add('opacity-0', 'pointer-events-none');
                 menuOverlay.classList.remove('opacity-100');
                 mobileMenu.classList.add('closed');
@@ -713,24 +920,22 @@
                 if (menuIconXmark) menuIconXmark.style.display = 'none';
                 menuIsOpen = false;
             }
-            
-            function toggleMenu() {
+             function toggleMenu() {
                 if (menuIsOpen) {
                     closeMenu();
                 } else {
                     openMenu();
                 }
             }
-            
-            if (menuBtn) menuBtn.addEventListener('click', toggleMenu);
+             if (menuBtn) menuBtn.addEventListener('click', toggleMenu);
             if (closeMenuBtn) closeMenuBtn.addEventListener('click', closeMenu);
-            if (menuOverlay) menuOverlay.addEventListener('click', function(e) {
+            if (menuOverlay) menuOverlay.addEventListener('click', function(e)  {
                 if (e.target === menuOverlay || e.target.classList.contains('backdrop-blur-sm')) closeMenu();
             });
 
             // Header scroll effect
             const header = document.getElementById('header');
-            window.addEventListener('scroll', function() {
+            window.addEventListener('scroll', function() { 
                 if (window.scrollY > 50) {
                     header.classList.add('header-scrolled');
                 } else {
@@ -807,17 +1012,14 @@
             const counter = document.getElementById('lightbox-counter');
             const downloadBtn = document.getElementById('lightbox-download-btn');
             const deleteBtn = document.getElementById('lightbox-delete-btn');
-            
-            if (img) img.src = lightboxImages[lightboxIndex];
+             if (img) img.src = lightboxImages[lightboxIndex];
             if (counter) counter.textContent = `${lightboxIndex + 1} / ${lightboxImages.length}`;
-            
-            // Update action buttons
+             // Update action buttons
             if (lightboxHasActions && lightboxImageData[lightboxIndex]) {
                 if (downloadBtn) downloadBtn.href = lightboxImageData[lightboxIndex].download;
                 if (deleteBtn) deleteBtn.onclick = () => deleteLightboxImage(lightboxImageData[lightboxIndex].delete);
             }
-            
-            updateThumbnails();
+             updateThumbnails();
         }
 
         function deleteLightboxImage(deleteUrl) {
@@ -854,10 +1056,8 @@
         function renderLightbox() {
             const existing = document.getElementById('global-lightbox');
             if (existing) existing.remove();
-            
-            const currentData = lightboxHasActions ? lightboxImageData[lightboxIndex] : null;
-            
-            const html = `
+             const currentData = lightboxHasActions ? lightboxImageData[lightboxIndex] : null;
+             const html = `
                 <div id="global-lightbox" style="position: fixed; inset: 0; z-index: 999999; background: rgba(0,0,0,0.95); display: flex; flex-direction: column;">
                     <!-- Top Bar -->
                     <div style="height: 70px; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; flex-shrink: 0;">
@@ -920,11 +1120,9 @@
                     ` : ''}
                 </div>
             `;
-            
-            document.body.insertAdjacentHTML('beforeend', html);
+             document.body.insertAdjacentHTML('beforeend', html);
             document.addEventListener('keydown', handleLightboxKeydown);
-            
-            // Scroll thumbnail đang active vào giữa sau khi render
+             // Scroll thumbnail đang active vào giữa sau khi render
             setTimeout(() => {
                 const activeThumb = document.querySelectorAll('.lightbox-thumb')[lightboxIndex];
                 if (activeThumb) {
@@ -940,18 +1138,18 @@
             if (e.key === 'ArrowRight') lightboxNext();
         }
     </script>
-    
+
     <!-- jQuery (required for Select2) -->
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-    
+
     <!-- Select2 JS -->
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-    
+
     <!-- Initialize Select2 -->
     <script>
-        $(document).ready(function() {
+        $(document).ready(function() { 
             // Initialize Select2 for all select elements
-            $('select').each(function() {
+            $('select').each(function() { 
                 if ($(this).data('no-select2')) {
                     return;
                 }
@@ -962,17 +1160,15 @@
                     width: '100%'
                 });
             });
-            
-            // Handle form submit on change for filter selects
-            $('.filter-select').on('select2:select', function() {
+             // Handle form submit on change for filter selects
+            $('.filter-select').on('select2:select', function() { 
                 $(this).closest('form').submit();
             });
         });
-        
-        // Re-initialize Select2 after Livewire updates
-        document.addEventListener('livewire:load', function() {
+         // Re-initialize Select2 after Livewire updates
+        document.addEventListener('livewire:load', function() { 
             Livewire.hook('message.processed', (message, component) => {
-                $('select').each(function() {
+                $('select').each(function() { 
                     if (!$(this).hasClass('select2-hidden-accessible')) {
                         if ($(this).data('no-select2')) {
                             return;
@@ -988,10 +1184,11 @@
             });
         });
     </script>
-    
+
     @stack('scripts')
-    
+
     <!-- Livewire Scripts (REQUIRED for wire:click) -->
     @livewireScripts
 </body>
+
 </html>

@@ -33,7 +33,7 @@ if (app()->environment('local')) {
         $modelManager = app(\App\Services\ModelManager::class);
         $models = $modelManager->fetchModels(true);
         $grouped = $modelManager->groupByProvider($models);
-        
+
         return response()->json([
             'total_models' => count($models),
             'providers' => array_keys($grouped),
@@ -49,7 +49,7 @@ if (app()->environment('local')) {
 // =============================================
 
 Route::middleware(['auth', 'verified'])->group(function () {
-    
+
     // Dashboard (từ Breeze)
     Route::get('/dashboard', function () {
         return view('dashboard');
@@ -77,7 +77,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 // =============================================
 
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
-    
+
     // Dashboard Admin
     Route::get('/', function () {
         return view('admin.dashboard');
@@ -124,4 +124,4 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
 // AUTH ROUTES (từ Breeze)
 // =============================================
 
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';
