@@ -317,7 +317,7 @@ class ImageEditStudio extends Component
         // Invert mask: subject stays, background changes
         $invertedMask = $this->invertMask($maskBase64);
 
-        return $this->bflService->editWithMask(
+        return $this->bflService->editBackground(
             $imageBase64,
             $invertedMask,
             $this->editPrompt

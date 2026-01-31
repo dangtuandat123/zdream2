@@ -1534,16 +1534,53 @@ class BflService
 
     /**
      * Edit image with mask (Inpaint/Background Change)
-     * Model: flux-pro-1.0-fill
+     * Model configurable via Settings: edit_studio.model_replace
      */
     public function editWithMask(string $imageBase64, string $maskBase64, string $prompt, array $options = []): array
     {
-        $modelId = 'flux-pro-1.0-fill'; // Default fill model
+        // Get model from settings, fallback to default
+        $modelId = Setting::get('edit_studio.model_replace', 'flux-pro-1.0-fill');
+
+        // Get prompt prefix from settings
+        $promptPrefix = Setting::get('edit_studio.prompt_prefix_replace', '');
+        $finalPrompt = trim($promptPrefix . ' ' . $prompt);
 
         $payload = [
             'image' => $imageBase64,
             'mask' => $maskBase64,
-            'prompt' => $prompt,
+            'prompt' => $finalPrompt,
+        ];
+
+        // Add optional params
+        if (isset($options['guidance']))
+            $payload['guidance'] = $options['guidance'];
+        if (isset($options['steps']))
+            $payload['steps'] = $options['steps'];
+        if (isset($options['safety_tolerance']))
+            $payload['safety_tolerance'] = $options['safety_tolerance'];
+        if (isset($options['output_format']))
+            $payload['output_format'] = $options['output_format'];
+
+        return $this->executeDirectGeneration($modelId, $payload);
+    }
+
+    /**
+     * Edit background (Fill API with inverted mask)
+     * Model configurable via Settings: edit_studio.model_background
+     */
+    public function editBackground(string $imageBase64, string $maskBase64, string $prompt, array $options = []): array
+    {
+        // Get model from settings (background uses same fill model by default)
+        $modelId = Setting::get('edit_studio.model_background', 'flux-pro-1.0-fill');
+
+        // Get prompt prefix from settings (default helps AI understand to keep subject)
+        $promptPrefix = Setting::get('edit_studio.prompt_prefix_background', 'Keep the main subject exactly as is. Change the background to:');
+        $finalPrompt = trim($promptPrefix . ' ' . $prompt);
+
+        $payload = [
+            'image' => $imageBase64,
+            'mask' => $maskBase64,
+            'prompt' => $finalPrompt,
         ];
 
         // Add optional params
@@ -1561,14 +1598,19 @@ class BflService
 
     /**
      * Edit text in image
-     * Model: flux-kontext-pro
+     * Model configurable via Settings: edit_studio.model_text
      */
     public function editText(string $imageBase64, string $prompt, array $options = []): array
     {
-        $modelId = 'flux-kontext-pro';
+        // Get model from settings, fallback to default
+        $modelId = Setting::get('edit_studio.model_text', 'flux-kontext-pro');
+
+        // Get prompt prefix from settings
+        $promptPrefix = Setting::get('edit_studio.prompt_prefix_text', '');
+        $finalPrompt = trim($promptPrefix . ' ' . $prompt);
 
         $payload = [
-            'prompt' => $prompt,
+            'prompt' => $finalPrompt,
             'input_image' => $imageBase64,
         ];
 
@@ -1587,11 +1629,12 @@ class BflService
 
     /**
      * Expand image (Outpainting)
-     * Model: flux-pro-1.0-expand
+     * Model configurable via Settings: edit_studio.model_expand
      */
     public function expandImage(string $imageBase64, array $expandDirections, string $prompt = null, array $options = []): array
     {
-        $modelId = 'flux-pro-1.0-expand';
+        // Get model from settings, fallback to default
+        $modelId = Setting::get('edit_studio.model_expand', 'flux-pro-1.0-expand');
 
         $payload = [
             'image' => $imageBase64,
@@ -1602,7 +1645,9 @@ class BflService
         ];
 
         if (!empty($prompt)) {
-            $payload['prompt'] = $prompt;
+            // Get prompt prefix from settings
+            $promptPrefix = Setting::get('edit_studio.prompt_prefix_expand', '');
+            $payload['prompt'] = trim($promptPrefix . ' ' . $prompt);
         }
 
         // Add optional params
