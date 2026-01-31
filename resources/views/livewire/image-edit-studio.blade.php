@@ -76,10 +76,12 @@
                                 <span class="text-xs font-medium text-gray-400 uppercase tracking-wider mr-2">Công cụ</span>
                                 
                                 {{-- Change Image --}}
+                                {{-- Change Image --}}
                                 <label for="image-upload" 
-                                       class="p-2 text-gray-400 hover:text-white hover:bg-gray-700 rounded-lg transition-all cursor-pointer"
+                                       class="px-3 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-lg transition-all cursor-pointer flex items-center gap-2 shadow-sm"
                                        title="Đổi ảnh khác">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                    Đổi ảnh
                                 </label>
 
                                 <div class="w-px h-6 bg-gray-700 mx-2"></div>
@@ -100,6 +102,28 @@
                                         class="p-2 rounded-lg transition-all"
                                         title="Vùng chọn (Rectangle)">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4h16v16H4z"></path></svg>
+                                </button>
+
+                                <div class="w-px h-6 bg-gray-700 mx-2"></div>
+
+                                {{-- Undo --}}
+                                <button type="button" 
+                                        @click="undo()"
+                                        :disabled="historyStep <= 0"
+                                        :class="historyStep > 0 ? 'text-gray-300 hover:text-white hover:bg-gray-700' : 'text-gray-600 cursor-not-allowed'"
+                                        class="p-2 rounded-lg transition-all"
+                                        title="Hoàn tác (Undo)">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" /></svg>
+                                </button>
+
+                                {{-- Redo --}}
+                                <button type="button" 
+                                        @click="redo()"
+                                        :disabled="historyStep >= history.length - 1"
+                                        :class="historyStep < history.length - 1 ? 'text-gray-300 hover:text-white hover:bg-gray-700' : 'text-gray-600 cursor-not-allowed'"
+                                        class="p-2 rounded-lg transition-all"
+                                        title="Làm lại (Redo)">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 10h-10a8 8 0 00-8 8v2M21 10l-6 6m6-6l-6-6" /></svg>
                                 </button>
 
                                 <div class="w-px h-6 bg-gray-700 mx-2"></div>
@@ -359,20 +383,23 @@
                 
                 startX: 0,
                 startY: 0,
-                snapshot: null, // For rect tool preview
+                snapshot: null,
+
+                // History for Undo/Redo
+                history: [],
+                historyStep: -1,
 
                 init() {
-                    // Get refs
                     this.imageCanvas = this.$refs.imageLayer;
                     this.drawCanvas = this.$refs.drawLayer;
-                    
-                    // Contexts
                     this.imageCtx = this.imageCanvas.getContext('2d');
                     this.drawCtx = this.drawCanvas.getContext('2d');
-                    
-                    // Create hidden mask canvas
                     this.maskCanvas = document.createElement('canvas');
                     this.maskCtx = this.maskCanvas.getContext('2d');
+
+                    // Save initial (blank) state
+                    // We need to wait for dimensions to be set first, but if init is called before image load, dimensions are 0.
+                    // So saveState will be called in loadImage initially.
                 },
 
                 loadImage(detail) {
@@ -381,16 +408,6 @@
                     const img = new Image();
                     img.onload = () => {
                         this.image = img;
-                        
-                        // Limit display size but keep resolution high for drawing
-                        // If logic width > 1200, scale down only if needed for performance, 
-                        // but generally we want full res for BFL.
-                        // However, displaying 4K on screen is hard.
-                        // Solution: Canvas internal resolution = Source Image Resolution.
-                        // CSS displays it fitted.
-                        
-                        // Fix for "Image too small": Don't shrink to 800. Use original unless HUGE.
-                        // Use max safe canvas limit (e.g. 2048 or 4096).
                         const maxDim = 2048; 
                         let width = img.width;
                         let height = img.height;
@@ -401,7 +418,6 @@
                             height = Math.round(height * ratio);
                         }
                         
-                        // Set Internal Resolution
                         this.imageCanvas.width = width;
                         this.imageCanvas.height = height;
                         this.drawCanvas.width = width;
@@ -409,16 +425,53 @@
                         this.maskCanvas.width = width;
                         this.maskCanvas.height = height;
                         
-                        // Draw Image Base
                         this.imageCtx.drawImage(img, 0, 0, width, height);
-
-                        // Clear Overlay
                         this.clearDrawLayer();
+                        
+                        // Reset history
+                        this.history = [];
+                        this.historyStep = -1;
+                        this.saveState();
                     };
                     img.onerror = () => {
                         // console.error('Failed to load image');
                     };
                     img.src = detail.src;
+                },
+
+                saveState() {
+                    // Capture current state of both Draw (Visual) and Mask (Data) layers
+                    const drawData = this.drawCtx.getImageData(0, 0, this.drawCanvas.width, this.drawCanvas.height);
+                    const maskData = this.maskCtx.getImageData(0, 0, this.maskCanvas.width, this.maskCanvas.height);
+                    
+                    // Remove redo history if we are in the middle of the stack
+                    if (this.historyStep < this.history.length - 1) {
+                        this.history = this.history.slice(0, this.historyStep + 1);
+                    }
+                    
+                    this.history.push({ draw: drawData, mask: maskData });
+                    this.historyStep++;
+                },
+
+                undo() {
+                    if (this.historyStep > 0) {
+                        this.historyStep--;
+                        this.restoreState();
+                    }
+                },
+
+                redo() {
+                    if (this.historyStep < this.history.length - 1) {
+                        this.historyStep++;
+                        this.restoreState();
+                    }
+                },
+
+                restoreState() {
+                    const state = this.history[this.historyStep];
+                    this.drawCtx.putImageData(state.draw, 0, 0);
+                    this.maskCtx.putImageData(state.mask, 0, 0);
+                    this.syncMaskToLivewire();
                 },
 
                 setTool(newTool) {
@@ -467,6 +520,7 @@
                     
                     this.isDrawing = false;
                     this.snapshot = null; // Clear snapshot after drawing
+                    this.saveState(); // Save to history
                     this.syncMaskToLivewire();
                 },
 
@@ -541,6 +595,7 @@
 
                 clearMask() {
                     this.clearDrawLayer();
+                    this.saveState(); // Save cleared state
                     this.syncMaskToLivewire();
                 },
 
@@ -548,6 +603,8 @@
                     this.image = null;
                     if (this.imageCtx) this.imageCtx.clearRect(0, 0, this.imageCanvas.width, this.imageCanvas.height);
                     if (this.drawCtx) this.clearDrawLayer();
+                    this.history = [];
+                    this.historyStep = -1;
                 },
 
                 syncMaskToLivewire() {
