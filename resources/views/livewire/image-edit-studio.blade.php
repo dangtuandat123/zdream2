@@ -119,7 +119,7 @@
                                 <canvas x-ref="imageLayer" class="max-w-full max-h-[70vh] w-auto h-auto" style="display: block;"></canvas>
                                 <canvas x-ref="drawLayer" 
                                         class="absolute inset-0 w-full h-full cursor-crosshair touch-none"
-                                        style="z-index: 10;"
+                                        style="z-index: 10; opacity: 0.6;"
                                         @mousedown="startDraw($event)"
                                         @mousemove.window="draw($event)" 
                                         @mouseup.window="stopDraw($event)"
@@ -565,17 +565,11 @@
                 },
 
                 drawBrushStroke(x, y) {
-                    // Cyan color with consistent opacity (no stacking)
-                    this.drawCtx.globalCompositeOperation = 'source-over';
-                    this.drawCtx.fillStyle = 'rgba(0, 212, 255, 0.5)';  // Cyan
+                    // Solid cyan - CSS opacity handles transparency (no stacking issue)
+                    this.drawCtx.fillStyle = 'rgb(0, 212, 255)';  // Solid Cyan
                     this.drawCtx.beginPath();
                     this.drawCtx.arc(x, y, this.brushSize, 0, Math.PI * 2);
                     this.drawCtx.fill();
-                    
-                    // White stroke for better visibility
-                    this.drawCtx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
-                    this.drawCtx.lineWidth = 2;
-                    this.drawCtx.stroke();
                     
                     // Hidden mask (white on black)
                     this.maskCtx.fillStyle = 'white';
@@ -608,10 +602,10 @@
                      const w = Math.abs(x2 - x1);
                      const h = Math.abs(y2 - y1);
 
-                     // Cyan fill with white border
-                     this.drawCtx.fillStyle = 'rgba(0, 212, 255, 0.4)';  // Cyan
+                     // Solid cyan fill with white border
+                     this.drawCtx.fillStyle = 'rgb(0, 212, 255)';  // Solid Cyan
                      this.drawCtx.fillRect(x, y, w, h);
-                     this.drawCtx.strokeStyle = 'rgba(255, 255, 255, 0.9)';
+                     this.drawCtx.strokeStyle = 'rgb(255, 255, 255)';
                      this.drawCtx.lineWidth = 2;
                      this.drawCtx.strokeRect(x, y, w, h);
 
