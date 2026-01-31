@@ -60,72 +60,92 @@
                          class="relative">
                         
                         {{-- Toolbar --}}
-                        <div class="flex items-center gap-2 mb-4 p-3 bg-gray-700 rounded-lg">
-                            {{-- Brush Tool --}}
-                            <button @click="setTool('brush')"
-                                    :class="tool === 'brush' ? 'bg-blue-600' : 'bg-gray-600 hover:bg-gray-500'"
-                                    class="p-2 rounded-lg transition-colors"
-                                    title="Brush Tool">
-                                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                                </svg>
-                            </button>
 
-                            {{-- Rectangle Tool --}}
-                            <button @click="setTool('rect')"
-                                    :class="tool === 'rect' ? 'bg-blue-600' : 'bg-gray-600 hover:bg-gray-500'"
-                                    class="p-2 rounded-lg transition-colors"
-                                    title="Rectangle Selection">
-                                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <rect x="3" y="3" width="18" height="18" rx="2" stroke-width="2"/>
-                                </svg>
-                            </button>
+                        {{-- Hidden Input (Kept for functionality) --}}
+                        <input type="file" 
+                               wire:model="uploadedImage" 
+                               accept="image/*"
+                               class="hidden"
+                               id="image-upload">
 
-                            {{-- Separator --}}
-                            <div class="w-px h-6 bg-gray-500"></div>
+                        {{-- Toolbar (Static Position) --}}
+                        <div class="mb-4 flex items-center justify-between"
+                             x-show="!['text', 'expand'].includes($wire.editMode)"
+                             x-transition>
+                            <div class="flex items-center gap-2 px-4 py-2 bg-gray-800 rounded-xl border border-gray-700 shadow-sm">
+                                <span class="text-xs font-medium text-gray-400 uppercase tracking-wider mr-2">Công cụ</span>
+                                
+                                {{-- Change Image --}}
+                                <label for="image-upload" 
+                                       class="p-2 text-gray-400 hover:text-white hover:bg-gray-700 rounded-lg transition-all cursor-pointer"
+                                       title="Đổi ảnh khác">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                </label>
 
-                            {{-- Brush Size --}}
-                            <div class="flex items-center gap-2" x-show="tool === 'brush'">
-                                <span class="text-sm text-gray-300">Size:</span>
-                                <input type="range" x-model="brushSize" min="5" max="100" 
-                                       class="w-24 accent-blue-500">
-                                <span class="text-sm text-gray-300 w-8" x-text="brushSize"></span>
+                                <div class="w-px h-6 bg-gray-700 mx-2"></div>
+                                
+                                {{-- Brush Tool --}}
+                                <button type="button" 
+                                        @click="setTool('brush')"
+                                        :class="tool === 'brush' ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/50' : 'text-gray-400 hover:text-white hover:bg-gray-700'"
+                                        class="p-2 rounded-lg transition-all"
+                                        title="Cọ vẽ (Brush)">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                                </button>
+
+                                {{-- Rectangle Tool --}}
+                                <button type="button" 
+                                        @click="setTool('rect')"
+                                        :class="tool === 'rect' ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/50' : 'text-gray-400 hover:text-white hover:bg-gray-700'"
+                                        class="p-2 rounded-lg transition-all"
+                                        title="Vùng chọn (Rectangle)">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4h16v16H4z"></path></svg>
+                                </button>
+
+                                <div class="w-px h-6 bg-gray-700 mx-2"></div>
+
+                                {{-- Brush Size --}}
+                                <div x-show="tool === 'brush'" class="flex items-center gap-3">
+                                    <span class="text-xs text-gray-400">Size</span>
+                                    <input type="range" x-model.number="brushSize" min="5" max="100" class="w-24 h-1.5 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-blue-500">
+                                    <span class="text-xs text-gray-400 w-6" x-text="brushSize"></span>
+                                </div>
                             </div>
 
-                            {{-- Separator --}}
-                            <div class="flex-1"></div>
-
-                            {{-- Clear Mask --}}
-                            <button @click="clearMask()"
-                                    class="px-3 py-2 bg-gray-600 hover:bg-gray-500 rounded-lg text-sm text-white transition-colors">
-                                Clear Mask
+                            {{-- Clear Button --}}
+                            <button type="button" 
+                                    @click="clearMask()"
+                                    class="px-4 py-2 text-sm text-red-400 hover:text-white hover:bg-red-500/20 bg-gray-800 border border-gray-700 rounded-xl transition-all flex items-center gap-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                Xóa Mask
                             </button>
-
-                            {{-- Change Image --}}
-                            <label for="image-upload" 
-                                   class="px-3 py-2 bg-gray-600 hover:bg-gray-500 rounded-lg text-sm text-white transition-colors cursor-pointer">
-                                Đổi ảnh
-                            </label>
-                            <input type="file" 
-                                   wire:model="uploadedImage" 
-                                   accept="image/*"
-                                   class="hidden"
-                                   id="image-upload">
                         </div>
 
-                        {{-- Canvas --}}
-                        <div class="relative bg-gray-900 rounded-lg overflow-hidden" style="min-height: 400px;">
-                            <canvas x-ref="canvas" 
-                                    class="block mx-auto cursor-crosshair"
-                                    @mousedown="startDraw($event)"
-                                    @mousemove="draw($event)"
-                                    @mouseup="stopDraw()"
-                                    @mouseleave="stopDraw()">
-                            </canvas>
+                        {{-- Canvas Wrapper --}}
+                        <div class="relative bg-gray-900 rounded-lg overflow-hidden shadow-2xl ring-1 ring-white/10 flex items-center justify-center bg-[url('https://zdream.vn/images/transparent-bg.png')] bg-repeat">
+                            
+                            {{-- Inner Wrapper for Alignment (Ignored by Livewire) --}}
+                            <div wire:ignore class="relative inline-block max-w-full" style="line-height: 0;">
+                                {{-- Layer 1: Base Image (Controls Layout Size) --}}
+                                <canvas x-ref="imageLayer" 
+                                        class="max-w-full h-auto"
+                                        style="display: block;">
+                                </canvas>
 
-                            {{-- Processing Overlay --}}
+                                {{-- Layer 2: Drawing Overlay (Matches Layer 1) --}}
+                                <canvas x-ref="drawLayer" 
+                                        class="absolute inset-0 w-full h-full cursor-crosshair touch-none"
+                                        style="z-index: 10;"
+                                        @mousedown="startDraw($event)"
+                                        @mousemove.window="draw($event)" 
+                                        @mouseup.window="stopDraw($event)"
+                                        @mouseleave="stopDraw($event)">
+                                </canvas>
+                            </div>
+ 
+                            {{-- Processing Overlay (Outside wire:ignore) --}}
                             <div wire:loading.flex wire:target="processEdit" 
-                                 class="absolute inset-0 bg-gray-900/80 items-center justify-center">
+                                 class="absolute inset-0 bg-gray-900/80 items-center justify-center z-50">
                                 <div class="text-center">
                                     <svg class="animate-spin h-12 w-12 text-blue-500 mx-auto" fill="none" viewBox="0 0 24 24">
                                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -154,7 +174,7 @@
                         <div class="relative">
                             <img src="{{ $resultImage }}" 
                                  alt="Edited result" 
-                                 class="max-w-full h-auto rounded-lg mx-auto">
+                                 class="max-w-full h-auto rounded-lg mx-auto shadow-lg ring-1 ring-white/10">
                         </div>
                         <div class="mt-4 flex gap-3 justify-center">
                             <button wire:click="downloadResult"
@@ -303,7 +323,7 @@
                         wire:loading.attr="disabled"
                         wire:target="processEdit"
                         @if(empty($sourceImage)) disabled @endif
-                        class="w-full py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg text-white font-semibold transition-all">
+                        class="w-full py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg text-white font-semibold transition-all shadow-lg shadow-blue-900/40">
                     <span wire:loading.remove wire:target="processEdit">
                         Áp dụng chỉnh sửa
                     </span>
@@ -319,26 +339,38 @@
         </div>
     </div>
 
-    {{-- Alpine.js Canvas Editor --}}
+    {{-- Alpine.js Canvas Editor (Updated for 2 Layers) --}}
     <script>
         function canvasEditor() {
             return {
-                canvas: null,
-                ctx: null,
-                tool: 'brush',
-                brushSize: 30,
-                isDrawing: false,
-                image: null,
+                imageCanvas: null, // Layer 1: Static Image
+                drawCanvas: null,  // Layer 2: Interactive Drawing
+                imageCtx: null,
+                drawCtx: null,
+                
+                // Helper hidden canvas for Mask generation
                 maskCanvas: null,
                 maskCtx: null,
+
+                tool: 'brush',
+                brushSize: 40, // Default larger brush
+                isDrawing: false,
+                image: null,
+                
                 startX: 0,
                 startY: 0,
+                snapshot: null, // For rect tool preview
 
                 init() {
-                    this.canvas = this.$refs.canvas;
-                    this.ctx = this.canvas.getContext('2d');
+                    // Get refs
+                    this.imageCanvas = this.$refs.imageLayer;
+                    this.drawCanvas = this.$refs.drawLayer;
                     
-                    // Create mask canvas (hidden)
+                    // Contexts
+                    this.imageCtx = this.imageCanvas.getContext('2d');
+                    this.drawCtx = this.drawCanvas.getContext('2d');
+                    
+                    // Create hidden mask canvas
                     this.maskCanvas = document.createElement('canvas');
                     this.maskCtx = this.maskCanvas.getContext('2d');
                 },
@@ -350,25 +382,41 @@
                     img.onload = () => {
                         this.image = img;
                         
-                        // Scale to fit container (max 800px wide)
-                        const maxWidth = 800;
-                        const scale = img.width > maxWidth ? maxWidth / img.width : 1;
+                        // Limit display size but keep resolution high for drawing
+                        // If logic width > 1200, scale down only if needed for performance, 
+                        // but generally we want full res for BFL.
+                        // However, displaying 4K on screen is hard.
+                        // Solution: Canvas internal resolution = Source Image Resolution.
+                        // CSS displays it fitted.
                         
-                        this.canvas.width = img.width * scale;
-                        this.canvas.height = img.height * scale;
+                        // Fix for "Image too small": Don't shrink to 800. Use original unless HUGE.
+                        // Use max safe canvas limit (e.g. 2048 or 4096).
+                        const maxDim = 2048; 
+                        let width = img.width;
+                        let height = img.height;
+
+                        if (width > maxDim || height > maxDim) {
+                            const ratio = Math.min(maxDim / width, maxDim / height);
+                            width = Math.round(width * ratio);
+                            height = Math.round(height * ratio);
+                        }
                         
-                        this.maskCanvas.width = img.width;
-                        this.maskCanvas.height = img.height;
+                        // Set Internal Resolution
+                        this.imageCanvas.width = width;
+                        this.imageCanvas.height = height;
+                        this.drawCanvas.width = width;
+                        this.drawCanvas.height = height;
+                        this.maskCanvas.width = width;
+                        this.maskCanvas.height = height;
                         
-                        // Clear mask
-                        this.maskCtx.fillStyle = 'black';
-                        this.maskCtx.fillRect(0, 0, this.maskCanvas.width, this.maskCanvas.height);
-                        
-                        this.redraw();
+                        // Draw Image Base
+                        this.imageCtx.drawImage(img, 0, 0, width, height);
+
+                        // Clear Overlay
+                        this.clearDrawLayer();
                     };
                     img.onerror = () => {
-                        console.error('Failed to load image');
-                        // Optional: alert user or set error state
+                        // console.error('Failed to load image');
                     };
                     img.src = detail.src;
                 },
@@ -379,9 +427,15 @@
 
                 startDraw(e) {
                     this.isDrawing = true;
-                    const rect = this.canvas.getBoundingClientRect();
-                    this.startX = e.clientX - rect.left;
-                    this.startY = e.clientY - rect.top;
+                    // Snapshot for Rect tool undo
+                    if (this.tool === 'rect') {
+                         this.snapshot = this.drawCtx.getImageData(0, 0, this.drawCanvas.width, this.drawCanvas.height);
+                    }
+                    
+                    // Coordinate mapping: Mouse (CSS) -> Canvas (Internal)
+                    const coords = this.getCanvasCoordinates(e);
+                    this.startX = coords.x;
+                    this.startY = coords.y;
                     
                     if (this.tool === 'brush') {
                         this.drawBrushStroke(this.startX, this.startY);
@@ -391,108 +445,109 @@
                 draw(e) {
                     if (!this.isDrawing) return;
                     
-                    const rect = this.canvas.getBoundingClientRect();
-                    const x = e.clientX - rect.left;
-                    const y = e.clientY - rect.top;
+                    const coords = this.getCanvasCoordinates(e);
+                    const x = coords.x;
+                    const y = coords.y;
                     
                     if (this.tool === 'brush') {
                         this.drawBrushStroke(x, y);
                     } else if (this.tool === 'rect') {
-                        this.redraw();
-                        // Preview rectangle
-                        this.ctx.strokeStyle = 'rgba(255, 0, 0, 0.8)';
-                        this.ctx.lineWidth = 2;
-                        this.ctx.setLineDash([5, 5]);
-                        this.ctx.strokeRect(this.startX, this.startY, x - this.startX, y - this.startY);
-                        this.ctx.setLineDash([]);
+                        this.redrawPreviewRect(x, y);
                     }
                 },
 
                 stopDraw(e) {
                     if (!this.isDrawing) return;
                     
-                    if (this.tool === 'rect' && e) {
-                        const rect = this.canvas.getBoundingClientRect();
-                        const x = e ? e.clientX - rect.left : this.startX;
-                        const y = e ? e.clientY - rect.top : this.startY;
-                        this.drawRectToMask(this.startX, this.startY, x, y);
+                    if (this.tool === 'rect') {
+                        // Finalize rect
+                        const coords = e ? this.getCanvasCoordinates(e) : { x: this.startX, y: this.startY };
+                        this.drawRectFinal(this.startX, this.startY, coords.x, coords.y);
                     }
                     
                     this.isDrawing = false;
+                    this.snapshot = null; // Clear snapshot after drawing
                     this.syncMaskToLivewire();
                 },
 
-                drawBrushStroke(x, y) {
-                    // Scale to mask coordinates
-                    const scaleX = this.maskCanvas.width / this.canvas.width;
-                    const scaleY = this.maskCanvas.height / this.canvas.height;
+                // Helper: Map CSS coordinates to Canvas coordinates
+                getCanvasCoordinates(e) {
+                    const rect = this.drawCanvas.getBoundingClientRect();
+                    const scaleX = this.drawCanvas.width / rect.width;
+                    const scaleY = this.drawCanvas.height / rect.height;
                     
-                    // Draw on mask (white = edit area)
+                    return {
+                        x: (e.clientX - rect.left) * scaleX,
+                        y: (e.clientY - rect.top) * scaleY
+                    };
+                },
+
+                drawBrushStroke(x, y) {
+                    // 1. Draw Red on Visible Overlay
+                    this.drawCtx.fillStyle = 'rgba(255, 50, 50, 0.5)';
+                    this.drawCtx.beginPath();
+                    this.drawCtx.arc(x, y, this.brushSize, 0, Math.PI * 2);
+                    this.drawCtx.fill();
+                    
+                    // 2. Draw White on Hidden Mask
                     this.maskCtx.fillStyle = 'white';
                     this.maskCtx.beginPath();
-                    this.maskCtx.arc(x * scaleX, y * scaleY, this.brushSize * scaleX, 0, Math.PI * 2);
+                    this.maskCtx.arc(x, y, this.brushSize, 0, Math.PI * 2);
                     this.maskCtx.fill();
-                    
-                    this.redraw();
                 },
 
-                drawRectToMask(x1, y1, x2, y2) {
-                    const scaleX = this.maskCanvas.width / this.canvas.width;
-                    const scaleY = this.maskCanvas.height / this.canvas.height;
-                    
-                    this.maskCtx.fillStyle = 'white';
-                    this.maskCtx.fillRect(
-                        Math.min(x1, x2) * scaleX,
-                        Math.min(y1, y2) * scaleY,
-                        Math.abs(x2 - x1) * scaleX,
-                        Math.abs(y2 - y1) * scaleY
-                    );
-                    
-                    this.redraw();
-                },
-
-                redraw() {
-                    if (!this.image) return;
-                    
-                    // Draw image
-                    this.ctx.drawImage(this.image, 0, 0, this.canvas.width, this.canvas.height);
-                    
-                    // Overlay mask (red tint for white areas)
-                    const scaleX = this.canvas.width / this.maskCanvas.width;
-                    const scaleY = this.canvas.height / this.maskCanvas.height;
-                    
-                    const maskData = this.maskCtx.getImageData(0, 0, this.maskCanvas.width, this.maskCanvas.height);
-                    
-                    this.ctx.fillStyle = 'rgba(255, 0, 0, 0.4)';
-                    
-                    // Simple overlay - draw scaled mask areas
-                    for (let y = 0; y < this.maskCanvas.height; y += 4) {
-                        for (let x = 0; x < this.maskCanvas.width; x += 4) {
-                            const i = (y * this.maskCanvas.width + x) * 4;
-                            if (maskData.data[i] > 128) {
-                                this.ctx.fillRect(x * scaleX, y * scaleY, 4 * scaleX, 4 * scaleY);
-                            }
-                        }
+                redrawPreviewRect(currentX, currentY) {
+                    // Restore snapshot to clear guidance lines
+                    if (this.snapshot) {
+                         this.drawCtx.putImageData(this.snapshot, 0, 0);
                     }
+                    
+                    this.drawCtx.strokeStyle = 'rgba(255, 0, 0, 0.8)';
+                    this.drawCtx.lineWidth = 4;
+                    this.drawCtx.setLineDash([10, 10]);
+                    this.drawCtx.strokeRect(this.startX, this.startY, currentX - this.startX, currentY - this.startY);
+                    this.drawCtx.setLineDash([]);
+                },
+
+                drawRectFinal(x1, y1, x2, y2) {
+                     // Restore snapshot to clear guidance lines
+                     if (this.snapshot) {
+                        this.drawCtx.putImageData(this.snapshot, 0, 0);
+                        this.snapshot = null;
+                     }
+
+                     const x = Math.min(x1, x2);
+                     const y = Math.min(y1, y2);
+                     const w = Math.abs(x2 - x1);
+                     const h = Math.abs(y2 - y1);
+
+                     // 1. Visible Red
+                     this.drawCtx.fillStyle = 'rgba(255, 50, 50, 0.5)';
+                     this.drawCtx.fillRect(x, y, w, h);
+
+                     // 2. Hidden White
+                     this.maskCtx.fillStyle = 'white';
+                     this.maskCtx.fillRect(x, y, w, h);
+                },
+
+                // Clear Draw Layer
+                clearDrawLayer() {
+                    this.drawCtx.clearRect(0, 0, this.drawCanvas.width, this.drawCanvas.height);
+                    
+                    // Clear Mask
+                    this.maskCtx.fillStyle = 'black';
+                    this.maskCtx.fillRect(0, 0, this.maskCanvas.width, this.maskCanvas.height);
                 },
 
                 clearMask() {
-                    if (!this.maskCanvas) return;
-                    this.maskCtx.fillStyle = 'black';
-                    this.maskCtx.fillRect(0, 0, this.maskCanvas.width, this.maskCanvas.height);
-                    this.redraw();
+                    this.clearDrawLayer();
                     this.syncMaskToLivewire();
                 },
 
                 resetCanvas() {
                     this.image = null;
-                    if (this.canvas) {
-                        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-                    }
-                    if (this.maskCanvas) {
-                        this.maskCtx.fillStyle = 'black';
-                        this.maskCtx.fillRect(0, 0, this.maskCanvas.width, this.maskCanvas.height);
-                    }
+                    if (this.imageCtx) this.imageCtx.clearRect(0, 0, this.imageCanvas.width, this.imageCanvas.height);
+                    if (this.drawCtx) this.clearDrawLayer();
                 },
 
                 syncMaskToLivewire() {
