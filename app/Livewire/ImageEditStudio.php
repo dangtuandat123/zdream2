@@ -2,7 +2,9 @@
 
 namespace App\Livewire;
 
+use App\Models\Setting;
 use App\Services\BflService;
+use App\Services\WalletService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Livewire\Component;
@@ -81,6 +83,17 @@ class ImageEditStudio extends Component
     public int $imageWidth = 0;
     public int $imageHeight = 0;
 
+    /** Pricing per mode (loaded from settings) */
+    public array $modePrices = [
+        'replace' => 5,
+        'text' => 4,
+        'background' => 5,
+        'expand' => 5,
+    ];
+
+    /** User's current balance */
+    public float $userCredits = 0;
+
     // =============================================
     // PROTECTED PROPERTIES
     // =============================================
@@ -125,7 +138,33 @@ class ImageEditStudio extends Component
 
     public function mount(): void
     {
-        // Initialize defaults
+        // Load prices from settings
+        $this->modePrices = [
+            'replace' => (float) Setting::get('edit_studio.credit_cost_replace', 5),
+            'text' => (float) Setting::get('edit_studio.credit_cost_text', 4),
+            'background' => (float) Setting::get('edit_studio.credit_cost_background', 5),
+            'expand' => (float) Setting::get('edit_studio.credit_cost_expand', 5),
+        ];
+
+        // Load user credits
+        $user = Auth::user();
+        $this->userCredits = $user ? (float) $user->credits : 0;
+    }
+
+    /**
+     * Get current mode's price
+     */
+    public function getCurrentPriceProperty(): float
+    {
+        return $this->modePrices[$this->editMode] ?? 5;
+    }
+
+    /**
+     * Check if user has enough credits for current mode
+     */
+    public function getHasEnoughCreditsProperty(): bool
+    {
+        return $this->userCredits >= $this->currentPrice;
     }
 
     // =============================================
@@ -240,10 +279,19 @@ class ImageEditStudio extends Component
             return;
         }
 
-        // Check credits (if applicable)
+        // Check user authentication
         $user = Auth::user();
         if (!$user) {
             $this->errorMessage = 'Vui lòng đăng nhập để sử dụng tính năng này.';
+            return;
+        }
+
+        // Get credit cost for current mode
+        $creditCost = $this->modePrices[$this->editMode] ?? 5;
+
+        // Check if user has enough credits
+        if (!$user->hasEnoughCredits($creditCost)) {
+            $this->errorMessage = "Bạn không đủ Xu. Cần: {$creditCost} Xu, Hiện có: {$user->credits} Xu";
             return;
         }
 
@@ -262,7 +310,39 @@ class ImageEditStudio extends Component
 
             if ($result['success']) {
                 $this->resultImage = $result['image_url'] ?? $result['image_base64'] ?? '';
-                $this->successMessage = 'Chỉnh sửa thành công!';
+
+                // Deduct credits after successful edit
+                try {
+                    $walletService = app(WalletService::class);
+                    $modeLabels = [
+                        'replace' => 'Replace Object',
+                        'text' => 'Text Edit',
+                        'background' => 'Background Change',
+                        'expand' => 'Expand Image',
+                    ];
+                    $modeLabel = $modeLabels[$this->editMode] ?? 'Edit';
+
+                    $walletService->deductCredits(
+                        $user,
+                        $creditCost,
+                        "Edit Studio: {$modeLabel}",
+                        'edit_studio'
+                    );
+
+                    // Update local credits display
+                    $user->refresh();
+                    $this->userCredits = (float) $user->credits;
+
+                    $this->successMessage = "Chỉnh sửa thành công! Đã trừ {$creditCost} Xu.";
+                } catch (\Exception $e) {
+                    Log::error('ImageEditStudio: Failed to deduct credits', [
+                        'user_id' => $user->id,
+                        'amount' => $creditCost,
+                        'error' => $e->getMessage(),
+                    ]);
+                    // Still show success since edit worked, just log the credit error
+                    $this->successMessage = 'Chỉnh sửa thành công!';
+                }
             } else {
                 $this->errorMessage = $result['error'] ?? 'Có lỗi xảy ra khi xử lý.';
             }
@@ -277,6 +357,7 @@ class ImageEditStudio extends Component
             $this->isProcessing = false;
         }
     }
+
 
     /**
      * Execute Object Replace (Fill API)

@@ -38,7 +38,7 @@
                 </h2>
                 <p class="text-white/40 text-sm mb-4">Xóa và thay thế vật thể trong ảnh bằng nội dung mới.</p>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
                         <label for="model_replace" class="block text-sm font-medium text-white/70 mb-2">Model</label>
                         <select name="model_replace" id="model_replace"
@@ -49,6 +49,14 @@
                                 </option>
                             @endforeach
                         </select>
+                    </div>
+                    <div>
+                        <label for="credit_cost_replace" class="block text-sm font-medium text-white/70 mb-2">
+                            <i class="fa-solid fa-coins text-yellow-400 mr-1"></i>Giá (Xu)
+                        </label>
+                        <input type="number" step="0.01" min="0" name="credit_cost_replace" id="credit_cost_replace"
+                            value="{{ $settings['credit_cost_replace'] }}"
+                            class="w-full px-4 py-3 rounded-xl bg-white/[0.03] border border-white/[0.08] text-white/90 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500/40">
                     </div>
                     <div>
                         <label for="prompt_prefix_replace" class="block text-sm font-medium text-white/70 mb-2">Prompt
@@ -70,7 +78,7 @@
                 </h2>
                 <p class="text-white/40 text-sm mb-4">Chỉnh sửa, thêm hoặc thay đổi text trong ảnh.</p>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
                         <label for="model_text" class="block text-sm font-medium text-white/70 mb-2">Model</label>
                         <select name="model_text" id="model_text"
@@ -81,6 +89,14 @@
                                 </option>
                             @endforeach
                         </select>
+                    </div>
+                    <div>
+                        <label for="credit_cost_text" class="block text-sm font-medium text-white/70 mb-2">
+                            <i class="fa-solid fa-coins text-yellow-400 mr-1"></i>Giá (Xu)
+                        </label>
+                        <input type="number" step="0.01" min="0" name="credit_cost_text" id="credit_cost_text"
+                            value="{{ $settings['credit_cost_text'] }}"
+                            class="w-full px-4 py-3 rounded-xl bg-white/[0.03] border border-white/[0.08] text-white/90 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500/40">
                     </div>
                     <div>
                         <label for="prompt_prefix_text" class="block text-sm font-medium text-white/70 mb-2">Prompt
@@ -102,7 +118,7 @@
                 </h2>
                 <p class="text-white/40 text-sm mb-4">Thay đổi phông nền, giữ nguyên chủ thể.</p>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
                         <label for="model_background" class="block text-sm font-medium text-white/70 mb-2">Model</label>
                         <select name="model_background" id="model_background"
@@ -113,6 +129,14 @@
                                 </option>
                             @endforeach
                         </select>
+                    </div>
+                    <div>
+                        <label for="credit_cost_background" class="block text-sm font-medium text-white/70 mb-2">
+                            <i class="fa-solid fa-coins text-yellow-400 mr-1"></i>Giá (Xu)
+                        </label>
+                        <input type="number" step="0.01" min="0" name="credit_cost_background"
+                            id="credit_cost_background" value="{{ $settings['credit_cost_background'] }}"
+                            class="w-full px-4 py-3 rounded-xl bg-white/[0.03] border border-white/[0.08] text-white/90 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500/40">
                     </div>
                     <div>
                         <label for="prompt_prefix_background"
@@ -138,7 +162,7 @@
                 </h2>
                 <p class="text-white/40 text-sm mb-4">Mở rộng ảnh ra các hướng, tạo thêm nội dung mới.</p>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
                         <label for="model_expand" class="block text-sm font-medium text-white/70 mb-2">Model</label>
                         <select name="model_expand" id="model_expand"
@@ -149,6 +173,14 @@
                                 </option>
                             @endforeach
                         </select>
+                    </div>
+                    <div>
+                        <label for="credit_cost_expand" class="block text-sm font-medium text-white/70 mb-2">
+                            <i class="fa-solid fa-coins text-yellow-400 mr-1"></i>Giá (Xu)
+                        </label>
+                        <input type="number" step="0.01" min="0" name="credit_cost_expand" id="credit_cost_expand"
+                            value="{{ $settings['credit_cost_expand'] }}"
+                            class="w-full px-4 py-3 rounded-xl bg-white/[0.03] border border-white/[0.08] text-white/90 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500/40">
                     </div>
                     <div>
                         <label for="prompt_prefix_expand" class="block text-sm font-medium text-white/70 mb-2">Prompt

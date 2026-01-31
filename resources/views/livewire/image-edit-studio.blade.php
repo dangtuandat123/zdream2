@@ -319,17 +319,41 @@
                         @enderror
                     </div>
 
-                    {{-- Submit Button (Always visible) --}}
+                    {{-- Pricing & Submit Button --}}
                     <div class="p-4">
+                        {{-- Credits Info --}}
+                        <div class="flex items-center justify-between mb-3 text-sm">
+                            <div class="flex items-center gap-2 text-white/60">
+                                <svg class="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.736 6.979C9.208 6.193 9.696 6 10 6c.304 0 .792.193 1.264.979a1 1 0 001.715-1.029C12.279 4.784 11.232 4 10 4s-2.279.784-2.979 1.95c-.285.475-.507 1-.67 1.55H6a1 1 0 000 2h.013a9.358 9.358 0 000 1H6a1 1 0 100 2h.351c.163.55.385 1.075.67 1.55C7.721 15.216 8.768 16 10 16s2.279-.784 2.979-1.95a1 1 0 10-1.715-1.029c-.472.786-.96.979-1.264.979-.304 0-.792-.193-1.264-.979a4.265 4.265 0 01-.264-.521H10a1 1 0 100-2H8.017a7.36 7.36 0 010-1H10a1 1 0 100-2H8.472c.08-.185.167-.36.264-.521z"/>
+                                </svg>
+                                <span>Số dư: <span class="font-semibold text-yellow-300">{{ number_format($userCredits, 2) }} Xu</span></span>
+                            </div>
+                            <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/[0.05] border border-white/[0.1]">
+                                <span class="text-white/50">Giá:</span>
+                                <span class="font-bold text-cyan-400">{{ number_format($this->currentPrice, 2) }} Xu</span>
+                            </div>
+                        </div>
+
+                        {{-- Insufficient Credits Warning --}}
+                        @if(!$this->hasEnoughCredits)
+                            <div class="mb-3 p-2.5 bg-red-500/10 border border-red-500/30 rounded-lg flex items-center gap-2 text-red-300 text-sm">
+                                <svg class="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                                </svg>
+                                <span>Bạn không đủ Xu. <a href="{{ route('wallet.index') }}" class="underline hover:text-white">Nạp thêm</a></span>
+                            </div>
+                        @endif
+
                         <button wire:click="processEdit"
                                 wire:loading.attr="disabled"
                                 wire:target="processEdit"
-                                @if(empty($sourceImage)) disabled @endif
+                                @if(empty($sourceImage) || !$this->hasEnoughCredits) disabled @endif
                                 class="w-full py-3 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-500 hover:via-indigo-500 hover:to-purple-500 disabled:opacity-40 disabled:cursor-not-allowed rounded-xl text-white font-bold transition-all shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 flex items-center justify-center gap-2 group">
                             
                             <span wire:loading.remove wire:target="processEdit" class="flex items-center gap-2">
                                 <svg class="w-5 h-5 group-hover:rotate-12 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
-                                Tạo tác phẩm
+                                Tạo tác phẩm ({{ number_format($this->currentPrice, 2) }} Xu)
                             </span>
                             <span wire:loading wire:target="processEdit" class="flex items-center gap-2">
                                 <svg class="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
