@@ -114,11 +114,11 @@
                          @clear-canvas-mask.window="clearMask()"
                          @reset-canvas.window="resetCanvas()">
                         
-                        {{-- Canvas Wrapper --}}
-                        <div class="relative bg-black/40 flex items-center justify-center bg-[url('https://zdream.vn/images/transparent-bg.png')] bg-repeat min-h-[300px] max-h-[60vh] lg:max-h-[500px] overflow-auto">
+                        {{-- Canvas Wrapper - Image scales to fit, no scroll --}}
+                        <div class="relative bg-black/40 flex items-center justify-center bg-[url('https://zdream.vn/images/transparent-bg.png')] bg-repeat p-4">
                             
-                            <div wire:ignore class="relative inline-block max-w-full" style="line-height: 0;">
-                                <canvas x-ref="imageLayer" class="max-w-full h-auto" style="display: block;"></canvas>
+                            <div wire:ignore class="relative inline-block" style="line-height: 0; max-width: 100%; max-height: 70vh;">
+                                <canvas x-ref="imageLayer" class="max-w-full max-h-[70vh] w-auto h-auto" style="display: block;"></canvas>
                                 <canvas x-ref="drawLayer" 
                                         class="absolute inset-0 w-full h-full cursor-crosshair touch-none"
                                         style="z-index: 10;"
