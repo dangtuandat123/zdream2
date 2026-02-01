@@ -322,9 +322,12 @@ class ImageEditStudio extends Component
 
         $prompt = implode('. ', $parts);
 
-        // Append additional instructions if provided
+        // Append additional instructions if provided, otherwise use default
         if (!empty($this->editPrompt)) {
             $prompt .= '. ' . $this->editPrompt;
+        } else {
+            // Default: preserve original text style
+            $prompt .= '. Keep the same font, color, size, style and effects as the original text';
         }
 
         return $prompt;

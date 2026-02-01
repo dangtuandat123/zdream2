@@ -1612,6 +1612,7 @@ class BflService
         $payload = [
             'prompt' => $finalPrompt,
             'input_image' => $imageBase64,
+            // 'prompt_upsampling' => true, // Disabled - may cause wrong text detection
         ];
 
         // Add optional params

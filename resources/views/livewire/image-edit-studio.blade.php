@@ -113,7 +113,7 @@
                             <div wire:ignore class="relative inline-block" style="line-height: 0; max-width: 100%; max-height: 70vh;">
                                 <canvas x-ref="imageLayer" class="max-w-full max-h-[70vh] w-auto h-auto" style="display: block;"></canvas>
                                 <canvas x-ref="drawLayer" 
-                                        class="absolute inset-0 w-full h-full cursor-crosshair touch-none"
+                                        class="absolute inset-0 w-full h-full touch-none {{ in_array($editMode, ['replace', 'background']) ? 'cursor-crosshair' : 'pointer-events-none hidden' }}"
                                         style="z-index: 10; opacity: 0.6;"
                                         @mousedown="startDraw($event)"
                                         @mousemove.window="draw($event)" 
