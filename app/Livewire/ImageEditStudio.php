@@ -120,9 +120,14 @@ class ImageEditStudio extends Component
 
     protected function rules(): array
     {
+        // editPrompt is optional for text mode (uses textReplacements) and expand mode
+        $promptRule = in_array($this->editMode, ['text', 'expand'])
+            ? 'nullable|string|max:1000'
+            : 'required|string|min:3|max:1000';
+
         return [
             'uploadedImage' => 'nullable|image|max:10240', // 10MB max
-            'editPrompt' => 'required|string|min:3|max:1000',
+            'editPrompt' => $promptRule,
             'editMode' => 'required|in:replace,text,background,expand',
             'expandDirections.top' => 'integer|min:0|max:1024',
             'expandDirections.bottom' => 'integer|min:0|max:1024',
@@ -306,7 +311,8 @@ class ImageEditStudio extends Component
             $from = trim($pair['from'] ?? '');
             $to = trim($pair['to'] ?? '');
             if (!empty($from) && !empty($to)) {
-                $parts[] = "Change \"{$from}\" to \"{$to}\"";
+                // Use API recommended format: Replace 'X' with 'Y'
+                $parts[] = "Replace '{$from}' with '{$to}'";
             }
         }
 

@@ -318,47 +318,35 @@
                                 </div>
                             </div>
                         @elseif($editMode === 'text')
-                            {{-- Text Replacement UI --}}
+                            {{-- Text Replacement UI (Single pair only) --}}
                             <div class="space-y-3">
                                 <label class="block text-xs font-medium text-white/40 uppercase tracking-wider">Thay đổi text</label>
                                 
                                 {{-- Instruction --}}
                                 <p class="text-xs text-white/50">AI sẽ tự động tìm và thay đổi text trong ảnh.</p>
                                 
-                                {{-- Text replacement pairs --}}
-                                <div class="space-y-2">
-                                    @foreach($textReplacements as $index => $pair)
-                                        <div class="flex items-center gap-2 p-2 bg-white/[0.03] rounded-lg border border-white/[0.06]">
-                                            <div class="flex-1 space-y-1">
-                                                <input type="text" 
-                                                       wire:model="textReplacements.{{ $index }}.from"
-                                                       placeholder="Text gốc"
-                                                       class="w-full px-2.5 py-1.5 text-xs bg-white/[0.05] border border-white/[0.1] rounded-lg text-white placeholder-white/30 focus:ring-1 focus:ring-blue-500/40 focus:border-blue-500/50 outline-none">
-                                                <input type="text" 
-                                                       wire:model="textReplacements.{{ $index }}.to"
-                                                       placeholder="Text mới"
-                                                       class="w-full px-2.5 py-1.5 text-xs bg-white/[0.05] border border-white/[0.1] rounded-lg text-white placeholder-white/30 focus:ring-1 focus:ring-green-500/40 focus:border-green-500/50 outline-none">
-                                            </div>
-                                            @if(count($textReplacements) > 1)
-                                                <button type="button" wire:click="removeTextReplacement({{ $index }})"
-                                                        class="p-1.5 text-white/30 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition">
-                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                                    </svg>
-                                                </button>
-                                            @endif
-                                        </div>
-                                    @endforeach
+                                {{-- Single text replacement pair --}}
+                                <div class="space-y-2 p-3 bg-white/[0.03] rounded-lg border border-white/[0.06]">
+                                    <div>
+                                        <label class="block text-[10px] text-white/40 mb-1">Text gốc</label>
+                                        <input type="text" 
+                                               wire:model="textReplacements.0.from"
+                                               placeholder="Nhập text cần thay đổi"
+                                               class="w-full px-3 py-2 text-sm bg-white/[0.05] border border-white/[0.1] rounded-lg text-white placeholder-white/30 focus:ring-1 focus:ring-blue-500/40 focus:border-blue-500/50 outline-none">
+                                    </div>
+                                    <div class="flex items-center justify-center">
+                                        <svg class="w-4 h-4 text-white/30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <label class="block text-[10px] text-white/40 mb-1">Text mới</label>
+                                        <input type="text" 
+                                               wire:model="textReplacements.0.to"
+                                               placeholder="Nhập text thay thế"
+                                               class="w-full px-3 py-2 text-sm bg-white/[0.05] border border-green-500/20 rounded-lg text-white placeholder-white/30 focus:ring-1 focus:ring-green-500/40 focus:border-green-500/50 outline-none">
+                                    </div>
                                 </div>
-                                
-                                {{-- Add more button --}}
-                                <button type="button" wire:click="addTextReplacement"
-                                        class="w-full py-2 text-xs text-white/50 hover:text-white bg-white/[0.03] hover:bg-white/[0.06] border border-dashed border-white/[0.1] hover:border-white/[0.2] rounded-lg transition flex items-center justify-center gap-1.5">
-                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                                    </svg>
-                                    Thêm cặp text
-                                </button>
                             </div>
                         @else
                             {{-- Mode Description --}}
@@ -377,10 +365,12 @@
 
                     {{-- Prompt Input --}}
                     <div class="p-4 border-b border-white/[0.08]">
-                        <label class="block text-xs font-medium text-white/40 uppercase tracking-wider mb-2">Mô tả thay đổi</label>
+                        <label class="block text-xs font-medium text-white/40 uppercase tracking-wider mb-2">
+                            {{ $editMode === 'text' ? 'Ghi chú thêm (tuỳ chọn)' : 'Mô tả thay đổi' }}
+                        </label>
                         <textarea wire:model="editPrompt"
-                                  rows="3"
-                                  placeholder="{{ $this->placeholderText }}"
+                                  rows="{{ $editMode === 'text' ? 2 : 3 }}"
+                                  placeholder="{{ $editMode === 'text' ? 'VD: Giữ nguyên font, màu đỏ, chữ đậm...' : $this->placeholderText }}"
                                   class="w-full px-3 py-2.5 bg-white/[0.05] border border-white/[0.1] rounded-xl text-white text-sm placeholder-white/30 focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500/50 outline-none transition-all resize-none"></textarea>
                         @error('editPrompt')
                             <p class="mt-1.5 text-xs text-red-400 flex items-center gap-1">
