@@ -258,6 +258,20 @@ class ImageEditStudio extends Component
         }
     }
 
+    /**
+     * Set expand directions preset
+     */
+    public function setExpandPreset(string $preset): void
+    {
+        $this->expandDirections = match ($preset) {
+            'vertical' => ['top' => 256, 'bottom' => 256, 'left' => 0, 'right' => 0],
+            'horizontal' => ['top' => 0, 'bottom' => 0, 'left' => 256, 'right' => 256],
+            'all' => ['top' => 128, 'bottom' => 128, 'left' => 128, 'right' => 128],
+            'reset' => ['top' => 0, 'bottom' => 0, 'left' => 0, 'right' => 0],
+            default => $this->expandDirections,
+        };
+    }
+
     // =============================================
     // MAIN EDIT FLOW
     // =============================================

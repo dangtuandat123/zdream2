@@ -299,19 +299,19 @@
                                 
                                 {{-- Quick presets --}}
                                 <div class="flex flex-wrap gap-1 mt-3">
-                                    <button type="button" wire:click="$set('expandDirections', ['top' => 256, 'bottom' => 256, 'left' => 0, 'right' => 0])" 
+                                    <button type="button" wire:click="setExpandPreset('vertical')" 
                                             class="px-2 py-1 text-[10px] bg-white/[0.05] hover:bg-white/[0.1] border border-white/10 rounded text-white/60 hover:text-white transition">
                                         Dọc 256
                                     </button>
-                                    <button type="button" wire:click="$set('expandDirections', ['top' => 0, 'bottom' => 0, 'left' => 256, 'right' => 256])" 
+                                    <button type="button" wire:click="setExpandPreset('horizontal')" 
                                             class="px-2 py-1 text-[10px] bg-white/[0.05] hover:bg-white/[0.1] border border-white/10 rounded text-white/60 hover:text-white transition">
                                         Ngang 256
                                     </button>
-                                    <button type="button" wire:click="$set('expandDirections', ['top' => 128, 'bottom' => 128, 'left' => 128, 'right' => 128])" 
+                                    <button type="button" wire:click="setExpandPreset('all')" 
                                             class="px-2 py-1 text-[10px] bg-white/[0.05] hover:bg-white/[0.1] border border-white/10 rounded text-white/60 hover:text-white transition">
                                         Đều 128
                                     </button>
-                                    <button type="button" wire:click="$set('expandDirections', ['top' => 0, 'bottom' => 0, 'left' => 0, 'right' => 0])" 
+                                    <button type="button" wire:click="setExpandPreset('reset')" 
                                             class="px-2 py-1 text-[10px] bg-white/[0.05] hover:bg-white/[0.1] border border-white/10 rounded text-white/60 hover:text-white transition">
                                         Reset
                                     </button>
