@@ -251,18 +251,22 @@
                                         <div class="w-20 h-14 bg-white/20 border-2 border-white/40 rounded"></div>
                                         
                                         {{-- Expansion indicators --}}
+                                        {{-- Top bar (full width including corners) --}}
                                         @if($expandDirections['top'] > 0)
-                                            <div class="absolute bottom-full left-0 right-0 bg-blue-500/30 border border-blue-500/50" 
-                                                 style="height: {{ min($expandDirections['top'] / 20, 20) }}px"></div>
+                                            <div class="absolute bottom-full bg-blue-500/30 border border-blue-500/50" 
+                                                 style="height: {{ min($expandDirections['top'] / 20, 20) }}px; left: {{ $expandDirections['left'] > 0 ? '-' . min($expandDirections['left'] / 20, 20) . 'px' : '0' }}; right: {{ $expandDirections['right'] > 0 ? '-' . min($expandDirections['right'] / 20, 20) . 'px' : '0' }};"></div>
                                         @endif
+                                        {{-- Bottom bar (full width including corners) --}}
                                         @if($expandDirections['bottom'] > 0)
-                                            <div class="absolute top-full left-0 right-0 bg-blue-500/30 border border-blue-500/50" 
-                                                 style="height: {{ min($expandDirections['bottom'] / 20, 20) }}px"></div>
+                                            <div class="absolute top-full bg-blue-500/30 border border-blue-500/50" 
+                                                 style="height: {{ min($expandDirections['bottom'] / 20, 20) }}px; left: {{ $expandDirections['left'] > 0 ? '-' . min($expandDirections['left'] / 20, 20) . 'px' : '0' }}; right: {{ $expandDirections['right'] > 0 ? '-' . min($expandDirections['right'] / 20, 20) . 'px' : '0' }};"></div>
                                         @endif
+                                        {{-- Left bar --}}
                                         @if($expandDirections['left'] > 0)
                                             <div class="absolute top-0 bottom-0 right-full bg-blue-500/30 border border-blue-500/50" 
                                                  style="width: {{ min($expandDirections['left'] / 20, 20) }}px"></div>
                                         @endif
+                                        {{-- Right bar --}}
                                         @if($expandDirections['right'] > 0)
                                             <div class="absolute top-0 bottom-0 left-full bg-blue-500/30 border border-blue-500/50" 
                                                  style="width: {{ min($expandDirections['right'] / 20, 20) }}px"></div>
