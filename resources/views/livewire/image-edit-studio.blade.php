@@ -317,15 +317,55 @@
                                     </button>
                                 </div>
                             </div>
+                        @elseif($editMode === 'text')
+                            {{-- Text Replacement UI --}}
+                            <div class="space-y-3">
+                                <label class="block text-xs font-medium text-white/40 uppercase tracking-wider">Thay đổi text</label>
+                                
+                                {{-- Instruction --}}
+                                <p class="text-xs text-white/50">AI sẽ tự động tìm và thay đổi text trong ảnh.</p>
+                                
+                                {{-- Text replacement pairs --}}
+                                <div class="space-y-2">
+                                    @foreach($textReplacements as $index => $pair)
+                                        <div class="flex items-center gap-2 p-2 bg-white/[0.03] rounded-lg border border-white/[0.06]">
+                                            <div class="flex-1 space-y-1">
+                                                <input type="text" 
+                                                       wire:model="textReplacements.{{ $index }}.from"
+                                                       placeholder="Text gốc"
+                                                       class="w-full px-2.5 py-1.5 text-xs bg-white/[0.05] border border-white/[0.1] rounded-lg text-white placeholder-white/30 focus:ring-1 focus:ring-blue-500/40 focus:border-blue-500/50 outline-none">
+                                                <input type="text" 
+                                                       wire:model="textReplacements.{{ $index }}.to"
+                                                       placeholder="Text mới"
+                                                       class="w-full px-2.5 py-1.5 text-xs bg-white/[0.05] border border-white/[0.1] rounded-lg text-white placeholder-white/30 focus:ring-1 focus:ring-green-500/40 focus:border-green-500/50 outline-none">
+                                            </div>
+                                            @if(count($textReplacements) > 1)
+                                                <button type="button" wire:click="removeTextReplacement({{ $index }})"
+                                                        class="p-1.5 text-white/30 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                    </svg>
+                                                </button>
+                                            @endif
+                                        </div>
+                                    @endforeach
+                                </div>
+                                
+                                {{-- Add more button --}}
+                                <button type="button" wire:click="addTextReplacement"
+                                        class="w-full py-2 text-xs text-white/50 hover:text-white bg-white/[0.03] hover:bg-white/[0.06] border border-dashed border-white/[0.1] hover:border-white/[0.2] rounded-lg transition flex items-center justify-center gap-1.5">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                                    </svg>
+                                    Thêm cặp text
+                                </button>
+                            </div>
                         @else
                             {{-- Mode Description --}}
                             <div class="text-sm text-white/60 leading-relaxed">
                                 @switch($editMode)
                                     @case('replace')
                                         Dùng công cụ <span class="text-blue-300 bg-blue-500/20 px-1.5 py-0.5 rounded text-xs font-medium border border-blue-500/40">Brush</span> hoặc <span class="text-blue-300 bg-blue-500/20 px-1.5 py-0.5 rounded text-xs font-medium border border-blue-500/40">Rect</span> để tô vùng muốn thay thế.
-                                        @break
-                                    @case('text')
-                                        AI sẽ tự động phát hiện và sửa text. Mô tả rõ text cũ và mới trong prompt.
                                         @break
                                     @case('background')
                                         Tô đỏ lên chủ thể chính (người/vật) mà bạn muốn giữ lại. AI sẽ thay đổi nền xung quanh.

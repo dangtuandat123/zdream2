@@ -103,6 +103,11 @@ class ImageEditStudio extends Component
     /** Last generated image ID (for continue editing) */
     public ?int $lastGeneratedImageId = null;
 
+    /** Text replacements for text mode [['from' => 'old', 'to' => 'new'], ...] */
+    public array $textReplacements = [
+        ['from' => '', 'to' => ''],
+    ];
+
     // =============================================
     // PROTECTED PROPERTIES
     // =============================================
@@ -272,6 +277,53 @@ class ImageEditStudio extends Component
         };
     }
 
+    /**
+     * Add a new text replacement pair
+     */
+    public function addTextReplacement(): void
+    {
+        $this->textReplacements[] = ['from' => '', 'to' => ''];
+    }
+
+    /**
+     * Remove a text replacement pair
+     */
+    public function removeTextReplacement(int $index): void
+    {
+        if (count($this->textReplacements) > 1) {
+            unset($this->textReplacements[$index]);
+            $this->textReplacements = array_values($this->textReplacements);
+        }
+    }
+
+    /**
+     * Build prompt from text replacements
+     */
+    protected function buildTextPrompt(): string
+    {
+        $parts = [];
+        foreach ($this->textReplacements as $pair) {
+            $from = trim($pair['from'] ?? '');
+            $to = trim($pair['to'] ?? '');
+            if (!empty($from) && !empty($to)) {
+                $parts[] = "Change \"{$from}\" to \"{$to}\"";
+            }
+        }
+
+        if (empty($parts)) {
+            return $this->editPrompt; // fallback to manual prompt
+        }
+
+        $prompt = implode('. ', $parts);
+
+        // Append additional instructions if provided
+        if (!empty($this->editPrompt)) {
+            $prompt .= '. ' . $this->editPrompt;
+        }
+
+        return $prompt;
+    }
+
     // =============================================
     // MAIN EDIT FLOW
     // =============================================
@@ -344,17 +396,23 @@ class ImageEditStudio extends Component
             $user->refresh();
             $this->userCredits = (float) $user->credits;
 
+            // Build final prompt based on mode
+            $finalPrompt = $this->editMode === 'text'
+                ? $this->buildTextPrompt()
+                : $this->editPrompt;
+
             // Create GeneratedImage record (processing status)
             $generatedImage = GeneratedImage::create([
                 'user_id' => $user->id,
                 'style_id' => null, // Edit Studio không dùng style
-                'final_prompt' => $this->editPrompt,
+                'final_prompt' => $finalPrompt,
                 'user_custom_input' => $this->editPrompt,
                 'generation_params' => [
                     'mode' => $this->editMode,
                     'mode_label' => $modeLabel,
                     'source' => 'edit_studio',
                     'expand_directions' => $this->expandDirections,
+                    'text_replacements' => $this->editMode === 'text' ? $this->textReplacements : null,
                 ],
                 'status' => GeneratedImage::STATUS_PROCESSING,
                 'credits_used' => $creditCost,
@@ -366,7 +424,7 @@ class ImageEditStudio extends Component
                 $this->editMode,
                 $this->sourceImage,
                 $this->maskData,
-                $this->editPrompt,
+                $finalPrompt, // Use built prompt
                 $this->expandDirections
             );
 
