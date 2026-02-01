@@ -106,7 +106,8 @@
                          @reset-canvas.window="resetCanvas()">
                         
                         {{-- Canvas Wrapper - Image scales to fit, no scroll --}}
-                        <div class="relative bg-black/40 flex items-center justify-center bg-[url('https://zdream.vn/images/transparent-bg.png')] bg-repeat p-4 cursor-crosshair"
+                        <div class="relative bg-black/40 flex items-center justify-center bg-[url('https://zdream.vn/images/transparent-bg.png')] bg-repeat p-4"
+                             :class="['replace', 'background'].includes($wire.editMode) ? 'cursor-crosshair' : 'cursor-default'"
                              @mousedown="startDraw($event)">
                             {{-- Change Image Button (top-right corner) --}}
                             <label for="image-upload-canvas" 
