@@ -160,14 +160,23 @@
 
                     <div>
                         <label for="translation_system_prompt" class="block text-sm font-medium text-white/70 mb-2">
-                            System Prompt (dịch ngôn ngữ)
+                            System Prompt (chuyển đổi prompt)
                         </label>
-                        <textarea id="translation_system_prompt" name="translation_system_prompt" rows="3"
-                            placeholder="You are a translator..."
-                            class="w-full px-4 py-3 rounded-xl bg-white/[0.03] border border-white/[0.08] text-white/90 text-sm focus:outline-none focus:ring-2 focus:ring-green-500/40 transition-all resize-none">{{ \App\Models\Setting::get('translation_system_prompt', 'You are a translator. Translate the following text to English. Only output the translation, nothing else. Keep it concise and suitable for AI image generation prompts.') }}</textarea>
+                        @php
+                            $defaultPrompt = "You are an AI image prompt expert acting as a translator/enhancer. Convert user input to a high-quality English prompt for FLUX AI.
+                            Rules:
+                            1. Translate to English.
+                            2. Context is year 2026: Interpret generic terms as modern versions (e.g., \"phone\" = \"sleek 2026 bezel-less smartphone\").
+                            3. add \"photorealistic, 8k, highly detailed\" style.
+                            4. Auto-enhance vague requests with realistic details.
+                            5. Only output the final prompt text. No explanations.";
+                        @endphp
+                        <textarea id="translation_system_prompt" name="translation_system_prompt" rows="6"
+                            placeholder="You are an AI image prompt expert..."
+                            class="w-full px-4 py-3 rounded-xl bg-white/[0.03] border border-white/[0.08] text-white/90 text-sm focus:outline-none focus:ring-2 focus:ring-green-500/40 transition-all resize-none">{{ \App\Models\Setting::get('translation_system_prompt', $defaultPrompt) }}</textarea>
                         <p class="text-white/30 text-xs mt-1">
                             <i class="fa-solid fa-info-circle mr-1"></i>
-                            Prompt hướng dẫn AI dịch từ các ngôn ngữ khác sang tiếng Anh
+                            Hướng dẫn AI chuyển đổi prompt người dùng thành prompt tối ưu cho tạo ảnh
                         </p>
                         @error('translation_system_prompt')
                             <p class="mt-1 text-sm text-red-400">{{ $message }}</p>

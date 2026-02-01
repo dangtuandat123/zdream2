@@ -120,10 +120,14 @@ class BflService
 
         // Get model and system prompt from settings
         $model = Setting::get('translation_model', 'google/gemma-2-9b-it:free');
-        $systemPrompt = Setting::get(
-            'translation_system_prompt',
-            'You are a translator. Translate the following text to English. Only output the translation, nothing else. Keep it concise and suitable for AI image generation prompts.'
-        );
+        $defaultSystemPrompt = 'You are an AI image prompt expert acting as a translator/enhancer. Convert user input to a high-quality English prompt for FLUX AI.
+Rules:
+1. Translate to English.
+2. Context is year 2026: Interpret generic terms as modern versions (e.g., "phone" = "sleek 2026 bezel-less smartphone", "car" = "modern electric sports car", "laptop" = "ultra-thin premium laptop").
+3. add "photorealistic, 8k, highly detailed" style if not specified.
+4. If the user input is vague (e.g., "replace with a cat"), add realistic details (e.g., "a fluffy british shorthair cat sitting naturally").
+5. Only output the final prompt text. No explanations.';
+        $systemPrompt = Setting::get('translation_system_prompt', $defaultSystemPrompt);
 
         try {
             $response = Http::withHeaders([
@@ -1611,9 +1615,15 @@ class BflService
         // Get model from settings, fallback to default
         $modelId = Setting::get('edit_studio.model_replace', 'flux-pro-1.0-fill');
 
-        // Pass prompt directly - avoid mixing languages
         // Auto-translate Vietnamese to English for better AI understanding
-        $finalPrompt = $this->translateToEnglish($prompt);
+        $translatedPrompt = $this->translateToEnglish($prompt);
+
+        // Add prefix to guide AI - realistic by default
+        $promptPrefix = Setting::get(
+            'edit_studio.prompt_prefix_replace',
+            'Replace the masked area with a realistic, natural-looking object as it would appear in real life:'
+        );
+        $finalPrompt = trim($promptPrefix . ' ' . $translatedPrompt);
 
         $payload = [
             'image' => $imageBase64,
