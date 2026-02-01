@@ -689,3 +689,13 @@ button i, a i {
     box-shadow: 0 0 30px rgba(6, 182, 212, 0.4);
 }
 
+/* ===== HIDE NUMBER INPUT SPINNERS ===== */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+input[type="number"] {
+    -moz-appearance: textfield;
+}

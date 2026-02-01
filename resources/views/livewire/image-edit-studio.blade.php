@@ -244,11 +244,19 @@
                             <div class="space-y-4">
                                 <label class="block text-xs font-medium text-white/40 uppercase tracking-wider">Mở rộng (pixels)</label>
                                 
-                                {{-- Visual Preview --}}
-                                <div class="relative w-full aspect-video bg-black/30 rounded-lg border border-white/10 flex items-center justify-center">
+                                {{-- Visual Preview with actual image --}}
+                                <div class="relative w-full aspect-video bg-black/30 rounded-lg border border-white/10 flex items-center justify-center overflow-hidden">
                                     <div class="relative">
-                                        {{-- Center box (original image) --}}
-                                        <div class="w-20 h-14 bg-white/20 border-2 border-white/40 rounded"></div>
+                                        {{-- Center box (show actual image or placeholder) --}}
+                                        @if($sourceImage)
+                                            <img src="{{ $sourceImage }}" alt="Preview" class="w-20 h-14 object-cover border-2 border-white/40 rounded">
+                                        @else
+                                            <div class="w-20 h-14 bg-white/20 border-2 border-white/40 rounded flex items-center justify-center">
+                                                <svg class="w-6 h-6 text-white/30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                                </svg>
+                                            </div>
+                                        @endif
                                         
                                         {{-- Expansion indicators --}}
                                         {{-- Top bar (full width including corners) --}}
@@ -274,17 +282,39 @@
                                     </div>
                                 </div>
 
-                                {{-- Sliders --}}
-                                <div class="space-y-3">
+                                {{-- Sliders with manual input --}}
+                                <div class="space-y-3 mt-3">
                                     @foreach(['top' => 'Trên', 'bottom' => 'Dưới', 'left' => 'Trái', 'right' => 'Phải'] as $dir => $label)
-                                        <div class="flex items-center gap-3">
+                                        <div class="flex items-center gap-2">
                                             <span class="text-xs text-white/50 w-10">{{ $label }}</span>
                                             <input type="range" wire:model.live="expandDirections.{{ $dir }}" 
                                                    min="0" max="512" step="16"
                                                    class="flex-1 h-1.5 bg-white/10 rounded-lg appearance-none cursor-pointer accent-blue-500">
-                                            <span class="text-xs font-mono text-white/70 w-10 text-right">{{ $expandDirections[$dir] }}px</span>
+                                            <input type="number" wire:model.live="expandDirections.{{ $dir }}"
+                                                   min="0" max="2048" step="16"
+                                                   class="w-16 px-2 py-1 text-xs font-mono text-white/90 bg-white/[0.05] border border-white/10 rounded-lg text-center focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/30 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none">
                                         </div>
                                     @endforeach
+                                </div>
+                                
+                                {{-- Quick presets --}}
+                                <div class="flex flex-wrap gap-1 mt-3">
+                                    <button type="button" wire:click="$set('expandDirections', ['top' => 256, 'bottom' => 256, 'left' => 0, 'right' => 0])" 
+                                            class="px-2 py-1 text-[10px] bg-white/[0.05] hover:bg-white/[0.1] border border-white/10 rounded text-white/60 hover:text-white transition">
+                                        Dọc 256
+                                    </button>
+                                    <button type="button" wire:click="$set('expandDirections', ['top' => 0, 'bottom' => 0, 'left' => 256, 'right' => 256])" 
+                                            class="px-2 py-1 text-[10px] bg-white/[0.05] hover:bg-white/[0.1] border border-white/10 rounded text-white/60 hover:text-white transition">
+                                        Ngang 256
+                                    </button>
+                                    <button type="button" wire:click="$set('expandDirections', ['top' => 128, 'bottom' => 128, 'left' => 128, 'right' => 128])" 
+                                            class="px-2 py-1 text-[10px] bg-white/[0.05] hover:bg-white/[0.1] border border-white/10 rounded text-white/60 hover:text-white transition">
+                                        Đều 128
+                                    </button>
+                                    <button type="button" wire:click="$set('expandDirections', ['top' => 0, 'bottom' => 0, 'left' => 0, 'right' => 0])" 
+                                            class="px-2 py-1 text-[10px] bg-white/[0.05] hover:bg-white/[0.1] border border-white/10 rounded text-white/60 hover:text-white transition">
+                                        Reset
+                                    </button>
                                 </div>
                             </div>
                         @else
