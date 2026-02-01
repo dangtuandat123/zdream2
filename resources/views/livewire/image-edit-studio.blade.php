@@ -249,7 +249,7 @@
                                     <div class="relative">
                                         {{-- Center box (show actual image with correct aspect ratio) --}}
                                         @if($sourceImage)
-                                            <img src="{{ $sourceImage }}" alt="Preview" class="object-contain border-2 border-white/40 rounded" style="max-width: 120px; max-height: 84px;">
+                                            <img src="{{ $sourceImage }}" alt="Preview" class="object-contain border-2 border-white/40 rounded" style="max-width: 150px; max-height: 105px;">
                                         @else
                                             <div class="w-20 h-14 bg-white/20 border-2 border-white/40 rounded flex items-center justify-center">
                                                 <svg class="w-6 h-6 text-white/30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
