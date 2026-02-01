@@ -97,6 +97,76 @@ class BflService
     }
 
     /**
+     * Translate prompt to English using OpenRouter
+     * Model and system prompt configurable via Settings
+     */
+    protected function translateToEnglish(string $prompt): string
+    {
+        Log::info('BflService: translateToEnglish called', ['prompt' => $prompt]);
+
+        // Skip if already looks like English (basic check)
+        if (preg_match('/^[a-zA-Z0-9\s\.,!?\-\'\"]+$/', $prompt)) {
+            Log::info('BflService: Prompt looks like English, skipping translation');
+            return $prompt;
+        }
+
+        $openRouterKey = Setting::get('openrouter_api_key', config('services_custom.openrouter.api_key', ''));
+        if (empty($openRouterKey)) {
+            Log::warning('BflService: OpenRouter API key not set, skipping translation');
+            return $prompt;
+        }
+
+        Log::info('BflService: Will translate prompt');
+
+        // Get model and system prompt from settings
+        $model = Setting::get('translation_model', 'google/gemma-2-9b-it:free');
+        $systemPrompt = Setting::get(
+            'translation_system_prompt',
+            'You are a translator. Translate the following text to English. Only output the translation, nothing else. Keep it concise and suitable for AI image generation prompts.'
+        );
+
+        try {
+            $response = Http::withHeaders([
+                'Authorization' => 'Bearer ' . $openRouterKey,
+                'Content-Type' => 'application/json',
+            ])->withOptions(['verify' => false]) // Fix SSL cert issue on Windows
+                ->timeout(15)
+                ->post('https://openrouter.ai/api/v1/chat/completions', [
+                    'model' => $model,
+                    'messages' => [
+                        [
+                            'role' => 'system',
+                            'content' => $systemPrompt
+                        ],
+                        [
+                            'role' => 'user',
+                            'content' => $prompt
+                        ]
+                    ],
+                    'max_tokens' => 150,
+                    'temperature' => 0.3,
+                ]);
+
+            if ($response->successful()) {
+                $data = $response->json();
+                $translated = $data['choices'][0]['message']['content'] ?? null;
+                if ($translated && trim($translated) !== '') {
+                    Log::info('BflService: Translated prompt', [
+                        'original' => $prompt,
+                        'translated' => trim($translated),
+                        'model' => $model
+                    ]);
+                    return trim($translated);
+                }
+            }
+        } catch (\Exception $e) {
+            Log::warning('BflService: Translation failed', ['error' => $e->getMessage()]);
+        }
+
+        return $prompt; // Return original if translation fails
+    }
+
+    /**
      * Kiểm tra credits BFL
      */
     public function checkCredits(): array
@@ -1541,14 +1611,19 @@ class BflService
         // Get model from settings, fallback to default
         $modelId = Setting::get('edit_studio.model_replace', 'flux-pro-1.0-fill');
 
-        // Get prompt prefix from settings
-        $promptPrefix = Setting::get('edit_studio.prompt_prefix_replace', '');
-        $finalPrompt = trim($promptPrefix . ' ' . $prompt);
+        // Pass prompt directly - avoid mixing languages
+        // Auto-translate Vietnamese to English for better AI understanding
+        $finalPrompt = $this->translateToEnglish($prompt);
 
         $payload = [
             'image' => $imageBase64,
             'mask' => $maskBase64,
             'prompt' => $finalPrompt,
+            'steps' => 28, // Faster generation
+            'guidance' => 30, // Fill API recommended value (docs example)
+            'prompt_upsampling' => true, // Helps AI understand prompt better
+            'safety_tolerance' => 2,
+            'output_format' => 'jpeg',
         ];
 
         // Add optional params
@@ -1573,14 +1648,22 @@ class BflService
         // Get model from settings (background uses same fill model by default)
         $modelId = Setting::get('edit_studio.model_background', 'flux-pro-1.0-fill');
 
+        // Auto-translate Vietnamese to English for better AI understanding
+        $translatedPrompt = $this->translateToEnglish($prompt);
+
         // Get prompt prefix from settings (default helps AI understand to keep subject)
         $promptPrefix = Setting::get('edit_studio.prompt_prefix_background', 'Keep the main subject exactly as is. Change the background to:');
-        $finalPrompt = trim($promptPrefix . ' ' . $prompt);
+        $finalPrompt = trim($promptPrefix . ' ' . $translatedPrompt);
 
         $payload = [
             'image' => $imageBase64,
             'mask' => $maskBase64,
             'prompt' => $finalPrompt,
+            'steps' => 28, // Faster generation
+            'guidance' => 30, // Fill API recommended value
+            'prompt_upsampling' => true, // Helps AI understand prompt better
+            'safety_tolerance' => 2,
+            'output_format' => 'jpeg',
         ];
 
         // Add optional params
@@ -1644,12 +1727,18 @@ class BflService
             'bottom' => (int) ($expandDirections['bottom'] ?? 0),
             'left' => (int) ($expandDirections['left'] ?? 0),
             'right' => (int) ($expandDirections['right'] ?? 0),
+            'steps' => 28, // Faster generation
+            'guidance' => 30, // Recommended for outpainting
+            'safety_tolerance' => 2, // API default
+            'output_format' => 'jpeg',
         ];
 
         if (!empty($prompt)) {
+            // Auto-translate Vietnamese to English
+            $translatedPrompt = $this->translateToEnglish($prompt);
             // Get prompt prefix from settings
             $promptPrefix = Setting::get('edit_studio.prompt_prefix_expand', '');
-            $payload['prompt'] = trim($promptPrefix . ' ' . $prompt);
+            $payload['prompt'] = trim($promptPrefix . ' ' . $translatedPrompt);
         }
 
         // Add optional params

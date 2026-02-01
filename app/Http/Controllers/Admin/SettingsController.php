@@ -35,6 +35,9 @@ class SettingsController extends Controller
         $validated = $request->validate([
             'bfl_api_key' => 'nullable|string|max:500',
             'bfl_base_url' => 'nullable|url|max:500',
+            'openrouter_api_key' => 'nullable|string|max:500',
+            'translation_model' => 'nullable|string|max:200',
+            'translation_system_prompt' => 'nullable|string|max:1000',
             'site_name' => 'nullable|string|max:255',
             'default_credits' => 'nullable|integer|min:0',
             'credit_exchange_rate' => 'nullable|integer|min:1',
@@ -66,6 +69,37 @@ class SettingsController extends Controller
                 ]);
             }
             $refreshModels = true;
+        }
+
+        // Update OpenRouter API Key (encrypted)
+        if (filled($validated['openrouter_api_key'] ?? null)) {
+            Setting::set('openrouter_api_key', $validated['openrouter_api_key'], [
+                'is_encrypted' => true,
+                'group' => 'api',
+                'label' => 'OpenRouter API Key',
+            ]);
+        }
+
+        // Update Translation Model
+        if (isset($validated['translation_model'])) {
+            $model = trim($validated['translation_model']);
+            if ($model !== '') {
+                Setting::set('translation_model', $model, [
+                    'group' => 'api',
+                    'label' => 'Translation Model',
+                ]);
+            }
+        }
+
+        // Update Translation System Prompt
+        if (isset($validated['translation_system_prompt'])) {
+            $prompt = trim($validated['translation_system_prompt']);
+            if ($prompt !== '') {
+                Setting::set('translation_system_prompt', $prompt, [
+                    'group' => 'api',
+                    'label' => 'Translation System Prompt',
+                ]);
+            }
         }
 
         // Update General Settings

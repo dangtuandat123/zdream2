@@ -86,6 +86,96 @@
                 </div>
             </div>
 
+            <!-- OpenRouter API Settings -->
+            <div class="bg-white/[0.03] border border-white/[0.08] rounded-2xl p-6">
+                <h2 class="text-lg font-semibold text-white mb-4 inline-flex items-center gap-2">
+                    <i class="fa-solid fa-robot text-green-400" style="font-size: 18px;"></i>
+                    <span>OpenRouter API (Translation)</span>
+                </h2>
+
+                <div class="space-y-4">
+                    <div>
+                        <label for="openrouter_api_key" class="block text-sm font-medium text-white/70 mb-2">
+                            OpenRouter API Key
+                        </label>
+                        <div class="relative">
+                            <input id="openrouter_api_key" type="password" name="openrouter_api_key"
+                                placeholder="sk-or-v1-xxx (để trống nếu không đổi)"
+                                class="w-full px-4 py-3 rounded-xl bg-white/[0.03] border border-white/[0.08] text-white/90 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-green-500/40 transition-all pr-12">
+                            <button type="button" onclick="togglePassword('openrouter_api_key')"
+                                class="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white">
+                                <i class="fa-solid fa-eye" style="font-size: 14px;"></i>
+                            </button>
+                        </div>
+                        <p class="text-white/40 text-xs mt-1">
+                            @php
+                                $orApiKey = \App\Models\Setting::get('openrouter_api_key', '');
+                            @endphp
+                            @if(!empty($orApiKey))
+                                <span class="text-green-400">✓ Đã có API key</span>
+                                @php
+                                    try {
+                                        $orService = app(\App\Services\OpenRouterService::class);
+                                        $balance = $orService->checkBalance();
+                                    } catch (\Exception $e) {
+                                        $balance = ['error' => $e->getMessage()];
+                                    }
+                                @endphp
+                                @if(isset($balance['success']) && $balance['success'])
+                                    <span class="ml-2 text-blue-400">
+                                        | Limit: ${{ number_format($balance['limit'] ?? 0, 2) }}
+                                        | Remaining: ${{ number_format($balance['limit_remaining'] ?? 0, 2) }}
+                                    </span>
+                                @endif
+                            @else
+                                <span class="text-yellow-400">⚠ Chưa có API key (cần cho tính năng dịch prompt)</span>
+                            @endif
+                        </p>
+                        <p class="text-white/30 text-xs mt-1">
+                            <i class="fa-solid fa-info-circle mr-1"></i>
+                            <a href="https://openrouter.ai/keys" target="_blank"
+                                class="text-green-400 hover:underline">Lấy key tại đây</a>
+                        </p>
+                        @error('openrouter_api_key')
+                            <p class="mt-1 text-sm text-red-400">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <div>
+                        <label for="translation_model" class="block text-sm font-medium text-white/70 mb-2">
+                            Model dịch ngôn ngữ
+                        </label>
+                        <input id="translation_model" type="text" name="translation_model"
+                            value="{{ \App\Models\Setting::get('translation_model', 'google/gemma-2-9b-it:free') }}"
+                            placeholder="google/gemma-2-9b-it:free"
+                            class="w-full px-4 py-3 rounded-xl bg-white/[0.03] border border-white/[0.08] text-white/90 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-green-500/40 transition-all">
+                        <p class="text-white/30 text-xs mt-1">
+                            <i class="fa-solid fa-info-circle mr-1"></i>
+                            Model free: google/gemma-2-9b-it:free | Tốt hơn: google/gemini-2.0-flash-001
+                        </p>
+                        @error('translation_model')
+                            <p class="mt-1 text-sm text-red-400">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <div>
+                        <label for="translation_system_prompt" class="block text-sm font-medium text-white/70 mb-2">
+                            System Prompt (dịch ngôn ngữ)
+                        </label>
+                        <textarea id="translation_system_prompt" name="translation_system_prompt" rows="3"
+                            placeholder="You are a translator..."
+                            class="w-full px-4 py-3 rounded-xl bg-white/[0.03] border border-white/[0.08] text-white/90 text-sm focus:outline-none focus:ring-2 focus:ring-green-500/40 transition-all resize-none">{{ \App\Models\Setting::get('translation_system_prompt', 'You are a translator. Translate the following text to English. Only output the translation, nothing else. Keep it concise and suitable for AI image generation prompts.') }}</textarea>
+                        <p class="text-white/30 text-xs mt-1">
+                            <i class="fa-solid fa-info-circle mr-1"></i>
+                            Prompt hướng dẫn AI dịch từ các ngôn ngữ khác sang tiếng Anh
+                        </p>
+                        @error('translation_system_prompt')
+                            <p class="mt-1 text-sm text-red-400">{{ $message }}</p>
+                        @enderror
+                    </div>
+                </div>
+            </div>
+
             <!-- General Settings -->
             <div class="bg-white/[0.03] border border-white/[0.08] rounded-2xl p-6">
                 <h2 class="text-lg font-semibold text-white mb-4 inline-flex items-center gap-2">
@@ -160,10 +250,11 @@
                         </span>
                         <div>
                             <h2 class="text-lg font-semibold text-white">Edit Studio Settings</h2>
-                            <p class="text-white/40 text-sm">Cấu hình models và prompts cho chức năng chỉnh sửa ảnh AI</p>
+                            <p class="text-white/40 text-sm">Cấu hình models và prompts cho chức năng chỉnh sửa ảnh AI
+                            </p>
                         </div>
                     </div>
-                    <a href="{{ route('admin.edit-studio.index') }}" 
+                    <a href="{{ route('admin.edit-studio.index') }}"
                         class="px-4 py-2 rounded-xl bg-cyan-500/20 text-cyan-400 hover:bg-cyan-500/30 transition-all inline-flex items-center gap-2">
                         <span>Cấu hình</span>
                         <i class="fa-solid fa-arrow-right"></i>
