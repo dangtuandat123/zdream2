@@ -482,6 +482,12 @@ class ImageEditStudio extends Component
             $this->lastGeneratedImageId = $image->id;
             $this->successMessage = "Chỉnh sửa thành công! Đã trừ {$image->credits_used} Xu.";
 
+            // Auto-replace source with result for continuous editing
+            $this->sourceImage = $image->image_url;
+            $this->maskData = ''; // Clear mask
+            $this->dispatch('image-loaded', src: $image->image_url);
+            $this->dispatch('clear-canvas-mask');
+
             Log::info('ImageEditStudio: Edit completed', [
                 'image_id' => $image->id,
             ]);
