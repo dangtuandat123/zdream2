@@ -80,17 +80,21 @@ class EditImageJob implements ShouldQueue
             ]);
 
             // Resolve source image from MinIO path or base64
-            $sourceImageBase64 = $this->resolveSourceImage();
-            if (!$sourceImageBase64) {
+            $sourceImageDataUri = $this->resolveSourceImage();
+            if (!$sourceImageDataUri) {
                 $this->handleFailure($generatedImage, $user, $walletService, 'Cannot load source image');
                 return;
             }
+
+            // Extract raw base64 from data URI (BFL API doesn't accept data URI prefix)
+            $sourceImageBase64 = $this->extractBase64FromDataUri($sourceImageDataUri);
+            $maskBase64 = $this->extractBase64FromDataUri($this->maskDataBase64);
 
             // Execute edit based on mode
             $result = match ($this->editMode) {
                 'replace' => $bflService->editWithMask(
                     $sourceImageBase64,
-                    $this->maskDataBase64,
+                    $maskBase64,
                     $this->editPrompt
                 ),
                 'text' => $bflService->editText(
@@ -99,7 +103,7 @@ class EditImageJob implements ShouldQueue
                 ),
                 'background' => $bflService->editBackground(
                     $sourceImageBase64,
-                    $this->maskDataBase64,
+                    $maskBase64,
                     $this->editPrompt
                 ),
                 'expand' => $bflService->expandImage(
@@ -215,6 +219,22 @@ class EditImageJob implements ShouldQueue
     protected function cleanupTempFiles(): void
     {
         // Clean up any temp files if needed
+    }
+
+    /**
+     * Extract raw base64 string from data URI
+     */
+    protected function extractBase64FromDataUri(string $dataUri): string
+    {
+        if (empty($dataUri)) {
+            return '';
+        }
+
+        if (str_contains($dataUri, ';base64,')) {
+            return explode(';base64,', $dataUri)[1];
+        }
+
+        return $dataUri;
     }
 
     /**

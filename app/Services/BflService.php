@@ -1636,12 +1636,13 @@ class BflService
         // Get model from settings, fallback to default
         $modelId = Setting::get('edit_studio.model_expand', 'flux-pro-1.0-expand');
 
+        // API uses 'top', 'bottom', 'left', 'right' (not 'expand_*')
         $payload = [
             'image' => $imageBase64,
-            'expand_top' => (int) ($expandDirections['top'] ?? 0),
-            'expand_bottom' => (int) ($expandDirections['bottom'] ?? 0),
-            'expand_left' => (int) ($expandDirections['left'] ?? 0),
-            'expand_right' => (int) ($expandDirections['right'] ?? 0),
+            'top' => (int) ($expandDirections['top'] ?? 0),
+            'bottom' => (int) ($expandDirections['bottom'] ?? 0),
+            'left' => (int) ($expandDirections['left'] ?? 0),
+            'right' => (int) ($expandDirections['right'] ?? 0),
         ];
 
         if (!empty($prompt)) {
