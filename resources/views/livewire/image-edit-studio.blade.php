@@ -337,26 +337,24 @@
                                 <p class="text-xs text-white/50">AI sẽ tự động tìm và thay đổi text trong ảnh.</p>
                                 
                                 {{-- Single text replacement pair --}}
-                                <div class="space-y-2 p-3 bg-white/[0.03] rounded-lg border border-white/[0.06]">
-                                    <div>
-                                        <label class="block text-[10px] text-white/40 mb-1">Text gốc</label>
-                                        <input type="text" 
-                                               wire:model="textReplacements.0.from"
-                                               placeholder="Nhập text cần thay đổi"
-                                               class="w-full px-3 py-2 text-sm bg-white/[0.05] border border-white/[0.1] rounded-lg text-white placeholder-white/30 focus:ring-1 focus:ring-blue-500/40 focus:border-blue-500/50 outline-none">
-                                    </div>
-                                    <div class="flex items-center justify-center">
-                                        <svg class="w-4 h-4 text-white/30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <div class="p-3 bg-white/[0.03] rounded-lg border border-white/[0.06]">
+                                    <label class="block text-[10px] text-white/40 mb-1">Text gốc</label>
+                                    <input type="text" 
+                                           wire:model="textReplacements.0.from"
+                                           placeholder="Nhập text cần thay đổi"
+                                           class="w-full px-3 py-2 text-sm bg-white/[0.05] border border-white/[0.1] rounded-lg text-white placeholder-white/30 focus:ring-1 focus:ring-blue-500/40 focus:border-blue-500/50 outline-none">
+                                    
+                                    <div class="text-center py-2">
+                                        <svg class="inline-block w-4 h-4 text-white/30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
                                         </svg>
                                     </div>
-                                    <div>
-                                        <label class="block text-[10px] text-white/40 mb-1">Text mới</label>
-                                        <input type="text" 
-                                               wire:model="textReplacements.0.to"
-                                               placeholder="Nhập text thay thế"
-                                               class="w-full px-3 py-2 text-sm bg-white/[0.05] border border-green-500/20 rounded-lg text-white placeholder-white/30 focus:ring-1 focus:ring-green-500/40 focus:border-green-500/50 outline-none">
-                                    </div>
+                                    
+                                    <label class="block text-[10px] text-white/40 mb-1">Text mới</label>
+                                    <input type="text" 
+                                           wire:model="textReplacements.0.to"
+                                           placeholder="Nhập text thay thế"
+                                           class="w-full px-3 py-2 text-sm bg-white/[0.05] border border-green-500/20 rounded-lg text-white placeholder-white/30 focus:ring-1 focus:ring-green-500/40 focus:border-green-500/50 outline-none">
                                 </div>
                             </div>
                         @else
