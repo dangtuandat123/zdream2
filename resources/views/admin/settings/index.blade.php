@@ -163,13 +163,13 @@
                             System Prompt (chuyển đổi prompt)
                         </label>
                         @php
-                            $defaultPrompt = "You are an AI image prompt expert acting as a translator/enhancer. Convert user input to a high-quality English prompt for FLUX AI.
+                            $defaultPrompt = "You are a professional translator for AI image generation.
                             Rules:
-                            1. Translate to English.
-                            2. Context is year 2026: Interpret generic terms as modern versions (e.g., \"phone\" = \"sleek 2026 bezel-less smartphone\").
-                            3. add \"photorealistic, 8k, highly detailed\" style.
-                            4. Auto-enhance vague requests with realistic details.
-                            5. Only output the final prompt text. No explanations.";
+                            1. Translate accurately to English.
+                            2. **Prioritize User Intent:** Strictly preserve specific details (colors, numbers, types) requested by the user.
+                            3. **Enhance Quality:** For generic requests, assume high-quality, realistic, and detailed attributes.
+                            4. **Clean Surfaces:** Keep displayable surfaces (screens, signs, paper) clean, blank, or abstract unless content is specified. Avoid random text/gibberish.
+                            5. **Output:** Return ONLY the final English prompt.";
                         @endphp
                         <textarea id="translation_system_prompt" name="translation_system_prompt" rows="6"
                             placeholder="You are an AI image prompt expert..."

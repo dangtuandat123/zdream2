@@ -120,13 +120,14 @@ class BflService
 
         // Get model and system prompt from settings
         $model = Setting::get('translation_model', 'google/gemma-2-9b-it:free');
-        $defaultSystemPrompt = 'You are an AI image prompt expert acting as a translator/enhancer. Convert user input to a high-quality English prompt for FLUX AI.
+        // Default system prompt (Generic principles, no hardcoded examples)
+        $defaultSystemPrompt = 'You are a professional translator for AI image generation.
 Rules:
-1. Translate to English.
-2. Context is year 2026: Interpret generic terms as modern versions (e.g., "phone" = "sleek 2026 bezel-less smartphone", "car" = "modern electric sports car", "laptop" = "ultra-thin premium laptop").
-3. add "photorealistic, 8k, highly detailed" style if not specified.
-4. If the user input is vague (e.g., "replace with a cat"), add realistic details (e.g., "a fluffy british shorthair cat sitting naturally").
-5. Only output the final prompt text. No explanations.';
+1. Translate accurately to English.
+2. **Prioritize User Intent:** Strictly preserve specific details (colors, numbers, types) requested by the user.
+3. **Enhance Quality:** For generic requests, assume high-quality, realistic, and detailed attributes.
+4. **Clean Surfaces:** Keep displayable surfaces (screens, signs, paper) clean, blank, or abstract unless content is specified. Avoid random text/gibberish.
+5. **Output:** Return ONLY the final English prompt.';
         $systemPrompt = Setting::get('translation_system_prompt', $defaultSystemPrompt);
 
         try {
@@ -1618,10 +1619,10 @@ Rules:
         // Auto-translate Vietnamese to English for better AI understanding
         $translatedPrompt = $this->translateToEnglish($prompt);
 
-        // Add prefix to guide AI - realistic by default
+        // Add prefix to guide AI - Force structural change
         $promptPrefix = Setting::get(
             'edit_studio.prompt_prefix_replace',
-            'Replace the masked area with a realistic, natural-looking object as it would appear in real life:'
+            'COMPLETELY REPLACE the masked area with this object (ignore original shape):'
         );
         $finalPrompt = trim($promptPrefix . ' ' . $translatedPrompt);
 
@@ -1629,9 +1630,9 @@ Rules:
             'image' => $imageBase64,
             'mask' => $maskBase64,
             'prompt' => $finalPrompt,
-            'steps' => 28, // Faster generation
-            'guidance' => 30, // Fill API recommended value (docs example)
-            'prompt_upsampling' => true, // Helps AI understand prompt better
+            'steps' => 50, // Increase steps for complex structural changes
+            'guidance' => 60, // Strong guidance to force prompt adherence
+            'prompt_upsampling' => false, // STRICTLY DISABLE: Prevents AI from "guessing" context (e.g. seeing a desk and forcing a laptop)
             'safety_tolerance' => 2,
             'output_format' => 'jpeg',
         ];
@@ -1661,8 +1662,11 @@ Rules:
         // Auto-translate Vietnamese to English for better AI understanding
         $translatedPrompt = $this->translateToEnglish($prompt);
 
-        // Get prompt prefix from settings (default helps AI understand to keep subject)
-        $promptPrefix = Setting::get('edit_studio.prompt_prefix_background', 'Keep the main subject exactly as is. Change the background to:');
+        // Get prompt prefix from settings (Focus on subject preservation + realistic lighting match)
+        $promptPrefix = Setting::get(
+            'edit_studio.prompt_prefix_background',
+            'Keep the main subject exactly as is. Change the background to a realistic environment that matches the subject lighting:'
+        );
         $finalPrompt = trim($promptPrefix . ' ' . $translatedPrompt);
 
         $payload = [
@@ -1670,7 +1674,7 @@ Rules:
             'mask' => $maskBase64,
             'prompt' => $finalPrompt,
             'steps' => 28, // Faster generation
-            'guidance' => 30, // Fill API recommended value
+            'guidance' => 50, // Increased for better adherence to prompt description
             'prompt_upsampling' => true, // Helps AI understand prompt better
             'safety_tolerance' => 2,
             'output_format' => 'jpeg',
@@ -1700,19 +1704,17 @@ Rules:
 
         // Get prompt prefix from settings
         $promptPrefix = Setting::get('edit_studio.prompt_prefix_text', '');
+
+        // NO TRANSLATION for text edit - Keep user input exactly as is
         $finalPrompt = trim($promptPrefix . ' ' . $prompt);
 
         $payload = [
             'prompt' => $finalPrompt,
             'input_image' => $imageBase64,
-            // 'prompt_upsampling' => true, // Disabled - may cause wrong text detection
         ];
 
         // Add optional params
-        if (isset($options['guidance']))
-            $payload['guidance'] = $options['guidance'];
-        if (isset($options['steps']))
-            $payload['steps'] = $options['steps'];
+        // Note: steps and guidance are NOT supported by flux-kontext-pro
         if (isset($options['safety_tolerance']))
             $payload['safety_tolerance'] = $options['safety_tolerance'];
         if (isset($options['output_format']))
@@ -1738,7 +1740,7 @@ Rules:
             'left' => (int) ($expandDirections['left'] ?? 0),
             'right' => (int) ($expandDirections['right'] ?? 0),
             'steps' => 28, // Faster generation
-            'guidance' => 30, // Recommended for outpainting
+            'guidance' => 60, // Strong guidance for seamless style matching
             'safety_tolerance' => 2, // API default
             'output_format' => 'jpeg',
         ];
@@ -1746,8 +1748,11 @@ Rules:
         if (!empty($prompt)) {
             // Auto-translate Vietnamese to English
             $translatedPrompt = $this->translateToEnglish($prompt);
-            // Get prompt prefix from settings
-            $promptPrefix = Setting::get('edit_studio.prompt_prefix_expand', '');
+            // Get prompt prefix from settings (Focus on seamless continuation)
+            $promptPrefix = Setting::get(
+                'edit_studio.prompt_prefix_expand',
+                'Seamlessly expand the image to match the original style, lighting, and details:'
+            );
             $payload['prompt'] = trim($promptPrefix . ' ' . $translatedPrompt);
         }
 
