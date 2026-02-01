@@ -247,9 +247,9 @@
                                 {{-- Visual Preview with actual image --}}
                                 <div class="relative w-full aspect-video bg-black/30 rounded-lg border border-white/10 flex items-center justify-center overflow-hidden">
                                     <div class="relative">
-                                        {{-- Center box (show actual image or placeholder) --}}
+                                        {{-- Center box (show actual image with correct aspect ratio) --}}
                                         @if($sourceImage)
-                                            <img src="{{ $sourceImage }}" alt="Preview" class="w-20 h-14 object-cover border-2 border-white/40 rounded">
+                                            <img src="{{ $sourceImage }}" alt="Preview" class="object-contain border-2 border-white/40 rounded" style="max-width: 120px; max-height: 84px;">
                                         @else
                                             <div class="w-20 h-14 bg-white/20 border-2 border-white/40 rounded flex items-center justify-center">
                                                 <svg class="w-6 h-6 text-white/30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
