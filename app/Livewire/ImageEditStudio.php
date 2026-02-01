@@ -33,9 +33,11 @@ class ImageEditStudio extends Component
     public function getPlaceholderTextProperty(): string
     {
         return match ($this->editMode) {
-            'text' => 'Ví dụ: Change "OLD TEXT" to "NEW TEXT"',
-            'expand' => 'Ví dụ: Continue the beach scene with blue sky',
-            default => 'Ví dụ: Replace with a red sports car',
+            'replace' => 'VD: Thay bằng một chiếc xe thể thao màu đỏ',
+            'text' => 'VD: Giữ nguyên font chữ, màu sắc, kích thước',
+            'background' => 'VD: Thay nền bằng bãi biển lúc hoàng hôn',
+            'expand' => 'VD: Tiếp tục cảnh biển với bầu trời xanh',
+            default => 'Mô tả những gì bạn muốn thay đổi',
         };
     }
 
