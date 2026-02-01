@@ -1,4 +1,5 @@
-<div class="text-white/95 font-sans selection:bg-blue-500/30">
+<div class="text-white/95 font-sans selection:bg-blue-500/30"
+     @if($isProcessing) wire:poll.2s="pollStatus" @endif>
 
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         {{-- ========================================== --}}
@@ -123,17 +124,19 @@
                                 </canvas>
                             </div>
 
-                            {{-- Processing Overlay --}}
-                            <div wire:loading.flex wire:target="processEdit" 
-                                 class="absolute inset-0 bg-[#0a0a0f]/90 items-center justify-center z-50 backdrop-blur-md">
+                            {{-- Processing Overlay (Queue-based) --}}
+                            @if($isProcessing)
+                            <div class="absolute inset-0 bg-[#0a0a0f]/90 flex items-center justify-center z-50 backdrop-blur-md">
                                 <div class="text-center p-6">
                                     <div class="relative w-14 h-14 mx-auto mb-3">
                                         <div class="absolute inset-0 rounded-full border-4 border-blue-500/30"></div>
                                         <div class="absolute inset-0 rounded-full border-4 border-t-blue-500 animate-spin"></div>
                                     </div>
-                                    <p class="text-blue-400 font-medium animate-pulse">Đang xử lý AI...</p>
+                                    <p class="text-blue-400 font-medium animate-pulse">AI đang xử lý...</p>
+                                    <p class="text-white/40 text-xs mt-2">Đang làm việc trong nền, vui lòng đợi</p>
                                 </div>
                             </div>
+                            @endif
                         </div>
 
                         {{-- Toolbar (Only show when mask is needed) --}}
@@ -340,22 +343,23 @@
                         @endif
 
                         <button wire:click="processEdit"
-                                wire:loading.attr="disabled"
-                                wire:target="processEdit"
-                                @if(empty($sourceImage) || !$this->hasEnoughCredits) disabled @endif
+                                @if(empty($sourceImage) || !$this->hasEnoughCredits || $isProcessing) disabled @endif
                                 class="w-full py-3 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-500 hover:via-indigo-500 hover:to-purple-500 disabled:opacity-40 disabled:cursor-not-allowed rounded-xl text-white font-bold transition-all shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 text-center group">
                             
-                            <span wire:loading.remove wire:target="processEdit" class="inline-flex items-center justify-center gap-2">
-                                <svg class="w-5 h-5 group-hover:rotate-12 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
-                                <span>Tạo tác phẩm ({{ number_format($this->currentPrice, 2) }} Xu)</span>
-                            </span>
-                            <span wire:loading.flex wire:target="processEdit" class="hidden items-center justify-center gap-2">
+                            @if($isProcessing)
+                            <span class="inline-flex items-center justify-center gap-2">
                                 <svg class="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
                                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                 </svg>
                                 <span>Đang xử lý...</span>
                             </span>
+                            @else
+                            <span class="inline-flex items-center justify-center gap-2">
+                                <svg class="w-5 h-5 group-hover:rotate-12 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
+                                <span>Tạo tác phẩm ({{ number_format($this->currentPrice, 2) }} Xu)</span>
+                            </span>
+                            @endif
                         </button>
                     </div>
                 </div>
@@ -708,6 +712,21 @@
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
+        });
+
+        // Listen for Livewire image-loaded event (from continueEditing)
+        // and dispatch as window event for Alpine to pick up
+        document.addEventListener('livewire:initialized', () => {
+            Livewire.on('image-loaded', (data) => {
+                // Handle both array and object format
+                const src = Array.isArray(data) ? data[0]?.src : data?.src;
+                if (!src) return;
+                
+                // Dispatch as window CustomEvent for Alpine (@image-loaded.window)
+                window.dispatchEvent(new CustomEvent('image-loaded', {
+                    detail: { src: src }
+                }));
+            });
         });
     </script>
 </div>

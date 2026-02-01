@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Jobs\EditImageJob;
 use App\Models\GeneratedImage;
 use App\Models\Setting;
 use App\Services\BflService;
@@ -19,7 +20,7 @@ use Livewire\WithFileUploads;
  * - Vẽ vùng mask (brush/rectangle)
  * - Chọn edit mode (replace/text/background/expand)
  * - Mô tả thay đổi
- * - Gọi BFL API (Fill/Kontext/Expand)
+ * - Gọi BFL API (Fill/Kontext/Expand) via Queue
  */
 class ImageEditStudio extends Component
 {
@@ -69,8 +70,11 @@ class ImageEditStudio extends Component
         'right' => 0,
     ];
 
-    /** Trạng thái đang xử lý */
+    /** Trạng thái đang xử lý (job đang chạy) */
     public bool $isProcessing = false;
+
+    /** ID của GeneratedImage đang xử lý (để polling) */
+    public ?int $processingImageId = null;
 
     /** Kết quả sau edit (base64 hoặc URL) */
     public string $resultImage = '';
@@ -259,7 +263,7 @@ class ImageEditStudio extends Component
     // =============================================
 
     /**
-     * Process edit - Main entry point
+     * Process edit - Main entry point (Dispatch to Queue)
      */
     public function processEdit(): void
     {
@@ -300,70 +304,120 @@ class ImageEditStudio extends Component
             return;
         }
 
-        $this->isProcessing = true;
         $this->errorMessage = '';
         $this->resultImage = '';
 
         try {
-            $result = match ($this->editMode) {
-                'replace' => $this->executeReplace(),
-                'text' => $this->executeTextEdit(),
-                'background' => $this->executeBackgroundChange(),
-                'expand' => $this->executeExpand(),
-                default => throw new \Exception('Invalid edit mode'),
-            };
+            // Get mode label
+            $modeLabels = [
+                'replace' => 'Replace Object',
+                'text' => 'Text Edit',
+                'background' => 'Background Change',
+                'expand' => 'Expand Image',
+            ];
+            $modeLabel = $modeLabels[$this->editMode] ?? 'Edit';
 
-            if ($result['success']) {
-                $this->resultImage = $result['image_url'] ?? $result['image_base64'] ?? '';
+            // Deduct credits BEFORE dispatching job
+            $walletService = app(WalletService::class);
+            $walletService->deductCredits(
+                $user,
+                $creditCost,
+                "Edit Studio: {$modeLabel}",
+                'edit_studio'
+            );
 
-                // Deduct credits after successful edit
-                try {
-                    $walletService = app(WalletService::class);
-                    $modeLabels = [
-                        'replace' => 'Replace Object',
-                        'text' => 'Text Edit',
-                        'background' => 'Background Change',
-                        'expand' => 'Expand Image',
-                    ];
-                    $modeLabel = $modeLabels[$this->editMode] ?? 'Edit';
+            // Update local credits display
+            $user->refresh();
+            $this->userCredits = (float) $user->credits;
 
-                    $walletService->deductCredits(
-                        $user,
-                        $creditCost,
-                        "Edit Studio: {$modeLabel}",
-                        'edit_studio'
-                    );
+            // Create GeneratedImage record (processing status)
+            $generatedImage = GeneratedImage::create([
+                'user_id' => $user->id,
+                'style_id' => null, // Edit Studio không dùng style
+                'final_prompt' => $this->editPrompt,
+                'user_custom_input' => $this->editPrompt,
+                'generation_params' => [
+                    'mode' => $this->editMode,
+                    'mode_label' => $modeLabel,
+                    'source' => 'edit_studio',
+                    'expand_directions' => $this->expandDirections,
+                ],
+                'status' => GeneratedImage::STATUS_PROCESSING,
+                'credits_used' => $creditCost,
+            ]);
 
-                    // Update local credits display
-                    $user->refresh();
-                    $this->userCredits = (float) $user->credits;
+            // Dispatch job
+            EditImageJob::dispatch(
+                $generatedImage,
+                $this->editMode,
+                $this->sourceImage,
+                $this->maskData,
+                $this->editPrompt,
+                $this->expandDirections
+            );
 
-                    // Save result to MinIO and history
-                    $this->saveResultToHistory($user, $modeLabel, $creditCost);
+            // Set processing state for polling
+            $this->isProcessing = true;
+            $this->processingImageId = $generatedImage->id;
 
-                    $this->successMessage = "Chỉnh sửa thành công! Đã trừ {$creditCost} Xu.";
-                } catch (\Exception $e) {
-                    Log::error('ImageEditStudio: Failed to deduct credits', [
-                        'user_id' => $user->id,
-                        'amount' => $creditCost,
-                        'error' => $e->getMessage(),
-                    ]);
-                    // Still show success since edit worked, just log the credit error
-                    $this->successMessage = 'Chỉnh sửa thành công!';
-                }
-            } else {
-                $this->errorMessage = $result['error'] ?? 'Có lỗi xảy ra khi xử lý.';
-            }
+            Log::info('ImageEditStudio: Job dispatched', [
+                'image_id' => $generatedImage->id,
+                'user_id' => $user->id,
+                'mode' => $this->editMode,
+            ]);
 
         } catch (\Exception $e) {
-            Log::error('ImageEditStudio: Edit failed', [
+            Log::error('ImageEditStudio: Failed to dispatch job', [
                 'mode' => $this->editMode,
                 'error' => $e->getMessage(),
             ]);
             $this->errorMessage = 'Có lỗi xảy ra: ' . $e->getMessage();
-        } finally {
-            $this->isProcessing = false;
         }
+    }
+
+    /**
+     * Poll for job status (called by wire:poll)
+     */
+    public function pollStatus(): void
+    {
+        if (!$this->processingImageId) {
+            $this->isProcessing = false;
+            return;
+        }
+
+        $image = GeneratedImage::find($this->processingImageId);
+        if (!$image) {
+            $this->isProcessing = false;
+            $this->processingImageId = null;
+            $this->errorMessage = 'Không tìm thấy task xử lý.';
+            return;
+        }
+
+        if ($image->status === GeneratedImage::STATUS_COMPLETED) {
+            // Success!
+            $this->isProcessing = false;
+            $this->processingImageId = null;
+            $this->resultImage = $image->image_url;
+            $this->lastGeneratedImageId = $image->id;
+            $this->successMessage = "Chỉnh sửa thành công! Đã trừ {$image->credits_used} Xu.";
+
+            Log::info('ImageEditStudio: Edit completed', [
+                'image_id' => $image->id,
+            ]);
+        } elseif ($image->status === GeneratedImage::STATUS_FAILED) {
+            // Failed - credits already refunded by job
+            $this->isProcessing = false;
+            $this->processingImageId = null;
+            $this->errorMessage = $image->error_message ?? 'Có lỗi xảy ra khi xử lý.';
+
+            // Refresh user credits (may have been refunded)
+            $user = Auth::user();
+            if ($user) {
+                $user->refresh();
+                $this->userCredits = (float) $user->credits;
+            }
+        }
+        // If still processing, do nothing - poll will call again
     }
 
 
