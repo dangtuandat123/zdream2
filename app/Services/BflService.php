@@ -1705,8 +1705,31 @@ Rules:
         // Get prompt prefix from settings
         $promptPrefix = Setting::get('edit_studio.prompt_prefix_text', '');
 
-        // NO TRANSLATION for text edit - Keep user input exactly as is
-        $finalPrompt = trim($promptPrefix . ' ' . $prompt);
+        // NO TRANSLATION for text edit
+        // Smart Case Handling: Automatically expand quoted text to cover case variations
+        // Example: "Canva" -> "Canva" OR "CANVA" OR "canva"
+        $smartPrompt = preg_replace_callback('/"([^"]+)"/', function ($matches) {
+            $text = $matches[1];
+            // Skip if text is too long or contains spaces (likely a sentence, not a keyword)
+            if (strlen($text) > 20 || str_word_count($text) > 3) {
+                return '"' . $text . '"';
+            }
+
+            $variants = array_unique([
+                $text,                  // Original
+                strtoupper($text),      // UPPERCASE
+                strtolower($text),      // lowercase
+                ucfirst(strtolower($text)) // Capitalized
+            ]);
+
+            // If variations exist, join them with OR
+            if (count($variants) > 1) {
+                return '(' . implode(' OR ', array_map(fn($v) => '"' . $v . '"', $variants)) . ')';
+            }
+            return '"' . $text . '"';
+        }, $prompt);
+
+        $finalPrompt = trim($promptPrefix . ' ' . $smartPrompt);
 
         $payload = [
             'prompt' => $finalPrompt,
@@ -1714,7 +1737,10 @@ Rules:
         ];
 
         // Add optional params
-        // Note: steps and guidance are NOT supported by flux-kontext-pro
+        if (isset($options['guidance']))
+            $payload['guidance'] = $options['guidance'];
+        if (isset($options['steps']))
+            $payload['steps'] = $options['steps'];
         if (isset($options['safety_tolerance']))
             $payload['safety_tolerance'] = $options['safety_tolerance'];
         if (isset($options['output_format']))
