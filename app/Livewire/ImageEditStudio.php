@@ -271,6 +271,45 @@ class ImageEditStudio extends Component
     }
 
     /**
+     * Magic Prompt Enhancer
+     */
+    public function magicEnhance(): void
+    {
+        if (empty(trim($this->editPrompt))) {
+            $this->dispatch(
+                'notify',
+                type: 'error',
+                message: 'Vui lòng nhập từ khóa trước khi dùng Đũa thần!'
+            );
+            return;
+        }
+
+        $this->isProcessing = true; // Show loading spinner
+
+        try {
+            // Call service to enhance prompt
+            $enhanced = $this->bflService->magicEnhancePrompt($this->editPrompt);
+
+            // Update prompt with enhanced version
+            $this->editPrompt = $enhanced;
+
+            $this->dispatch(
+                'notify',
+                type: 'success',
+                message: 'Đã phù phép prompt thành công! ✨'
+            );
+        } catch (\Exception $e) {
+            $this->dispatch(
+                'notify',
+                type: 'error',
+                message: 'Có lỗi xảy ra: ' . $e->getMessage()
+            );
+        }
+
+        $this->isProcessing = false;
+    }
+
+    /**
      * Set expand directions preset
      */
     public function setExpandPreset(string $preset): void

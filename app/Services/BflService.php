@@ -154,21 +154,64 @@ Rules:
 
             if ($response->successful()) {
                 $data = $response->json();
-                $translated = $data['choices'][0]['message']['content'] ?? null;
-                if ($translated && trim($translated) !== '') {
-                    Log::info('BflService: Translated prompt', [
-                        'original' => $prompt,
-                        'translated' => trim($translated),
-                        'model' => $model
-                    ]);
-                    return trim($translated);
-                }
+                $translated = $data['choices'][0]['message']['content'] ?? $prompt;
+                Log::info('BflService: Translation result', ['translated' => $translated]);
+                return trim($translated);
+            } else {
+                Log::error('BflService: Translation failed', ['error' => $response->body()]);
+                return $prompt;
             }
         } catch (\Exception $e) {
-            Log::warning('BflService: Translation failed', ['error' => $e->getMessage()]);
+            Log::error('BflService: Translation exception', ['message' => $e->getMessage()]);
+            return $prompt;
+        }
+    }
+
+    /**
+     * Magic Prompt Enhancer: Expands simple prompts into professional AI prompts
+     */
+    public function magicEnhancePrompt(string $prompt): string
+    {
+        Log::info('BflService: magicEnhancePrompt called', ['prompt' => $prompt]);
+
+        $openRouterKey = Setting::get('openrouter_api_key', config('services_custom.openrouter.api_key', ''));
+        if (empty($openRouterKey)) {
+            return $prompt; // Fallback if no key
         }
 
-        return $prompt; // Return original if translation fails
+        $model = Setting::get('translation_model', 'google/gemma-2-9b-it:free');
+
+        $magicSystemPrompt = 'You are a Creative Director for AI Art.
+Rules:
+1.  **Analyze** the user\'s input (e.g., "cat", "city sunset").
+2.  **Enhance** it into a highly detailed, professional text-to-image prompt (English).
+3.  **Add Structure:** Subject + Action/Context + Lighting + Art Style + Quality Tags.
+4.  **Example:** Input: "A soldier" -> Output: "Close-up portrait of a battle-hardened futuristic soldier, detailed cyberpunk armor, glowing blue neon accents, raining dark city street background, cinematic lighting, 8k resolution, photorealistic, masterpiece".
+5.  **Constraint:** Keep it under 75 words. Return ONLY the enhanced prompt.';
+
+        try {
+            $response = Http::withHeaders([
+                'Authorization' => 'Bearer ' . $openRouterKey,
+                'Content-Type' => 'application/json',
+            ])->withOptions(['verify' => false])
+                ->timeout(20)
+                ->post('https://openrouter.ai/api/v1/chat/completions', [
+                    'model' => $model,
+                    'messages' => [
+                        ['role' => 'system', 'content' => $magicSystemPrompt],
+                        ['role' => 'user', 'content' => $prompt]
+                    ]
+                ]);
+
+            if ($response->successful()) {
+                $data = $response->json();
+                return trim($data['choices'][0]['message']['content'] ?? $prompt);
+            }
+        } catch (\Exception $e) {
+            Log::error('BflService: Magic Enhance exception', ['message' => $e->getMessage()]);
+        }
+
+        return $prompt; // Fail graceful
     }
 
     /**
@@ -1706,9 +1749,11 @@ Rules:
         $promptPrefix = Setting::get('edit_studio.prompt_prefix_text', '');
 
         // NO TRANSLATION for text edit
+        Log::info('EditText: Original prompt', ['prompt' => $prompt]);
+
         // Smart Case Handling: Automatically expand quoted text to cover case variations
-        // Example: "Canva" -> "Canva" OR "CANVA" OR "canva"
-        $smartPrompt = preg_replace_callback('/"([^"]+)"/', function ($matches) {
+        // Supports both straight quotes " and curly quotes “ ”
+        $smartPrompt = preg_replace_callback('/["“”]([^"“”]+)["“”]/u', function ($matches) {
             $text = $matches[1];
             // Skip if text is too long or contains spaces (likely a sentence, not a keyword)
             if (strlen($text) > 20 || str_word_count($text) > 3) {
@@ -1724,10 +1769,14 @@ Rules:
 
             // If variations exist, join them with OR
             if (count($variants) > 1) {
-                return '(' . implode(' OR ', array_map(fn($v) => '"' . $v . '"', $variants)) . ')';
+                $expanded = '(' . implode(' OR ', array_map(fn($v) => '"' . $v . '"', $variants)) . ')';
+                Log::info('EditText: Expanded text', ['original' => $text, 'expanded' => $expanded]);
+                return $expanded;
             }
             return '"' . $text . '"';
         }, $prompt);
+
+        Log::info('EditText: Smart prompt', ['smartPrompt' => $smartPrompt]);
 
         $finalPrompt = trim($promptPrefix . ' ' . $smartPrompt);
 

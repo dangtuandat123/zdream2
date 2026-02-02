@@ -377,10 +377,30 @@
                         <label class="block text-xs font-medium text-white/40 uppercase tracking-wider mb-2">
                             {{ $editMode === 'text' ? 'Ghi chú thêm (tuỳ chọn)' : 'Mô tả thay đổi' }}
                         </label>
-                        <textarea wire:model="editPrompt"
-                                  rows="{{ $editMode === 'text' ? 2 : 3 }}"
-                                  placeholder="{{ $editMode === 'text' ? 'VD: Giữ nguyên font, màu đỏ, chữ đậm...' : $this->placeholderText }}"
-                                  class="w-full px-3 py-2.5 bg-white/[0.05] border border-white/[0.1] rounded-xl text-white text-sm placeholder-white/30 focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500/50 outline-none transition-all resize-none"></textarea>
+                        <div class="relative group/prompt">
+                            <textarea wire:model="editPrompt"
+                                      rows="{{ $editMode === 'text' ? 2 : 4 }}"
+                                      placeholder="{{ $editMode === 'text' ? 'VD: Giữ nguyên font, màu đỏ, chữ đậm...' : $this->placeholderText }}"
+                                      class="w-full pl-3 pr-12 py-2.5 bg-white/[0.05] border border-white/[0.1] rounded-xl text-white text-sm placeholder-white/30 focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500/50 outline-none transition-all resize-none"></textarea>
+                            
+                            {{-- Magic Wand Button --}}
+                            <button wire:click="magicEnhance" 
+                                    wire:loading.attr="disabled"
+                                    class="absolute right-2 top-2 p-1.5 rounded-lg bg-gradient-to-br from-blue-500/20 to-purple-500/20 border border-white/10 text-blue-300 hover:text-white hover:from-blue-500 hover:to-purple-500 hover:border-transparent transition-all shadow-lg group-hover/prompt:opacity-100 opacity-70"
+                                    title="Dùng Đũa Thần để viết lại prompt siêu xịn (Magic Enhance)">
+                                <span wire:loading.remove target="magicEnhance">
+                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                    </svg>
+                                </span>
+                                <span wire:loading target="magicEnhance">
+                                    <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                </span>
+                            </button>
+                        </div>
                         @error('editPrompt')
                             <p class="mt-1.5 text-xs text-red-400 flex items-center gap-1">
                                 <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
@@ -468,11 +488,46 @@
                     </button>
                 </div>
 
-                {{-- Modal Body - Image Preview --}}
+                {{-- Modal Body - Image Preview with Comparison Custom Slider --}}
                 <div class="p-5">
-                    <div class="relative rounded-xl overflow-hidden bg-black/40 border border-white/[0.05]">
-                        <img src="{{ $resultImage }}" alt="Edited result" class="w-full h-auto max-h-[50vh] object-contain">
+                    <div class="relative rounded-xl overflow-hidden bg-black/40 border border-white/[0.05] group/slider select-none"
+                         x-data="{ sliderPos: 50 }"
+                         style="--pos: 50%">
+                        
+                        {{-- 1. AFTER Image (Bottom Layer) --}}
+                        <img src="{{ $resultImage }}" alt="After" class="w-full h-auto max-h-[60vh] object-contain block relative z-0">
+
+                        {{-- 2. BEFORE Image (Top Layer - Clipped) --}}
+                        <div class="absolute inset-0 w-full h-full z-10"
+                             :style="`clip-path: inset(0 calc(100% - ${sliderPos}%) 0 0)`">
+                            <img src="{{ $sourceImage }}" alt="Before" class="w-full h-full object-contain block">
+                            {{-- Label --}}
+                            <span class="absolute top-4 left-4 bg-black/50 text-white/80 text-[10px] font-bold px-2 py-1 rounded backdrop-blur-md border border-white/10 uppercase tracking-wider">Original</span>
+                        </div>
+                        
+                        {{-- Label for After --}}
+                        <span class="absolute top-4 right-4 bg-blue-500/50 text-white/90 text-[10px] font-bold px-2 py-1 rounded backdrop-blur-md border border-white/10 z-0 uppercase tracking-wider">AI Result</span>
+
+                        {{-- 3. Slider Handle --}}
+                        <div class="absolute top-0 bottom-0 w-0.5 bg-white/80 z-20 shadow-[0_0_10px_rgba(0,0,0,0.5)] pointer-events-none"
+                             :style="`left: ${sliderPos}%`">
+                             {{-- Handle Circle --}}
+                             <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-lg text-blue-600">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8 7h8M8 17h8M7 12h10" />
+                                </svg>
+                             </div>
+                        </div>
+
+                        {{-- 4. Interactive Range Input (Invisible Overlay) --}}
+                        <input type="range" min="0" max="100" value="50"
+                               x-model="sliderPos"
+                               class="absolute inset-0 w-full h-full opacity-0 cursor-ew-resize z-30"
+                               aria-label="Comparison slider">
                     </div>
+                    
+                    {{-- Hint --}}
+                    <p class="text-center text-white/30 text-xs mt-3">Kéo thanh trượt để so sánh trước/sau</p>
                 </div>
 
                 {{-- Modal Footer - Action Buttons --}}
