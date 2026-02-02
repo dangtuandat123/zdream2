@@ -134,79 +134,79 @@
                     <!-- Options Selection với Thumbnails -->
                     @if($optionGroups->isNotEmpty())
                         @foreach($optionGroups as $groupName => $options)
-                                        <div wire:key="group-{{ $loop->index }}">
-                                            <h3 class="text-sm font-medium text-white/60 mb-3 flex items-center gap-2">
-                                                <span class="w-1 h-4 bg-gradient-to-b from-purple-400 to-pink-500 rounded-full"></span>
-                                                {{ $groupName }}
-                                            </h3>
-                                            <div class="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-3">
-                                                {{-- Default option --}}
-                                                @php 
-                                                    $isDefaultSelected = !isset($selectedOptions[$groupName]) || $selectedOptions[$groupName] === null;
-                                                @endphp
-                                                <button 
-                                                    type="button"
-                                                    wire:click="selectOption(@js($groupName), null)"
-                                                    wire:key="option-{{ Str::slug($groupName) }}-default"
-                                                    class="relative w-full min-w-0 flex flex-col items-center gap-1.5 p-1.5 rounded-xl transition-all duration-300 
-                                                        {{ $isDefaultSelected
-                            ? 'bg-gradient-to-br from-cyan-500/20 to-cyan-500/20 shadow-[0_0_20px_rgba(6,182,212,0.3)]'
-                            : 'hover:bg-white/[0.05]' }}">
-                                                    {{-- Selected indicator --}}
-                                                    @if($isDefaultSelected)
-                                                        <div class="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-gradient-to-r from-cyan-400 to-cyan-500 flex items-center justify-center shadow-lg z-20">
-                                                            <i class="fa-solid fa-check text-[#d3d6db]" style="font-size: 10px;"></i>
-                                                        </div>
-                                                    @endif
-                                                    {{-- Icon container - hình vuông --}}
-                                                    <div class="w-full aspect-square max-w-[120px] sm:max-w-[140px] mx-auto rounded-md transition-all duration-300
-                                                        {{ $isDefaultSelected
-                            ? 'bg-gradient-to-br from-cyan-500/30 to-cyan-500/30 border-2 border-cyan-400/50'
-                            : 'bg-[#1a1a2e] border border-white/10 hover:border-white/20' }}
-                                                        flex items-center justify-center">
-                                                        <i class="fa-solid fa-ban {{ $isDefaultSelected ? 'text-cyan-400' : 'text-white/30' }}" style="font-size: 20px;"></i>
-                                                    </div>
-                                                    <span class="w-full text-center text-[11px] sm:text-xs font-medium leading-snug whitespace-normal break-words min-h-8 {{ $isDefaultSelected ? 'text-cyan-400' : 'text-white/50' }}">Mặc định</span>
-                                                </button>
-
-                                                {{-- Style options --}}
-                                                @foreach($options as $option)
+                                                                <div wire:key="group-{{ $loop->index }}">
+                                                                    <h3 class="text-sm font-medium text-white/60 mb-3 flex items-center gap-2">
+                                                                        <span class="w-1 h-4 bg-gradient-to-b from-purple-400 to-pink-500 rounded-full"></span>
+                                                                        {{ $groupName }}
+                                                                    </h3>
+                                                                    <div class="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-3">
+                                                                        {{-- Default option --}}
                                                                         @php 
-                                                                            $isSelected = isset($selectedOptions[$groupName]) && $selectedOptions[$groupName] === $option->id;
+                                                                            $isDefaultSelected = !isset($selectedOptions[$groupName]) || $selectedOptions[$groupName] === null;
                                                                         @endphp
                                                                         <button 
                                                                             type="button"
-                                                                            wire:click="selectOption(@js($groupName), {{ $option->id }})"
-                                                                            wire:key="option-{{ $option->id }}"
-                                                                            class="relative w-full min-w-0 flex flex-col items-center gap-1.5 p-1.5 rounded-xl transition-all duration-300
-                                                                                {{ $isSelected
-                                                    ? 'bg-gradient-to-br from-cyan-500/20 to-cyan-500/20 shadow-[0_0_20px_rgba(6,182,212,0.3)]'
-                                                    : 'hover:bg-white/[0.05]' }}">
+                                                                            wire:click="selectOption(@js($groupName), null)"
+                                                                            wire:key="option-{{ Str::slug($groupName) }}-default"
+                                                                            class="relative w-full min-w-0 flex flex-col items-center gap-1.5 p-1.5 rounded-xl transition-all duration-300 
+                                                                                {{ $isDefaultSelected
+                            ? 'bg-gradient-to-br from-cyan-500/20 to-cyan-500/20 shadow-[0_0_20px_rgba(6,182,212,0.3)]'
+                            : 'hover:bg-white/[0.05]' }}">
                                                                             {{-- Selected indicator --}}
-                                                                            @if($isSelected)
+                                                                            @if($isDefaultSelected)
                                                                                 <div class="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-gradient-to-r from-cyan-400 to-cyan-500 flex items-center justify-center shadow-lg z-20">
                                                                                     <i class="fa-solid fa-check text-[#d3d6db]" style="font-size: 10px;"></i>
                                                                                 </div>
                                                                             @endif
-                                                                            {{-- Thumbnail container - hình vuông --}}
-                                                                            <div class="w-full aspect-square max-w-[120px] sm:max-w-[140px] mx-auto rounded-md overflow-hidden transition-all duration-300
-                                                                                {{ $isSelected
-                                                    ? 'border-2 border-cyan-400/50 shadow-[0_0_15px_rgba(6,182,212,0.4)]'
-                                                    : 'border border-white/10 hover:border-white/20' }}
-                                                                                bg-[#1a1a2e] flex items-center justify-center">
-                                                                                @if($option->thumbnail_url)
-                                                                                    <img src="{{ $option->thumbnail_url }}" alt="{{ $option->label }}" class="w-full h-full object-cover">
-                                                                                @elseif($option->icon)
-                                                                                    <i class="{{ $option->icon }} {{ $isSelected ? 'text-cyan-400' : 'text-white/40' }}" style="font-size: 20px;"></i>
-                                                                                @else
-                                                                                    <i class="fa-solid fa-wand-magic-sparkles {{ $isSelected ? 'text-cyan-400' : 'text-white/30' }}" style="font-size: 18px;"></i>
-                                                                                @endif
+                                                                            {{-- Icon container - hình vuông --}}
+                                                                            <div class="w-full aspect-square max-w-[120px] sm:max-w-[140px] mx-auto rounded-md transition-all duration-300
+                                                                                {{ $isDefaultSelected
+                            ? 'bg-gradient-to-br from-cyan-500/30 to-cyan-500/30 border-2 border-cyan-400/50'
+                            : 'bg-[#1a1a2e] border border-white/10 hover:border-white/20' }}
+                                                                                flex items-center justify-center">
+                                                                                <i class="fa-solid fa-ban {{ $isDefaultSelected ? 'text-cyan-400' : 'text-white/30' }}" style="font-size: 20px;"></i>
                                                                             </div>
-                                                                            <span class="w-full text-center text-[11px] sm:text-xs font-medium leading-snug whitespace-normal break-words min-h-8 {{ $isSelected ? 'text-cyan-400' : 'text-white/50' }}">{{ $option->label }}</span>
+                                                                            <span class="w-full text-center text-[11px] sm:text-xs font-medium leading-snug whitespace-normal break-words min-h-8 {{ $isDefaultSelected ? 'text-cyan-400' : 'text-white/50' }}">Mặc định</span>
                                                                         </button>
-                                                @endforeach
-                                            </div>
-                                        </div>
+
+                                                                        {{-- Style options --}}
+                                                                        @foreach($options as $option)
+                                                                                                                                                                            @php 
+                                                                                                                                                                                $isSelected = isset($selectedOptions[$groupName]) && $selectedOptions[$groupName] === $option->id;
+                                                                                                                                                                            @endphp
+                                                                                                                                                                            <button 
+                                                                                                                                                                                type="button"
+                                                                                                                                                                                wire:click="selectOption(@js($groupName), {{ $option->id }})"
+                                                                                                                                                                                wire:key="option-{{ $option->id }}"
+                                                                                                                                                                                class="relative w-full min-w-0 flex flex-col items-center gap-1.5 p-1.5 rounded-xl transition-all duration-300
+                                                                                                                                                                                    {{ $isSelected
+                                                                            ? 'bg-gradient-to-br from-cyan-500/20 to-cyan-500/20 shadow-[0_0_20px_rgba(6,182,212,0.3)]'
+                                                                            : 'hover:bg-white/[0.05]' }}">
+                                                                                                                                                                                {{-- Selected indicator --}}
+                                                                                                                                                                                @if($isSelected)
+                                                                                                                                                                                    <div class="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-gradient-to-r from-cyan-400 to-cyan-500 flex items-center justify-center shadow-lg z-20">
+                                                                                                                                                                                        <i class="fa-solid fa-check text-[#d3d6db]" style="font-size: 10px;"></i>
+                                                                                                                                                                                    </div>
+                                                                                                                                                                                @endif
+                                                                                                                                                                                {{-- Thumbnail container - hình vuông --}}
+                                                                                                                                                                                <div class="w-full aspect-square max-w-[120px] sm:max-w-[140px] mx-auto rounded-md overflow-hidden transition-all duration-300
+                                                                                                                                                                                    {{ $isSelected
+                                                                            ? 'border-2 border-cyan-400/50 shadow-[0_0_15px_rgba(6,182,212,0.4)]'
+                                                                            : 'border border-white/10 hover:border-white/20' }}
+                                                                                                                                                                                    bg-[#1a1a2e] flex items-center justify-center">
+                                                                                                                                                                                    @if($option->thumbnail_url)
+                                                                                                                                                                                        <img src="{{ $option->thumbnail_url }}" alt="{{ $option->label }}" class="w-full h-full object-cover">
+                                                                                                                                                                                    @elseif($option->icon)
+                                                                                                                                                                                        <i class="{{ $option->icon }} {{ $isSelected ? 'text-cyan-400' : 'text-white/40' }}" style="font-size: 20px;"></i>
+                                                                                                                                                                                    @else
+                                                                                                                                                                                        <i class="fa-solid fa-wand-magic-sparkles {{ $isSelected ? 'text-cyan-400' : 'text-white/30' }}" style="font-size: 18px;"></i>
+                                                                                                                                                                                    @endif
+                                                                                                                                                                                </div>
+                                                                                                                                                                                <span class="w-full text-center text-[11px] sm:text-xs font-medium leading-snug whitespace-normal break-words min-h-8 {{ $isSelected ? 'text-cyan-400' : 'text-white/50' }}">{{ $option->label }}</span>
+                                                                                                                                                                            </button>
+                                                                        @endforeach
+                                                                    </div>
+                                                                </div>
                         @endforeach
                     @endif
 
@@ -324,24 +324,24 @@
                         </label>
                         <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
                             @foreach($aspectRatios as $ratio => $label)
-                                                @php
-                                                    $dim = $ratioDimensions[$ratio] ?? null;
-                                                    $dimText = $dim ? ($dim['width'] . '×' . $dim['height'] . ' px') : null;
-                                                @endphp
-                                                <button 
-                                                    type="button"
-                                                    wire:click="$set('selectedAspectRatio', '{{ $ratio }}')"
-                                                    wire:key="ratio-{{ Str::slug($ratio) }}"
-                                                    class="py-2.5 px-2 text-[11px] sm:text-xs rounded-xl border transition-all duration-200 text-center font-semibold
-                                                        {{ $selectedAspectRatio === $ratio
+                                                                                        @php
+                                                                                            $dim = $ratioDimensions[$ratio] ?? null;
+                                                                                            $dimText = $dim ? ($dim['width'] . '×' . $dim['height'] . ' px') : null;
+                                                                                        @endphp
+                                                                                        <button 
+                                                                                            type="button"
+                                                                                            wire:click="$set('selectedAspectRatio', '{{ $ratio }}')"
+                                                                                            wire:key="ratio-{{ Str::slug($ratio) }}"
+                                                                                            class="py-2.5 px-2 text-[11px] sm:text-xs rounded-xl border transition-all duration-200 text-center font-semibold
+                                                                                                {{ $selectedAspectRatio === $ratio
                                 ? 'bg-cyan-500/10 border-cyan-500/50 text-cyan-400 shadow-[0_0_15px_rgba(6,182,212,0.15)] ring-1 ring-cyan-500/30'
                                 : 'bg-[#1b1c21] border-[#2a2b30] text-white/60 hover:bg-white/[0.06] hover:border-white/[0.15]' 
-                                                        }}">
-                                                    <span class="block">{{ $label }}</span>
-                                                    @if($dimText)
-                                                        <span class="block text-[10px] text-white/40 mt-0.5">{{ $dimText }}</span>
-                                                    @endif
-                                                </button>
+                                                                                                }}">
+                                                                                            <span class="block">{{ $label }}</span>
+                                                                                            @if($dimText)
+                                                                                                <span class="block text-[10px] text-white/40 mt-0.5">{{ $dimText }}</span>
+                                                                                            @endif
+                                                                                        </button>
                             @endforeach
                         </div>
                         @if(!empty($ratioDimensions))
@@ -397,89 +397,23 @@
                         </label>
                         <div class="grid grid-cols-3 gap-3">
                             @foreach($imageSizes as $size => $label)
-                                                    <button 
-                                                        type="button"
-                                                        wire:click="$set('selectedImageSize', '{{ $size }}')"
-                                                        wire:key="size-{{ Str::slug($size) }}"
-                                                        class="py-2.5 px-3 text-xs rounded-xl border transition-all duration-200 text-center font-medium
-                                                            {{ $selectedImageSize === $size
+                                                                                            <button 
+                                                                                                type="button"
+                                                                                                wire:click="$set('selectedImageSize', '{{ $size }}')"
+                                                                                                wire:key="size-{{ Str::slug($size) }}"
+                                                                                                class="py-2.5 px-3 text-xs rounded-xl border transition-all duration-200 text-center font-medium
+                                                                                                    {{ $selectedImageSize === $size
                                 ? 'bg-cyan-500/10 border-cyan-500/50 text-cyan-400 shadow-[0_0_15px_rgba(6,182,212,0.15)] ring-1 ring-cyan-500/30'
                                 : 'bg-[#1b1c21] border-[#2a2b30] text-white/50 hover:bg-white/[0.06] hover:border-white/[0.15]' 
-                                                            }}">
-                                                        {{ $label }}
-                                                    </button>
+                                                                                                    }}">
+                                                                                                {{ $label }}
+                                                                                            </button>
                             @endforeach
                         </div>
                         <p class="text-xs text-white/30 mt-2">Ảnh 4K sẽ tốn thêm thời gian xử lý</p>
                     </div>
                 @endif
 
-                <!-- Advanced Controls -->
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
-                    @if($supportsSeed)
-                        <div class="bg-[#1b1c21] border border-[#2a2b30] rounded-xl p-4">
-                            <label class="block text-sm font-semibold text-white/80 mb-2 inline-flex items-center gap-2">
-                                <i class="fa-solid fa-hashtag" style="font-size: 12px;"></i>
-                                <span>Mã giữ kết quả</span>
-                                <i class="fa-solid fa-circle-question text-white/30" style="font-size: 12px;" title="Nhập mã để lần sau ra ảnh gần giống nhau."></i>
-                            </label>
-                            <div class="flex flex-col sm:flex-row items-stretch gap-2">
-                                <input type="number" min="0" step="1" wire:model.live="seed"
-                                       placeholder="Auto"
-                                       class="w-full h-9 px-3 rounded-lg bg-[#1b1c21] border border-[#2a2b30] text-white/90 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500/40">
-                                <div class="grid grid-cols-2 sm:flex sm:items-center gap-2 sm:gap-2 w-full sm:w-auto">
-                                    <button type="button" wire:click="randomizeSeed" class="w-full flex-1 sm:w-auto sm:flex-none h-9 px-3 rounded-lg bg-cyan-500/15 border border-cyan-500/30 text-cyan-300 text-xs font-semibold inline-flex items-center justify-center hover:bg-cyan-500/25 transition-colors">
-                                        Random
-                                    </button>
-                                    <button type="button" wire:click="clearSeed" class="w-full flex-1 sm:w-auto sm:flex-none h-9 px-3 rounded-lg bg-white/[0.05] border border-white/[0.1] text-white/50 text-xs font-semibold inline-flex items-center justify-center hover:bg-white/[0.1] transition-colors">
-                                        Auto
-                                    </button>
-                                </div>
-                            </div>
-                            <p class="text-xs text-white/40 mt-2">
-                                Nhập mã để lần sau ra ảnh gần giống. Để trống sẽ ngẫu nhiên mỗi lần.
-                            </p>
-                        </div>
-                    @endif
-
-                    @if($supportsOutputFormat)
-                        <div class="bg-[#1b1c21] border border-[#2a2b30] rounded-xl p-4">
-                            <label class="block text-sm font-semibold text-white/80 mb-2 inline-flex items-center gap-2">
-                                <i class="fa-solid fa-file-image" style="font-size: 12px;"></i>
-                                <span>Loại file ảnh</span>
-                                <i class="fa-solid fa-circle-question text-white/30" style="font-size: 12px;" title="PNG rõ nét hơn, JPEG nhẹ hơn và tải nhanh hơn."></i>
-                            </label>
-                            <div class="relative" wire:ignore
-                                 x-data="{ value: @entangle('outputFormat').live }"
-                                 x-init="
-                                    const $el = window.$($refs.outputFormat);
-                                    const $parent = $el.parent();
-                                    if (!$el.hasClass('select2-hidden-accessible')) {
-                                        $el.select2({
-                                            minimumResultsForSearch: 5,
-                                            dropdownAutoWidth: false,
-                                            width: '100%',
-                                            dropdownParent: $parent
-                                        });
-                                    }
-                                    $el.on('change', () => { value = $el.val(); });
-                                    $watch('value', (v) => {
-                                        $el.val(v).trigger('change.select2');
-                                    });
-                                 ">
-                                <select x-ref="outputFormat"
-                                        class="w-full px-3 py-2 rounded-lg bg-[#1b1c21] border border-[#2a2b30] text-white/90 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500/40">
-                                    @foreach($outputFormats as $format)
-                                        <option value="{{ $format }}">{{ strtoupper($format) }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            <p class="text-xs text-white/40 mt-2">
-                                PNG rõ nét hơn nhưng nặng; JPEG nhẹ hơn và tải nhanh hơn.
-                            </p>
-                        </div>
-                    @endif
-                </div>
 
                 @if($supportsSteps || $supportsGuidance || $supportsSafetyTolerance || $supportsImagePromptStrength)
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
@@ -543,35 +477,6 @@
                             </div>
                         @endif
 
-                        @if($supportsSafetyTolerance)
-                            @php
-                                $safeMin = $safetyToleranceRange['min'] ?? 0;
-                                $safeMax = $safetyToleranceRange['max'] ?? 6;
-                            @endphp
-                            <div class="bg-[#1b1c21] border border-[#2a2b30] rounded-xl p-4">
-                                <div class="flex items-center justify-between mb-2">
-                                    <label class="text-sm font-semibold text-white/80 inline-flex items-center gap-2">
-                                        <i class="fa-solid fa-shield-halved" style="font-size: 12px;"></i>
-                                        <span>Độ an toàn nội dung</span>
-                                        <i class="fa-solid fa-circle-question text-white/30" style="font-size: 12px;" title="Giúp hệ thống tránh nội dung nhạy cảm. Số thấp = lọc chặt, số cao = lọc nhẹ."></i>
-                                    </label>
-                                    <span class="text-xs text-white/50">{{ $safetyTolerance ?? ($safetyToleranceRange['default'] ?? $safeMin) }}</span>
-                                </div>
-                                <input type="range"
-                                       min="{{ $safeMin }}"
-                                       max="{{ $safeMax }}"
-                                       step="1"
-                                       wire:model.live="safetyTolerance"
-                                       class="w-full accent-cyan-500">
-                                <div class="flex justify-between text-[10px] text-white/30 mt-1">
-                                    <span>{{ $safeMin }}</span>
-                                    <span>{{ $safeMax }}</span>
-                                </div>
-                                <p class="text-xs text-white/40 mt-2">
-                                    Điều chỉnh mức lọc nội dung nhạy cảm. Thấp = an toàn hơn, cao = ít chặn hơn.
-                                </p>
-                            </div>
-                        @endif
 
                         @if($supportsImagePromptStrength)
                             @php
