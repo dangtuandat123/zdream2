@@ -31,6 +31,20 @@
     @livewireStyles
 
     <style>
+        html {
+            overflow-x: hidden;
+            overflow-y: scroll;
+            /* Always show scrollbar space */
+            scrollbar-gutter: stable;
+            /* Prevent layout shift */
+        }
+
+        body {
+            overflow-x: hidden;
+            max-width: 100%;
+            width: 100%;
+        }
+
         body {
             font-family: 'Inter', sans-serif;
             background: #0a0a0f;
@@ -590,6 +604,22 @@
         .styles-filter .select2-dropdown {
             min-width: 0 !important;
             max-width: 100% !important;
+        }
+
+        .history-filters .select2-container {
+            width: 100% !important;
+        }
+
+        .history-filters .select2-dropdown {
+            min-width: 0 !important;
+            max-width: 100vw !important;
+            left: 0 !important;
+            right: auto !important;
+        }
+
+        /* Prevent horizontal scroll when Select2 dropdown opens */
+        .select2-container--open .select2-dropdown {
+            max-width: calc(100vw - 32px) !important;
         }
     </style>
 </head>
@@ -1169,10 +1199,12 @@
                     return;
                 }
                 const minResults = $(this).data('min-results-for-search');
+                const $parent = $(this).parent();
                 $(this).select2({
                     minimumResultsForSearch: (minResults !== undefined ? minResults : 5),
                     dropdownAutoWidth: false,
-                    width: '100%'
+                    width: '100%',
+                    dropdownParent: $parent
                 });
             });
             // Handle form submit on change for filter selects
@@ -1189,10 +1221,12 @@
                             return;
                         }
                         const minResults = $(this).data('min-results-for-search');
+                        const $parent = $(this).parent();
                         $(this).select2({
                             minimumResultsForSearch: (minResults !== undefined ? minResults : 5),
                             dropdownAutoWidth: false,
-                            width: '100%'
+                            width: '100%',
+                            dropdownParent: $parent
                         });
                     }
                 });

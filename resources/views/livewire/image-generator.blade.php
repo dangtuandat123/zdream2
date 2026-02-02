@@ -453,11 +453,13 @@
                                  x-data="{ value: @entangle('outputFormat').live }"
                                  x-init="
                                     const $el = window.$($refs.outputFormat);
+                                    const $parent = $el.parent();
                                     if (!$el.hasClass('select2-hidden-accessible')) {
                                         $el.select2({
                                             minimumResultsForSearch: 5,
                                             dropdownAutoWidth: false,
-                                            width: '100%'
+                                            width: '100%',
+                                            dropdownParent: $parent
                                         });
                                     }
                                     $el.on('change', () => { value = $el.val(); });

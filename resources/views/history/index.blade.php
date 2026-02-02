@@ -56,6 +56,14 @@
         .history-filters select {
             position: relative;
             z-index: 21;
+            max-width: 100%;
+            box-sizing: border-box;
+        }
+        /* Fix for mobile dropdown shift */
+        @media (max-width: 640px) {
+            .history-filters .filter-select {
+                font-size: 16px; /* Prevent iOS zoom */
+            }
         }
     </style>
 
@@ -74,33 +82,60 @@
         </div>
 
         <!-- Filters -->
-        <div class="flex flex-wrap items-center gap-3 mb-6 history-filters">
-            <form method="GET" action="{{ route('history.index') }}" id="filter-form" class="w-full sm:w-auto flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-3">
-                <div class="w-full sm:w-52">
-                    <select name="status" class="filter-select">
-                        <option value="">Tất cả trạng thái</option>
-                        <option value="completed" {{ request('status') == 'completed' ? 'selected' : '' }}>Hoàn thành</option>
-                        <option value="processing" {{ request('status') == 'processing' ? 'selected' : '' }}>Đang xử lý</option>
-                        <option value="failed" {{ request('status') == 'failed' ? 'selected' : '' }}>Thất bại</option>
-                    </select>
-                </div>
-                @if(isset($styles) && $styles->isNotEmpty())
-                    <div class="w-full sm:w-52">
-                        <select name="style_id" class="filter-select">
-                            <option value="">Tất cả styles</option>
-                            @foreach($styles as $style)
-                                <option value="{{ $style->id }}" {{ request('style_id') == $style->id ? 'selected' : '' }}>{{ $style->name }}</option>
-                            @endforeach
+        <div class="mb-5 styles-filter">
+            <div class="p-0 sm:p-4 lg:p-0 sm:rounded-2xl sm:bg-white/[0.03] sm:border sm:border-white/[0.06] lg:bg-transparent lg:border-0">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:flex lg:items-center gap-3">
+                    <div class="relative min-w-0 sm:min-w-[180px]" wire:ignore x-data x-init="
+                        const $el = window.$($refs.statusSelect);
+                        const $parent = $el.parent();
+                        if (!$el.hasClass('select2-hidden-accessible')) {
+                            $el.select2({ 
+                                minimumResultsForSearch: 9999, 
+                                dropdownAutoWidth: false, 
+                                width: '100%',
+                                dropdownParent: $parent
+                            });
+                        }
+                        $el.on('change', () => { document.getElementById('filter-form').submit(); });
+                    ">
+                        <select x-ref="statusSelect" name="status" form="filter-form" data-no-select2="true" class="w-full h-11 px-3 rounded-xl bg-white/[0.04] border border-white/[0.08] text-[#d3d6db] text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-purple-500/40">
+                            <option value="">Tất cả trạng thái</option>
+                            <option value="completed" {{ request('status') == 'completed' ? 'selected' : '' }}>Hoàn thành</option>
+                            <option value="processing" {{ request('status') == 'processing' ? 'selected' : '' }}>Đang xử lý</option>
+                            <option value="failed" {{ request('status') == 'failed' ? 'selected' : '' }}>Thất bại</option>
                         </select>
                     </div>
-                @endif
-                @if(request('status') || request('style_id'))
-                    <a href="{{ route('history.index') }}" class="filter-reset bg-red-500/10 border border-red-500/30 text-red-400 text-sm hover:bg-red-500/20 transition-colors">
-                        <i class="fa-solid fa-times mr-1"></i> Xóa lọc
-                    </a>
-                @endif
-            </form>
+                    @if(isset($styles) && $styles->isNotEmpty())
+                        <div class="relative min-w-0 sm:min-w-[180px]" wire:ignore x-data x-init="
+                            const $el = window.$($refs.styleSelect);
+                            const $parent = $el.parent();
+                            if (!$el.hasClass('select2-hidden-accessible')) {
+                                $el.select2({ 
+                                    minimumResultsForSearch: 9999, 
+                                    dropdownAutoWidth: false, 
+                                    width: '100%',
+                                    dropdownParent: $parent
+                                });
+                            }
+                            $el.on('change', () => { document.getElementById('filter-form').submit(); });
+                        ">
+                            <select x-ref="styleSelect" name="style_id" form="filter-form" data-no-select2="true" class="w-full h-11 px-3 rounded-xl bg-white/[0.04] border border-white/[0.08] text-[#d3d6db] text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-purple-500/40">
+                                <option value="">Tất cả styles</option>
+                                @foreach($styles as $style)
+                                    <option value="{{ $style->id }}" {{ request('style_id') == $style->id ? 'selected' : '' }}>{{ $style->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    @endif
+                    @if(request('status') || request('style_id'))
+                        <a href="{{ route('history.index') }}" class="w-full sm:w-auto h-11 px-4 rounded-xl bg-red-500/15 border border-red-500/30 text-red-300 text-sm hover:bg-red-500/25 transition-colors inline-flex items-center justify-center gap-2 whitespace-nowrap">
+                            <i class="fa-solid fa-xmark text-[12px]"></i> Xóa lọc
+                        </a>
+                    @endif
+                </div>
+            </div>
         </div>
+        <form method="GET" action="{{ route('history.index') }}" id="filter-form" class="hidden"></form>
 
         @if(session('success'))
             <div class="mb-6 p-4 rounded-xl bg-green-500/10 border border-green-500/30 text-green-400 flex items-center gap-2">
