@@ -619,10 +619,10 @@
                             class="px-3 py-2 rounded-lg text-sm font-medium text-white/60 hover:text-white hover:bg-white/[0.05] transition-all inline-flex items-center gap-2">
                             <i class="fa-solid fa-palette w-3.5 h-3.5"></i> Styles
                         </a>
-                        <a href="{{ route('edit.index') }}"
+                        {{-- <a href="{{ route('edit.index') }}"
                             class="px-3 py-2 rounded-lg text-sm font-medium text-white/60 hover:text-white hover:bg-white/[0.05] transition-all inline-flex items-center gap-2">
                             <i class="fa-solid fa-wand-magic-sparkles w-3.5 h-3.5"></i> Magic Edit
-                        </a>
+                        </a> --}}
                         @auth
                             <a href="{{ route('history.index') }}"
                                 class="px-3 py-2 rounded-lg text-sm font-medium text-white/60 hover:text-white hover:bg-white/[0.05] transition-all inline-flex items-center gap-2">
@@ -791,13 +791,13 @@
                         Styles</span>
                     <i class="fa-solid fa-chevron-right w-3 h-3 text-white/30"></i>
                 </a>
-                <a href="{{ route('edit.index') }}"
+                {{-- <a href="{{ route('edit.index') }}"
                     class="flex items-center justify-between px-4 py-3 rounded-xl bg-white/[0.02] hover:bg-white/[0.05] border border-white/[0.05] text-white/80 hover:text-white transition-all">
                     <span class="flex items-center gap-3"><i
                             class="fa-solid fa-wand-magic-sparkles w-4 h-4 text-pink-400"></i>
                         Magic Edit</span>
                     <i class="fa-solid fa-chevron-right w-3 h-3 text-white/30"></i>
-                </a>
+                </a> --}}
                 @auth
                     <a href="{{ route('history.index') }}"
                         class="flex items-center justify-between px-4 py-3 rounded-xl bg-white/[0.02] hover:bg-white/[0.05] border border-white/[0.05] text-white/80 hover:text-white transition-all">
