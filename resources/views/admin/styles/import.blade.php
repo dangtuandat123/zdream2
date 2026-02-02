@@ -1,14 +1,14 @@
-﻿<x-app-layout>
+<x-app-layout>
     <x-slot name="title">Import Styles - Admin | ZDream</x-slot>
 
     <div class="max-w-3xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
         <div class="flex items-center gap-4 mb-6">
-            <a href="{{ route('admin.styles.index') }}" class="w-10 h-10 rounded-xl bg-white/[0.05] border border-white/[0.1] flex items-center justify-center text-white/60 hover:text-white hover:bg-white/[0.1] transition-all">
+            <a href="{{ route('admin.styles.index') }}" class="w-10 h-10 rounded-xl bg-white/[0.05] border border-white/[0.1] flex items-center justify-center text-white/60 hover:text-[#d3d6db] hover:bg-white/[0.1] transition-all">
                 <i class="fa-solid fa-arrow-left w-4 h-4"></i>
             </a>
             <div>
-                <h1 class="text-2xl font-bold text-white">Import Styles</h1>
-                <p class="text-white/50 text-sm">Nhập hàng loạt style từ JSON</p>
+                <h1 class="text-2xl font-bold text-[#d3d6db]">Import Styles</h1>
+                <p class="text-white/50 text-sm">Nh?p h�ng lo?t style t? JSON</p>
             </div>
         </div>
 
@@ -27,9 +27,9 @@
         @endif
 
         <div class="bg-white/[0.03] border border-white/[0.08] rounded-2xl p-6">
-            <h2 class="text-lg font-semibold text-white mb-2">Hướng dẫn nhanh</h2>
+            <h2 class="text-lg font-semibold text-[#d3d6db] mb-2">Hu?ng d?n nhanh</h2>
             <p class="text-sm text-white/50 mb-4">
-                Định dạng JSON theo mẫu bên dưới. Xem thêm file hướng dẫn: <span class="text-white/70 font-mono">về dự án/STYLE_GUIDE.md</span>.
+                �?nh d?ng JSON theo m?u b�n du?i. Xem th�m file hu?ng d?n: <span class="text-white/70 font-mono">v? d? �n/STYLE_GUIDE.md</span>.
             </p>
 
             <div class="bg-black/30 border border-white/[0.08] rounded-xl p-4 text-xs text-white/70 font-mono mb-6 whitespace-pre-wrap">
@@ -40,7 +40,7 @@
       "name": "Portrait Studio GenZ",
       "slug": "portrait-studio-genz",
       "thumbnail_url": "https://...",
-      "description": "Phong cách chân dung trẻ trung",
+      "description": "Phong c�ch ch�n dung tr? trung",
       "price": 2,
       "sort_order": 0,
       "bfl_model_id": "flux-dev",
@@ -57,15 +57,15 @@
         }
       },
       "options": [
-        { "label": "Áo hoodie", "group_name": "Trang phục", "prompt_fragment": "hoodie", "is_default": true }
+        { "label": "�o hoodie", "group_name": "Trang ph?c", "prompt_fragment": "hoodie", "is_default": true }
       ],
       "image_slots": [
-        { "key": "image", "label": "Ảnh gốc", "description": "Ảnh cần chỉnh sửa", "required": true },
-        { "key": "mask", "label": "Mask (tùy chọn)", "description": "Đen = giữ, trắng = chỉnh", "required": false }
+        { "key": "image", "label": "?nh g?c", "description": "?nh c?n ch?nh s?a", "required": true },
+        { "key": "mask", "label": "Mask (t�y ch?n)", "description": "�en = gi?, tr?ng = ch?nh", "required": false }
       ],
       "system_images": [
-        { "label": "Mẫu nền", "description": "Giữ tone màu", "url": "https://..." },
-        { "label": "System image (blob)", "description": "Ảnh tham chiếu lưu trên BFL blob", "blob_path": "blob:xxxxx/xxxxx" }
+        { "label": "M?u n?n", "description": "Gi? tone m�u", "url": "https://..." },
+        { "label": "System image (blob)", "description": "?nh tham chi?u luu tr�n BFL blob", "blob_path": "blob:xxxxx/xxxxx" }
       ]
     }
   ]
@@ -76,29 +76,29 @@
                 @csrf
 
                 <div>
-                    <label class="block text-sm font-medium text-white/70 mb-2">Tải file JSON</label>
+                    <label class="block text-sm font-medium text-white/70 mb-2">T?i file JSON</label>
                     <input type="file" name="import_file" accept=".json,.txt"
                            class="w-full px-4 py-3 rounded-xl bg-white/[0.03] border border-white/[0.08] text-white/80 focus:outline-none focus:ring-2 focus:ring-purple-500/40 focus:border-purple-500/40 transition-all">
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-white/70 mb-2">Hoặc dán JSON trực tiếp</label>
+                    <label class="block text-sm font-medium text-white/70 mb-2">Ho?c d�n JSON tr?c ti?p</label>
                     <textarea name="import_text" rows="10"
                               class="w-full px-4 py-3 rounded-xl bg-white/[0.03] border border-white/[0.08] text-white/90 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/40 focus:border-purple-500/40 transition-all resize-none"
-                              placeholder="Dán JSON vào đây...">{{ old('import_text') }}</textarea>
+                              placeholder="D�n JSON v�o d�y...">{{ old('import_text') }}</textarea>
                 </div>
 
                 <div class="flex items-center gap-2">
                     <input id="dry_run" type="checkbox" name="dry_run" value="1" class="rounded border-white/20 bg-white/5 text-purple-400 focus:ring-purple-500/40">
-                    <label for="dry_run" class="text-sm text-white/60">Chạy thử (không lưu vào DB)</label>
+                    <label for="dry_run" class="text-sm text-white/60">Ch?y th? (kh�ng luu v�o DB)</label>
                 </div>
 
                 <div class="flex items-center gap-3">
-                    <button type="submit" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white font-medium hover:shadow-[0_8px_30px_rgba(168,85,247,0.5)] transition-all">
+                    <button type="submit" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-[#d3d6db] font-medium hover:shadow-[0_8px_30px_rgba(168,85,247,0.5)] transition-all">
                         <i class="fa-solid fa-file-import mr-2"></i> Import styles
                     </button>
                     <a href="{{ route('admin.styles.index') }}" class="px-5 py-2.5 rounded-xl bg-white/[0.05] border border-white/[0.1] text-white/80 font-medium hover:bg-white/[0.1] transition-all">
-                        Quay lại
+                        Quay l?i
                     </a>
                 </div>
             </form>

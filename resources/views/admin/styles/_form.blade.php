@@ -190,7 +190,7 @@
         {{-- Submit --}}
         <div class="flex items-center gap-4">
             <button type="submit"
-                    class="px-6 py-3 font-semibold rounded-xl bg-gradient-to-r from-primary-500 to-primary-600 text-white hover:from-primary-400 hover:to-primary-500 shadow-lg shadow-primary-500/25 transition-all">
+                    class="px-6 py-3 font-semibold rounded-xl bg-gradient-to-r from-primary-500 to-primary-600 text-[#d3d6db] hover:from-primary-400 hover:to-primary-500 shadow-lg shadow-primary-500/25 transition-all">
                 {{ $isEdit ? 'Cập nhật Style' : 'Tạo Style' }}
             </button>
             <a href="{{ route('admin.styles.index') }}" 

@@ -3,11 +3,11 @@
 
     <div class="max-w-2xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
         <div class="flex items-center gap-4 mb-6">
-            <a href="{{ route('admin.styles.options.index', $style) }}" class="w-10 h-10 rounded-xl bg-white/[0.05] border border-white/[0.1] inline-flex items-center justify-center text-white/60 hover:text-white hover:bg-white/[0.1] transition-all">
+            <a href="{{ route('admin.styles.options.index', $style) }}" class="w-10 h-10 rounded-xl bg-white/[0.05] border border-white/[0.1] inline-flex items-center justify-center text-white/60 hover:text-[#d3d6db] hover:bg-white/[0.1] transition-all">
                 <i class="fa-solid fa-arrow-left" style="font-size: 14px;"></i>
             </a>
             <div>
-                <h1 class="text-2xl font-bold text-white">Thêm Option</h1>
+                <h1 class="text-2xl font-bold text-[#d3d6db]">Thêm Option</h1>
                 <p class="text-white/50 text-sm">Style: {{ $style->name }}</p>
             </div>
         </div>
@@ -16,7 +16,7 @@
             @csrf
 
             <div class="bg-white/[0.03] border border-white/[0.08] rounded-2xl p-6">
-                <h2 class="text-lg font-semibold text-white mb-4 inline-flex items-center gap-2">
+                <h2 class="text-lg font-semibold text-[#d3d6db] mb-4 inline-flex items-center gap-2">
                     <i class="fa-solid fa-sliders text-purple-400" style="font-size: 16px;"></i>
                     Thông tin Option
                 </h2>
@@ -118,7 +118,7 @@
 
             <!-- Submit -->
             <div class="flex items-center gap-4">
-                <button type="submit" class="px-8 py-3 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold inline-flex items-center justify-center gap-2 hover:shadow-[0_8px_30px_rgba(168,85,247,0.5)] transition-all">
+                <button type="submit" class="px-8 py-3 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-[#d3d6db] font-semibold inline-flex items-center justify-center gap-2 hover:shadow-[0_8px_30px_rgba(168,85,247,0.5)] transition-all">
                     <i class="fa-solid fa-plus" style="font-size: 14px;"></i>
                     <span>Thêm Option</span>
                 </button>

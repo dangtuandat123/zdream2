@@ -2,7 +2,7 @@
     <x-slot name="title">Đăng ký - ZDream</x-slot>
 
     <div class="text-center mb-6">
-        <h1 class="text-2xl font-bold text-white mb-2">Tạo tài khoản mới</h1>
+        <h1 class="text-2xl font-bold text-[#d3d6db] mb-2">Tạo tài khoản mới</h1>
         <p class="text-white/50 text-sm">Đăng ký để nhận <span class="text-cyan-400 font-semibold">{{ (int) App\Models\Setting::get('default_credits', 10) }} Xu miễn phí</span>!</p>
     </div>
 
@@ -73,16 +73,16 @@
         <div class="p-4 rounded-xl bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/20">
             <div class="flex items-center gap-3">
                 <div class="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center flex-shrink-0">
-                    <i class="fa-solid fa-gift w-5 h-5 text-white"></i>
+                    <i class="fa-solid fa-gift w-5 h-5 text-[#d3d6db]"></i>
                 </div>
                 <div>
-                    <p class="text-white font-medium text-sm">Quà tặng đăng ký!</p>
+                    <p class="text-[#d3d6db] font-medium text-sm">Quà tặng đăng ký!</p>
                     <p class="text-white/50 text-xs">Nhận ngay {{ (int) App\Models\Setting::get('default_credits', 10) }} Xu miễn phí khi tạo tài khoản</p>
                 </div>
             </div>
         </div>
 
-        <button type="submit" class="w-full py-3.5 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold text-base inline-flex items-center justify-center gap-2 hover:shadow-[0_8px_30px_rgba(168,85,247,0.5)] transition-all">
+        <button type="submit" class="w-full py-3.5 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-[#d3d6db] font-semibold text-base inline-flex items-center justify-center gap-2 hover:shadow-[0_8px_30px_rgba(168,85,247,0.5)] transition-all">
             <i class="fa-solid fa-crown" style="font-size: 16px;"></i>
             <span>Đăng ký miễn phí</span>
         </button>

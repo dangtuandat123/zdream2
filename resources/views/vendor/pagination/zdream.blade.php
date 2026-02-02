@@ -7,7 +7,7 @@
                     Trước
                 </span>
             @else
-                <a href="{{ $paginator->previousPageUrl() }}" class="inline-flex items-center justify-center px-4 py-2 rounded-full text-sm text-white bg-white/[0.06] border border-white/[0.12] hover:bg-white/[0.12] transition-all">
+                <a href="{{ $paginator->previousPageUrl() }}" class="inline-flex items-center justify-center px-4 py-2 rounded-full text-sm text-[#d3d6db] bg-white/[0.06] border border-white/[0.12] hover:bg-white/[0.12] transition-all">
                     Trước
                 </a>
             @endif
@@ -17,7 +17,7 @@
             </span>
 
             @if ($paginator->hasMorePages())
-                <a href="{{ $paginator->nextPageUrl() }}" class="inline-flex items-center justify-center px-4 py-2 rounded-full text-sm text-white bg-gradient-to-r from-purple-500 to-pink-500 shadow-[0_6px_20px_rgba(168,85,247,0.35)] hover:from-purple-400 hover:to-pink-400 transition-all">
+                <a href="{{ $paginator->nextPageUrl() }}" class="inline-flex items-center justify-center px-4 py-2 rounded-full text-sm text-[#d3d6db] bg-gradient-to-r from-purple-500 to-pink-500 shadow-[0_6px_20px_rgba(168,85,247,0.35)] hover:from-purple-400 hover:to-pink-400 transition-all">
                     Sau
                 </a>
             @else
@@ -31,11 +31,11 @@
         <div class="hidden sm:flex sm:items-center sm:justify-between sm:flex-1">
             <div class="text-xs text-white/50">
                 @if ($paginator->firstItem())
-                    Hiển thị <span class="font-semibold text-white">{{ $paginator->firstItem() }}</span>
-                    – <span class="font-semibold text-white">{{ $paginator->lastItem() }}</span>
-                    / <span class="font-semibold text-white">{{ $paginator->total() }}</span>
+                    Hiển thị <span class="font-semibold text-[#d3d6db]">{{ $paginator->firstItem() }}</span>
+                    – <span class="font-semibold text-[#d3d6db]">{{ $paginator->lastItem() }}</span>
+                    / <span class="font-semibold text-[#d3d6db]">{{ $paginator->total() }}</span>
                 @else
-                    Hiển thị <span class="font-semibold text-white">{{ $paginator->count() }}</span>
+                    Hiển thị <span class="font-semibold text-[#d3d6db]">{{ $paginator->count() }}</span>
                 @endif
             </div>
 
@@ -63,7 +63,7 @@
                         @if (is_array($element))
                             @foreach ($element as $page => $url)
                                 @if ($page == $paginator->currentPage())
-                                    <span aria-current="page" class="w-9 h-9 rounded-full inline-flex items-center justify-center text-white font-semibold bg-gradient-to-r from-purple-500 to-pink-500 shadow-[0_6px_20px_rgba(168,85,247,0.35)]">
+                                    <span aria-current="page" class="w-9 h-9 rounded-full inline-flex items-center justify-center text-[#d3d6db] font-semibold bg-gradient-to-r from-purple-500 to-pink-500 shadow-[0_6px_20px_rgba(168,85,247,0.35)]">
                                         {{ $page }}
                                     </span>
                                 @else

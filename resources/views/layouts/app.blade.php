@@ -636,7 +636,7 @@
                     @auth
                         <!-- Xu Display -->
                         <a href="{{ route('wallet.index') }}"
-                            class="hidden sm:flex items-center gap-1.5 px-3 h-9 rounded-full bg-white/[0.03] border border-white/[0.08] text-white/80 hover:bg-white/[0.05] transition-all">
+                            class="hidden sm:flex items-center gap-1.5 px-3 h-9 rounded-full bg-[#16161d] border border-[#2a2a35] text-white/80 hover:bg-white/[0.05] transition-all">
                             <i class="fa-solid fa-gem text-cyan-400" style="font-size: 14px;"></i>
                             <span class="font-semibold text-sm text-white/95"><livewire:header-credits /></span>
                         </a>
@@ -651,7 +651,7 @@
                         <!-- User Dropdown (Hidden on mobile, shown on sm+) -->
                         <div class="relative hidden sm:block" x-data="{ open: false }">
                             <button @click="open = !open" @click.outside="open = false"
-                                class="flex items-center gap-2 h-9 px-1 rounded-full bg-white/[0.03] border border-white/[0.08] text-white/80 hover:bg-white/[0.05] transition-all">
+                                class="flex items-center gap-2 h-9 px-1 rounded-full bg-[#16161d] border border-[#2a2a35] text-white/80 hover:bg-white/[0.05] transition-all">
                                 <div
                                     class="w-7 h-7 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white text-xs font-bold leading-none pr-[1px]">
                                     {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
@@ -668,10 +668,10 @@
                                 x-transition:enter-end="opacity-100 scale-100 translate-y-0"
                                 x-transition:leave="transition ease-in duration-150"
                                 x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95"
-                                class="absolute right-0 mt-2 w-56 rounded-xl bg-[#1a1a24] border border-white/[0.1] shadow-xl shadow-black/50 overflow-hidden z-50">
+                                class="absolute right-0 mt-2 w-64 rounded-xl bg-[#1a1a24] border border-white/[0.1] shadow-xl shadow-black/50 overflow-hidden z-50">
 
                                 <!-- User Info -->
-                                <div class="p-3 border-b border-white/[0.05]">
+                                <div class="p-3 border-b border-[#222230]">
                                     <p class="text-sm font-medium text-white truncate">{{ auth()->user()->name }}</p>
                                     <p class="text-xs text-white/50 truncate">{{ auth()->user()->email }}</p>
                                 </div>
@@ -703,7 +703,7 @@
                                 </div>
 
                                 @if(auth()->user()->is_admin)
-                                    <div class="border-t border-white/[0.05] py-1">
+                                    <div class="border-t border-[#222230] py-1">
                                         <a href="{{ route('admin.dashboard') }}"
                                             class="flex items-center gap-3 px-4 py-2.5 text-sm text-cyan-400 hover:bg-cyan-500/10 transition-colors">
                                             <i class="fa-solid fa-crown w-4"></i>
@@ -713,7 +713,7 @@
                                 @endif
 
                                 <!-- Logout -->
-                                <div class="border-t border-white/[0.05] py-1">
+                                <div class="border-t border-[#222230] py-1">
                                     <form method="POST" action="{{ route('logout') }}">
                                         @csrf
                                         <button type="submit"
@@ -728,20 +728,20 @@
 
                         <!-- Mobile: Xu Display -->
                         <a href="{{ route('wallet.index') }}"
-                            class="sm:hidden h-9 px-3 rounded-full bg-white/[0.03] border border-white/[0.08] flex items-center gap-2 text-white/80">
+                            class="sm:hidden h-9 px-3 rounded-full bg-[#16161d] border border-[#2a2a35] flex items-center gap-2 text-white/80">
                             <i class="fa-solid fa-gem w-4 h-4 text-cyan-400"></i>
                             <span class="font-semibold text-sm text-white/95"><livewire:header-credits /></span>
                         </a>
                     @else
                         <a href="{{ route('login') }}"
-                            class="hidden sm:inline-flex items-center justify-center h-9 px-4 rounded-full bg-white/[0.03] border border-white/[0.1] text-white/80 text-sm font-medium hover:bg-white/[0.06] transition-all leading-none">Đăng
+                            class="hidden sm:inline-flex items-center justify-center h-9 px-4 rounded-full bg-[#16161d] border border-white/[0.1] text-white/80 text-sm font-medium hover:bg-white/[0.06] transition-all leading-none">Đăng
                             nhập</a>
                         <a href="{{ route('register') }}"
                             class="hidden sm:inline-flex items-center justify-center h-9 px-4 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white text-sm font-medium hover:from-purple-400 hover:to-pink-400 transition-all leading-none">Đăng
                             ký</a>
                     @endauth
                     <button id="menu-btn"
-                        class="md:hidden w-10 h-10 rounded-xl bg-white/[0.03] border border-white/[0.08] flex items-center justify-center text-white/80 hover:text-white hover:bg-white/[0.06] transition-all">
+                        class="md:hidden w-10 h-10 rounded-xl bg-[#16161d] border border-[#2a2a35] flex items-center justify-center text-white/80 hover:text-white hover:bg-white/[0.06] transition-all">
                         <i id="menu-icon-bars" class="fa-solid fa-bars w-4 h-4"></i>
                     </button>
                 </div>
@@ -752,11 +752,11 @@
     <!-- ========== MOBILE MENU OVERLAY ========== -->
     <div id="menu-overlay"
         class="fixed inset-0 z-[60] md:hidden opacity-0 pointer-events-none transition-opacity duration-300">
-        <div class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
+        <div class="absolute inset-0 bg-black/60 "></div>
         <div id="mobile-menu"
-            class="mobile-menu closed absolute right-0 top-0 h-full w-72 max-w-[85vw] bg-[#0a0a0f]/98 backdrop-blur-[24px] border-l border-white/[0.08] overflow-y-auto overscroll-contain">
+            class="mobile-menu closed absolute right-0 top-0 h-full w-72 max-w-[85vw] bg-[#0a0a0f]/98 backdrop-blur-[24px] border-l border-[#2a2a35] overflow-y-auto overscroll-contain">
             <div
-                class="sticky top-0 z-10 p-4 border-b border-white/[0.05] bg-[#0a0a0f]/40 backdrop-blur-xl flex items-center justify-between">
+                class="sticky top-0 z-10 p-4 border-b border-[#222230] bg-[#0a0a0f]/40  flex items-center justify-between">
                 <span class="text-white/80 font-medium">Menu</span>
                 <button id="close-menu-btn"
                     class="w-8 h-8 rounded-lg bg-white/[0.05] flex items-center justify-center text-white/60 hover:text-white">
@@ -780,19 +780,19 @@
                 @endauth
                 <div class="h-px bg-white/[0.05] my-4"></div>
                 <a href="{{ route('home') }}"
-                    class="flex items-center justify-between px-4 py-3 rounded-xl bg-white/[0.02] hover:bg-white/[0.05] border border-white/[0.05] text-white/80 hover:text-white transition-all">
+                    class="flex items-center justify-between px-4 py-3 rounded-xl bg-[#13131a] hover:bg-white/[0.05] border border-[#222230] text-white/80 hover:text-white transition-all">
                     <span class="flex items-center gap-3"><i class="fa-solid fa-house w-4 h-4 text-purple-400"></i>
                         Trang chủ</span>
                     <i class="fa-solid fa-chevron-right w-3 h-3 text-white/30"></i>
                 </a>
                 <a href="{{ route('styles.index') }}"
-                    class="flex items-center justify-between px-4 py-3 rounded-xl bg-white/[0.02] hover:bg-white/[0.05] border border-white/[0.05] text-white/80 hover:text-white transition-all">
+                    class="flex items-center justify-between px-4 py-3 rounded-xl bg-[#13131a] hover:bg-white/[0.05] border border-[#222230] text-white/80 hover:text-white transition-all">
                     <span class="flex items-center gap-3"><i class="fa-solid fa-palette w-4 h-4 text-purple-400"></i>
                         Styles</span>
                     <i class="fa-solid fa-chevron-right w-3 h-3 text-white/30"></i>
                 </a>
                 {{-- <a href="{{ route('edit.index') }}"
-                    class="flex items-center justify-between px-4 py-3 rounded-xl bg-white/[0.02] hover:bg-white/[0.05] border border-white/[0.05] text-white/80 hover:text-white transition-all">
+                    class="flex items-center justify-between px-4 py-3 rounded-xl bg-[#13131a] hover:bg-white/[0.05] border border-[#222230] text-white/80 hover:text-white transition-all">
                     <span class="flex items-center gap-3"><i
                             class="fa-solid fa-wand-magic-sparkles w-4 h-4 text-pink-400"></i>
                         Magic Edit</span>
@@ -800,7 +800,7 @@
                 </a> --}}
                 @auth
                     <a href="{{ route('history.index') }}"
-                        class="flex items-center justify-between px-4 py-3 rounded-xl bg-white/[0.02] hover:bg-white/[0.05] border border-white/[0.05] text-white/80 hover:text-white transition-all">
+                        class="flex items-center justify-between px-4 py-3 rounded-xl bg-[#13131a] hover:bg-white/[0.05] border border-[#222230] text-white/80 hover:text-white transition-all">
                         <span class="flex items-center gap-3"><i class="fa-solid fa-images w-4 h-4 text-purple-400"></i> Ảnh
                             của tôi</span>
                         <i class="fa-solid fa-chevron-right w-3 h-3 text-white/30"></i>
@@ -885,7 +885,7 @@
     </main>
 
     <!-- ========== FOOTER ========== -->
-    <footer class="border-t border-white/[0.05]">
+    <footer class="border-t border-[#222230]">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
             <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
                 <div class="flex items-center gap-2">
@@ -945,7 +945,7 @@
             if (menuBtn) menuBtn.addEventListener('click', toggleMenu);
             if (closeMenuBtn) closeMenuBtn.addEventListener('click', closeMenu);
             if (menuOverlay) menuOverlay.addEventListener('click', function (e) {
-                if (e.target === menuOverlay || e.target.classList.contains('backdrop-blur-sm')) closeMenu();
+                if (e.target === menuOverlay || e.target.classList.contains('')) closeMenu();
             });
 
             // Header scroll effect

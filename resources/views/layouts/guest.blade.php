@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <meta name="theme-color" content="#0a0a0f">
+    <meta name="theme-color" content="#000000">
 
     <title>{{ $title ?? App\Models\Setting::get('site_name', 'ZDream') }}</title>
 
@@ -21,10 +21,10 @@
     
     <style>body { font-family: 'Inter', sans-serif; }</style>
 </head>
-<body class="min-h-screen text-white antialiased">
+<body class="min-h-screen text-[#d3d6db] antialiased">
     <!-- Background -->
     <div class="fixed inset-0 pointer-events-none">
-        <div class="absolute inset-0 bg-[#0a0a0f]"></div>
+        <div class="absolute inset-0 bg-[#000000]"></div>
         <div class="absolute top-0 left-1/4 w-64 sm:w-96 h-64 sm:h-96 bg-purple-600/20 rounded-full blur-[100px] sm:blur-[150px]"></div>
         <div class="absolute bottom-0 right-0 w-48 sm:w-80 h-48 sm:h-80 bg-pink-600/15 rounded-full blur-[80px] sm:blur-[130px]"></div>
     </div>
@@ -37,7 +37,7 @@
         </a>
 
         <!-- Card -->
-        <div class="w-full sm:max-w-md bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-2xl p-6 sm:p-8">
+        <div class="w-full sm:max-w-md bg-[#1b1c21]  border border-[#2a2b30] rounded-2xl p-6 sm:p-8">
             {{ $slot }}
         </div>
 

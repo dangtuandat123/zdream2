@@ -4,7 +4,7 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
         <div class="flex items-center justify-between mb-6">
             <div>
-                <h1 class="text-2xl font-bold text-white flex items-center gap-3">
+                <h1 class="text-2xl font-bold text-[#d3d6db] flex items-center gap-3">
                     <i class="fa-solid fa-palette w-6 h-6 text-purple-400"></i>
                     Quản lý Styles
                 </h1>
@@ -14,7 +14,7 @@
                 <a href="{{ route('admin.styles.import') }}" class="px-4 py-2.5 rounded-xl bg-white/[0.05] border border-white/[0.1] text-white/80 font-medium flex items-center gap-2 hover:bg-white/[0.1] transition-all">
                     <i class="fa-solid fa-file-import w-4 h-4"></i> Import
                 </a>
-                <a href="{{ route('admin.styles.create') }}" class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white font-medium flex items-center gap-2 hover:shadow-[0_8px_30px_rgba(168,85,247,0.5)] transition-all">
+                <a href="{{ route('admin.styles.create') }}" class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-[#d3d6db] font-medium flex items-center gap-2 hover:shadow-[0_8px_30px_rgba(168,85,247,0.5)] transition-all">
                     <i class="fa-solid fa-plus w-4 h-4"></i> Tạo Style
                 </a>
             </div>
@@ -50,7 +50,7 @@
                             <img src="{{ $style->thumbnail }}" alt="{{ $style->name }}" class="w-full h-full object-cover">
                             <div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
                             <div class="absolute bottom-3 left-3 right-3">
-                                <h3 class="text-white font-semibold truncate">{{ $style->name }}</h3>
+                                <h3 class="text-[#d3d6db] font-semibold truncate">{{ $style->name }}</h3>
                             </div>
                             <div class="absolute top-3 right-3 flex items-center gap-2">
                                 <span class="px-2 py-1 rounded-full text-xs font-medium {{ $style->is_active ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400' }}">

@@ -2,7 +2,7 @@
     <x-slot name="title">Đặt lại mật khẩu - ZDream</x-slot>
 
     <div class="text-center mb-6">
-        <h1 class="text-2xl font-bold text-white mb-2">Đặt lại mật khẩu</h1>
+        <h1 class="text-2xl font-bold text-[#d3d6db] mb-2">Đặt lại mật khẩu</h1>
         <p class="text-white/50 text-sm">Nhập mật khẩu mới cho tài khoản của bạn</p>
     </div>
 
@@ -54,7 +54,7 @@
             </div>
         </div>
 
-        <button type="submit" class="w-full py-3.5 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold text-base flex items-center justify-center gap-2 hover:shadow-[0_8px_30px_rgba(168,85,247,0.5)] transition-all">
+        <button type="submit" class="w-full py-3.5 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-[#d3d6db] font-semibold text-base flex items-center justify-center gap-2 hover:shadow-[0_8px_30px_rgba(168,85,247,0.5)] transition-all">
             <i class="fa-solid fa-check w-4 h-4"></i> Đặt lại mật khẩu
         </button>
     </form>

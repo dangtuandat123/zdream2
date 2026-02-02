@@ -5,7 +5,7 @@
         <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-purple-500/20 to-pink-500/20 border border-purple-500/20 flex items-center justify-center">
             <i class="fa-solid fa-key w-7 h-7 text-purple-400"></i>
         </div>
-        <h1 class="text-2xl font-bold text-white mb-2">Quên mật khẩu?</h1>
+        <h1 class="text-2xl font-bold text-[#d3d6db] mb-2">Quên mật khẩu?</h1>
         <p class="text-white/50 text-sm">Nhập email để nhận link đặt lại mật khẩu</p>
     </div>
 
@@ -35,13 +35,13 @@
             @enderror
         </div>
 
-        <button type="submit" class="w-full py-3.5 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold text-base flex items-center justify-center gap-2 hover:shadow-[0_8px_30px_rgba(168,85,247,0.5)] transition-all">
+        <button type="submit" class="w-full py-3.5 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-[#d3d6db] font-semibold text-base flex items-center justify-center gap-2 hover:shadow-[0_8px_30px_rgba(168,85,247,0.5)] transition-all">
             <i class="fa-solid fa-paper-plane w-4 h-4"></i> Gửi link đặt lại
         </button>
     </form>
 
     <div class="text-center mt-6">
-        <a href="{{ route('login') }}" class="inline-flex items-center gap-2 text-white/50 hover:text-white text-sm transition-colors">
+        <a href="{{ route('login') }}" class="inline-flex items-center gap-2 text-white/50 hover:text-[#d3d6db] text-sm transition-colors">
             <i class="fa-solid fa-arrow-left w-3 h-3"></i>
             Quay lại đăng nhập
         </a>

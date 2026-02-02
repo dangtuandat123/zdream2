@@ -4,7 +4,7 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
         <div class="flex items-center justify-between mb-6">
             <div>
-                <h1 class="text-2xl font-bold text-white">Lịch sử giao dịch</h1>
+                <h1 class="text-2xl font-bold text-[#d3d6db]">Lịch sử giao dịch</h1>
                 <p class="text-white/50 text-sm">Tất cả giao dịch credits trong hệ thống</p>
             </div>
         </div>
@@ -56,7 +56,7 @@
                     <i class="fa-solid fa-filter mr-1"></i> Lọc
                 </button>
                 @if(request()->hasAny(['search', 'type', 'source', 'from', 'to']))
-                    <a href="{{ route('admin.transactions.index') }}" class="px-4 py-2 rounded-lg bg-white/[0.05] border border-white/[0.1] text-white/60 hover:text-white transition-colors">
+                    <a href="{{ route('admin.transactions.index') }}" class="px-4 py-2 rounded-lg bg-white/[0.05] border border-white/[0.1] text-white/60 hover:text-[#d3d6db] transition-colors">
                         Xóa filter
                     </a>
                 @endif
@@ -86,7 +86,7 @@
                                 </td>
                                 <td class="px-4 py-3">
                                     @if($tx->user)
-                                        <a href="{{ route('admin.users.show', $tx->user) }}" class="text-white hover:text-purple-400 transition-colors">
+                                        <a href="{{ route('admin.users.show', $tx->user) }}" class="text-[#d3d6db] hover:text-purple-400 transition-colors">
                                             {{ $tx->user->name }}
                                         </a>
                                         <div class="text-white/40 text-xs">{{ $tx->user->email }}</div>

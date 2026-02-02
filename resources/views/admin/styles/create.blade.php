@@ -3,11 +3,11 @@
 
     <div class="max-w-3xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
         <div class="flex items-center gap-4 mb-6">
-            <a href="{{ route('admin.styles.index') }}" class="w-10 h-10 rounded-xl bg-white/[0.05] border border-white/[0.1] flex items-center justify-center text-white/60 hover:text-white hover:bg-white/[0.1] transition-all">
+            <a href="{{ route('admin.styles.index') }}" class="w-10 h-10 rounded-xl bg-white/[0.05] border border-white/[0.1] flex items-center justify-center text-white/60 hover:text-[#d3d6db] hover:bg-white/[0.1] transition-all">
                 <i class="fa-solid fa-arrow-left w-4 h-4"></i>
             </a>
             <div>
-                <h1 class="text-2xl font-bold text-white">Tạo Style mới</h1>
+                <h1 class="text-2xl font-bold text-[#d3d6db]">Tạo Style mới</h1>
                 <p class="text-white/50 text-sm">Thêm style AI mới vào hệ thống</p>
             </div>
         </div>
@@ -24,7 +24,7 @@
 
             <!-- Basic Info -->
             <div class="bg-white/[0.03] border border-white/[0.08] rounded-2xl p-6">
-                <h2 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                <h2 class="text-lg font-semibold text-[#d3d6db] mb-4 flex items-center gap-2">
                     <i class="fa-solid fa-info-circle w-5 h-5 text-purple-400"></i>
                     Thông tin cơ bản
                 </h2>
@@ -103,7 +103,7 @@
 
             <!-- AI Config -->
             <div class="bg-white/[0.03] border border-white/[0.08] rounded-2xl p-6">
-                <h2 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                <h2 class="text-lg font-semibold text-[#d3d6db] mb-4 flex items-center gap-2">
                     <i class="fa-solid fa-microchip w-5 h-5 text-cyan-400"></i>
                     Cấu hình AI
                 </h2>
@@ -217,7 +217,7 @@
                             <!-- Selected Custom Model Display (if not in list) -->
                             <div x-show="selectedModelId && !allModels.find(m => m.id === selectedModelId)" class="mb-4 p-3 rounded-lg bg-green-500/10 border border-green-500/30">
                                 <p class="text-xs text-green-400 mb-1">Đang chọn (Custom):</p>
-                                <p class="text-sm text-white font-mono break-all" x-text="selectedModelId"></p>
+                                <p class="text-sm text-[#d3d6db] font-mono break-all" x-text="selectedModelId"></p>
                             </div>
 
                             <template x-for="(models, provider) in filteredGroups" :key="provider">
@@ -239,11 +239,11 @@
                                                 class="w-full p-3 rounded-lg border transition-all text-left">
                                                 <!-- Model Name -->
                                                 <div class="flex items-start justify-between gap-2 mb-2">
-                                                    <span class="font-medium text-sm" :class="selectedModelId === model.id ? 'text-white' : 'text-white/80'" x-text="model.name"></span>
+                                                    <span class="font-medium text-sm" :class="selectedModelId === model.id ? 'text-[#d3d6db]' : 'text-white/80'" x-text="model.name"></span>
                                                     <div class="flex items-center gap-1">
                                                         <!-- Selected Checkmark -->
                                                         <span x-show="selectedModelId === model.id" class="w-5 h-5 rounded-full bg-gradient-to-r from-cyan-400 to-cyan-500 flex items-center justify-center">
-                                                            <i class="fa-solid fa-check text-white" style="font-size: 10px;"></i>
+                                                            <i class="fa-solid fa-check text-[#d3d6db]" style="font-size: 10px;"></i>
                                                         </span>
                                                     </div>
                                                 </div>
@@ -652,7 +652,7 @@
                     this.slots.splice(index, 1);
                 }
             }">
-                <h2 class="text-lg font-semibold text-white mb-4 inline-flex items-center gap-2">
+                <h2 class="text-lg font-semibold text-[#d3d6db] mb-4 inline-flex items-center gap-2">
                     <i class="fa-solid fa-images text-pink-400" style="font-size: 18px;"></i>
                     <span>Cấu hình ô upload ảnh</span>
                 </h2>
@@ -729,7 +729,7 @@
                     }
                 }
             }">
-                <h2 class="text-lg font-semibold text-white mb-4 inline-flex items-center gap-2">
+                <h2 class="text-lg font-semibold text-[#d3d6db] mb-4 inline-flex items-center gap-2">
                     <i class="fa-solid fa-layer-group text-cyan-400" style="font-size: 18px;"></i>
                     <span>Ảnh hệ thống (Background/Overlay)</span>
                 </h2>
@@ -801,7 +801,7 @@
 
             <!-- Submit -->
             <div class="flex items-center gap-4">
-                <button type="submit" class="px-8 py-3 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold flex items-center gap-2 hover:shadow-[0_8px_30px_rgba(168,85,247,0.5)] transition-all">
+                <button type="submit" class="px-8 py-3 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-[#d3d6db] font-semibold flex items-center gap-2 hover:shadow-[0_8px_30px_rgba(168,85,247,0.5)] transition-all">
                     <i class="fa-solid fa-plus w-4 h-4"></i> Tạo Style
                 </button>
                 <a href="{{ route('admin.styles.index') }}" class="px-6 py-3 rounded-xl bg-white/[0.05] border border-white/[0.1] text-white/80 font-medium hover:bg-white/[0.1] transition-all">

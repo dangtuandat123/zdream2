@@ -3,14 +3,14 @@
 
     <div class="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
         <div class="flex items-center gap-4 mb-6">
-            <a href="{{ route('admin.styles.index') }}" class="w-10 h-10 rounded-xl bg-white/[0.05] border border-white/[0.1] inline-flex items-center justify-center text-white/60 hover:text-white hover:bg-white/[0.1] transition-all">
+            <a href="{{ route('admin.styles.index') }}" class="w-10 h-10 rounded-xl bg-white/[0.05] border border-white/[0.1] inline-flex items-center justify-center text-white/60 hover:text-[#d3d6db] hover:bg-white/[0.1] transition-all">
                 <i class="fa-solid fa-arrow-left" style="font-size: 14px;"></i>
             </a>
             <div class="flex-1">
-                <h1 class="text-2xl font-bold text-white">Quản lý Options</h1>
+                <h1 class="text-2xl font-bold text-[#d3d6db]">Quản lý Options</h1>
                 <p class="text-white/50 text-sm">Style: <span class="text-purple-400">{{ $style->name }}</span></p>
             </div>
-            <a href="{{ route('admin.styles.options.create', $style) }}" class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white font-medium inline-flex items-center justify-center gap-2 hover:shadow-[0_8px_30px_rgba(168,85,247,0.5)] transition-all">
+            <a href="{{ route('admin.styles.options.create', $style) }}" class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-[#d3d6db] font-medium inline-flex items-center justify-center gap-2 hover:shadow-[0_8px_30px_rgba(168,85,247,0.5)] transition-all">
                 <i class="fa-solid fa-plus" style="font-size: 14px;"></i>
                 <span>Thêm Option</span>
             </a>
@@ -44,7 +44,7 @@
                 @foreach($options as $groupName => $groupOptions)
                     <div class="bg-white/[0.03] border border-white/[0.08] rounded-2xl overflow-hidden">
                         <div class="px-4 py-3 bg-white/[0.02] border-b border-white/[0.05] flex items-center justify-between">
-                            <h3 class="text-lg font-semibold text-white inline-flex items-center gap-2">
+                            <h3 class="text-lg font-semibold text-[#d3d6db] inline-flex items-center gap-2">
                                 <i class="fa-solid fa-folder text-purple-400" style="font-size: 14px;"></i>
                                 {{ $groupName }}
                             </h3>
@@ -55,7 +55,7 @@
                                 <div class="p-4 flex items-center gap-4 hover:bg-white/[0.02] transition-colors">
                                     <div class="flex-1">
                                         <div class="flex items-center gap-2 mb-1">
-                                            <span class="text-white font-medium">{{ $option->label }}</span>
+                                            <span class="text-[#d3d6db] font-medium">{{ $option->label }}</span>
                                             @if($option->is_default)
                                                 <span class="px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-400 text-xs font-medium">Default</span>
                                             @endif
@@ -63,7 +63,7 @@
                                         <p class="text-white/40 text-sm font-mono line-clamp-1">{{ $option->prompt_fragment }}</p>
                                     </div>
                                     <div class="flex items-center gap-2">
-                                        <a href="{{ route('admin.styles.options.edit', [$style, $option]) }}" class="w-9 h-9 rounded-lg bg-white/[0.05] border border-white/[0.1] inline-flex items-center justify-center text-white/60 hover:text-white hover:bg-white/[0.1] transition-all">
+                                        <a href="{{ route('admin.styles.options.edit', [$style, $option]) }}" class="w-9 h-9 rounded-lg bg-white/[0.05] border border-white/[0.1] inline-flex items-center justify-center text-white/60 hover:text-[#d3d6db] hover:bg-white/[0.1] transition-all">
                                             <i class="fa-solid fa-pen" style="font-size: 12px;"></i>
                                         </a>
                                         <form method="POST" action="{{ route('admin.styles.options.destroy', [$style, $option]) }}" onsubmit="return confirm('Xác nhận xóa option này?')">
@@ -84,7 +84,7 @@
 
         <!-- Tips -->
         <div class="mt-8 p-4 rounded-xl bg-purple-500/10 border border-purple-500/20">
-            <h4 class="text-white font-medium mb-2 inline-flex items-center gap-2">
+            <h4 class="text-[#d3d6db] font-medium mb-2 inline-flex items-center gap-2">
                 <i class="fa-solid fa-lightbulb text-yellow-400" style="font-size: 14px;"></i>
                 Hướng dẫn
             </h4>

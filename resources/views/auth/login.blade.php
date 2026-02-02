@@ -2,7 +2,7 @@
     <x-slot name="title">Đăng nhập - ZDream</x-slot>
 
     <div class="text-center mb-6">
-        <h1 class="text-2xl font-bold text-white mb-2">Chào mừng trở lại!</h1>
+        <h1 class="text-2xl font-bold text-[#d3d6db] mb-2">Chào mừng trở lại!</h1>
         <p class="text-white/50 text-sm">Đăng nhập để tiếp tục tạo ảnh AI</p>
     </div>
 
@@ -61,7 +61,7 @@
             @endif
         </div>
 
-        <button type="submit" class="w-full py-3.5 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold text-base inline-flex items-center justify-center gap-2 hover:shadow-[0_8px_30px_rgba(168,85,247,0.5)] transition-all">
+        <button type="submit" class="w-full py-3.5 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-[#d3d6db] font-semibold text-base inline-flex items-center justify-center gap-2 hover:shadow-[0_8px_30px_rgba(168,85,247,0.5)] transition-all">
             <i class="fa-solid fa-right-to-bracket" style="font-size: 16px;"></i>
             <span>Đăng nhập</span>
         </button>

@@ -8,7 +8,7 @@
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
             <div class="flex items-center gap-4">
                 <a href="/" class="group flex items-center justify-center w-10 h-10 rounded-xl bg-white/[0.05] border border-white/[0.1] hover:bg-white/[0.1] hover:border-white/[0.2] transition-all">
-                    <svg class="w-5 h-5 text-white/70 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="w-5 h-5 text-white/70 group-hover:text-[#d3d6db] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                     </svg>
                 </a>
@@ -27,14 +27,14 @@
         {{-- MESSAGES --}}
         {{-- ========================================== --}}
         @if($errorMessage)
-            <div class="mb-4 p-4 bg-red-500/10 backdrop-blur-md border border-red-500/20 rounded-xl text-red-200 flex items-center gap-3 animate-in fade-in slide-in-from-top-2">
+            <div class="mb-4 p-4 bg-red-500/10  border border-red-500/20 rounded-xl text-red-200 flex items-center gap-3 animate-in fade-in slide-in-from-top-2">
                 <div class="w-8 h-8 rounded-full bg-red-500/20 flex items-center justify-center flex-shrink-0">
                     <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
                 </div>
                 <div>
                     <p class="text-sm font-medium">{{ $errorMessage }}</p>
                 </div>
-                <button wire:click="$set('errorMessage', '')" class="ml-auto text-red-300 hover:text-white">
+                <button wire:click="$set('errorMessage', '')" class="ml-auto text-red-300 hover:text-[#d3d6db]">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
                 </button>
             </div>
@@ -52,7 +52,7 @@
                 
                 {{-- Upload Zone (No image yet) --}}
                 @if(empty($sourceImage))
-                    <div class="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-2xl p-6 shadow-2xl">
+                    <div class="bg-[#1b1c21]  border border-[#2a2b30] rounded-2xl p-6 shadow-2xl">
                         <div class="relative group"
                              x-data="{ isDragging: false }"
                              @dragover.prevent="isDragging = true"
@@ -61,7 +61,7 @@
                             
                             <label for="image-upload" 
                                    class="flex flex-col items-center justify-center w-full h-80 rounded-2xl border-2 border-dashed transition-all duration-300 cursor-pointer"
-                                   :class="isDragging ? 'border-blue-500 bg-blue-500/10' : 'border-white/[0.15] bg-white/[0.02] hover:bg-white/[0.05] hover:border-white/[0.25]'">
+                                   :class="isDragging ? 'border-blue-500 bg-blue-500/10' : 'border-white/[0.15] bg-[#1b1c21] hover:bg-white/[0.05] hover:border-white/[0.25]'">
                                 
                                 <div class="flex flex-col items-center p-6 text-center">
                                     <div class="w-16 h-16 mb-4 rounded-2xl bg-gradient-to-br from-blue-500/20 to-purple-500/20 flex items-center justify-center border border-white/10 group-hover:scale-110 transition-transform">
@@ -71,7 +71,7 @@
                                     </div>
                                     <h3 class="text-lg font-semibold text-white/90 mb-1">Tải ảnh lên để bắt đầu</h3>
                                     <p class="text-white/50 text-sm mb-4">Kéo thả hoặc nhấp để chọn file</p>
-                                    <span class="px-4 py-2 bg-blue-600/20 text-blue-400 rounded-lg text-sm font-medium border border-blue-500/30 group-hover:bg-blue-600 group-hover:text-white transition-all">Chọn ảnh</span>
+                                    <span class="px-4 py-2 bg-blue-600/20 text-blue-400 rounded-lg text-sm font-medium border border-blue-500/30 group-hover:bg-blue-600 group-hover:text-[#d3d6db] transition-all">Chọn ảnh</span>
                                 </div>
                                 
                                 <input type="file" id="image-upload" wire:model="uploadedImage" accept="image/*" class="hidden">
@@ -91,7 +91,7 @@
                     </div>
                 @else
                     {{-- Canvas Container --}}
-                    <div class="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-2xl overflow-hidden shadow-2xl"
+                    <div class="bg-[#1b1c21]  border border-[#2a2b30] rounded-2xl overflow-hidden shadow-2xl"
                          wire:key="editor-canvas-container"
                          x-data="canvasEditor()" 
                          x-init="init(); $nextTick(() => { if($wire.sourceImage) loadImage({ src: $wire.sourceImage }) })"
@@ -113,11 +113,11 @@
                              @mousedown="startDraw($event)">
                             {{-- Change Image Button (top-right corner) --}}
                             <label for="image-upload-canvas" 
-                                   class="absolute top-3 right-3 z-20 flex items-center gap-2 px-3 py-2 rounded-lg bg-black/60 backdrop-blur-sm border border-white/20 hover:bg-black/80 hover:border-white/30 cursor-pointer transition-all group">
-                                <svg class="w-4 h-4 text-white/70 group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                   class="absolute top-3 right-3 z-20 flex items-center gap-2 px-3 py-2 rounded-lg bg-black/60  border border-white/20 hover:bg-black/80 hover:border-white/30 cursor-pointer transition-all group">
+                                <svg class="w-4 h-4 text-white/70 group-hover:text-[#d3d6db]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                                 </svg>
-                                <span class="text-sm font-medium text-white/80 group-hover:text-white">Đổi ảnh</span>
+                                <span class="text-sm font-medium text-white/80 group-hover:text-[#d3d6db]">Đổi ảnh</span>
                             </label>
                             <input type="file" id="image-upload-canvas" wire:model="uploadedImage" accept="image/*" class="hidden">
                             
@@ -137,7 +137,7 @@
 
                             {{-- Processing Overlay (Queue-based) --}}
                             @if($isProcessing)
-                            <div class="absolute inset-0 bg-[#0a0a0f]/90 flex items-center justify-center z-50 backdrop-blur-md">
+                            <div class="absolute inset-0 bg-[#000000]/90 flex items-center justify-center z-50 ">
                                 <div class="text-center p-6">
                                     <div class="relative w-14 h-14 mx-auto mb-3">
                                         <div class="absolute inset-0 rounded-full border-4 border-blue-500/30"></div>
@@ -152,17 +152,17 @@
 
                         {{-- Toolbar (Only show when mask is needed) --}}
                         @if(in_array($editMode, ['replace', 'background']))
-                            <div class="p-3 bg-black/40 border-t border-white/[0.08]">
+                            <div class="p-3 bg-black/40 border-t border-[#2a2b30]">
                                 <div class="flex flex-wrap items-center gap-2">
                                     {{-- Tools --}}
                                     <div class="flex items-center gap-1 bg-white/[0.05] rounded-lg p-1">
                                         <button type="button" @click="setTool('brush')" 
-                                                :class="tool === 'brush' ? 'bg-blue-500 text-white shadow-lg' : 'text-white/60 hover:bg-white/[0.1] hover:text-white'" 
+                                                :class="tool === 'brush' ? 'bg-blue-500 text-[#d3d6db] shadow-lg' : 'text-white/60 hover:bg-white/[0.1] hover:text-[#d3d6db]'" 
                                                 class="p-2 rounded-lg transition-all" title="Brush">
                                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
                                         </button>
                                         <button type="button" @click="setTool('rect')" 
-                                                :class="tool === 'rect' ? 'bg-blue-500 text-white shadow-lg' : 'text-white/60 hover:bg-white/[0.1] hover:text-white'" 
+                                                :class="tool === 'rect' ? 'bg-blue-500 text-[#d3d6db] shadow-lg' : 'text-white/60 hover:bg-white/[0.1] hover:text-[#d3d6db]'" 
                                                 class="p-2 rounded-lg transition-all" title="Rectangle">
                                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4h16v16H4z"></path></svg>
                                         </button>
@@ -180,10 +180,10 @@
 
                                     {{-- Actions --}}
                                     <div class="flex items-center gap-1">
-                                        <button type="button" @click="undo()" :disabled="historyStep <= 0" class="p-2 rounded-lg text-white/50 hover:bg-white/[0.1] hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-all" title="Undo">
+                                        <button type="button" @click="undo()" :disabled="historyStep <= 0" class="p-2 rounded-lg text-white/50 hover:bg-white/[0.1] hover:text-[#d3d6db] disabled:opacity-30 disabled:cursor-not-allowed transition-all" title="Undo">
                                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" /></svg>
                                         </button>
-                                        <button type="button" @click="redo()" :disabled="historyStep >= history.length - 1" class="p-2 rounded-lg text-white/50 hover:bg-white/[0.1] hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-all" title="Redo">
+                                        <button type="button" @click="redo()" :disabled="historyStep >= history.length - 1" class="p-2 rounded-lg text-white/50 hover:bg-white/[0.1] hover:text-[#d3d6db] disabled:opacity-30 disabled:cursor-not-allowed transition-all" title="Redo">
                                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 10h-10a8 8 0 00-8 8v2M21 10l-6 6m6-6l-6-6" /></svg>
                                         </button>
                                         <button type="button" @click="clearMask()" class="p-2 rounded-lg text-red-400 hover:bg-red-500/20 transition-all" title="Xóa mask">
@@ -222,10 +222,10 @@
             {{-- RIGHT: Controls Panel --}}
             {{-- ============================== --}}
             <div class="lg:col-span-1">
-                <div class="bg-white/[0.03] backdrop-blur-xl rounded-2xl border border-white/[0.08] shadow-2xl overflow-hidden lg:sticky lg:top-4">
+                <div class="bg-[#1b1c21]  rounded-2xl border border-[#2a2b30] shadow-2xl overflow-hidden lg:sticky lg:top-4">
                     
                     {{-- Mode Tabs --}}
-                    <div class="p-4 border-b border-white/[0.08]">
+                    <div class="p-4 border-b border-[#2a2b30]">
                         <label class="block text-xs font-medium text-white/40 uppercase tracking-wider mb-3">Chế độ chỉnh sửa</label>
                         <div class="grid grid-cols-4 gap-1 bg-white/[0.05] rounded-xl p-1">
                             @php
@@ -238,7 +238,7 @@
                             @endphp
                             @foreach($modes as $mode => $config)
                                 <button wire:click="setEditMode('{{ $mode }}')"
-                                        class="flex flex-col items-center gap-1 py-2.5 rounded-lg transition-all {{ $editMode === $mode ? 'bg-blue-600 text-white shadow-lg' : 'text-white/60 hover:bg-white/[0.1] hover:text-white' }}">
+                                        class="flex flex-col items-center gap-1 py-2.5 rounded-lg transition-all {{ $editMode === $mode ? 'bg-blue-600 text-[#d3d6db] shadow-lg' : 'text-white/60 hover:bg-white/[0.1] hover:text-[#d3d6db]' }}">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="{{ $config['icon'] }}" />
                                     </svg>
@@ -249,7 +249,7 @@
                     </div>
 
                     {{-- Mode-specific Options --}}
-                    <div class="p-4 border-b border-white/[0.08]">
+                    <div class="p-4 border-b border-[#2a2b30]">
                         @if($editMode === 'expand')
                             {{-- Expand Sliders --}}
                             <div class="space-y-4">
@@ -311,19 +311,19 @@
                                 {{-- Quick presets --}}
                                 <div class="flex flex-wrap gap-1 mt-3">
                                     <button type="button" wire:click="setExpandPreset('vertical')" 
-                                            class="px-2 py-1 text-[10px] bg-white/[0.05] hover:bg-white/[0.1] border border-white/10 rounded text-white/60 hover:text-white transition">
+                                            class="px-2 py-1 text-[10px] bg-white/[0.05] hover:bg-white/[0.1] border border-white/10 rounded text-white/60 hover:text-[#d3d6db] transition">
                                         Dọc 256
                                     </button>
                                     <button type="button" wire:click="setExpandPreset('horizontal')" 
-                                            class="px-2 py-1 text-[10px] bg-white/[0.05] hover:bg-white/[0.1] border border-white/10 rounded text-white/60 hover:text-white transition">
+                                            class="px-2 py-1 text-[10px] bg-white/[0.05] hover:bg-white/[0.1] border border-white/10 rounded text-white/60 hover:text-[#d3d6db] transition">
                                         Ngang 256
                                     </button>
                                     <button type="button" wire:click="setExpandPreset('all')" 
-                                            class="px-2 py-1 text-[10px] bg-white/[0.05] hover:bg-white/[0.1] border border-white/10 rounded text-white/60 hover:text-white transition">
+                                            class="px-2 py-1 text-[10px] bg-white/[0.05] hover:bg-white/[0.1] border border-white/10 rounded text-white/60 hover:text-[#d3d6db] transition">
                                         Đều 128
                                     </button>
                                     <button type="button" wire:click="setExpandPreset('reset')" 
-                                            class="px-2 py-1 text-[10px] bg-white/[0.05] hover:bg-white/[0.1] border border-white/10 rounded text-white/60 hover:text-white transition">
+                                            class="px-2 py-1 text-[10px] bg-white/[0.05] hover:bg-white/[0.1] border border-white/10 rounded text-white/60 hover:text-[#d3d6db] transition">
                                         Reset
                                     </button>
                                 </div>
@@ -337,12 +337,12 @@
                                 <p class="text-xs text-white/50">AI sẽ tự động tìm và thay đổi text trong ảnh.</p>
                                 
                                 {{-- Single text replacement pair --}}
-                                <div class="p-3 bg-white/[0.03] rounded-lg border border-white/[0.06]">
+                                <div class="p-3 bg-[#1b1c21] rounded-lg border border-[#2a2b30]">
                                     <label class="block text-[10px] text-white/40 mb-1">Text gốc</label>
                                     <input type="text" 
                                            wire:model="textReplacements.0.from"
                                            placeholder="Nhập text cần thay đổi"
-                                           class="w-full px-3 py-2 text-sm bg-white/[0.05] border border-white/[0.1] rounded-lg text-white placeholder-white/30 focus:ring-1 focus:ring-blue-500/40 focus:border-blue-500/50 outline-none">
+                                           class="w-full px-3 py-2 text-sm bg-white/[0.05] border border-white/[0.1] rounded-lg text-[#d3d6db] placeholder-white/30 focus:ring-1 focus:ring-blue-500/40 focus:border-blue-500/50 outline-none">
                                     
                                     <div class="text-center py-2">
                                         <svg class="inline-block w-4 h-4 text-white/30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -354,7 +354,7 @@
                                     <input type="text" 
                                            wire:model="textReplacements.0.to"
                                            placeholder="Nhập text thay thế"
-                                           class="w-full px-3 py-2 text-sm bg-white/[0.05] border border-green-500/20 rounded-lg text-white placeholder-white/30 focus:ring-1 focus:ring-green-500/40 focus:border-green-500/50 outline-none">
+                                           class="w-full px-3 py-2 text-sm bg-white/[0.05] border border-green-500/20 rounded-lg text-[#d3d6db] placeholder-white/30 focus:ring-1 focus:ring-green-500/40 focus:border-green-500/50 outline-none">
                                 </div>
                             </div>
                         @else
@@ -373,7 +373,7 @@
                     </div>
 
                     {{-- Prompt Input --}}
-                    <div class="p-4 border-b border-white/[0.08]">
+                    <div class="p-4 border-b border-[#2a2b30]">
                         <label class="block text-xs font-medium text-white/40 uppercase tracking-wider mb-2">
                             {{ $editMode === 'text' ? 'Ghi chú thêm (tuỳ chọn)' : 'Mô tả thay đổi' }}
                         </label>
@@ -381,12 +381,12 @@
                             <textarea wire:model="editPrompt"
                                       rows="{{ $editMode === 'text' ? 2 : 4 }}"
                                       placeholder="{{ $editMode === 'text' ? 'VD: Giữ nguyên font, màu đỏ, chữ đậm...' : $this->placeholderText }}"
-                                      class="w-full pl-3 pr-12 py-2.5 bg-white/[0.05] border border-white/[0.1] rounded-xl text-white text-sm placeholder-white/30 focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500/50 outline-none transition-all resize-none"></textarea>
+                                      class="w-full pl-3 pr-12 py-2.5 bg-white/[0.05] border border-white/[0.1] rounded-xl text-[#d3d6db] text-sm placeholder-white/30 focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500/50 outline-none transition-all resize-none"></textarea>
                             
                             {{-- Magic Wand Button --}}
                             <button wire:click="magicEnhance" 
                                     wire:loading.attr="disabled"
-                                    class="absolute right-2 top-2 p-1.5 rounded-lg bg-gradient-to-br from-blue-500/20 to-purple-500/20 border border-white/10 text-blue-300 hover:text-white hover:from-blue-500 hover:to-purple-500 hover:border-transparent transition-all shadow-lg group-hover/prompt:opacity-100 opacity-70"
+                                    class="absolute right-2 top-2 p-1.5 rounded-lg bg-gradient-to-br from-blue-500/20 to-purple-500/20 border border-white/10 text-blue-300 hover:text-[#d3d6db] hover:from-blue-500 hover:to-purple-500 hover:border-transparent transition-all shadow-lg group-hover/prompt:opacity-100 opacity-70"
                                     title="Dùng Đũa Thần để viết lại prompt siêu xịn (Magic Enhance)">
                                 <span wire:loading.remove target="magicEnhance">
                                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -431,13 +431,13 @@
                                 <svg class="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
                                 </svg>
-                                <span>Bạn không đủ Xu. <a href="{{ route('wallet.index') }}" class="underline hover:text-white">Nạp thêm</a></span>
+                                <span>Bạn không đủ Xu. <a href="{{ route('wallet.index') }}" class="underline hover:text-[#d3d6db]">Nạp thêm</a></span>
                             </div>
                         @endif
 
                         <button wire:click="processEdit"
                                 @if(empty($sourceImage) || !$this->hasEnoughCredits || $isProcessing) disabled @endif
-                                class="w-full py-3 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-500 hover:via-indigo-500 hover:to-purple-500 disabled:opacity-40 disabled:cursor-not-allowed rounded-xl text-white font-bold transition-all shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 text-center group">
+                                class="w-full py-3 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-500 hover:via-indigo-500 hover:to-purple-500 disabled:opacity-40 disabled:cursor-not-allowed rounded-xl text-[#d3d6db] font-bold transition-all shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 text-center group">
                             
                             @if($isProcessing)
                             <span class="inline-flex items-center justify-center gap-2">
@@ -464,7 +464,7 @@
     {{-- RESULT MODAL --}}
     {{-- ========================================== --}}
     @if($resultImage)
-        <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in"
+        <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80  animate-in fade-in"
              x-data="{ open: true }"
              x-show="open"
              @keydown.escape.window="open = false; @this.set('resultImage', '')">
@@ -472,25 +472,25 @@
             <div class="relative w-full max-w-2xl bg-gradient-to-b from-[#14141f] to-[#0d0d15] rounded-2xl border border-white/10 shadow-2xl overflow-hidden animate-in zoom-in-95">
                 
                 {{-- Modal Header --}}
-                <div class="flex items-center justify-between px-5 py-4 border-b border-white/[0.08]">
+                <div class="flex items-center justify-between px-5 py-4 border-b border-[#2a2b30]">
                     <div class="flex items-center gap-3">
                         <div class="w-10 h-10 rounded-full bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center shadow-lg shadow-green-500/25">
-                            <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                            <svg class="w-5 h-5 text-[#d3d6db]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
                         </div>
                         <div>
-                            <h3 class="text-lg font-bold text-white">Kết quả AI</h3>
+                            <h3 class="text-lg font-bold text-[#d3d6db]">Kết quả AI</h3>
                             <p class="text-xs text-white/50">Chỉnh sửa hoàn tất</p>
                         </div>
                     </div>
                     <button @click="open = false; @this.set('resultImage', '')" 
-                            class="p-2.5 rounded-xl text-white/50 hover:bg-white/10 hover:text-white transition-all">
+                            class="p-2.5 rounded-xl text-white/50 hover:bg-white/10 hover:text-[#d3d6db] transition-all">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
                     </button>
                 </div>
 
                 {{-- Modal Body - Image Preview with Comparison Custom Slider --}}
                 <div class="p-5">
-                    <div class="relative rounded-xl overflow-hidden bg-black/40 border border-white/[0.05] group/slider select-none"
+                    <div class="relative rounded-xl overflow-hidden bg-black/40 border border-[#2a2b30] group/slider select-none"
                          x-data="{ sliderPos: 50 }"
                          style="--pos: 50%">
                         
@@ -502,11 +502,11 @@
                              :style="`clip-path: inset(0 calc(100% - ${sliderPos}%) 0 0)`">
                             <img src="{{ $sourceImage }}" alt="Before" class="w-full h-full object-contain block">
                             {{-- Label --}}
-                            <span class="absolute top-4 left-4 bg-black/50 text-white/80 text-[10px] font-bold px-2 py-1 rounded backdrop-blur-md border border-white/10 uppercase tracking-wider">Original</span>
+                            <span class="absolute top-4 left-4 bg-black/50 text-white/80 text-[10px] font-bold px-2 py-1 rounded  border border-white/10 uppercase tracking-wider">Original</span>
                         </div>
                         
                         {{-- Label for After --}}
-                        <span class="absolute top-4 right-4 bg-blue-500/50 text-white/90 text-[10px] font-bold px-2 py-1 rounded backdrop-blur-md border border-white/10 z-0 uppercase tracking-wider">AI Result</span>
+                        <span class="absolute top-4 right-4 bg-blue-500/50 text-white/90 text-[10px] font-bold px-2 py-1 rounded  border border-white/10 z-0 uppercase tracking-wider">AI Result</span>
 
                         {{-- 3. Slider Handle --}}
                         <div class="absolute top-0 bottom-0 w-0.5 bg-white/80 z-20 shadow-[0_0_10px_rgba(0,0,0,0.5)] pointer-events-none"
@@ -552,7 +552,7 @@
                                         window.open('{{ $resultImage }}', '_blank');
                                     });
                             "
-                            class="flex flex-col items-center gap-1.5 py-3 px-4 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] border border-white/[0.08] hover:border-white/[0.15] text-white/80 hover:text-white transition-all group">
+                            class="flex flex-col items-center gap-1.5 py-3 px-4 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] border border-[#2a2b30] hover:border-white/[0.15] text-white/80 hover:text-[#d3d6db] transition-all group">
                         <svg class="w-5 h-5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                         </svg>
@@ -561,14 +561,14 @@
                     
                     {{-- New Edit --}}
                     <button wire:click="resetEditor"
-                            class="flex flex-col items-center gap-1.5 py-3 px-4 rounded-xl bg-gradient-to-br from-blue-500/20 to-purple-500/20 hover:from-blue-500/30 hover:to-purple-500/30 border border-blue-500/30 hover:border-blue-500/50 text-white transition-all group">
+                            class="flex flex-col items-center gap-1.5 py-3 px-4 rounded-xl bg-gradient-to-br from-blue-500/20 to-purple-500/20 hover:from-blue-500/30 hover:to-purple-500/30 border border-blue-500/30 hover:border-blue-500/50 text-[#d3d6db] transition-all group">
                         <svg class="w-5 h-5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
                         <span class="text-xs font-medium">Tạo mới</span>
                     </button>
 
                     {{-- Continue Editing --}}
                     <button wire:click="continueEditing"
-                            class="flex flex-col items-center gap-1.5 py-3 px-4 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] border border-white/[0.08] hover:border-white/[0.15] text-white/80 hover:text-white transition-all group">
+                            class="flex flex-col items-center gap-1.5 py-3 px-4 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] border border-[#2a2b30] hover:border-white/[0.15] text-white/80 hover:text-[#d3d6db] transition-all group">
                         <svg class="w-5 h-5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
                         <span class="text-xs font-medium">Tiếp tục</span>
                     </button>

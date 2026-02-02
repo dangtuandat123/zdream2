@@ -8,13 +8,13 @@
 ])
 
 @php
-    $baseClasses = 'inline-flex items-center justify-center gap-2 font-semibold rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[#0a0a0f] disabled:opacity-50 disabled:cursor-not-allowed';
+    $baseClasses = 'inline-flex items-center justify-center gap-2 font-semibold rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[#000000] disabled:opacity-50 disabled:cursor-not-allowed';
     
     $variantClasses = match($variant) {
-        'primary' => 'bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:shadow-[0_8px_30px_rgba(168,85,247,0.5)] focus:ring-purple-500',
-        'secondary' => 'bg-white/[0.05] border border-white/[0.1] text-white hover:bg-white/[0.1] focus:ring-white/30',
+        'primary' => 'bg-gradient-to-r from-purple-500 to-pink-500 text-[#d3d6db] hover:shadow-[0_8px_30px_rgba(168,85,247,0.5)] focus:ring-purple-500',
+        'secondary' => 'bg-white/[0.05] border border-white/[0.1] text-[#d3d6db] hover:bg-white/[0.1] focus:ring-white/30',
         'danger' => 'bg-red-500/20 border border-red-500/30 text-red-400 hover:bg-red-500/30 focus:ring-red-500',
-        'ghost' => 'bg-transparent text-white/60 hover:text-white hover:bg-white/[0.05] focus:ring-white/20',
+        'ghost' => 'bg-transparent text-white/60 hover:text-[#d3d6db] hover:bg-white/[0.05] focus:ring-white/20',
         default => '',
     };
     

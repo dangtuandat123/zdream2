@@ -14,7 +14,7 @@
                         <span class="inline-flex h-2 w-2 rounded-full bg-emerald-400"></span>
                         Có sẵn {{ $styles->total() }} phong cách
                     </div>
-                    <h1 class="mt-3 text-2xl sm:text-4xl lg:text-5xl font-extrabold text-white tracking-tight">
+                    <h1 class="mt-3 text-2xl sm:text-4xl lg:text-5xl font-extrabold text-[#d3d6db] tracking-tight">
                         Chọn phong cách, tạo ảnh nhanh và đẹp
                     </h1>
                     <p class="mt-2 text-white/60 text-sm sm:text-base">
@@ -36,7 +36,7 @@
     <!-- Header -->
     <div id="styles-title" class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 scroll-mt-24">
         <div>
-            <h1 class="text-2xl sm:text-3xl font-bold text-white">Khám phá Styles</h1>
+            <h1 class="text-2xl sm:text-3xl font-bold text-[#d3d6db]">Khám phá Styles</h1>
             <p class="text-white/50 text-sm mt-1">{{ $styles->total() }} styles đang sẵn sàng</p>
         </div>
     </div>
@@ -54,13 +54,13 @@
                         wire:model.live.debounce.400ms="search"
                         wire:key="styles-search-input"
                         placeholder="Tìm kiếm style..."
-                        class="w-full h-11 pl-10 pr-10 rounded-xl bg-white/[0.04] border border-white/[0.08] text-white text-sm sm:text-base placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-purple-500/40"
+                        class="w-full h-11 pl-10 pr-10 rounded-xl bg-white/[0.04] border border-white/[0.08] text-[#d3d6db] text-sm sm:text-base placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-purple-500/40"
                     >
                     @if(trim($search) !== '')
                         <button
                             type="button"
                             wire:click="$set('search','')"
-                            class="absolute right-3 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-white/10 text-white/60 hover:text-white hover:bg-white/20 transition-colors inline-flex items-center justify-center"
+                            class="absolute right-3 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-white/10 text-white/60 hover:text-[#d3d6db] hover:bg-white/20 transition-colors inline-flex items-center justify-center"
                             aria-label="Xóa tìm kiếm"
                         >
                             <i class="fa-solid fa-xmark text-[12px]"></i>
@@ -71,17 +71,8 @@
 
             <!-- Filters -->
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:flex lg:items-center gap-3">
-                <div class="relative min-w-0 sm:min-w-[160px]" wire:ignore x-data="select2Livewire({ model: @entangle('price').live, minResults: 9999 })">
-                    <select x-ref="select" data-no-select2="true" class="w-full h-11 px-3 rounded-xl bg-white/[0.04] border border-white/[0.08] text-white text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-purple-500/40">
-                        <option value="">Tất cả giá</option>
-                        @foreach($priceRanges as $key => $label)
-                            <option value="{{ $key }}">{{ $label }}</option>
-                        @endforeach
-                    </select>
-                </div>
-
                 <div class="relative min-w-0 sm:min-w-[180px]" wire:ignore x-data="select2Livewire({ model: @entangle('tag').live, minResults: 9999 })">
-                    <select x-ref="select" data-no-select2="true" class="w-full h-11 px-3 rounded-xl bg-white/[0.04] border border-white/[0.08] text-white text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-purple-500/40">
+                    <select x-ref="select" data-no-select2="true" class="w-full h-11 px-3 rounded-xl bg-white/[0.04] border border-white/[0.08] text-[#d3d6db] text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-purple-500/40">
                         <option value="">Tất cả chủ đề</option>
                         @foreach($tags as $tagItem)
                             <option value="{{ $tagItem->id }}">{{ $tagItem->name }}</option>
@@ -90,14 +81,14 @@
                 </div>
 
                 <div class="relative min-w-0 sm:min-w-[180px]" wire:ignore x-data="select2Livewire({ model: @entangle('sort').live, minResults: 9999 })">
-                    <select x-ref="select" data-no-select2="true" class="w-full h-11 px-3 rounded-xl bg-white/[0.04] border border-white/[0.08] text-white text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-purple-500/40">
+                    <select x-ref="select" data-no-select2="true" class="w-full h-11 px-3 rounded-xl bg-white/[0.04] border border-white/[0.08] text-[#d3d6db] text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-purple-500/40">
                         @foreach($sortOptions as $key => $label)
                             <option value="{{ $key }}">{{ $label }}</option>
                         @endforeach
                     </select>
                 </div>
 
-                @if(trim($search) !== '' || $price !== '' || $tag !== '' || $sort !== 'popular')
+                @if(trim($search) !== '' || $tag !== '' || $sort !== 'popular')
                     <button type="button" wire:click="resetFilters" class="w-full sm:w-auto h-11 px-4 rounded-xl bg-red-500/15 border border-red-500/30 text-red-300 text-sm hover:bg-red-500/25 transition-colors inline-flex items-center justify-center gap-2 whitespace-nowrap">
                         <i class="fa-solid fa-xmark text-[12px]"></i>
                         Xóa lọc
@@ -120,23 +111,23 @@
             <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-5">
                 @foreach($styles as $style)
                     <a href="{{ route('studio.show', $style->slug) }}" class="group block h-full">
-                        <div class="style-card relative overflow-hidden h-full bg-[#16161d] border border-[#2a2a35] rounded-xl sm:rounded-2xl transition-all duration-300 hover:border-purple-500/50 hover:shadow-lg hover:shadow-purple-500/10 hover:-translate-y-1 cursor-pointer flex flex-col">
+                        <div class="style-card relative overflow-hidden h-full bg-[#1b1c21] border border-[#2a2b30] rounded-xl sm:rounded-2xl transition-all duration-300 hover:border-purple-500/50 hover:shadow-lg hover:shadow-purple-500/10 hover:-translate-y-1 cursor-pointer flex flex-col">
                             <div class="relative aspect-[3/4] overflow-hidden rounded-t-xl sm:rounded-t-2xl">
                                 <img src="{{ $style->thumbnail }}" alt="{{ $style->name }}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" decoding="async" fetchpriority="low">
-                                <div class="absolute inset-0 bg-gradient-to-t from-[#16161d] via-transparent to-transparent opacity-90"></div>
+                                <div class="absolute inset-0 bg-gradient-to-t from-[#1b1c21] via-transparent to-transparent opacity-90"></div>
                                 <div class="absolute top-2 sm:top-3 left-2 sm:left-3 right-2 sm:right-3 flex items-start justify-between">
                                     @if($style->tag)
-                                        <span class="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-{{ $style->tag->color_from }} text-white text-[10px] sm:text-xs font-semibold">
+                                        <span class="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-{{ $style->tag->color_from }} text-[#d3d6db] text-[10px] sm:text-xs font-semibold">
                                             <i class="fa-solid {{ $style->tag->icon }} w-2.5 h-2.5"></i> {{ $style->tag->name }}
                                         </span>
                                     @elseif($style->generated_images_count > 100)
-                                        <span class="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-orange-500 text-white text-[10px] sm:text-xs font-semibold">
+                                        <span class="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-orange-500 text-[#d3d6db] text-[10px] sm:text-xs font-semibold">
                                             <i class="fa-solid fa-fire w-2.5 h-2.5"></i> HOT
                                         </span>
                                     @else
                                         <div></div>
                                     @endif
-                                    <div class="px-2 py-1 rounded-md bg-[#0d0d12] border border-[#2a2a35] text-white font-semibold text-[10px] sm:text-xs flex items-center gap-1">
+                                    <div class="px-2 py-1 rounded-md bg-[#0d0d12] border border-[#2a2b30] text-[#d3d6db] font-semibold text-[10px] sm:text-xs flex items-center gap-1">
                                         @if($style->price == 0)
                                             <i class="fa-solid fa-gift w-3 h-3 text-green-400"></i> Free
                                         @else
@@ -145,17 +136,17 @@
                                     </div>
                                 </div>
                                 <div class="hidden sm:flex absolute inset-0 items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                                    <div class="px-5 py-2.5 rounded-lg bg-purple-600 text-white font-semibold text-sm flex items-center gap-2 transform translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
+                                    <div class="px-5 py-2.5 rounded-lg bg-purple-600 text-[#d3d6db] font-semibold text-sm flex items-center gap-2 transform translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
                                         Thử ngay <i class="fa-solid fa-arrow-right w-3.5 h-3.5"></i>
                                     </div>
                                 </div>
                             </div>
                             <div class="flex flex-col flex-1 p-2.5 sm:p-3">
-                                <h3 class="font-semibold text-white text-xs sm:text-sm lg:text-base line-clamp-1 group-hover:text-purple-400 transition-colors">{{ $style->name }}</h3>
+                                <h3 class="font-semibold text-[#d3d6db] text-xs sm:text-sm lg:text-base line-clamp-1 group-hover:text-purple-400 transition-colors">{{ $style->name }}</h3>
                                 @if($style->description)
                                     <p class="hidden sm:block text-white/40 text-[10px] sm:text-xs mt-1 line-clamp-2 flex-1">{{ $style->description }}</p>
                                 @endif
-                                <div class="flex items-center justify-between mt-2 pt-2 border-t border-[#2a2a35]">
+                                <div class="flex items-center justify-between mt-2 pt-2 border-t border-[#2a2b30]">
                                     <div class="flex items-center gap-1 text-white/50 text-[10px] sm:text-xs">
                                         <i class="fa-solid fa-image w-3 h-3"></i>
                                         <span>{{ number_format($style->generated_images_count) }}</span>

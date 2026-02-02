@@ -4,10 +4,10 @@
     <div class="max-w-3xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
         <div class="mb-6">
             <div class="flex items-center gap-3 mb-2">
-                <a href="{{ route('admin.settings.index') }}" class="text-white/40 hover:text-white transition-colors">
+                <a href="{{ route('admin.settings.index') }}" class="text-white/40 hover:text-[#d3d6db] transition-colors">
                     <i class="fa-solid fa-arrow-left"></i>
                 </a>
-                <h1 class="text-2xl font-bold text-white">Edit Studio Settings</h1>
+                <h1 class="text-2xl font-bold text-[#d3d6db]">Edit Studio Settings</h1>
             </div>
             <p class="text-white/50 text-sm">Cấu hình models và prompts cho chức năng chỉnh sửa ảnh AI</p>
         </div>
@@ -30,7 +30,7 @@
 
             <!-- Replace Mode -->
             <div class="bg-white/[0.03] border border-white/[0.08] rounded-2xl p-6">
-                <h2 class="text-lg font-semibold text-white mb-4 inline-flex items-center gap-3">
+                <h2 class="text-lg font-semibold text-[#d3d6db] mb-4 inline-flex items-center gap-3">
                     <span class="w-8 h-8 rounded-xl bg-red-500/20 flex items-center justify-center">
                         <i class="fa-solid fa-eraser text-red-400"></i>
                     </span>
@@ -70,7 +70,7 @@
 
             <!-- Text Mode -->
             <div class="bg-white/[0.03] border border-white/[0.08] rounded-2xl p-6">
-                <h2 class="text-lg font-semibold text-white mb-4 inline-flex items-center gap-3">
+                <h2 class="text-lg font-semibold text-[#d3d6db] mb-4 inline-flex items-center gap-3">
                     <span class="w-8 h-8 rounded-xl bg-blue-500/20 flex items-center justify-center">
                         <i class="fa-solid fa-font text-blue-400"></i>
                     </span>
@@ -110,7 +110,7 @@
 
             <!-- Background Mode -->
             <div class="bg-white/[0.03] border border-white/[0.08] rounded-2xl p-6">
-                <h2 class="text-lg font-semibold text-white mb-4 inline-flex items-center gap-3">
+                <h2 class="text-lg font-semibold text-[#d3d6db] mb-4 inline-flex items-center gap-3">
                     <span class="w-8 h-8 rounded-xl bg-green-500/20 flex items-center justify-center">
                         <i class="fa-solid fa-image text-green-400"></i>
                     </span>
@@ -154,7 +154,7 @@
 
             <!-- Expand Mode -->
             <div class="bg-white/[0.03] border border-white/[0.08] rounded-2xl p-6">
-                <h2 class="text-lg font-semibold text-white mb-4 inline-flex items-center gap-3">
+                <h2 class="text-lg font-semibold text-[#d3d6db] mb-4 inline-flex items-center gap-3">
                     <span class="w-8 h-8 rounded-xl bg-purple-500/20 flex items-center justify-center">
                         <i class="fa-solid fa-expand text-purple-400"></i>
                     </span>
@@ -195,7 +195,7 @@
             <!-- Submit -->
             <div class="flex items-center gap-4">
                 <button type="submit"
-                    class="px-8 py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-semibold inline-flex items-center gap-2 hover:shadow-[0_8px_30px_rgba(6,182,212,0.5)] transition-all">
+                    class="px-8 py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-500 text-[#d3d6db] font-semibold inline-flex items-center gap-2 hover:shadow-[0_8px_30px_rgba(6,182,212,0.5)] transition-all">
                     <i class="fa-solid fa-save" style="font-size: 14px;"></i>
                     <span>Lưu cài đặt</span>
                 </button>

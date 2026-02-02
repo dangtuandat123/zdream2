@@ -4,11 +4,11 @@
     <div class="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
         <!-- Header -->
         <div class="flex items-center gap-4 mb-6">
-            <a href="{{ route('admin.images.index') }}" class="w-10 h-10 rounded-xl bg-white/[0.05] border border-white/[0.1] flex items-center justify-center text-white/60 hover:text-white hover:bg-white/[0.1] transition-all">
+            <a href="{{ route('admin.images.index') }}" class="w-10 h-10 rounded-xl bg-white/[0.05] border border-white/[0.1] flex items-center justify-center text-white/60 hover:text-[#d3d6db] hover:bg-white/[0.1] transition-all">
                 <i class="fa-solid fa-arrow-left" style="font-size: 14px;"></i>
             </a>
             <div class="flex-1">
-                <h1 class="text-2xl font-bold text-white">Chi tiết ảnh #{{ $image->id }}</h1>
+                <h1 class="text-2xl font-bold text-[#d3d6db]">Chi tiết ảnh #{{ $image->id }}</h1>
                 <p class="text-white/50 text-sm">Tạo lúc {{ $image->created_at->format('d/m/Y H:i:s') }}</p>
             </div>
             <form method="POST" action="{{ route('admin.images.destroy', $image) }}" 
@@ -63,7 +63,7 @@
             <div class="space-y-6">
                 <!-- Status & Meta -->
                 <div class="bg-white/[0.03] border border-white/[0.08] rounded-2xl p-6">
-                    <h3 class="text-lg font-semibold text-white mb-4">Thông tin</h3>
+                    <h3 class="text-lg font-semibold text-[#d3d6db] mb-4">Thông tin</h3>
                     <div class="space-y-3">
                         <div class="flex justify-between">
                             <span class="text-white/50">Status</span>
@@ -73,7 +73,7 @@
                         </div>
                         <div class="flex justify-between">
                             <span class="text-white/50">Credits used</span>
-                            <span class="text-white font-semibold">{{ number_format($image->credits_used, 0) }} Xu</span>
+                            <span class="text-[#d3d6db] font-semibold">{{ number_format($image->credits_used, 0) }} Xu</span>
                         </div>
                         <div class="flex justify-between">
                             <span class="text-white/50">User</span>
@@ -87,7 +87,7 @@
                         </div>
                         <div class="flex justify-between">
                             <span class="text-white/50">Style</span>
-                            <span class="text-white">{{ $image->style->name ?? 'Đã xóa' }}</span>
+                            <span class="text-[#d3d6db]">{{ $image->style->name ?? 'Đã xóa' }}</span>
                         </div>
                         @if($image->bfl_task_id || $image->openrouter_id)
                             <div class="flex justify-between">
@@ -100,7 +100,7 @@
 
                 <!-- Prompt -->
                 <div class="bg-white/[0.03] border border-white/[0.08] rounded-2xl p-6">
-                    <h3 class="text-lg font-semibold text-white mb-4">Final Prompt</h3>
+                    <h3 class="text-lg font-semibold text-[#d3d6db] mb-4">Final Prompt</h3>
                     <div class="p-3 bg-black/20 rounded-lg">
                         <p class="text-white/70 text-sm font-mono whitespace-pre-wrap break-words">{{ $image->final_prompt }}</p>
                     </div>
@@ -109,7 +109,7 @@
                 <!-- Generation Params -->
                 @if($image->generation_params && count($image->generation_params) > 0)
                     <div class="bg-white/[0.03] border border-white/[0.08] rounded-2xl p-6">
-                        <h3 class="text-lg font-semibold text-white mb-4">Generation Params</h3>
+                        <h3 class="text-lg font-semibold text-[#d3d6db] mb-4">Generation Params</h3>
                         <div class="space-y-2">
                             @foreach($image->generation_params as $key => $value)
                                 @php
@@ -129,7 +129,7 @@
                 <!-- User Custom Input -->
                 @if($image->user_custom_input)
                     <div class="bg-white/[0.03] border border-white/[0.08] rounded-2xl p-6">
-                        <h3 class="text-lg font-semibold text-white mb-4">User Custom Input</h3>
+                        <h3 class="text-lg font-semibold text-[#d3d6db] mb-4">User Custom Input</h3>
                         <div class="p-3 bg-black/20 rounded-lg">
                             <p class="text-white/70 text-sm">{{ $image->user_custom_input }}</p>
                         </div>
@@ -139,7 +139,7 @@
                 <!-- Selected Options -->
                 @if($image->selected_options && count($image->selected_options) > 0)
                     <div class="bg-white/[0.03] border border-white/[0.08] rounded-2xl p-6">
-                        <h3 class="text-lg font-semibold text-white mb-4">Selected Options</h3>
+                        <h3 class="text-lg font-semibold text-[#d3d6db] mb-4">Selected Options</h3>
                         <div class="flex flex-wrap gap-2">
                             @foreach($image->selected_options as $group => $optionId)
                                 <span class="px-2 py-1 rounded bg-white/[0.05] text-white/60 text-sm">

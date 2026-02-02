@@ -4,7 +4,7 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
         <div class="flex items-center justify-between mb-6">
             <div>
-                <h1 class="text-2xl font-bold text-white">Quản lý ảnh đã tạo</h1>
+                <h1 class="text-2xl font-bold text-[#d3d6db]">Quản lý ảnh đã tạo</h1>
                 <p class="text-white/50 text-sm">{{ $stats['total'] }} ảnh | {{ $stats['completed'] }} hoàn thành | {{ $stats['failed'] }} thất bại</p>
             </div>
         </div>
@@ -27,7 +27,7 @@
         <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             <div class="bg-white/[0.03] border border-white/[0.08] rounded-xl p-4">
                 <div class="text-white/50 text-sm mb-1">Tổng ảnh</div>
-                <div class="text-2xl font-bold text-white">{{ number_format($stats['total']) }}</div>
+                <div class="text-2xl font-bold text-[#d3d6db]">{{ number_format($stats['total']) }}</div>
             </div>
             <div class="bg-white/[0.03] border border-white/[0.08] rounded-xl p-4">
                 <div class="text-white/50 text-sm mb-1">Hoàn thành</div>
@@ -69,7 +69,7 @@
                     <i class="fa-solid fa-filter mr-1"></i> Lọc
                 </button>
                 @if(request()->hasAny(['search', 'status', 'style_id', 'from']))
-                    <a href="{{ route('admin.images.index') }}" class="px-4 py-2 rounded-lg bg-white/[0.05] border border-white/[0.1] text-white/60 hover:text-white transition-colors">
+                    <a href="{{ route('admin.images.index') }}" class="px-4 py-2 rounded-lg bg-white/[0.05] border border-white/[0.1] text-white/60 hover:text-[#d3d6db] transition-colors">
                         Xóa filter
                     </a>
                 @endif
@@ -101,14 +101,14 @@
 
                             <!-- Hover Overlay -->
                             <div class="absolute inset-0 bg-black/80 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                                <a href="{{ route('admin.images.show', $image) }}" class="p-2 rounded-lg bg-white/20 text-white hover:bg-white/30 transition-colors">
+                                <a href="{{ route('admin.images.show', $image) }}" class="p-2 rounded-lg bg-white/20 text-[#d3d6db] hover:bg-white/30 transition-colors">
                                     <i class="fa-solid fa-eye"></i>
                                 </a>
                                 <form method="POST" action="{{ route('admin.images.destroy', $image) }}" 
                                       onsubmit="return confirm('Xác nhận xóa ảnh này?')">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="submit" class="p-2 rounded-lg bg-red-500/50 text-white hover:bg-red-500/70 transition-colors">
+                                    <button type="submit" class="p-2 rounded-lg bg-red-500/50 text-[#d3d6db] hover:bg-red-500/70 transition-colors">
                                         <i class="fa-solid fa-trash"></i>
                                     </button>
                                 </form>

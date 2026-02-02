@@ -5,14 +5,14 @@
         <div class="grid gap-6 lg:grid-cols-12 lg:items-stretch">
             <!-- Topup Card -->
             <div class="lg:col-span-8 h-full">
-                <div class="bg-white/[0.03] border border-white/[0.08] rounded-2xl overflow-hidden h-full flex flex-col">
-                    <div class="p-4 sm:p-5 border-b border-white/[0.05]">
+                <div class="bg-[#1b1c21] border border-[#2a2b30] rounded-2xl overflow-hidden h-full flex flex-col">
+                    <div class="p-4 sm:p-5 border-b border-[#2a2b30]">
                         @php
                             $creditRate = (int) \App\Models\Setting::get('credit_exchange_rate', 1000);
                         @endphp
                         <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                             <div>
-                                <h2 class="text-lg font-semibold text-white flex items-center gap-2">
+                                <h2 class="text-lg font-semibold text-[#d3d6db] flex items-center gap-2">
                                     <span class="inline-flex w-6 h-6 items-center justify-center rounded-full bg-purple-500/15">
                                         <i class="fa-solid fa-qrcode text-purple-400 text-[14px] leading-none"></i>
                                     </span>
@@ -20,19 +20,19 @@
                                 </h2>
                                 <p class="text-sm text-white/40 mt-1">Tỉ lệ: {{ number_format($creditRate, 0) }} VND = 1 Xu • Tự động cộng sau vài phút</p>
                             </div>
-                            <div class="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/[0.04] border border-white/[0.08]">
+                            <div class="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/[0.04] border border-[#2a2b30]">
                                 <span class="inline-flex w-5 h-5 items-center justify-center rounded-full bg-cyan-500/15">
                                     <i class="fa-solid fa-gem text-cyan-400 text-[12px] leading-none"></i>
                                 </span>
                                 <span class="text-xs text-white/60">Số dư:</span>
-                                <span class="text-sm font-semibold text-white">{{ number_format($user->credits, 0) }} Xu</span>
+                                <span class="text-sm font-semibold text-[#d3d6db]">{{ number_format($user->credits, 0) }} Xu</span>
                             </div>
                         </div>
                     </div>
 
                     <div class="p-4 sm:p-6 grid gap-6 lg:grid-cols-2 items-stretch flex-1">
                         <!-- QR Card -->
-                        <div class="bg-white/[0.02] border border-cyan-500/20 ring-1 ring-cyan-400/20 shadow-[0_0_40px_rgba(34,211,238,0.08)] rounded-2xl p-5 flex flex-col items-center text-center h-full" x-data="{ loaded: false }">
+                        <div class="bg-[#1b1c21] border border-cyan-500/20 ring-1 ring-cyan-400/20 shadow-[0_0_40px_rgba(34,211,238,0.08)] rounded-2xl p-5 flex flex-col items-center text-center h-full" x-data="{ loaded: false }">
                             <div class="flex items-center gap-2 text-sm text-white/70 mb-4">
                                 <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-purple-500/20 text-purple-300 text-xs font-bold">1</span>
                                 Quét mã QR (quan trọng)
@@ -63,7 +63,7 @@
                         </div>
 
                         <!-- Transfer Info Card -->
-                        <div class="bg-white/[0.02] border border-white/[0.06] rounded-2xl p-5 flex flex-col h-full">
+                        <div class="bg-[#1b1c21] border border-[#2a2b30] rounded-2xl p-5 flex flex-col h-full">
                             <div class="flex items-center gap-2 text-sm text-white/70 mb-4">
                                 <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-purple-500/20 text-purple-300 text-xs font-bold">2</span>
                                 Thông tin chuyển khoản
@@ -85,7 +85,7 @@
                                         <p class="text-xs text-white/40">Số tài khoản</p>
                                         <p class="text-sm text-white/90 font-mono mt-1">{{ $bankInfo['account_number'] }}</p>
                                     </div>
-                                    <button onclick="copyToClipboard('{{ $bankInfo['account_number'] }}', this)" class="px-3 py-2 rounded-lg bg-white/[0.05] hover:bg-white/[0.1] text-white/70 hover:text-white transition-colors inline-flex items-center gap-2" aria-label="Copy số tài khoản">
+                                    <button onclick="copyToClipboard('{{ $bankInfo['account_number'] }}', this)" class="px-3 py-2 rounded-lg bg-white/[0.05] hover:bg-white/[0.1] text-white/70 hover:text-[#d3d6db] transition-colors inline-flex items-center gap-2" aria-label="Copy số tài khoản">
                                         <i class="fa-solid fa-copy text-[12px] leading-none"></i>
                                         <span class="text-xs">Copy</span>
                                     </button>
@@ -96,7 +96,7 @@
                                         <p class="text-xs text-white/40">Tên tài khoản</p>
                                         <p class="text-sm text-white/90 mt-1">{{ $bankInfo['account_name'] }}</p>
                                     </div>
-                                    <button onclick="copyToClipboard('{{ $bankInfo['account_name'] }}', this)" class="px-3 py-2 rounded-lg bg-white/[0.05] hover:bg-white/[0.1] text-white/70 hover:text-white transition-colors inline-flex items-center gap-2" aria-label="Copy tên tài khoản">
+                                    <button onclick="copyToClipboard('{{ $bankInfo['account_name'] }}', this)" class="px-3 py-2 rounded-lg bg-white/[0.05] hover:bg-white/[0.1] text-white/70 hover:text-[#d3d6db] transition-colors inline-flex items-center gap-2" aria-label="Copy tên tài khoản">
                                         <i class="fa-solid fa-copy text-[12px] leading-none"></i>
                                         <span class="text-xs">Copy</span>
                                     </button>
@@ -130,8 +130,8 @@
 
             <!-- Transaction History -->
             <div class="lg:col-span-4 h-full flex flex-col gap-4">
-                <div class="bg-white/[0.03] border border-white/[0.08] rounded-2xl p-4">
-                    <h3 class="text-sm font-semibold text-white mb-3">Hướng dẫn nhanh</h3>
+                <div class="bg-[#1b1c21] border border-[#2a2b30] rounded-2xl p-4">
+                    <h3 class="text-sm font-semibold text-[#d3d6db] mb-3">Hướng dẫn nhanh</h3>
                     <div class="space-y-2 text-sm text-white/70">
                         <div class="flex items-center gap-2">
                             <span class="inline-flex w-6 h-6 items-center justify-center rounded-full bg-purple-500/20 text-purple-300 text-xs font-bold">1</span>
@@ -144,9 +144,9 @@
                     </div>
                 </div>
 
-                <div class="bg-white/[0.03] border border-white/[0.08] rounded-2xl overflow-hidden lg:sticky lg:top-24 flex flex-col flex-1 min-h-0">
-                    <div class="p-4 sm:p-5 border-b border-white/[0.05] flex items-center justify-between">
-                        <h2 class="text-lg font-semibold text-white flex items-center gap-2">
+                <div class="bg-[#1b1c21] border border-[#2a2b30] rounded-2xl overflow-hidden lg:sticky lg:top-24 flex flex-col flex-1 min-h-0">
+                    <div class="p-4 sm:p-5 border-b border-[#2a2b30] flex items-center justify-between">
+                        <h2 class="text-lg font-semibold text-[#d3d6db] flex items-center gap-2">
                             <span class="inline-flex w-6 h-6 items-center justify-center rounded-full bg-white/5">
                                 <i class="fa-solid fa-clock-rotate-left text-white/60 text-[13px] leading-none"></i>
                             </span>
@@ -156,7 +156,7 @@
                     </div>
                     <div class="divide-y divide-white/[0.05] overflow-y-auto flex-1 min-h-0">
                     @forelse($transactions as $tx)
-                        <div class="flex items-center justify-between p-4 hover:bg-white/[0.02] transition-colors">
+                        <div class="flex items-center justify-between p-4 hover:bg-[#1b1c21] transition-colors">
                             <div class="flex items-start gap-3">
                                 <div class="w-9 h-9 rounded-full flex items-center justify-center {{ $tx->is_credit ? 'bg-green-500/20' : 'bg-red-500/20' }}">
                                     @if($tx->is_credit)

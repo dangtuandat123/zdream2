@@ -4,7 +4,7 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
         <div class="flex items-center justify-between mb-6">
             <div>
-                <h1 class="text-2xl font-bold text-white">Quản lý Users</h1>
+                <h1 class="text-2xl font-bold text-[#d3d6db]">Quản lý Users</h1>
                 <p class="text-white/50 text-sm">{{ $stats['total'] }} users | {{ $stats['active'] }} active | {{ $stats['banned'] }} banned</p>
             </div>
         </div>
@@ -41,7 +41,7 @@
                     <i class="fa-solid fa-search mr-1"></i> Tìm
                 </button>
                 @if(request()->hasAny(['search', 'status']))
-                    <a href="{{ route('admin.users.index') }}" class="px-4 py-2 rounded-lg bg-white/[0.05] border border-white/[0.1] text-white/60 hover:text-white transition-colors">
+                    <a href="{{ route('admin.users.index') }}" class="px-4 py-2 rounded-lg bg-white/[0.05] border border-white/[0.1] text-white/60 hover:text-[#d3d6db] transition-colors">
                         Xóa filter
                     </a>
                 @endif
@@ -67,11 +67,11 @@
                             <tr class="hover:bg-white/[0.02] transition-colors">
                                 <td class="px-4 py-4">
                                     <div class="flex items-center gap-3">
-                                        <div class="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold">
+                                        <div class="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-[#d3d6db] font-bold">
                                             {{ strtoupper(substr($user->name, 0, 1)) }}
                                         </div>
                                         <div>
-                                            <div class="text-white font-medium flex items-center gap-2">
+                                            <div class="text-[#d3d6db] font-medium flex items-center gap-2">
                                                 {{ $user->name }}
                                                 @if($user->is_admin)
                                                     <span class="px-1.5 py-0.5 rounded text-xs bg-cyan-500/20 text-cyan-400">Admin</span>
@@ -82,7 +82,7 @@
                                     </div>
                                 </td>
                                 <td class="px-4 py-4">
-                                    <span class="text-white font-semibold">{{ number_format($user->credits, 0) }}</span>
+                                    <span class="text-[#d3d6db] font-semibold">{{ number_format($user->credits, 0) }}</span>
                                     <span class="text-white/40 text-sm">Xu</span>
                                 </td>
                                 <td class="px-4 py-4 text-white/70">
@@ -101,12 +101,12 @@
                                 <td class="px-4 py-4 text-right">
                                     <div class="flex items-center justify-end gap-2">
                                         <a href="{{ route('admin.users.show', $user) }}" 
-                                           class="p-2 rounded-lg bg-white/[0.05] border border-white/[0.1] text-white/60 hover:text-white hover:bg-white/[0.1] transition-all"
+                                           class="p-2 rounded-lg bg-white/[0.05] border border-white/[0.1] text-white/60 hover:text-[#d3d6db] hover:bg-white/[0.1] transition-all"
                                            title="Xem chi tiết">
                                             <i class="fa-solid fa-eye" style="font-size: 12px;"></i>
                                         </a>
                                         <a href="{{ route('admin.users.edit', $user) }}" 
-                                           class="p-2 rounded-lg bg-white/[0.05] border border-white/[0.1] text-white/60 hover:text-white hover:bg-white/[0.1] transition-all"
+                                           class="p-2 rounded-lg bg-white/[0.05] border border-white/[0.1] text-white/60 hover:text-[#d3d6db] hover:bg-white/[0.1] transition-all"
                                            title="Sửa">
                                             <i class="fa-solid fa-pen" style="font-size: 12px;"></i>
                                         </a>

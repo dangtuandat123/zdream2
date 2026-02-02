@@ -4,7 +4,7 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
         <div class="flex items-center justify-between mb-8">
             <div>
-                <h1 class="text-2xl font-bold text-white flex items-center gap-3">
+                <h1 class="text-2xl font-bold text-[#d3d6db] flex items-center gap-3">
                     <i class="fa-solid fa-crown w-6 h-6 text-cyan-400"></i>
                     Admin Dashboard
                 </h1>
@@ -22,7 +22,7 @@
                     </div>
                     <span class="text-white/50 text-sm">Users</span>
                 </div>
-                <p class="text-2xl font-bold text-white">{{ \App\Models\User::count() }}</p>
+                <p class="text-2xl font-bold text-[#d3d6db]">{{ \App\Models\User::count() }}</p>
             </a>
             <a href="{{ route('admin.styles.index') }}"
                 class="bg-white/[0.03] border border-white/[0.08] rounded-xl p-4 hover:border-pink-500/30 hover:bg-white/[0.05] transition-all">
@@ -32,7 +32,7 @@
                     </div>
                     <span class="text-white/50 text-sm">Styles</span>
                 </div>
-                <p class="text-2xl font-bold text-white">{{ \App\Models\Style::count() }}</p>
+                <p class="text-2xl font-bold text-[#d3d6db]">{{ \App\Models\Style::count() }}</p>
             </a>
             <a href="{{ route('admin.images.index') }}"
                 class="bg-white/[0.03] border border-white/[0.08] rounded-xl p-4 hover:border-cyan-500/30 hover:bg-white/[0.05] transition-all">
@@ -42,7 +42,7 @@
                     </div>
                     <span class="text-white/50 text-sm">Ảnh đã tạo</span>
                 </div>
-                <p class="text-2xl font-bold text-white">{{ \App\Models\GeneratedImage::count() }}</p>
+                <p class="text-2xl font-bold text-[#d3d6db]">{{ \App\Models\GeneratedImage::count() }}</p>
             </a>
             <a href="{{ route('admin.transactions.index') }}"
                 class="bg-white/[0.03] border border-white/[0.08] rounded-xl p-4 hover:border-green-500/30 hover:bg-white/[0.05] transition-all">
@@ -52,7 +52,7 @@
                     </div>
                     <span class="text-white/50 text-sm">Tổng Xu</span>
                 </div>
-                <p class="text-2xl font-bold text-white">{{ number_format(\App\Models\User::sum('credits'), 0) }}</p>
+                <p class="text-2xl font-bold text-[#d3d6db]">{{ number_format(\App\Models\User::sum('credits'), 0) }}</p>
             </a>
         </div>
 
@@ -68,7 +68,7 @@
                         <i class="fa-solid fa-robot w-5 h-5 text-orange-400"></i>
                     </div>
                     <div>
-                        <h3 class="text-white font-medium">BFL API</h3>
+                        <h3 class="text-[#d3d6db] font-medium">BFL API</h3>
                         <p class="text-white/40 text-xs">Black Forest Labs</p>
                     </div>
                 </div>
@@ -82,7 +82,7 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <p class="text-white/40 text-xs mb-1">Credits Balance</p>
-                        <p class="text-lg font-bold text-white">
+                        <p class="text-lg font-bold text-[#d3d6db]">
                             @if(isset($credits['credits']) && $credits['credits'] !== null)
                                 {{ number_format($credits['credits'], 4) }}
                             @else
@@ -105,10 +105,10 @@
                 <div class="flex items-center gap-4">
                     <div
                         class="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
-                        <i class="fa-solid fa-users w-6 h-6 text-white"></i>
+                        <i class="fa-solid fa-users w-6 h-6 text-[#d3d6db]"></i>
                     </div>
                     <div>
-                        <h3 class="text-lg font-semibold text-white group-hover:text-purple-300 transition-colors">Quản
+                        <h3 class="text-lg font-semibold text-[#d3d6db] group-hover:text-purple-300 transition-colors">Quản
                             lý Users</h3>
                         <p class="text-white/50 text-sm">Xem, ban, cộng credits</p>
                     </div>
@@ -121,10 +121,10 @@
                 <div class="flex items-center gap-4">
                     <div
                         class="w-12 h-12 rounded-xl bg-gradient-to-br from-pink-500 to-rose-500 flex items-center justify-center">
-                        <i class="fa-solid fa-palette w-6 h-6 text-white"></i>
+                        <i class="fa-solid fa-palette w-6 h-6 text-[#d3d6db]"></i>
                     </div>
                     <div>
-                        <h3 class="text-lg font-semibold text-white group-hover:text-pink-300 transition-colors">Quản lý
+                        <h3 class="text-lg font-semibold text-[#d3d6db] group-hover:text-pink-300 transition-colors">Quản lý
                             Styles</h3>
                         <p class="text-white/50 text-sm">Thêm, sửa, xóa styles</p>
                     </div>
@@ -137,10 +137,10 @@
                 <div class="flex items-center gap-4">
                     <div
                         class="w-12 h-12 rounded-xl bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center">
-                        <i class="fa-solid fa-tags w-6 h-6 text-white"></i>
+                        <i class="fa-solid fa-tags w-6 h-6 text-[#d3d6db]"></i>
                     </div>
                     <div>
-                        <h3 class="text-lg font-semibold text-white group-hover:text-orange-300 transition-colors">Quản
+                        <h3 class="text-lg font-semibold text-[#d3d6db] group-hover:text-orange-300 transition-colors">Quản
                             lý Tags</h3>
                         <p class="text-white/50 text-sm">HOT, MỚI, SALE...</p>
                     </div>
@@ -153,10 +153,10 @@
                 <div class="flex items-center gap-4">
                     <div
                         class="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-500 flex items-center justify-center">
-                        <i class="fa-solid fa-images w-6 h-6 text-white"></i>
+                        <i class="fa-solid fa-images w-6 h-6 text-[#d3d6db]"></i>
                     </div>
                     <div>
-                        <h3 class="text-lg font-semibold text-white group-hover:text-cyan-300 transition-colors">Quản lý
+                        <h3 class="text-lg font-semibold text-[#d3d6db] group-hover:text-cyan-300 transition-colors">Quản lý
                             Ảnh</h3>
                         <p class="text-white/50 text-sm">Xem, moderate ảnh</p>
                     </div>
@@ -169,10 +169,10 @@
                 <div class="flex items-center gap-4">
                     <div
                         class="w-12 h-12 rounded-xl bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center">
-                        <i class="fa-solid fa-receipt w-6 h-6 text-white"></i>
+                        <i class="fa-solid fa-receipt w-6 h-6 text-[#d3d6db]"></i>
                     </div>
                     <div>
-                        <h3 class="text-lg font-semibold text-white group-hover:text-green-300 transition-colors">Lịch
+                        <h3 class="text-lg font-semibold text-[#d3d6db] group-hover:text-green-300 transition-colors">Lịch
                             sử giao dịch</h3>
                         <p class="text-white/50 text-sm">Audit tất cả transactions</p>
                     </div>
@@ -185,10 +185,10 @@
                 <div class="flex items-center gap-4">
                     <div
                         class="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-500 to-teal-500 flex items-center justify-center">
-                        <i class="fa-solid fa-wand-magic-sparkles w-6 h-6 text-white"></i>
+                        <i class="fa-solid fa-wand-magic-sparkles w-6 h-6 text-[#d3d6db]"></i>
                     </div>
                     <div>
-                        <h3 class="text-lg font-semibold text-white group-hover:text-teal-300 transition-colors">Edit
+                        <h3 class="text-lg font-semibold text-[#d3d6db] group-hover:text-teal-300 transition-colors">Edit
                             Studio Settings</h3>
                         <p class="text-white/50 text-sm">Models & Prompts</p>
                     </div>
@@ -201,10 +201,10 @@
                 <div class="flex items-center gap-4">
                     <div
                         class="w-12 h-12 rounded-xl bg-gradient-to-br from-yellow-500 to-orange-500 flex items-center justify-center">
-                        <i class="fa-solid fa-cog w-6 h-6 text-white"></i>
+                        <i class="fa-solid fa-cog w-6 h-6 text-[#d3d6db]"></i>
                     </div>
                     <div>
-                        <h3 class="text-lg font-semibold text-white group-hover:text-yellow-300 transition-colors">Cài
+                        <h3 class="text-lg font-semibold text-[#d3d6db] group-hover:text-yellow-300 transition-colors">Cài
                             đặt</h3>
                         <p class="text-white/50 text-sm">API keys, defaults</p>
                     </div>
@@ -217,10 +217,10 @@
                 <div class="flex items-center gap-4">
                     <div
                         class="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center">
-                        <i class="fa-solid fa-eye w-6 h-6 text-white"></i>
+                        <i class="fa-solid fa-eye w-6 h-6 text-[#d3d6db]"></i>
                     </div>
                     <div>
-                        <h3 class="text-lg font-semibold text-white group-hover:text-indigo-300 transition-colors">Xem
+                        <h3 class="text-lg font-semibold text-[#d3d6db] group-hover:text-indigo-300 transition-colors">Xem
                             trang chủ</h3>
                         <p class="text-white/50 text-sm">Xem như người dùng</p>
                     </div>

@@ -3,11 +3,11 @@
 
     <div class="max-w-2xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
         <div class="flex items-center gap-4 mb-6">
-            <a href="{{ route('admin.users.show', $user) }}" class="w-10 h-10 rounded-xl bg-white/[0.05] border border-white/[0.1] flex items-center justify-center text-white/60 hover:text-white hover:bg-white/[0.1] transition-all">
+            <a href="{{ route('admin.users.show', $user) }}" class="w-10 h-10 rounded-xl bg-white/[0.05] border border-white/[0.1] flex items-center justify-center text-white/60 hover:text-[#d3d6db] hover:bg-white/[0.1] transition-all">
                 <i class="fa-solid fa-arrow-left" style="font-size: 14px;"></i>
             </a>
             <div>
-                <h1 class="text-2xl font-bold text-white">Sửa thông tin User</h1>
+                <h1 class="text-2xl font-bold text-[#d3d6db]">Sửa thông tin User</h1>
                 <p class="text-white/50 text-sm">{{ $user->email }}</p>
             </div>
         </div>
@@ -24,7 +24,7 @@
             @method('PUT')
 
             <div class="bg-white/[0.03] border border-white/[0.08] rounded-2xl p-6">
-                <h2 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                <h2 class="text-lg font-semibold text-[#d3d6db] mb-4 flex items-center gap-2">
                     <i class="fa-solid fa-user text-purple-400"></i>
                     Thông tin cơ bản
                 </h2>
@@ -61,7 +61,7 @@
             </div>
 
             <div class="bg-white/[0.03] border border-white/[0.08] rounded-2xl p-6">
-                <h2 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                <h2 class="text-lg font-semibold text-[#d3d6db] mb-4 flex items-center gap-2">
                     <i class="fa-solid fa-info-circle text-cyan-400"></i>
                     Thông tin khác (chỉ đọc)
                 </h2>
@@ -69,7 +69,7 @@
                 <div class="grid grid-cols-2 gap-4 text-sm">
                     <div>
                         <span class="text-white/50">ID:</span>
-                        <span class="text-white ml-2">#{{ $user->id }}</span>
+                        <span class="text-[#d3d6db] ml-2">#{{ $user->id }}</span>
                     </div>
                     <div>
                         <span class="text-white/50">Credits:</span>
@@ -85,7 +85,7 @@
                     </div>
                     <div>
                         <span class="text-white/50">Ngày tạo:</span>
-                        <span class="text-white ml-2">{{ $user->created_at->format('d/m/Y H:i') }}</span>
+                        <span class="text-[#d3d6db] ml-2">{{ $user->created_at->format('d/m/Y H:i') }}</span>
                     </div>
                 </div>
 
@@ -95,7 +95,7 @@
             </div>
 
             <div class="flex items-center gap-4">
-                <button type="submit" class="px-8 py-3 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold flex items-center gap-2 hover:shadow-lg transition-all">
+                <button type="submit" class="px-8 py-3 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-[#d3d6db] font-semibold flex items-center gap-2 hover:shadow-lg transition-all">
                     <i class="fa-solid fa-save" style="font-size: 14px;"></i>
                     Lưu thay đổi
                 </button>

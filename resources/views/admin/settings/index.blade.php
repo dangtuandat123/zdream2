@@ -3,7 +3,7 @@
 
     <div class="max-w-3xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
         <div class="mb-6">
-            <h1 class="text-2xl font-bold text-white">Cài đặt hệ thống</h1>
+            <h1 class="text-2xl font-bold text-[#d3d6db]">Cài đặt hệ thống</h1>
             <p class="text-white/50 text-sm">Quản lý API keys và cấu hình chung</p>
         </div>
 
@@ -25,7 +25,7 @@
 
             <!-- API Settings -->
             <div class="bg-white/[0.03] border border-white/[0.08] rounded-2xl p-6">
-                <h2 class="text-lg font-semibold text-white mb-4 inline-flex items-center gap-2">
+                <h2 class="text-lg font-semibold text-[#d3d6db] mb-4 inline-flex items-center gap-2">
                     <i class="fa-solid fa-key text-yellow-400" style="font-size: 18px;"></i>
                     <span>API Configuration</span>
                 </h2>
@@ -40,7 +40,7 @@
                                 placeholder="bfl_xxx (để trống nếu không đổi)"
                                 class="w-full px-4 py-3 rounded-xl bg-white/[0.03] border border-white/[0.08] text-white/90 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/40 transition-all pr-12">
                             <button type="button" onclick="togglePassword('bfl_api_key')"
-                                class="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white">
+                                class="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-[#d3d6db]">
                                 <i class="fa-solid fa-eye" style="font-size: 14px;"></i>
                             </button>
                         </div>
@@ -88,7 +88,7 @@
 
             <!-- OpenRouter API Settings -->
             <div class="bg-white/[0.03] border border-white/[0.08] rounded-2xl p-6">
-                <h2 class="text-lg font-semibold text-white mb-4 inline-flex items-center gap-2">
+                <h2 class="text-lg font-semibold text-[#d3d6db] mb-4 inline-flex items-center gap-2">
                     <i class="fa-solid fa-robot text-green-400" style="font-size: 18px;"></i>
                     <span>OpenRouter API (Translation)</span>
                 </h2>
@@ -103,7 +103,7 @@
                                 placeholder="sk-or-v1-xxx (để trống nếu không đổi)"
                                 class="w-full px-4 py-3 rounded-xl bg-white/[0.03] border border-white/[0.08] text-white/90 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-green-500/40 transition-all pr-12">
                             <button type="button" onclick="togglePassword('openrouter_api_key')"
-                                class="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white">
+                                class="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-[#d3d6db]">
                                 <i class="fa-solid fa-eye" style="font-size: 14px;"></i>
                             </button>
                         </div>
@@ -187,7 +187,7 @@
 
             <!-- General Settings -->
             <div class="bg-white/[0.03] border border-white/[0.08] rounded-2xl p-6">
-                <h2 class="text-lg font-semibold text-white mb-4 inline-flex items-center gap-2">
+                <h2 class="text-lg font-semibold text-[#d3d6db] mb-4 inline-flex items-center gap-2">
                     <i class="fa-solid fa-cog text-purple-400" style="font-size: 18px;"></i>
                     <span>Cài đặt chung</span>
                 </h2>
@@ -258,7 +258,7 @@
                             <i class="fa-solid fa-wand-magic-sparkles text-cyan-400"></i>
                         </span>
                         <div>
-                            <h2 class="text-lg font-semibold text-white">Edit Studio Settings</h2>
+                            <h2 class="text-lg font-semibold text-[#d3d6db]">Edit Studio Settings</h2>
                             <p class="text-white/40 text-sm">Cấu hình models và prompts cho chức năng chỉnh sửa ảnh AI
                             </p>
                         </div>
@@ -274,7 +274,7 @@
             <!-- Submit -->
             <div class="flex items-center gap-4">
                 <button type="submit"
-                    class="px-8 py-3 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold inline-flex items-center gap-2 hover:shadow-[0_8px_30px_rgba(168,85,247,0.5)] transition-all">
+                    class="px-8 py-3 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-[#d3d6db] font-semibold inline-flex items-center gap-2 hover:shadow-[0_8px_30px_rgba(168,85,247,0.5)] transition-all">
                     <i class="fa-solid fa-save" style="font-size: 14px;"></i>
                     <span>Lưu cài đặt</span>
                 </button>

@@ -4,11 +4,11 @@
     <div class="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
         <!-- Header -->
         <div class="flex items-center gap-4 mb-6">
-            <a href="{{ route('admin.users.index') }}" class="w-10 h-10 rounded-xl bg-white/[0.05] border border-white/[0.1] flex items-center justify-center text-white/60 hover:text-white hover:bg-white/[0.1] transition-all">
+            <a href="{{ route('admin.users.index') }}" class="w-10 h-10 rounded-xl bg-white/[0.05] border border-white/[0.1] flex items-center justify-center text-white/60 hover:text-[#d3d6db] hover:bg-white/[0.1] transition-all">
                 <i class="fa-solid fa-arrow-left" style="font-size: 14px;"></i>
             </a>
             <div class="flex-1">
-                <h1 class="text-2xl font-bold text-white flex items-center gap-2">
+                <h1 class="text-2xl font-bold text-[#d3d6db] flex items-center gap-2">
                     {{ $user->name }}
                     @if($user->is_admin)
                         <span class="px-2 py-0.5 rounded text-xs bg-cyan-500/20 text-cyan-400">Admin</span>
@@ -44,7 +44,7 @@
             <div class="space-y-6">
                 <!-- User Stats Card -->
                 <div class="bg-white/[0.03] border border-white/[0.08] rounded-2xl p-6">
-                    <h3 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                    <h3 class="text-lg font-semibold text-[#d3d6db] mb-4 flex items-center gap-2">
                         <i class="fa-solid fa-chart-bar text-purple-400"></i>
                         Thống kê
                     </h3>
@@ -55,18 +55,18 @@
                         </div>
                         <div class="flex items-center justify-between">
                             <span class="text-white/60">Ảnh đã tạo</span>
-                            <span class="text-lg font-semibold text-white">{{ $user->generated_images_count ?? 0 }}</span>
+                            <span class="text-lg font-semibold text-[#d3d6db]">{{ $user->generated_images_count ?? 0 }}</span>
                         </div>
                         <div class="flex items-center justify-between">
                             <span class="text-white/60">Giao dịch</span>
-                            <span class="text-lg font-semibold text-white">{{ $transactions->count() }}</span>
+                            <span class="text-lg font-semibold text-[#d3d6db]">{{ $transactions->count() }}</span>
                         </div>
                     </div>
                 </div>
 
                 <!-- Credit Adjustment Card -->
                 <div class="bg-white/[0.03] border border-white/[0.08] rounded-2xl p-6">
-                    <h3 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                    <h3 class="text-lg font-semibold text-[#d3d6db] mb-4 flex items-center gap-2">
                         <i class="fa-solid fa-coins text-yellow-400"></i>
                         Điều chỉnh Credits
                     </h3>
@@ -84,7 +84,7 @@
                                    placeholder="VD: Refund lỗi API, Bonus khuyến mãi..."
                                    class="w-full px-4 py-2 rounded-lg bg-white/[0.03] border border-white/[0.08] text-white/90 focus:outline-none focus:ring-2 focus:ring-purple-500/40">
                         </div>
-                        <button type="submit" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white font-medium hover:shadow-lg transition-all">
+                        <button type="submit" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-[#d3d6db] font-medium hover:shadow-lg transition-all">
                             Thực hiện
                         </button>
                     </form>
@@ -93,7 +93,7 @@
                 <!-- Ban/Unban Card -->
                 @if($user->id !== auth()->id())
                     <div class="bg-white/[0.03] border {{ $user->is_active ? 'border-red-500/20' : 'border-green-500/20' }} rounded-2xl p-6">
-                        <h3 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                        <h3 class="text-lg font-semibold text-[#d3d6db] mb-4 flex items-center gap-2">
                             <i class="fa-solid {{ $user->is_active ? 'fa-ban text-red-400' : 'fa-check text-green-400' }}"></i>
                             {{ $user->is_active ? 'Vô hiệu hóa tài khoản' : 'Kích hoạt tài khoản' }}
                         </h3>
@@ -117,7 +117,7 @@
                 <!-- Recent Transactions -->
                 <div class="bg-white/[0.03] border border-white/[0.08] rounded-2xl overflow-hidden">
                     <div class="px-6 py-4 border-b border-white/[0.05] flex items-center justify-between">
-                        <h3 class="text-lg font-semibold text-white flex items-center gap-2">
+                        <h3 class="text-lg font-semibold text-[#d3d6db] flex items-center gap-2">
                             <i class="fa-solid fa-clock-rotate-left text-purple-400"></i>
                             Giao dịch gần đây
                         </h3>
@@ -147,7 +147,7 @@
                 <!-- Recent Images -->
                 <div class="bg-white/[0.03] border border-white/[0.08] rounded-2xl overflow-hidden">
                     <div class="px-6 py-4 border-b border-white/[0.05]">
-                        <h3 class="text-lg font-semibold text-white flex items-center gap-2">
+                        <h3 class="text-lg font-semibold text-[#d3d6db] flex items-center gap-2">
                             <i class="fa-solid fa-images text-pink-400"></i>
                             Ảnh đã tạo gần đây
                         </h3>

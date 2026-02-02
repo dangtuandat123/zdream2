@@ -49,14 +49,22 @@
             gap: 6px;
             white-space: nowrap;
         }
+        .history-filters {
+            position: relative;
+            z-index: 20;
+        }
+        .history-filters select {
+            position: relative;
+            z-index: 21;
+        }
     </style>
 
-    <div class="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8 overflow-x-hidden">
         
         <!-- Header -->
         <div class="flex items-center justify-between mb-4">
             <div>
-                <h1 class="text-2xl font-bold text-white">Lịch sử ảnh</h1>
+                <h1 class="text-2xl font-bold text-[#d3d6db]">Lịch sử ảnh</h1>
                 <p class="text-white/50 text-sm">Các ảnh bạn đã tạo</p>
             </div>
             <a href="{{ route('home') }}" class="px-4 py-2 rounded-xl bg-purple-500/20 border border-purple-500/30 text-purple-400 text-sm hover:bg-purple-500/30 transition-colors inline-flex items-center gap-2">
@@ -67,8 +75,8 @@
 
         <!-- Filters -->
         <div class="flex flex-wrap items-center gap-3 mb-6 history-filters">
-            <form method="GET" action="{{ route('history.index') }}" id="filter-form" class="flex flex-wrap items-center gap-3">
-                <div class="w-52">
+            <form method="GET" action="{{ route('history.index') }}" id="filter-form" class="w-full sm:w-auto flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-3">
+                <div class="w-full sm:w-52">
                     <select name="status" class="filter-select">
                         <option value="">Tất cả trạng thái</option>
                         <option value="completed" {{ request('status') == 'completed' ? 'selected' : '' }}>Hoàn thành</option>
@@ -77,7 +85,7 @@
                     </select>
                 </div>
                 @if(isset($styles) && $styles->isNotEmpty())
-                    <div class="w-52">
+                    <div class="w-full sm:w-52">
                         <select name="style_id" class="filter-select">
                             <option value="">Tất cả styles</option>
                             @foreach($styles as $style)
@@ -111,12 +119,12 @@
         @if($images->isEmpty())
             <!-- Empty State -->
             <div class="flex flex-col items-center justify-center py-20">
-                <div class="w-20 h-20 rounded-full bg-white/[0.03] border border-white/[0.08] flex items-center justify-center mb-4">
+                <div class="w-20 h-20 rounded-full bg-[#1b1c21] border border-[#2a2b30] flex items-center justify-center mb-4">
                     <i class="fa-solid fa-images text-3xl text-white/20"></i>
                 </div>
                 <h3 class="text-lg font-medium text-white/80 mb-2">Chưa có ảnh nào</h3>
                 <p class="text-sm text-white/40 mb-6 text-center">Bạn chưa tạo ảnh nào. Hãy chọn style và bắt đầu!</p>
-                <a href="{{ route('home') }}" class="px-6 py-3 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold hover:shadow-[0_8px_30px_rgba(168,85,247,0.5)] transition-all inline-flex items-center gap-2">
+                <a href="{{ route('home') }}" class="px-6 py-3 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-[#d3d6db] font-semibold hover:shadow-[0_8px_30px_rgba(168,85,247,0.5)] transition-all inline-flex items-center gap-2">
                     <i class="fa-solid fa-wand-magic-sparkles"></i>
                     <span>Khám phá Styles</span>
                 </a>
@@ -135,7 +143,7 @@
             <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                 @php $galleryIndex = 0; @endphp
                 @foreach($images as $image)
-                    <div class="relative bg-white/[0.03] border border-white/[0.08] rounded-xl overflow-hidden hover:border-purple-500/30 transition-all">
+                    <div class="relative bg-[#1b1c21] border border-[#2a2b30] rounded-xl overflow-hidden hover:border-purple-500/30 transition-all">
                         <!-- Image -->
                         <div class="aspect-[3/4] relative overflow-hidden image-card-hover">
                             @if($image->status === 'completed' && $image->storage_path)
@@ -148,7 +156,7 @@
                                 </button>
                                 <!-- Hover overlay với icon mắt -->
                                 <div class="hover-overlay">
-                                    <i class="fa-solid fa-eye text-white text-3xl"></i>
+                                    <i class="fa-solid fa-eye text-[#d3d6db] text-3xl"></i>
                                 </div>
                                 @php $galleryIndex++; @endphp
                             @elseif($image->status === 'processing')

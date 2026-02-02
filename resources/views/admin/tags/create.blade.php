@@ -3,11 +3,11 @@
 
     <div class="max-w-2xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
         <div class="flex items-center gap-4 mb-6">
-            <a href="{{ route('admin.tags.index') }}" class="w-10 h-10 rounded-xl bg-white/[0.05] border border-white/[0.1] flex items-center justify-center text-white/60 hover:text-white hover:bg-white/[0.1] transition-all">
+            <a href="{{ route('admin.tags.index') }}" class="w-10 h-10 rounded-xl bg-white/[0.05] border border-white/[0.1] flex items-center justify-center text-white/60 hover:text-[#d3d6db] hover:bg-white/[0.1] transition-all">
                 <i class="fa-solid fa-arrow-left w-4 h-4"></i>
             </a>
             <div>
-                <h1 class="text-2xl font-bold text-white">Tạo Tag mới</h1>
+                <h1 class="text-2xl font-bold text-[#d3d6db]">Tạo Tag mới</h1>
                 <p class="text-white/50 text-sm">Tag sẽ được gắn lên các styles</p>
             </div>
         </div>
@@ -86,7 +86,7 @@
             </div>
 
             <div class="flex items-center gap-4">
-                <button type="submit" class="px-8 py-3 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold flex items-center gap-2 hover:shadow-[0_8px_30px_rgba(168,85,247,0.5)] transition-all">
+                <button type="submit" class="px-8 py-3 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-[#d3d6db] font-semibold flex items-center gap-2 hover:shadow-[0_8px_30px_rgba(168,85,247,0.5)] transition-all">
                     <i class="fa-solid fa-save w-4 h-4"></i> Tạo Tag
                 </button>
                 <a href="{{ route('admin.tags.index') }}" class="px-6 py-3 rounded-xl bg-white/[0.05] border border-white/[0.1] text-white/80 font-medium hover:bg-white/[0.1] transition-all">
