@@ -39,7 +39,7 @@
                     $isRequired = $slot['required'] ?? false;
                 @endphp
                 
-                <div class="bg-white/[0.03] border border-white/[0.08] rounded-xl p-4">
+                <div class="bg-[#16161d] border border-[#2a2a35] rounded-xl p-4">
                     <label class="block text-sm font-medium text-white/60 mb-2 inline-flex items-center gap-2">
                         <i class="fa-solid fa-image" style="font-size: 14px;"></i>
                         <span>{{ $slotLabel }}</span>
@@ -106,10 +106,10 @@
                 <span class="text-white/40 text-xs font-normal normal-case ml-1">(Tùy chọn)</span>
             </h3>
         </div>
-        <div class="bg-white/[0.03] border border-white/[0.08] rounded-xl overflow-hidden" x-data="{ open: {{ $optionGroups->isNotEmpty() ? 'true' : 'false' }} }">
+        <div class="bg-[#16161d] border border-[#2a2a35] rounded-xl overflow-hidden" x-data="{ open: {{ $optionGroups->isNotEmpty() ? 'true' : 'false' }} }">
             <button 
                 @click="open = !open" 
-                class="w-full flex items-center justify-between p-4 text-left hover:bg-white/[0.02] transition-colors">
+                class="w-full flex items-center justify-between p-4 text-left hover:bg-[#13131a] transition-colors">
                 <div class="flex items-center gap-3">
                     <div class="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center">
                         <i class="fa-solid fa-sliders text-purple-400" style="font-size: 14px;"></i>
@@ -129,7 +129,7 @@
                  x-transition:leave="transition ease-in duration-150"
                  x-transition:leave-start="opacity-100 transform translate-y-0"
                  x-transition:leave-end="opacity-0 transform -translate-y-2"
-                 class="border-t border-white/[0.05]">
+                 class="border-t border-[#222230]">
                 <div class="p-4 space-y-4">
                     <!-- Options Selection với Thumbnails -->
                     @if($optionGroups->isNotEmpty())
@@ -224,7 +224,7 @@
                                 maxlength="500"
                                 rows="2"
                                 placeholder="VD: tóc dài, đeo kính, áo trắng..."
-                                class="w-full px-4 py-3 rounded-xl bg-white/[0.03] border border-white/[0.08] text-white/90 placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-purple-500/40 focus:border-purple-500/40 transition-all duration-200 resize-none"
+                                class="w-full px-4 py-3 rounded-xl bg-[#16161d] border border-[#2a2a35] text-white/90 placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-purple-500/40 focus:border-purple-500/40 transition-all duration-200 resize-none"
                             ></textarea>
                             <div class="flex items-center justify-between mt-2">
                                 <span class="text-xs text-white/30">Mô tả chi tiết giúp AI hiểu ý bạn hơn</span>
@@ -250,10 +250,10 @@
         <span class="text-white/40 text-xs font-normal normal-case ml-1">(Không bắt buộc)</span>
     </h3>
     </div>
-    <div class="bg-white/[0.03] border border-white/[0.08] rounded-xl overflow-hidden" x-data="{ open: false }">
+    <div class="bg-[#16161d] border border-[#2a2a35] rounded-xl overflow-hidden" x-data="{ open: false }">
         <button 
             @click="open = !open" 
-            class="w-full flex items-center justify-between p-4 text-left hover:bg-white/[0.02] transition-colors">
+            class="w-full flex items-center justify-between p-4 text-left hover:bg-[#13131a] transition-colors">
             <div class="flex items-center gap-3">
                 <div class="w-8 h-8 rounded-lg bg-cyan-500/20 flex items-center justify-center">
                     <i class="fa-solid fa-gear text-cyan-400" style="font-size: 14px;"></i>
@@ -276,7 +276,7 @@
              x-transition:leave="transition ease-in duration-150"
              x-transition:leave-start="opacity-100 transform translate-y-0"
              x-transition:leave-end="opacity-0 transform -translate-y-2"
-             class="border-t border-white/[0.05]">
+             class="border-t border-[#222230]">
             <div class="p-4 md:p-6 space-y-6 md:space-y-7">
                 <!-- Friendly note -->
                 <div class="bg-cyan-500/10 border border-cyan-500/20 rounded-xl px-4 py-3">
@@ -316,7 +316,7 @@
 
                 <!-- Aspect Ratio Selector -->
                 @if(!$supportsWidthHeight || $sizeMode === 'ratio')
-                <div class="bg-white/[0.02] border border-white/[0.06] rounded-xl p-4 md:p-5">
+                <div class="bg-[#13131a] border border-[#252530] rounded-xl p-4 md:p-5">
                     <label class="block text-sm font-semibold text-white/80 mb-3 inline-flex items-center gap-2">
                         <i class="fa-solid fa-crop" style="font-size: 14px;"></i>
                         <span>Dáng ảnh (vuông/ngang/dọc)</span>
@@ -335,7 +335,7 @@
                                 class="py-2.5 px-2 text-[11px] sm:text-xs rounded-xl border transition-all duration-200 text-center font-semibold
                                     {{ $selectedAspectRatio === $ratio 
                                         ? 'bg-cyan-500/10 border-cyan-500/50 text-cyan-400 shadow-[0_0_15px_rgba(6,182,212,0.15)] ring-1 ring-cyan-500/30' 
-                                        : 'bg-white/[0.03] border-white/[0.08] text-white/60 hover:bg-white/[0.06] hover:border-white/[0.15]' 
+                                        : 'bg-[#16161d] border-[#2a2a35] text-white/60 hover:bg-white/[0.06] hover:border-white/[0.15]' 
                                     }}">
                                 <span class="block">{{ $label }}</span>
                                 @if($dimText)
@@ -361,7 +361,7 @@
                 @endif
 
                 @if($supportsWidthHeight && $sizeMode === 'custom')
-                    <div class="bg-white/[0.02] border border-white/[0.06] rounded-xl p-4 md:p-5">
+                    <div class="bg-[#13131a] border border-[#252530] rounded-xl p-4 md:p-5">
                         <label class="block text-sm font-semibold text-white/80 mb-2 inline-flex items-center gap-2">
                             <i class="fa-solid fa-ruler-combined" style="font-size: 12px;"></i>
                             <span>Kích thước ảnh (rộng × cao)</span>
@@ -372,13 +372,13 @@
                                 <input type="number" min="{{ $dimensionMin }}" max="{{ $dimensionMax }}" step="{{ $dimensionMultiple }}"
                                        wire:model.live="customWidth"
                                        placeholder="Rộng (px)"
-                                       class="w-full px-3 py-2 rounded-lg bg-white/[0.03] border border-white/[0.08] text-white/90 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500/40">
+                                       class="w-full px-3 py-2 rounded-lg bg-[#16161d] border border-[#2a2a35] text-white/90 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500/40">
                             </div>
                             <div>
                                 <input type="number" min="{{ $dimensionMin }}" max="{{ $dimensionMax }}" step="{{ $dimensionMultiple }}"
                                        wire:model.live="customHeight"
                                        placeholder="Cao (px)"
-                                       class="w-full px-3 py-2 rounded-lg bg-white/[0.03] border border-white/[0.08] text-white/90 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500/40">
+                                       class="w-full px-3 py-2 rounded-lg bg-[#16161d] border border-[#2a2a35] text-white/90 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500/40">
                             </div>
                         </div>
                         <p class="text-xs text-white/40 mt-2">
@@ -389,7 +389,7 @@
 
                 <!-- Image Size Selector (chỉ cho Gemini models) -->
                 @if($supportsImageConfig)
-                    <div class="bg-white/[0.02] border border-white/[0.06] rounded-xl p-4 md:p-5">
+                    <div class="bg-[#13131a] border border-[#252530] rounded-xl p-4 md:p-5">
                         <label class="block text-sm font-semibold text-white/80 mb-3 inline-flex items-center gap-2">
                             <i class="fa-solid fa-expand" style="font-size: 14px;"></i>
                             <span>Chất lượng ảnh</span>
@@ -404,7 +404,7 @@
                                     class="py-2.5 px-3 text-xs rounded-xl border transition-all duration-200 text-center font-medium
                                         {{ $selectedImageSize === $size 
                                             ? 'bg-cyan-500/10 border-cyan-500/50 text-cyan-400 shadow-[0_0_15px_rgba(6,182,212,0.15)] ring-1 ring-cyan-500/30' 
-                                            : 'bg-white/[0.03] border-white/[0.08] text-white/50 hover:bg-white/[0.06] hover:border-white/[0.15]' 
+                                            : 'bg-[#16161d] border-[#2a2a35] text-white/50 hover:bg-white/[0.06] hover:border-white/[0.15]' 
                                         }}">
                                     {{ $label }}
                                 </button>
@@ -417,7 +417,7 @@
                 <!-- Advanced Controls -->
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
                     @if($supportsSeed)
-                        <div class="bg-white/[0.02] border border-white/[0.06] rounded-xl p-4">
+                        <div class="bg-[#13131a] border border-[#252530] rounded-xl p-4">
                             <label class="block text-sm font-semibold text-white/80 mb-2 inline-flex items-center gap-2">
                                 <i class="fa-solid fa-hashtag" style="font-size: 12px;"></i>
                                 <span>Mã giữ kết quả</span>
@@ -426,7 +426,7 @@
                             <div class="flex flex-col sm:flex-row items-stretch gap-2">
                                 <input type="number" min="0" step="1" wire:model.live="seed"
                                        placeholder="Auto"
-                                       class="w-full h-9 px-3 rounded-lg bg-white/[0.03] border border-white/[0.08] text-white/90 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500/40">
+                                       class="w-full h-9 px-3 rounded-lg bg-[#16161d] border border-[#2a2a35] text-white/90 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500/40">
                                 <div class="grid grid-cols-2 sm:flex sm:items-center gap-2 sm:gap-2 w-full sm:w-auto">
                                     <button type="button" wire:click="randomizeSeed" class="w-full flex-1 sm:w-auto sm:flex-none h-9 px-3 rounded-lg bg-cyan-500/15 border border-cyan-500/30 text-cyan-300 text-xs font-semibold inline-flex items-center justify-center hover:bg-cyan-500/25 transition-colors">
                                         Random
@@ -443,7 +443,7 @@
                     @endif
 
                     @if($supportsOutputFormat)
-                        <div class="bg-white/[0.02] border border-white/[0.06] rounded-xl p-4">
+                        <div class="bg-[#13131a] border border-[#252530] rounded-xl p-4">
                             <label class="block text-sm font-semibold text-white/80 mb-2 inline-flex items-center gap-2">
                                 <i class="fa-solid fa-file-image" style="font-size: 12px;"></i>
                                 <span>Loại file ảnh</span>
@@ -466,7 +466,7 @@
                                     });
                                  ">
                                 <select x-ref="outputFormat"
-                                        class="w-full px-3 py-2 rounded-lg bg-white/[0.03] border border-white/[0.08] text-white/90 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500/40">
+                                        class="w-full px-3 py-2 rounded-lg bg-[#16161d] border border-[#2a2a35] text-white/90 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500/40">
                                     @foreach($outputFormats as $format)
                                         <option value="{{ $format }}">{{ strtoupper($format) }}</option>
                                     @endforeach
@@ -486,7 +486,7 @@
                                 $stepsMin = $stepsRange['min'] ?? 1;
                                 $stepsMax = $stepsRange['max'] ?? 50;
                             @endphp
-                            <div class="bg-white/[0.02] border border-white/[0.06] rounded-xl p-4">
+                            <div class="bg-[#13131a] border border-[#252530] rounded-xl p-4">
                                 <div class="flex items-center justify-between mb-2">
                                     <label class="text-sm font-semibold text-white/80 inline-flex items-center gap-2">
                                         <i class="fa-solid fa-stairs" style="font-size: 12px;"></i>
@@ -516,7 +516,7 @@
                                 $guidanceMin = $guidanceRange['min'] ?? 1.5;
                                 $guidanceMax = $guidanceRange['max'] ?? 10;
                             @endphp
-                            <div class="bg-white/[0.02] border border-white/[0.06] rounded-xl p-4">
+                            <div class="bg-[#13131a] border border-[#252530] rounded-xl p-4">
                                 <div class="flex items-center justify-between mb-2">
                                     <label class="text-sm font-semibold text-white/80 inline-flex items-center gap-2">
                                         <i class="fa-solid fa-sliders" style="font-size: 12px;"></i>
@@ -546,7 +546,7 @@
                                 $safeMin = $safetyToleranceRange['min'] ?? 0;
                                 $safeMax = $safetyToleranceRange['max'] ?? 6;
                             @endphp
-                            <div class="bg-white/[0.02] border border-white/[0.06] rounded-xl p-4">
+                            <div class="bg-[#13131a] border border-[#252530] rounded-xl p-4">
                                 <div class="flex items-center justify-between mb-2">
                                     <label class="text-sm font-semibold text-white/80 inline-flex items-center gap-2">
                                         <i class="fa-solid fa-shield-halved" style="font-size: 12px;"></i>
@@ -576,7 +576,7 @@
                                 $ipsMin = $imagePromptStrengthRange['min'] ?? 0;
                                 $ipsMax = $imagePromptStrengthRange['max'] ?? 1;
                             @endphp
-                            <div class="bg-white/[0.02] border border-white/[0.06] rounded-xl p-4">
+                            <div class="bg-[#13131a] border border-[#252530] rounded-xl p-4">
                                 <div class="flex items-center justify-between mb-2">
                                     <label class="text-sm font-semibold text-white/80 inline-flex items-center gap-2">
                                         <i class="fa-solid fa-blender" style="font-size: 12px;"></i>
@@ -606,10 +606,10 @@
                 @if($supportsPromptUpsampling || $supportsRaw)
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
                         @if($supportsPromptUpsampling)
-                            <div class="bg-white/[0.02] border border-white/[0.06] rounded-xl p-4">
+                            <div class="bg-[#13131a] border border-[#252530] rounded-xl p-4">
                                 <label class="flex items-center gap-2 text-sm text-white/70">
                                     <input type="checkbox" wire:model.live="promptUpsampling"
-                                           class="w-4 h-4 rounded bg-white/[0.03] border-white/[0.15] text-cyan-500 focus:ring-cyan-500/40">
+                                           class="w-4 h-4 rounded bg-[#16161d] border-white/[0.15] text-cyan-500 focus:ring-cyan-500/40">
                                     <span>Tự làm rõ mô tả</span>
                                     <i class="fa-solid fa-circle-question text-white/30" style="font-size: 12px;" title="Hệ thống tự thêm chi tiết khi bạn mô tả ngắn."></i>
                                 </label>
@@ -619,10 +619,10 @@
                             </div>
                         @endif
                         @if($supportsRaw)
-                            <div class="bg-white/[0.02] border border-white/[0.06] rounded-xl p-4">
+                            <div class="bg-[#13131a] border border-[#252530] rounded-xl p-4">
                                 <label class="flex items-center gap-2 text-sm text-white/70">
                                     <input type="checkbox" wire:model.live="raw"
-                                           class="w-4 h-4 rounded bg-white/[0.03] border-white/[0.15] text-cyan-500 focus:ring-cyan-500/40">
+                                           class="w-4 h-4 rounded bg-[#16161d] border-white/[0.15] text-cyan-500 focus:ring-cyan-500/40">
                                     <span>Phong cách tự nhiên</span>
                                     <i class="fa-solid fa-circle-question text-white/30" style="font-size: 12px;" title="Ảnh trông tự nhiên, ít hiệu ứng 'vẽ'."></i>
                                 </label>
@@ -645,8 +645,8 @@
         </div>
         <h3 class="text-white font-bold text-sm uppercase tracking-wide">Hoàn tất & Tạo ảnh</h3>
     </div>
-    <div class="bg-white/[0.03] border border-white/[0.08] rounded-xl p-4 md:p-5">
-        <div class="flex items-center justify-between mb-4 pb-4 border-b border-white/[0.05]">
+    <div class="bg-[#16161d] border border-[#2a2a35] rounded-xl p-4 md:p-5">
+        <div class="flex items-center justify-between mb-4 pb-4 border-b border-[#222230]">
             <span class="text-white/50">Chi phí</span>
             <div class="flex items-center gap-2">
                 <i class="fa-solid fa-gem w-5 h-5 text-cyan-400"></i>
@@ -976,8 +976,8 @@
                 'delete' => route('history.destroy', $img),
             ])->toArray();
         @endphp
-        <div class="lg:hidden bg-white/[0.03] border border-white/[0.08] rounded-xl overflow-hidden">
-            <div class="flex items-center justify-between p-4 border-b border-white/[0.05]">
+        <div class="lg:hidden bg-[#16161d] border border-[#2a2a35] rounded-xl overflow-hidden">
+            <div class="flex items-center justify-between p-4 border-b border-[#222230]">
                 <div class="flex items-center gap-2 text-white/60">
                     <i class="fa-solid fa-clock-rotate-left" style="font-size: 14px;"></i>
                     <span class="font-medium text-sm">Ảnh đã tạo với style này</span>
