@@ -4,7 +4,7 @@
     <style>
         .home-hero {
             position: relative;
-            overflow: hidden;
+            overflow: visible;
             isolation: isolate;
             background: radial-gradient(120% 140% at 0% 0%, rgba(216,180,254,0.2) 0%, rgba(10,10,15,0.92) 55%, rgba(10,10,15,1) 100%);
             box-shadow: 0 26px 60px rgba(0,0,0,0.45), inset 0 0 0 1px rgba(255,255,255,0.08);
@@ -27,8 +27,7 @@
             background:
                 radial-gradient(65% 60% at 20% 15%, rgba(244,114,182,0.18), transparent 60%),
                 radial-gradient(60% 60% at 85% 20%, rgba(168,85,247,0.16), transparent 60%),
-                linear-gradient(180deg, rgba(10,10,15,0.15), rgba(10,10,15,0.7));
-            opacity: 0.55;
+                linear-gradient(180deg, rgba(10,10,15,0.55) 0%, rgba(10,10,15,0.3) 50%, transparent 100%);
             pointer-events: none;
         }
         .home-hero-panel {
@@ -88,8 +87,18 @@
         }
         @media (max-width: 768px) {
             .home-hero-grid {
-                opacity: 0.08;
                 animation-duration: 160s;
+            }
+            .home-hero-overlay {
+                background:
+                    radial-gradient(65% 60% at 20% 15%, rgba(244,114,182,0.18), transparent 60%),
+                    radial-gradient(60% 60% at 85% 20%, rgba(168,85,247,0.16), transparent 60%),
+                    linear-gradient(180deg, rgba(10,10,15,0.55) 0%, rgba(10,10,15,0.3) 50%, transparent 100%);
+            }
+            .home-hero-panel {
+                background: linear-gradient(180deg, rgba(10,10,15,0.15), rgba(10,10,15,0.08));
+                border: 1px solid rgba(255,255,255,0.08);
+                backdrop-filter: blur(8px);
             }
         }
     </style>
@@ -97,82 +106,64 @@
     <!-- ========== HERO SECTION ========== -->
     <section class="home-hero">
         <div class="home-hero-grid"></div>
+        <div class="home-hero-overlay"></div>
 
-        <div class="home-hero-content max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16 lg:py-20">
-            <div class="grid lg:grid-cols-[1.1fr_0.9fr] gap-8 lg:gap-12 items-center">
-                <div class="lg:hidden text-center">
-                    <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 border border-white/20 mb-4">
-                        <span class="inline-flex h-2 w-2 rounded-full bg-pink-400"></span>
-                        <span class="text-xs font-medium text-white/80">Tạo ảnh cực nhanh</span>
-                    </div>
-                    <h1 class="text-3xl font-bold text-[#d3d6db] mb-3 leading-tight">
-                        Chọn Style,<br>
-                        <span class="bg-gradient-to-r from-pink-300 via-fuchsia-300 to-purple-300 bg-clip-text text-transparent">Ảnh Đẹp Tự Đến</span>
-                    </h1>
-                    <p class="text-white/70 text-sm mb-6">
-                        Chỉ cần vài từ gợi ý. ZDream tự lo phần còn lại.
-                    </p>
-                    <div class="flex flex-col gap-3 items-center">
-                        <a href="{{ route('styles.index') }}" class="w-full max-w-xs px-6 py-3.5 rounded-xl bg-gradient-to-r from-pink-500 via-fuchsia-500 to-purple-500 text-[#d3d6db] font-semibold shadow-lg shadow-fuchsia-500/35 hover:shadow-fuchsia-500/55 transition-all inline-flex items-center justify-center gap-2">
-                            <i class="fa-solid fa-wand-magic-sparkles" style="font-size: 16px;"></i>
-                            <span>Bắt đầu ngay</span>
-                        </a>
-                        @guest
-                            <a href="{{ route('register') }}" class="w-full max-w-xs px-6 py-3.5 rounded-xl bg-white/[0.06] border border-fuchsia-300/40 text-[#d3d6db] font-medium hover:bg-white/[0.1] transition-all inline-flex items-center justify-center gap-2">
-                                <i class="fa-solid fa-gift" style="font-size: 14px;"></i>
-                                <span>Đăng ký miễn phí</span>
-                            </a>
-                        @endguest
-                    </div>
-                    <div class="mt-5 flex items-center justify-center gap-2 text-[11px] text-white/60">
-                        <span class="px-2.5 py-1 rounded-full bg-white/10 border border-white/20">Nhanh</span>
-                        <span class="px-2.5 py-1 rounded-full bg-white/10 border border-white/20">Dễ dùng</span>
-                        <span class="px-2.5 py-1 rounded-full bg-white/10 border border-white/20">Style phong phú</span>
+        <!-- Hero Content -->
+        <div class="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 py-20 sm:py-28 lg:py-36 text-center">
+            <!-- Title - Colorful & Stylish -->
+            <h1 class="text-5xl sm:text-6xl lg:text-8xl font-black mb-10 sm:mb-14" style="font-family: 'Inter', sans-serif; letter-spacing: -0.03em;">
+                <span class="inline-block px-4 bg-gradient-to-r from-pink-400 via-purple-400 via-fuchsia-400 to-cyan-400 bg-clip-text text-transparent animate-gradient bg-[length:200%_auto]" style="font-style: italic;">
+                    Let's Create
+                </span>
+            </h1>
+
+            <!-- Prompt Input Bar - Enhanced -->
+            <form action="{{ route('styles.index') }}" method="GET" class="w-full max-w-3xl mx-auto mb-10 group/form">
+                <div class="relative">
+                    <!-- Glow effect -->
+                    <div class="absolute -inset-1 bg-gradient-to-r from-purple-600 via-pink-500 to-purple-600 rounded-full opacity-30 blur-lg group-hover/form:opacity-50 transition-opacity duration-500"></div>
+                    
+                    <!-- Input container -->
+                    <div class="relative flex items-center gap-2 sm:gap-3 p-2 sm:p-2.5 rounded-full bg-black/50 backdrop-blur-2xl border border-white/20 shadow-2xl">
+                        <!-- Image Icon Button -->
+                        <button type="button" class="hidden sm:flex items-center justify-center w-11 h-11 rounded-full bg-white/10 hover:bg-white/20 transition-all ml-1 cursor-pointer">
+                            <i class="fa-solid fa-image text-white/70 text-lg"></i>
+                        </button>
+                        
+                        <!-- Input -->
+                        <input type="text" name="prompt" placeholder="Mô tả ý tưởng của bạn..." 
+                            class="flex-1 bg-transparent border-none outline-none text-white placeholder-white/40 text-base sm:text-lg px-2 sm:px-4 py-2 focus:placeholder-white/60 transition-all">
+                        
+                        <!-- Generate Button -->
+                        <button type="submit" class="flex items-center gap-2 px-5 sm:px-7 py-3 sm:py-3.5 rounded-full bg-gradient-to-r from-purple-500 via-fuchsia-500 to-pink-500 text-white font-semibold text-sm sm:text-base hover:scale-[1.02] hover:shadow-xl hover:shadow-purple-500/40 active:scale-[0.98] transition-all duration-200">
+                            <i class="fa-solid fa-wand-magic-sparkles"></i>
+                            <span>Generate</span>
+                        </button>
                     </div>
                 </div>
+            </form>
 
-                <div class="home-hero-panel hidden lg:block rounded-2xl sm:rounded-3xl px-5 sm:px-8 py-6 sm:py-8 text-center lg:text-left">
-                    <h1 class="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold mb-4 sm:mb-6 leading-tight">
-                        <span class="text-[#d3d6db]">Chọn Style,</span><br>
-                        <span class="bg-gradient-to-r from-pink-300 via-fuchsia-300 to-purple-300 bg-clip-text text-transparent">Ảnh Đẹp Tự Đến</span>
-                    </h1>
-                    <p class="text-white/70 text-base sm:text-lg lg:text-xl max-w-xl mx-auto lg:mx-0 mb-6 sm:mb-8">
-                        Chỉ cần chọn phong cách và vài từ gợi ý. ZDream tự hoàn thiện phần còn lại.
-                    </p>
-                    <div class="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center lg:justify-start">
-                        <a href="{{ route('styles.index') }}" class="px-6 sm:px-8 py-3.5 sm:py-4 rounded-xl bg-gradient-to-r from-pink-500 via-fuchsia-500 to-purple-500 text-[#d3d6db] font-semibold text-base sm:text-lg shadow-lg shadow-fuchsia-500/35 hover:shadow-fuchsia-500/55 transition-all inline-flex items-center justify-center gap-2">
-                            <i class="fa-solid fa-wand-magic-sparkles" style="font-size: 18px;"></i>
-                            <span>Bắt đầu ngay</span>
-                        </a>
-                        @guest
-                            <a href="{{ route('register') }}" class="px-6 sm:px-8 py-3.5 sm:py-4 rounded-xl bg-white/[0.06] border border-fuchsia-300/40 text-[#d3d6db] font-medium text-base sm:text-lg hover:bg-white/[0.1] transition-all inline-flex items-center justify-center gap-2">
-                                <i class="fa-solid fa-gift" style="font-size: 14px;"></i>
-                                <span>Đăng ký miễn phí</span>
-                            </a>
-                        @endguest
-                    </div>
-                </div>
-
-                <div class="hidden lg:block">
-                    @php
-                        $heroStyles = $styles->take(3);
-                    @endphp
-                    @if($heroStyles->isNotEmpty())
-                        <div class="hero-deck">
-                            @foreach($heroStyles as $index => $style)
-                                <div class="hero-card" style="--x: {{ $index * 18 }}px; --y: -{{ $index * 10 }}px; --r: {{ -4 + ($index * 5) }}deg; --s: {{ 0.98 + ($index * 0.02) }};">
-                                    <div class="aspect-[3/4] overflow-hidden">
-                                        <img src="{{ $style->thumbnail }}" alt="{{ $style->name }}" class="w-full h-full object-cover" loading="eager" decoding="async" fetchpriority="high">
-                                    </div>
-                                    <div class="p-4 border-t border-white/10 bg-black/30">
-                                        <p class="text-[#d3d6db] font-semibold">{{ $style->name }}</p>
-                                        <p class="text-white/60 text-sm mt-1">Phong cách nổi bật hôm nay</p>
-                                    </div>
-                                </div>
-                            @endforeach
-                        </div>
-                    @endif
-                </div>
+            <!-- Tool Icons - Enhanced pill style -->
+            <div class="inline-flex items-center gap-2 sm:gap-3 p-2 rounded-full bg-black/30 backdrop-blur-xl border border-white/10">
+                <a href="{{ route('styles.index') }}" class="flex items-center gap-2 px-4 py-2.5 rounded-full text-white/70 hover:text-white hover:bg-white/10 transition-all group">
+                    <i class="fa-solid fa-image text-base"></i>
+                    <span class="text-sm font-medium">Image</span>
+                </a>
+                <a href="{{ route('styles.index') }}" class="flex items-center gap-2 px-4 py-2.5 rounded-full text-white/70 hover:text-white hover:bg-white/10 transition-all group">
+                    <i class="fa-solid fa-palette text-base"></i>
+                    <span class="text-sm font-medium">Styles</span>
+                </a>
+                <a href="{{ route('styles.index') }}" class="flex items-center gap-2 px-4 py-2.5 rounded-full text-white/70 hover:text-white hover:bg-white/10 transition-all group relative">
+                    <i class="fa-solid fa-wand-magic-sparkles text-base"></i>
+                    <span class="text-sm font-medium">AI Art</span>
+                    <span class="absolute -top-1 -right-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-gradient-to-r from-pink-500 to-purple-500 text-white shadow-lg">NEW</span>
+                </a>
+                @auth
+                <a href="{{ route('history.index') }}" class="flex items-center gap-2 px-4 py-2.5 rounded-full text-white/70 hover:text-white hover:bg-white/10 transition-all group">
+                    <i class="fa-solid fa-images text-base"></i>
+                    <span class="text-sm font-medium">Gallery</span>
+                </a>
+                @endauth
             </div>
         </div>
     </section>
