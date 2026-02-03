@@ -530,6 +530,7 @@
         display: -webkit-box;
         -webkit-box-orient: vertical;
         -webkit-line-clamp: 1;
+        line-clamp: 1;
     }
 
     .line-clamp-2 {
@@ -537,6 +538,7 @@
         display: -webkit-box;
         -webkit-box-orient: vertical;
         -webkit-line-clamp: 2;
+        line-clamp: 2;
     }
 
     /* Safe areas */
@@ -770,10 +772,6 @@ body.overflow-hidden {
 }
 
 /* ===== BUTTON ICON ALIGNMENT FIX ===== */
-button,
-a {
-    /* Ensure icons in buttons/links align properly */
-}
 
 button i,
 a i {
@@ -829,4 +827,5 @@ input[type="number"]::-webkit-inner-spin-button {
 
 input[type="number"] {
     -moz-appearance: textfield;
+    appearance: textfield;
 }

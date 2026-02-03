@@ -1020,7 +1020,8 @@
             lightboxOpen = true;
             lightboxHasActions = false;
             renderLightbox();
-            document.body.style.overflow = 'hidden';
+            document.documentElement.classList.add('overflow-hidden');
+            document.body.classList.add('overflow-hidden');
         }
 
         // Lightbox with actions (download, delete)
@@ -1031,14 +1032,16 @@
             lightboxOpen = true;
             lightboxHasActions = true;
             renderLightbox();
-            document.body.style.overflow = 'hidden';
+            document.documentElement.classList.add('overflow-hidden');
+            document.body.classList.add('overflow-hidden');
         }
 
         function closeLightbox() {
             lightboxOpen = false;
             const el = document.getElementById('global-lightbox');
             if (el) el.remove();
-            document.body.style.overflow = '';
+            document.documentElement.classList.remove('overflow-hidden');
+            document.body.classList.remove('overflow-hidden');
             document.removeEventListener('keydown', handleLightboxKeydown);
         }
 
