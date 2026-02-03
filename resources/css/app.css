@@ -8,10 +8,10 @@
    =================================================================== */
 
 :root {
-    /* Dark Backgrounds */
-    --dark-900: #0a0a0f;
-    --dark-800: #0f0f18;
-    --dark-700: #161625;
+    /* Dark Backgrounds - Ultra Dark */
+    --dark-900: #050508;
+    --dark-800: #0a0a0f;
+    --dark-700: #0f0f18;
 
     /* Glass Effects */
     --glass: rgba(255, 255, 255, 0.03);
@@ -837,4 +837,60 @@ input[type="number"]::-webkit-inner-spin-button {
 input[type="number"] {
     -moz-appearance: textfield;
     appearance: textfield;
+}
+
+/* ===== SELECT2 GLASSMORPHISM ===== */
+.select2-container--default .select2-dropdown {
+    background: rgba(10, 10, 15, 0.4);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 0 0 12px 12px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+    overflow: hidden;
+    margin-top: -1px;
+}
+
+.select2-container--default .select2-results__option {
+    padding: 10px 14px;
+    color: rgba(255, 255, 255, 0.8);
+    transition: all 0.15s ease;
+}
+
+.select2-container--default .select2-results__option--highlighted[aria-selected] {
+    background: linear-gradient(135deg, rgba(168, 85, 247, 0.3), rgba(236, 72, 153, 0.2));
+    color: white;
+}
+
+.select2-container--default .select2-results__option[aria-selected="true"] {
+    background: rgba(168, 85, 247, 0.2);
+    color: white;
+}
+
+.select2-container--default .select2-selection--single {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__rendered {
+    color: rgba(255, 255, 255, 0.9);
+    padding-left: 14px;
+    line-height: 44px;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__arrow {
+    height: 44px;
+    right: 10px;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__arrow b {
+    border-color: rgba(255, 255, 255, 0.5) transparent transparent transparent;
+}
+
+.select2-container--default.select2-container--open .select2-selection--single .select2-selection__arrow b {
+    border-color: transparent transparent rgba(255, 255, 255, 0.5) transparent;
 }

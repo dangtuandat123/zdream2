@@ -642,11 +642,11 @@
                     </a>
                     <nav class="hidden md:flex items-center gap-1">
                         <a href="{{ route('home') }}"
-                            class="px-3 py-2 rounded-lg text-sm font-medium transition-all inline-flex items-center gap-2 {{ request()->routeIs('home') ? 'text-white bg-purple-500/20 border border-purple-500/30' : 'text-white/60 hover:text-white hover:bg-white/[0.05]' }}">
+                            class="px-3 py-2 rounded-lg text-sm font-medium transition-all inline-flex items-center gap-2 {{ request()->routeIs('home') ? 'text-white bg-gradient-to-r from-purple-500 to-pink-500 shadow-lg shadow-purple-500/25' : 'text-white/60 hover:text-white hover:bg-white/[0.05]' }}">
                             <i class="fa-solid fa-house w-3.5 h-3.5"></i> Trang chủ
                         </a>
                         <a href="{{ route('styles.index') }}"
-                            class="px-3 py-2 rounded-lg text-sm font-medium transition-all inline-flex items-center gap-2 {{ request()->routeIs('styles.*') || request()->routeIs('studio.*') ? 'text-white bg-purple-500/20 border border-purple-500/30' : 'text-white/60 hover:text-white hover:bg-white/[0.05]' }}">
+                            class="px-3 py-2 rounded-lg text-sm font-medium transition-all inline-flex items-center gap-2 {{ request()->routeIs('styles.*') || request()->routeIs('studio.*') ? 'text-white bg-gradient-to-r from-purple-500 to-pink-500 shadow-lg shadow-purple-500/25' : 'text-white/60 hover:text-white hover:bg-white/[0.05]' }}">
                             <i class="fa-solid fa-palette w-3.5 h-3.5"></i> Styles
                         </a>
                         {{-- <a href="{{ route('edit.index') }}"
@@ -655,7 +655,7 @@
                         </a> --}}
                         @auth
                             <a href="{{ route('history.index') }}"
-                                class="px-3 py-2 rounded-lg text-sm font-medium transition-all inline-flex items-center gap-2 {{ request()->routeIs('history.*') ? 'text-white bg-purple-500/20 border border-purple-500/30' : 'text-white/60 hover:text-white hover:bg-white/[0.05]' }}">
+                                class="px-3 py-2 rounded-lg text-sm font-medium transition-all inline-flex items-center gap-2 {{ request()->routeIs('history.*') ? 'text-white bg-gradient-to-r from-purple-500 to-pink-500 shadow-lg shadow-purple-500/25' : 'text-white/60 hover:text-white hover:bg-white/[0.05]' }}">
                                 <i class="fa-solid fa-clock-rotate-left w-3.5 h-3.5"></i> Lịch sử
                             </a>
                         @endauth
