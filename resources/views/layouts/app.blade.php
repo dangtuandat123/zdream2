@@ -627,157 +627,131 @@
 <body class="min-h-screen text-white antialiased">
     <div class="ambient-bg" aria-hidden="true"></div>
 
-    <!-- ========== HEADER ========== -->
-    <header id="header"
-        class="fixed top-0 left-0 right-0 z-50 bg-[#0a0a0f]/5 backdrop-blur-2xl border-b border-transparent transition-all duration-500">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6">
-            <div class="flex items-center justify-between h-14 sm:h-16">
-                <!-- Left: Logo + Nav -->
-                <div class="flex items-center gap-6">
-                    <a href="{{ route('home') }}" class="flex items-center gap-2 group flex-shrink-0">
-                        <i
-                            class="fa-solid fa-wand-magic-sparkles w-5 h-5 text-purple-400 transition-transform duration-300 group-hover:rotate-12"></i>
-                        <span
-                            class="text-lg sm:text-xl font-bold bg-gradient-to-r from-purple-400 to-pink-500 bg-clip-text text-transparent">ZDream</span>
-                    </a>
-                    <nav class="hidden md:flex items-center gap-1">
-                        <a href="{{ route('home') }}"
-                            class="px-3 py-2 rounded-lg text-sm font-medium transition-all inline-flex items-center gap-2 {{ request()->routeIs('home') ? 'text-white bg-gradient-to-r from-purple-500 to-pink-500 shadow-lg shadow-purple-500/25' : 'text-white/60 hover:text-white hover:bg-white/[0.05]' }}">
-                            <i class="fa-solid fa-house w-3.5 h-3.5"></i> Trang chủ
-                        </a>
-                        <a href="{{ route('styles.index') }}"
-                            class="px-3 py-2 rounded-lg text-sm font-medium transition-all inline-flex items-center gap-2 {{ request()->routeIs('styles.*') || request()->routeIs('studio.*') ? 'text-white bg-gradient-to-r from-purple-500 to-pink-500 shadow-lg shadow-purple-500/25' : 'text-white/60 hover:text-white hover:bg-white/[0.05]' }}">
-                            <i class="fa-solid fa-palette w-3.5 h-3.5"></i> Styles
-                        </a>
-                        {{-- <a href="{{ route('edit.index') }}"
-                            class="px-3 py-2 rounded-lg text-sm font-medium text-white/60 hover:text-white hover:bg-white/[0.05] transition-all inline-flex items-center gap-2">
-                            <i class="fa-solid fa-wand-magic-sparkles w-3.5 h-3.5"></i> Magic Edit
-                        </a> --}}
-                        @auth
-                            <a href="{{ route('history.index') }}"
-                                class="px-3 py-2 rounded-lg text-sm font-medium transition-all inline-flex items-center gap-2 {{ request()->routeIs('history.*') ? 'text-white bg-gradient-to-r from-purple-500 to-pink-500 shadow-lg shadow-purple-500/25' : 'text-white/60 hover:text-white hover:bg-white/[0.05]' }}">
-                                <i class="fa-solid fa-clock-rotate-left w-3.5 h-3.5"></i> Lịch sử
-                            </a>
-                        @endauth
-                    </nav>
-                </div>
-                <!-- Right: Actions -->
-                <div class="flex items-center gap-2">
-                    @auth
-                        <!-- Xu Display -->
-                        <a href="{{ route('wallet.index') }}"
-                            class="hidden sm:flex items-center gap-1.5 px-3 h-9 rounded-full bg-[#16161d] border border-[#2a2a35] text-white/80 hover:bg-white/[0.05] transition-all">
-                            <i class="fa-solid fa-gem text-cyan-400" style="font-size: 14px;"></i>
-                            <span class="font-semibold text-sm text-white/95"><livewire:header-credits /></span>
-                        </a>
-
-                        <!-- Nạp Xu Button -->
-                        <a href="{{ route('wallet.index') }}"
-                            class="hidden sm:inline-flex h-9 px-4 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white font-medium text-sm items-center justify-center gap-1.5 hover:from-purple-400 hover:to-pink-400 transition-all">
-                            <i class="fa-solid fa-plus" style="font-size: 11px;"></i>
-                            <span>Nạp Xu</span>
-                        </a>
-
-                        <!-- User Dropdown (Hidden on mobile, shown on sm+) -->
-                        <div class="relative hidden sm:block" x-data="{ open: false }">
-                            <button @click="open = !open" @click.outside="open = false"
-                                class="flex items-center gap-2 h-9 px-1 rounded-full bg-[#16161d] border border-[#2a2a35] text-white/80 hover:bg-white/[0.05] transition-all">
-                                <div
-                                    class="w-7 h-7 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white text-xs font-bold leading-none pr-[1px]">
-                                    {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
-                                </div>
-                                <span
-                                    class="hidden sm:block text-sm font-medium text-white/90 max-w-[150px] lg:max-w-[200px] truncate">{{ str_contains(auth()->user()->name, '@') ? Str::limit(Str::before(auth()->user()->name, '@'), 20) . '...' : Str::limit(auth()->user()->name, 20) }}</span>
-                                <i class="fa-solid fa-chevron-down text-[10px] text-white/50 transition-transform duration-200"
-                                    :class="{ 'rotate-180': open }"></i>
-                            </button>
-
-                            <!-- Dropdown Menu -->
-                            <div x-show="open" x-transition:enter="transition ease-out duration-200"
-                                x-transition:enter-start="opacity-0 scale-95 -translate-y-2"
-                                x-transition:enter-end="opacity-100 scale-100 translate-y-0"
-                                x-transition:leave="transition ease-in duration-150"
-                                x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95"
-                                class="absolute right-0 mt-2 w-64 rounded-xl bg-[#1a1a24] border border-white/[0.1] shadow-xl shadow-black/50 overflow-hidden z-50">
-
-                                <!-- User Info -->
-                                <div class="p-3 border-b border-[#222230]">
-                                    <p class="text-sm font-medium text-white truncate">{{ auth()->user()->name }}</p>
-                                    <p class="text-xs text-white/50 truncate">{{ auth()->user()->email }}</p>
-                                </div>
-
-                                <!-- Menu Links -->
-                                <div class="py-1">
-                                    <a href="{{ route('dashboard') }}"
-                                        class="flex items-center gap-3 px-4 py-2.5 text-sm text-white/70 hover:text-white hover:bg-white/[0.05] transition-colors">
-                                        <i class="fa-solid fa-gauge w-4 text-purple-400"></i>
-                                        Dashboard
-                                    </a>
-                                    <a href="{{ route('profile.edit') }}"
-                                        class="flex items-center gap-3 px-4 py-2.5 text-sm text-white/70 hover:text-white hover:bg-white/[0.05] transition-colors">
-                                        <i class="fa-solid fa-user w-4 text-blue-400"></i>
-                                        Hồ sơ cá nhân
-                                    </a>
-                                    <a href="{{ route('history.index') }}"
-                                        class="flex items-center gap-3 px-4 py-2.5 text-sm text-white/70 hover:text-white hover:bg-white/[0.05] transition-colors">
-                                        <i class="fa-solid fa-images w-4 text-green-400"></i>
-                                        Ảnh của tôi
-                                    </a>
-                                    <a href="{{ route('wallet.index') }}"
-                                        class="flex items-center gap-3 px-4 py-2.5 text-sm text-white/70 hover:text-white hover:bg-white/[0.05] transition-colors">
-                                        <i class="fa-solid fa-wallet w-4 text-yellow-400"></i>
-                                        Ví tiền
-                                        <span class="ml-auto text-xs text-cyan-400 font-medium"><livewire:header-credits />
-                                            Xu</span>
-                                    </a>
-                                </div>
-
-                                @if(auth()->user()->is_admin)
-                                    <div class="border-t border-[#222230] py-1">
-                                        <a href="{{ route('admin.dashboard') }}"
-                                            class="flex items-center gap-3 px-4 py-2.5 text-sm text-cyan-400 hover:bg-cyan-500/10 transition-colors">
-                                            <i class="fa-solid fa-crown w-4"></i>
-                                            Admin Panel
-                                        </a>
-                                    </div>
-                                @endif
-
-                                <!-- Logout -->
-                                <div class="border-t border-[#222230] py-1">
-                                    <form method="POST" action="{{ route('logout') }}">
-                                        @csrf
-                                        <button type="submit"
-                                            class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-400 hover:bg-red-500/10 transition-colors">
-                                            <i class="fa-solid fa-right-from-bracket w-4"></i>
-                                            Đăng xuất
-                                        </button>
-                                    </form>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Mobile: Xu Display -->
-                        <a href="{{ route('wallet.index') }}"
-                            class="sm:hidden h-9 px-3 rounded-full bg-[#16161d] border border-[#2a2a35] flex items-center gap-2 text-white/80">
-                            <i class="fa-solid fa-gem w-4 h-4 text-cyan-400"></i>
-                            <span class="font-semibold text-sm text-white/95"><livewire:header-credits /></span>
-                        </a>
-                    @else
-                        <a href="{{ route('login') }}"
-                            class="hidden sm:inline-flex items-center justify-center h-9 px-4 rounded-full bg-[#16161d] border border-white/[0.1] text-white/80 text-sm font-medium hover:bg-white/[0.06] transition-all leading-none">Đăng
-                            nhập</a>
-                        <a href="{{ route('register') }}"
-                            class="hidden sm:inline-flex items-center justify-center h-9 px-4 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white text-sm font-medium hover:from-purple-400 hover:to-pink-400 transition-all leading-none">Đăng
-                            ký</a>
-                    @endauth
-                    <button id="menu-btn"
-                        class="md:hidden w-10 h-10 rounded-xl bg-[#16161d] border border-[#2a2a35] flex items-center justify-center text-white/80 hover:text-white hover:bg-white/[0.06] transition-all">
-                        <i id="menu-icon-bars" class="fa-solid fa-bars w-4 h-4"></i>
-                    </button>
-                </div>
-            </div>
+    <!-- ========== MOBILE HEADER ========== -->
+    <header class="md:hidden fixed top-0 left-0 right-0 z-50 bg-[#0a0a0f]/95 backdrop-blur-xl border-b border-white/10">
+        <div class="flex items-center justify-between h-14 px-4">
+            <!-- Logo -->
+            <a href="{{ route('home') }}" class="flex items-center gap-2">
+                <i class="fa-solid fa-wand-magic-sparkles text-purple-400"></i>
+                <span
+                    class="text-lg font-bold bg-gradient-to-r from-purple-400 to-pink-500 bg-clip-text text-transparent">ZDream</span>
+            </a>
+            <!-- Xu Display -->
+            @auth
+                <a href="{{ route('wallet.index') }}"
+                    class="flex items-center gap-1.5 px-3 h-9 rounded-full bg-white/5 border border-white/10">
+                    <i class="fa-solid fa-gem text-cyan-400 text-sm"></i>
+                    <span class="font-semibold text-sm"><livewire:header-credits /></span>
+                </a>
+            @else
+                <a href="{{ route('login') }}"
+                    class="px-4 py-2 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white text-sm font-medium">
+                    Đăng nhập
+                </a>
+            @endauth
         </div>
     </header>
+
+    <!-- ========== DESKTOP LEFT SIDEBAR (Compact Icon Style) ========== -->
+    <aside
+        class="hidden md:flex fixed left-0 top-0 bottom-0 z-50 w-[72px] flex-col bg-[#0a0a0f]/95 border-r border-white/10">
+        <!-- Logo -->
+        <a href="{{ route('home') }}" class="flex items-center justify-center h-16 border-b border-white/5">
+            <div
+                class="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow-lg shadow-purple-500/30">
+                <i class="fa-solid fa-wand-magic-sparkles text-white"></i>
+            </div>
+        </a>
+
+        <!-- Navigation -->
+        <nav class="flex-1 flex flex-col items-center py-4 gap-1 overflow-y-auto">
+            <a href="{{ route('home') }}"
+                class="flex flex-col items-center justify-center w-14 h-14 rounded-xl transition-all {{ request()->routeIs('home') ? 'bg-purple-500/20 text-white' : 'text-white/50 hover:text-white hover:bg-white/5' }}">
+                <i class="fa-solid fa-house text-lg mb-1"></i>
+                <span class="text-[10px] font-medium">Trang chủ</span>
+            </a>
+            <a href="{{ route('styles.index') }}"
+                class="flex flex-col items-center justify-center w-14 h-14 rounded-xl transition-all {{ request()->routeIs('styles.*') || request()->routeIs('studio.*') ? 'bg-purple-500/20 text-white' : 'text-white/50 hover:text-white hover:bg-white/5' }}">
+                <i class="fa-solid fa-palette text-lg mb-1"></i>
+                <span class="text-[10px] font-medium">Styles</span>
+            </a>
+            @auth
+                <a href="{{ route('history.index') }}"
+                    class="flex flex-col items-center justify-center w-14 h-14 rounded-xl transition-all {{ request()->routeIs('history.*') ? 'bg-purple-500/20 text-white' : 'text-white/50 hover:text-white hover:bg-white/5' }}">
+                    <i class="fa-solid fa-images text-lg mb-1"></i>
+                    <span class="text-[10px] font-medium">Thư viện</span>
+                </a>
+            @endauth
+
+            <!-- Spacer -->
+            <div class="flex-1"></div>
+
+            <!-- Settings -->
+            <a href="{{ route('profile.edit') }}"
+                class="flex flex-col items-center justify-center w-14 h-14 rounded-xl transition-all {{ request()->routeIs('profile.*') ? 'bg-purple-500/20 text-white' : 'text-white/50 hover:text-white hover:bg-white/5' }}">
+                <i class="fa-solid fa-gear text-lg mb-1"></i>
+                <span class="text-[10px] font-medium">Cài đặt</span>
+            </a>
+        </nav>
+
+        <!-- Bottom: Credits + User -->
+        <div class="flex flex-col items-center py-3 border-t border-white/5 gap-2">
+            @auth
+                <!-- Credits -->
+                <a href="{{ route('wallet.index') }}"
+                    class="flex flex-col items-center justify-center w-14 py-2 rounded-xl bg-gradient-to-b from-purple-500/10 to-transparent hover:bg-purple-500/20 transition-all">
+                    <i class="fa-solid fa-gem text-cyan-400 text-sm mb-0.5"></i>
+                    <span class="text-[11px] font-bold"><livewire:header-credits /></span>
+                </a>
+
+                <!-- Upgrade -->
+                <a href="{{ route('wallet.index') }}"
+                    class="flex items-center justify-center w-14 h-8 rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 text-white text-[10px] font-semibold shadow-lg shadow-purple-500/30">
+                    Nạp Xu
+                </a>
+
+                <!-- User Avatar -->
+                <div x-data="{ open: false }" class="relative">
+                    <button @click="open = !open"
+                        class="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold text-sm hover:scale-105 transition-transform">
+                        {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
+                    </button>
+                    <!-- Dropdown -->
+                    <div x-show="open" @click.outside="open = false" x-transition:enter="transition ease-out duration-150"
+                        x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
+                        class="absolute left-full bottom-0 ml-2 w-48 bg-[#16161d] border border-white/10 rounded-xl shadow-xl overflow-hidden">
+                        <div class="p-3 border-b border-white/5">
+                            <p class="text-sm font-medium truncate">{{ auth()->user()->name }}</p>
+                            <p class="text-xs text-white/50 truncate">{{ auth()->user()->email }}</p>
+                        </div>
+                        <a href="{{ route('profile.edit') }}"
+                            class="flex items-center gap-2 px-3 py-2.5 text-sm text-white/70 hover:text-white hover:bg-white/5">
+                            <i class="fa-solid fa-user w-4 text-blue-400"></i> Hồ sơ
+                        </a>
+                        @if(auth()->user()->is_admin)
+                            <a href="{{ route('admin.dashboard') }}"
+                                class="flex items-center gap-2 px-3 py-2.5 text-sm text-cyan-400 hover:bg-cyan-500/10">
+                                <i class="fa-solid fa-crown w-4"></i> Admin
+                            </a>
+                        @endif
+                        <form method="POST" action="{{ route('logout') }}">
+                            @csrf
+                            <button type="submit"
+                                class="w-full flex items-center gap-2 px-3 py-2.5 text-sm text-red-400 hover:bg-red-500/10">
+                                <i class="fa-solid fa-right-from-bracket w-4"></i> Đăng xuất
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            @else
+                <a href="{{ route('login') }}"
+                    class="flex flex-col items-center justify-center w-14 h-14 rounded-xl text-white/50 hover:text-white hover:bg-white/5 transition-all">
+                    <i class="fa-solid fa-right-to-bracket text-lg mb-1"></i>
+                    <span class="text-[10px] font-medium">Đăng nhập</span>
+                </a>
+            @endauth
+        </div>
+    </aside>
 
     <!-- ========== MOBILE MENU OVERLAY ========== -->
     <div id="menu-overlay"
@@ -905,7 +879,7 @@
     </div>
 
     <!-- ========== MAIN CONTENT ========== -->
-    <main class="pt-14 sm:pt-16">
+    <main class="pt-14 md:pt-0 pb-20 md:pb-0 md:ml-[72px]">
         @if(isset($slot))
             {{ $slot }}
         @else
@@ -913,24 +887,60 @@
         @endif
     </main>
 
-    <!-- ========== FOOTER ========== -->
-    <footer class="border-t border-[#222230]">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-            <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
-                <div class="flex items-center gap-2">
-                    <i class="fa-solid fa-wand-magic-sparkles w-4 h-4 sm:w-5 sm:h-5 text-purple-400"></i>
-                    <span
-                        class="font-bold text-sm sm:text-base bg-gradient-to-r from-purple-400 to-pink-500 bg-clip-text text-transparent">ZDream</span>
-                </div>
-                <p class="text-white/40 text-xs sm:text-sm">© {{ date('Y') }} ZDream.vn</p>
-                <div class="flex gap-4 text-white/40">
-                    <a href="javascript:void(0)" class="hover:text-white/80 text-xs sm:text-sm" title="Sắp ra mắt">Điều
-                        khoản</a>
-                    <a href="mailto:support@zdream.vn" class="hover:text-white/80 text-xs sm:text-sm">Liên hệ</a>
-                </div>
-            </div>
+    <!-- ========== MOBILE BOTTOM TAB BAR ========== -->
+    <nav
+        class="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-[#0a0a0f]/95 backdrop-blur-xl border-t border-white/10 safe-area-bottom">
+        <div class="flex items-center justify-around h-16 px-2 max-w-lg mx-auto">
+            <!-- Home -->
+            <a href="{{ route('home') }}"
+                class="flex flex-col items-center justify-center gap-1 py-2 px-4 rounded-xl transition-all {{ request()->routeIs('home') ? 'text-white' : 'text-white/50' }}">
+                @if(request()->routeIs('home'))
+                    <div class="absolute -top-0.5 w-8 h-1 rounded-full bg-gradient-to-r from-purple-500 to-pink-500"></div>
+                @endif
+                <i class="fa-solid fa-house text-lg"></i>
+                <span class="text-[10px] font-medium">Trang chủ</span>
+            </a>
+
+            <!-- Styles -->
+            <a href="{{ route('styles.index') }}"
+                class="flex flex-col items-center justify-center gap-1 py-2 px-4 rounded-xl transition-all {{ request()->routeIs('styles.*') || request()->routeIs('studio.*') ? 'text-white' : 'text-white/50' }}">
+                @if(request()->routeIs('styles.*') || request()->routeIs('studio.*'))
+                    <div class="absolute -top-0.5 w-8 h-1 rounded-full bg-gradient-to-r from-purple-500 to-pink-500"></div>
+                @endif
+                <i class="fa-solid fa-palette text-lg"></i>
+                <span class="text-[10px] font-medium">Styles</span>
+            </a>
+
+            @auth
+                <!-- History -->
+                <a href="{{ route('history.index') }}"
+                    class="flex flex-col items-center justify-center gap-1 py-2 px-4 rounded-xl transition-all {{ request()->routeIs('history.*') ? 'text-white' : 'text-white/50' }}">
+                    @if(request()->routeIs('history.*'))
+                        <div class="absolute -top-0.5 w-8 h-1 rounded-full bg-gradient-to-r from-purple-500 to-pink-500"></div>
+                    @endif
+                    <i class="fa-solid fa-images text-lg"></i>
+                    <span class="text-[10px] font-medium">Ảnh của tôi</span>
+                </a>
+
+                <!-- Profile -->
+                <a href="{{ route('profile.edit') }}"
+                    class="flex flex-col items-center justify-center gap-1 py-2 px-4 rounded-xl transition-all {{ request()->routeIs('profile.*') ? 'text-white' : 'text-white/50' }}">
+                    @if(request()->routeIs('profile.*'))
+                        <div class="absolute -top-0.5 w-8 h-1 rounded-full bg-gradient-to-r from-purple-500 to-pink-500"></div>
+                    @endif
+                    <i class="fa-solid fa-user text-lg"></i>
+                    <span class="text-[10px] font-medium">Tài khoản</span>
+                </a>
+            @else
+                <!-- Login -->
+                <a href="{{ route('login') }}"
+                    class="flex flex-col items-center justify-center gap-1 py-2 px-4 rounded-xl transition-all text-white/50">
+                    <i class="fa-solid fa-right-to-bracket text-lg"></i>
+                    <span class="text-[10px] font-medium">Đăng nhập</span>
+                </a>
+            @endauth
         </div>
-    </footer>
+    </nav>
 
     <!-- Custom Scripts -->
     <script>

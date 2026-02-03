@@ -47,7 +47,7 @@
         }
     </style>
 
-    <div class="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8 overflow-x-hidden">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 overflow-x-hidden">
         
         <!-- Header -->
         <div class="flex items-center justify-between mb-4">

@@ -5,7 +5,6 @@
         .home-hero {
             position: relative;
             overflow: hidden;
-            border-radius: 0 0 2rem 2rem;
             isolation: isolate;
             background: radial-gradient(120% 140% at 0% 0%, rgba(216,180,254,0.2) 0%, rgba(10,10,15,0.92) 55%, rgba(10,10,15,1) 100%);
             box-shadow: 0 26px 60px rgba(0,0,0,0.45), inset 0 0 0 1px rgba(255,255,255,0.08);
@@ -16,7 +15,7 @@
             background-image: url('/images/hero/home-grid.png');
             background-size: 900px auto;
             background-repeat: repeat;
-            opacity: 0.12;
+            opacity:   0.4;
             filter: saturate(1) contrast(1.02);
             animation: home-grid-scroll 120s linear infinite;
             will-change: background-position;
@@ -47,7 +46,6 @@
         .hero-card {
             position: absolute;
             inset: 0;
-            border-radius: 24px;
             border: 1px solid rgba(255,255,255,0.16);
             background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
             box-shadow: 0 30px 60px rgba(0,0,0,0.45);
@@ -99,7 +97,6 @@
     <!-- ========== HERO SECTION ========== -->
     <section class="home-hero">
         <div class="home-hero-grid"></div>
-        <div class="home-hero-overlay"></div>
 
         <div class="home-hero-content max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16 lg:py-20">
             <div class="grid lg:grid-cols-[1.1fr_0.9fr] gap-8 lg:gap-12 items-center">
