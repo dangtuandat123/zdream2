@@ -4,7 +4,7 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
         <!-- Back Button (Mobile) -->
         <a href="{{ route('home') }}"
-            class="lg:hidden inline-flex items-center gap-2 text-sm text-white/50 hover:text-[#d3d6db] transition-colors mb-4">
+            class="lg:hidden inline-flex items-center gap-2 text-sm text-white/50 hover:text-white transition-colors mb-4">
             <i class="fa-solid fa-arrow-left" style="font-size: 14px;"></i>
             <span>Quay lại</span>
         </a>
@@ -12,13 +12,13 @@
         <div class="grid lg:grid-cols-5 gap-6 lg:gap-8">
             <!-- Left: Style Preview (2/5) -->
             <div class="lg:col-span-2 space-y-4">
-                <div class="relative rounded-xl overflow-hidden bg-[#1b1c21] border border-[#2a2b30] aspect-[1/1]">
+                <div class="relative rounded-xl overflow-hidden bg-white/20 border border-white/20 aspect-[1/1]">
                     <img src="{{ $style->thumbnail }}" alt="{{ $style->name }}" class="w-full h-full object-cover"
                         onerror="this.src='/images/placeholder.svg'; this.onerror=null;">
                     <div class="absolute inset-0 bg-gradient-to-t from-[#1b1c21]/90 via-transparent to-transparent">
                     </div>
                     <div class="absolute bottom-0 left-0 right-0 p-4 md:p-6">
-                        <h1 class="text-xl md:text-2xl font-bold text-[#d3d6db] mb-1.5">{{ $style->name }}</h1>
+                        <h1 class="text-xl md:text-2xl font-bold text-white mb-1.5">{{ $style->name }}</h1>
 
                     </div>
                 </div>
@@ -26,7 +26,7 @@
                 <!-- Description Block -->
                 @if($style->description)
                     <div class="bg-[#1b1c21] border border-[#2a2b30] rounded-xl p-4">
-                        <h3 class="text-[#d3d6db] font-bold text-base mb-2">Mô tả Style</h3>
+                        <h3 class="text-white font-bold text-base mb-2">Mô tả Style</h3>
                         <p class="text-sm text-white/80 leading-relaxed">{{ $style->description }}</p>
                     </div>
                 @endif
@@ -48,7 +48,7 @@
 
                 <!-- Tips -->
                 <div class="bg-purple-500/10 border border-purple-500/30 rounded-xl p-4">
-                    <h3 class="text-[#d3d6db] font-medium text-sm mb-2 inline-flex items-center gap-2">
+                    <h3 class="text-white font-medium text-sm mb-2 inline-flex items-center gap-2">
                         <i class="fa-solid fa-lightbulb text-yellow-400" style="font-size: 12px;"></i>
                         Mẹo nhỏ
                     </h3>

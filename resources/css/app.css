@@ -27,7 +27,7 @@
     --accent-orange: #f97316;
 
     /* Text */
-    --text-primary: rgba(255, 255, 255, 0.95);
+    --text-primary: #ffffff;
     --text-secondary: rgba(255, 255, 255, 0.70);
     --text-muted: rgba(255, 255, 255, 0.50);
 }
@@ -41,6 +41,7 @@
     body {
         font-family: 'Inter', sans-serif;
         background-color: var(--dark-900);
+        color: var(--text-primary);
         background-image:
             radial-gradient(ellipse 80% 50% at 50% -20%, rgba(168, 85, 247, 0.15), transparent),
             radial-gradient(ellipse 60% 40% at 100% 50%, rgba(236, 72, 153, 0.10), transparent),
