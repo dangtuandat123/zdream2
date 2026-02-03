@@ -55,7 +55,7 @@
                 <h1 class="text-2xl font-bold text-[#d3d6db]">Lịch sử ảnh</h1>
                 <p class="text-white/50 text-sm">Các ảnh bạn đã tạo</p>
             </div>
-            <a href="{{ route('home') }}" class="px-4 py-2 rounded-xl bg-purple-500/20 border border-purple-500/30 text-purple-400 text-sm hover:bg-purple-500/30 transition-colors inline-flex items-center gap-2">
+            <a href="{{ route('styles.index') }}" class="px-4 py-2 rounded-xl bg-purple-500/20 border border-purple-500/30 text-purple-400 text-sm hover:bg-purple-500/30 transition-colors inline-flex items-center gap-2">
                 <i class="fa-solid fa-plus" style="font-size: 12px;"></i>
                 <span>Tạo ảnh mới</span>
             </a>
@@ -147,7 +147,7 @@
                         Xóa bộ lọc
                     </button>
                 @else
-                    <a href="{{ route('home') }}" class="px-6 py-3 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-[#d3d6db] font-semibold hover:shadow-[0_8px_30px_rgba(168,85,247,0.5)] transition-all inline-flex items-center gap-2">
+                    <a href="{{ route('styles.index') }}" class="px-6 py-3 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-[#d3d6db] font-semibold hover:shadow-[0_8px_30px_rgba(168,85,247,0.5)] transition-all inline-flex items-center gap-2">
                         <i class="fa-solid fa-wand-magic-sparkles"></i>
                         <span>Khám phá Styles</span>
                     </a>
