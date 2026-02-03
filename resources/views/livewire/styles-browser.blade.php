@@ -1,82 +1,23 @@
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-    <!-- Hero -->
-    <section class="relative mb-8 rounded-2xl overflow-hidden">
-        <!-- Animated Background -->
-        <div class="absolute inset-0 bg-gradient-to-br from-purple-900/40 via-[#0f0f18] to-pink-900/30"></div>
-        <div class="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width=\"60\" height=\"60\" viewBox=\"0 0 60 60\" xmlns=\"http://www.w3.org/2000/svg\"%3E%3Cg fill=\"none\" fill-rule=\"evenodd\"%3E%3Cg fill=\"%239C92AC\" fill-opacity=\"0.03\"%3E%3Cpath d=\"M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')]"></div>
-        
-        <!-- Floating Orbs -->
-        <div class="absolute top-10 left-10 w-32 h-32 bg-purple-500/20 rounded-full blur-3xl animate-pulse"></div>
-        <div class="absolute bottom-10 right-10 w-40 h-40 bg-pink-500/20 rounded-full blur-3xl animate-pulse" style="animation-delay: 1s;"></div>
-        <div class="absolute top-1/2 left-1/3 w-24 h-24 bg-cyan-500/10 rounded-full blur-2xl animate-pulse" style="animation-delay: 2s;"></div>
-        
-        <!-- Glowing Border -->
-        <div class="absolute inset-0 rounded-2xl border border-white/[0.08]"></div>
-        <div class="absolute inset-0 rounded-2xl" style="box-shadow: inset 0 1px 0 0 rgba(255,255,255,0.05);"></div>
-        
-        <!-- Content -->
-        <div class="relative px-6 sm:px-10 py-10 sm:py-14">
-            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8">
-                <!-- Left Content -->
-                <div class="max-w-2xl">
-                    <!-- Badge -->
-                    <div class="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/20 px-4 py-1.5 mb-5">
-                        <span class="relative flex h-2 w-2">
-                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                            <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                        </span>
-                        <span class="text-xs font-medium text-white/80">{{ $styles->total() }} phong cách AI độc đáo</span>
-                    </div>
-                    
-                    <!-- Title -->
-                    <h1 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight">
-                        <span class="text-[#d3d6db]">Biến ý tưởng thành</span>
-                        <br class="hidden sm:block">
-                        <span class="bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400 bg-clip-text text-transparent">tác phẩm nghệ thuật</span>
-                    </h1>
-                    
-                    <!-- Description -->
-                    <p class="mt-4 text-white/60 text-base sm:text-lg max-w-lg leading-relaxed">
-                        Chọn style yêu thích, mô tả ngắn gọn và để AI của ZDream tạo ra những bức ảnh độc nhất cho bạn.
-                    </p>
-                    
-                    <!-- CTA Buttons -->
-                    <div class="mt-6">
-                        <a href="#styles-title" class="group h-11 sm:h-12 px-6 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white text-sm font-semibold inline-flex items-center gap-2 hover:shadow-[0_8px_30px_rgba(168,85,247,0.4)] transition-all duration-300 hover:-translate-y-0.5">
-                            <span>Khám phá ngay</span>
-                            <i class="fa-solid fa-arrow-down text-xs group-hover:translate-y-0.5 transition-transform"></i>
-                        </a>
-                    </div>
-                </div>
-                
-                <!-- Right Side - Stats Cards -->
-                <div class="hidden lg:grid grid-cols-2 gap-4 max-w-xs">
-                    <div class="bg-white/[0.03] backdrop-blur-sm border border-white/[0.06] rounded-xl p-4 text-center hover:bg-white/[0.05] transition-colors">
-                        <div class="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">{{ $styles->total() }}+</div>
-                        <div class="text-xs text-white/50 mt-1">AI Styles</div>
-                    </div>
-                    <div class="bg-white/[0.03] backdrop-blur-sm border border-white/[0.06] rounded-xl p-4 text-center hover:bg-white/[0.05] transition-colors">
-                        <div class="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-400">4K</div>
-                        <div class="text-xs text-white/50 mt-1">Chất lượng</div>
-                    </div>
-                    <div class="bg-white/[0.03] backdrop-blur-sm border border-white/[0.06] rounded-xl p-4 text-center hover:bg-white/[0.05] transition-colors">
-                        <div class="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400">~10s</div>
-                        <div class="text-xs text-white/50 mt-1">Thời gian tạo</div>
-                    </div>
-                    <div class="bg-white/[0.03] backdrop-blur-sm border border-white/[0.06] rounded-xl p-4 text-center hover:bg-white/[0.05] transition-colors">
-                        <div class="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-pink-400">∞</div>
-                        <div class="text-xs text-white/50 mt-1">Sáng tạo</div>
-                    </div>
-                </div>
+    <!-- Compact Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+        <div class="flex items-center gap-4">
+            <div class="hidden sm:flex p-3 rounded-xl bg-gradient-to-br from-purple-500/20 to-pink-500/20 border border-purple-500/20">
+                <i class="fa-solid fa-palette text-xl text-purple-400"></i>
+            </div>
+            <div>
+                <h1 class="text-2xl sm:text-3xl font-bold text-[#d3d6db]">Khám phá Styles</h1>
+                <p class="text-white/50 text-sm mt-0.5">Chọn style yêu thích và bắt đầu sáng tạo</p>
             </div>
         </div>
-    </section>
-
-    <!-- Header -->
-    <div id="styles-title" class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 scroll-mt-24">
-        <div>
-            <h1 class="text-2xl sm:text-3xl font-bold text-[#d3d6db]">Khám phá Styles</h1>
-            <p class="text-white/50 text-sm mt-1">{{ $styles->total() }} styles đang sẵn sàng</p>
+        <div class="flex items-center gap-3">
+            <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-purple-500/10 border border-purple-500/20">
+                <span class="relative flex h-2 w-2">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                </span>
+                <span class="text-xs font-medium text-white/80">{{ $styles->total() }} styles</span>
+            </div>
         </div>
     </div>
 
