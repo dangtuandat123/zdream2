@@ -629,7 +629,7 @@
 
     <!-- ========== HEADER ========== -->
     <header id="header"
-        class="fixed top-0 left-0 right-0 z-50 bg-[#0a0a0f]/80 backdrop-blur-[12px] border-b border-white/[0.03] transition-all duration-300">
+        class="fixed top-0 left-0 right-0 z-50 bg-[#0a0a0f] backdrop-blur-[12px] border-b border-white/[0.05] transition-all duration-300">
         <div class="max-w-7xl mx-auto px-4 sm:px-6">
             <div class="flex items-center justify-between h-14 sm:h-16">
                 <!-- Left: Logo + Nav -->
@@ -642,11 +642,11 @@
                     </a>
                     <nav class="hidden md:flex items-center gap-1">
                         <a href="{{ route('home') }}"
-                            class="px-3 py-2 rounded-lg text-sm font-medium text-white/60 hover:text-white hover:bg-white/[0.05] transition-all inline-flex items-center gap-2">
+                            class="px-3 py-2 rounded-lg text-sm font-medium transition-all inline-flex items-center gap-2 {{ request()->routeIs('home') ? 'text-white bg-purple-500/20 border border-purple-500/30' : 'text-white/60 hover:text-white hover:bg-white/[0.05]' }}">
                             <i class="fa-solid fa-house w-3.5 h-3.5"></i> Trang chủ
                         </a>
                         <a href="{{ route('styles.index') }}"
-                            class="px-3 py-2 rounded-lg text-sm font-medium text-white/60 hover:text-white hover:bg-white/[0.05] transition-all inline-flex items-center gap-2">
+                            class="px-3 py-2 rounded-lg text-sm font-medium transition-all inline-flex items-center gap-2 {{ request()->routeIs('styles.*') || request()->routeIs('studio.*') ? 'text-white bg-purple-500/20 border border-purple-500/30' : 'text-white/60 hover:text-white hover:bg-white/[0.05]' }}">
                             <i class="fa-solid fa-palette w-3.5 h-3.5"></i> Styles
                         </a>
                         {{-- <a href="{{ route('edit.index') }}"
@@ -655,7 +655,7 @@
                         </a> --}}
                         @auth
                             <a href="{{ route('history.index') }}"
-                                class="px-3 py-2 rounded-lg text-sm font-medium text-white/60 hover:text-white hover:bg-white/[0.05] transition-all inline-flex items-center gap-2">
+                                class="px-3 py-2 rounded-lg text-sm font-medium transition-all inline-flex items-center gap-2 {{ request()->routeIs('history.*') ? 'text-white bg-purple-500/20 border border-purple-500/30' : 'text-white/60 hover:text-white hover:bg-white/[0.05]' }}">
                                 <i class="fa-solid fa-clock-rotate-left w-3.5 h-3.5"></i> Lịch sử
                             </a>
                         @endauth
@@ -784,9 +784,8 @@
         class="fixed inset-0 z-[60] md:hidden opacity-0 pointer-events-none transition-opacity duration-300">
         <div class="absolute inset-0 bg-black/60 "></div>
         <div id="mobile-menu"
-            class="mobile-menu closed absolute right-0 top-0 h-full w-72 max-w-[85vw] bg-[#0a0a0f]/98 backdrop-blur-[24px] border-l border-[#2a2a35] overflow-y-auto overscroll-contain">
-            <div
-                class="sticky top-0 z-10 p-4 border-b border-[#222230] bg-[#0a0a0f]/40  flex items-center justify-between">
+            class="mobile-menu closed absolute right-0 top-0 h-full w-72 max-w-[85vw] bg-[#0a0a0f] backdrop-blur-[24px] border-l border-[#2a2a35] overflow-y-auto overscroll-contain">
+            <div class="sticky top-0 z-10 p-4 border-b border-[#222230] bg-[#0a0a0f] flex items-center justify-between">
                 <span class="text-white/80 font-medium">Menu</span>
                 <button id="close-menu-btn"
                     class="w-8 h-8 rounded-lg bg-white/[0.05] flex items-center justify-center text-white/60 hover:text-white">
@@ -810,13 +809,13 @@
                 @endauth
                 <div class="h-px bg-white/[0.05] my-4"></div>
                 <a href="{{ route('home') }}"
-                    class="flex items-center justify-between px-4 py-3 rounded-xl bg-[#13131a] hover:bg-white/[0.05] border border-[#222230] text-white/80 hover:text-white transition-all">
+                    class="flex items-center justify-between px-4 py-3 rounded-xl transition-all {{ request()->routeIs('home') ? 'bg-purple-500/10 border-purple-500/30 text-white' : 'bg-[#13131a] hover:bg-white/[0.05] border-[#222230] text-white/80 hover:text-white' }} border">
                     <span class="flex items-center gap-3"><i class="fa-solid fa-house w-4 h-4 text-purple-400"></i>
                         Trang chủ</span>
                     <i class="fa-solid fa-chevron-right w-3 h-3 text-white/30"></i>
                 </a>
                 <a href="{{ route('styles.index') }}"
-                    class="flex items-center justify-between px-4 py-3 rounded-xl bg-[#13131a] hover:bg-white/[0.05] border border-[#222230] text-white/80 hover:text-white transition-all">
+                    class="flex items-center justify-between px-4 py-3 rounded-xl transition-all {{ request()->routeIs('styles.*') || request()->routeIs('studio.*') ? 'bg-purple-500/10 border-purple-500/30 text-white' : 'bg-[#13131a] hover:bg-white/[0.05] border-[#222230] text-white/80 hover:text-white' }} border">
                     <span class="flex items-center gap-3"><i class="fa-solid fa-palette w-4 h-4 text-purple-400"></i>
                         Styles</span>
                     <i class="fa-solid fa-chevron-right w-3 h-3 text-white/30"></i>
@@ -830,7 +829,7 @@
                 </a> --}}
                 @auth
                     <a href="{{ route('history.index') }}"
-                        class="flex items-center justify-between px-4 py-3 rounded-xl bg-[#13131a] hover:bg-white/[0.05] border border-[#222230] text-white/80 hover:text-white transition-all">
+                        class="flex items-center justify-between px-4 py-3 rounded-xl transition-all {{ request()->routeIs('history.*') ? 'bg-purple-500/10 border-purple-500/30 text-white' : 'bg-[#13131a] hover:bg-white/[0.05] border-[#222230] text-white/80 hover:text-white' }} border">
                         <span class="flex items-center gap-3"><i class="fa-solid fa-images w-4 h-4 text-purple-400"></i> Ảnh
                             của tôi</span>
                         <i class="fa-solid fa-chevron-right w-3 h-3 text-white/30"></i>
