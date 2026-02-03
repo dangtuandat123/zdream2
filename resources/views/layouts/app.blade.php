@@ -629,7 +629,7 @@
 
     <!-- ========== HEADER ========== -->
     <header id="header"
-        class="fixed top-0 left-0 right-0 z-50 bg-[#0a0a0f] border-b border-white/[0.08] shadow-[0_4px_30px_rgba(0,0,0,0.5)] transition-all duration-300">
+        class="fixed top-0 left-0 right-0 z-50 bg-[#0a0a0f]/5 backdrop-blur-2xl border-b border-transparent transition-all duration-500">
         <div class="max-w-7xl mx-auto px-4 sm:px-6">
             <div class="flex items-center justify-between h-14 sm:h-16">
                 <!-- Left: Logo + Nav -->
@@ -981,9 +981,9 @@
             const header = document.getElementById('header');
             window.addEventListener('scroll', function () {
                 if (window.scrollY > 50) {
-                    header.classList.add('header-scrolled');
+                    header.classList.add('scrolled');
                 } else {
-                    header.classList.remove('header-scrolled');
+                    header.classList.remove('scrolled');
                 }
             });
         });
