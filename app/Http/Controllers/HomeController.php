@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Style;
-use App\Models\Inspiration;
 use Illuminate\View\View;
 
 /**
@@ -36,12 +35,6 @@ class HomeController extends Controller
             ->take(8)
             ->get();
 
-        // Lấy random inspirations để hiển thị
-        $inspirations = Inspiration::where('is_active', true)
-            ->inRandomOrder()
-            ->take(20)
-            ->get();
-
-        return view('home', compact('styles', 'inspirations'));
+        return view('home', compact('styles'));
     }
 }
