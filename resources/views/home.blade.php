@@ -142,13 +142,14 @@
         <div class="home-hero-overlay"></div>
 
         <!-- Hero Content -->
-        <div class="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 py-20 sm:py-28 lg:py-36 text-center">
+        <div class="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 py-12 sm:py-20 lg:py-28 text-center">
             <!-- Title - ZDream Logo -->
-            <h1 class="text-3xl sm:text-5xl lg:text-6xl font-black mb-6 sm:mb-10 flex items-center justify-center gap-1 sm:gap-2"
-                style="font-family: 'Inter', sans-serif; letter-spacing: -0.03em;">
-                <i class="fa-solid fa-wand-magic-sparkles text-4xl sm:text-6xl lg:text-7xl text-purple-400"></i>
+            <h1 class="text-3xl sm:text-5xl lg:text-6xl font-black mb-6 sm:mb-10 flex items-center justify-center gap-2 sm:gap-3 tracking-tight"
+                style="font-family: 'Inter', sans-serif; letter-spacing: -0.02em;">
+                <i
+                    class="fa-solid fa-wand-magic-sparkles text-3xl sm:text-5xl lg:text-6xl text-purple-400 drop-shadow-[0_0_15px_rgba(192,132,252,0.4)]"></i>
                 <span
-                    class="inline-block px-2 py-1 bg-gradient-to-r from-white via-pink-300 to-white bg-clip-text text-transparent animate-gradient bg-[length:200%_auto] italic">
+                    class="bg-clip-text text-transparent bg-gradient-to-r from-white via-purple-300 to-pink-300 animate-text-shimmer bg-[length:200%_auto] drop-shadow-[0_0_10px_rgba(255,255,255,0.3)] pb-1">
                     ZDream
                 </span>
             </h1>
