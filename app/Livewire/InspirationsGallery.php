@@ -9,7 +9,7 @@ class InspirationsGallery extends Component
 {
     // We only need to maintain state for pagination
     public $page = 1;
-    public $perPage = 20;
+    public $perPage = 30;
     public $hasMore = true;
     public $loadedIds = [];
 

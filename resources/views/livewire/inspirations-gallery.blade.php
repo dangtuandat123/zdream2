@@ -100,6 +100,26 @@
                                 loading="lazy" decoding="async"
                                 onload="this.classList.remove('opacity-0'); this.classList.add('opacity-100'); this.previousElementSibling.style.display='none'; this.classList.remove('absolute', 'inset-0', 'h-full'); this.classList.add('relative', 'h-auto');">
 
+                            <!-- Reference Images Grid (Top Left) -->
+                            <template x-if="inspiration.ref_images && inspiration.ref_images.length > 0">
+                                <div
+                                    class="absolute top-2 left-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none group-hover:pointer-events-auto">
+                                    <div
+                                        class="bg-black/60 backdrop-blur-md rounded-lg p-1.5 border border-white/10 shadow-xl">
+                                        <div class="grid gap-1.5"
+                                            :class="inspiration.ref_images.length > 1 ? 'grid-cols-2' : 'grid-cols-1'">
+                                            <template x-for="(refImg, idx) in inspiration.ref_images.slice(0, 4)"
+                                                :key="idx">
+                                                <div
+                                                    class="relative w-10 h-10 rounded overflow-hidden bg-white/5 border border-white/10">
+                                                    <img :src="refImg" class="w-full h-full object-cover">
+                                                </div>
+                                            </template>
+                                        </div>
+                                    </div>
+                                </div>
+                            </template>
+
                             <!-- Hover Overlay -->
                             <div
                                 class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-3 sm:p-4 pointer-events-none group-hover:pointer-events-auto">
