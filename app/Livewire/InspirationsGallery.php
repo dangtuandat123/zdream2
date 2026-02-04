@@ -7,21 +7,24 @@ use Livewire\Component;
 
 class InspirationsGallery extends Component
 {
-    public $inspirations = [];
+    // We only need to maintain state for pagination
     public $page = 1;
     public $perPage = 20;
     public $hasMore = true;
     public $loadedIds = [];
 
+    // Initial data to pass to Alpine
+    public $initialInspirations = [];
+
     public function mount()
     {
-        $this->loadMore();
+        $this->loadMore(true);
     }
 
-    public function loadMore()
+    public function loadMore($initial = false)
     {
-        if (!$this->hasMore) {
-            return;
+        if (!$this->hasMore && !$initial) {
+            return [];
         }
 
         $newInspirations = Inspiration::where('is_active', true)
@@ -32,12 +35,13 @@ class InspirationsGallery extends Component
 
         if ($newInspirations->isEmpty()) {
             $this->hasMore = false;
-            return;
+            return [];
         }
 
+        $items = [];
         foreach ($newInspirations as $inspiration) {
             $this->loadedIds[] = $inspiration->id;
-            $this->inspirations[] = [
+            $items[] = [
                 'id' => $inspiration->id,
                 'image_url' => $inspiration->image_url,
                 'prompt' => $inspiration->prompt,
@@ -53,6 +57,12 @@ class InspirationsGallery extends Component
             ->count();
 
         $this->hasMore = $remainingCount > 0;
+
+        if ($initial) {
+            $this->initialInspirations = $items;
+        }
+
+        return $items;
     }
 
     public function render()
