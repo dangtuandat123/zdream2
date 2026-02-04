@@ -56,11 +56,11 @@
             z-index: -1;
             will-change: transform, opacity;
             background:
-                radial-gradient(40% 30% at 20% 20%, rgba(56, 189, 248, 0.22), transparent 70%),
-                radial-gradient(35% 30% at 80% 30%, rgba(232, 121, 249, 0.18), transparent 70%),
-                radial-gradient(40% 35% at 50% 80%, rgba(34, 197, 94, 0.12), transparent 72%),
-                linear-gradient(120deg, rgba(15, 23, 42, 0.35), rgba(2, 6, 23, 0.55));
-            opacity: 0.8;
+                radial-gradient(40% 30% at 20% 20%, rgba(56, 189, 248, 0.08), transparent 70%),
+                radial-gradient(35% 30% at 80% 30%, rgba(232, 121, 249, 0.06), transparent 70%),
+                radial-gradient(40% 35% at 50% 80%, rgba(34, 197, 94, 0.04), transparent 72%),
+                linear-gradient(120deg, rgba(10, 10, 15, 0.9), rgba(5, 5, 10, 0.95));
+            opacity: 0.6;
             animation: ambient-drift 10s ease-in-out infinite;
             pointer-events: none;
         }
@@ -70,9 +70,9 @@
             position: absolute;
             inset: 10%;
             background:
-                radial-gradient(30% 25% at 30% 60%, rgba(34, 211, 238, 0.16), transparent 70%),
-                radial-gradient(30% 25% at 70% 40%, rgba(244, 114, 182, 0.14), transparent 70%);
-            opacity: 0.5;
+                radial-gradient(30% 25% at 30% 60%, rgba(34, 211, 238, 0.05), transparent 70%),
+                radial-gradient(30% 25% at 70% 40%, rgba(244, 114, 182, 0.04), transparent 70%);
+            opacity: 0.3;
         }
 
         @keyframes ambient-drift {

@@ -349,27 +349,5 @@
     </section>
     @endif
 
-    <!-- ========== CTA ========== -->
-    @guest
-        <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12 sm:pb-16">
-            <div
-                class="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-r from-purple-900/60 to-pink-900/60 border border-white/[0.1] p-6 sm:p-10 lg:p-14 text-center">
-                <div class="absolute -top-20 -left-20 w-40 sm:w-60 h-40 sm:h-60 bg-purple-500/30 rounded-full blur-[80px]">
-                </div>
-                <div
-                    class="absolute -bottom-20 -right-20 w-40 sm:w-60 h-40 sm:h-60 bg-pink-500/30 rounded-full blur-[80px]">
-                </div>
-                <div class="relative">
-                    <i class="fa-solid fa-gift text-4xl sm:text-5xl text-purple-300 mb-4 sm:mb-6"></i>
-                    <h2 class="text-2xl sm:text-3xl lg:text-4xl font-bold text-[#d3d6db] mb-3 sm:mb-4">Nhận {{ (int) App\Models\Setting::get('default_credits', 10) }} Xu Miễn Phí!</h2>
-                    <p class="text-white/70 mb-6 sm:mb-8 max-w-lg mx-auto text-sm sm:text-lg">Đăng ký ngay để nhận {{ (int) App\Models\Setting::get('default_credits', 10) }} Xu trải nghiệm</p>
-                    <a href="{{ route('register') }}"
-                        class="w-full sm:w-auto px-8 sm:px-10 py-3.5 sm:py-4 rounded-xl bg-white text-gray-900 font-semibold text-base sm:text-lg hover:bg-gray-100 transition-colors inline-flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-crown" style="font-size: 18px;"></i>
-                        <span>Đăng Ký Miễn Phí</span>
-                    </a>
-                </div>
-            </div>
-                </section>
-    @endguest
+
 </x-app-layout>
