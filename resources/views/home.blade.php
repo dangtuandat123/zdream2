@@ -28,6 +28,7 @@
         .home-hero-overlay {
             position: absolute;
             inset: 0;
+            z-index: 1;
             background:
                 radial-gradient(65% 60% at 20% 15%, rgba(244, 114, 182, 0.18), transparent 60%),
                 radial-gradient(60% 60% at 85% 20%, rgba(168, 85, 247, 0.16), transparent 60%),
@@ -215,15 +216,15 @@
                                             :class="{ 'rotate-180': showRatioDropdown }"></i>
                                     </button>
 
-                                    <!-- Dropdown Panel - Desktop -->
+                                    <!-- Dropdown Panel - Desktop (shows above button to avoid hero mask) -->
                                     <div x-show="showRatioDropdown" x-cloak
                                         x-transition:enter="transition ease-out duration-200"
-                                        x-transition:enter-start="opacity-0 -translate-y-2"
+                                        x-transition:enter-start="opacity-0 translate-y-2"
                                         x-transition:enter-end="opacity-100 translate-y-0"
                                         x-transition:leave="transition ease-in duration-150"
                                         x-transition:leave-start="opacity-100 translate-y-0"
-                                        x-transition:leave-end="opacity-0 -translate-y-2"
-                                        class="hidden sm:block absolute top-full left-0 mt-2 w-72 p-3 rounded-xl bg-[#1a1b20] border border-white/10 shadow-2xl z-[100]">
+                                        x-transition:leave-end="opacity-0 translate-y-2"
+                                        class="hidden sm:block absolute bottom-full left-0 mb-2 w-72 p-3 rounded-xl bg-[#1a1b20] border border-white/10 shadow-2xl z-[100]">
                                         <div class="text-white/50 text-xs font-medium mb-2">Tỉ lệ khung hình</div>
                                         <div class="grid grid-cols-5 gap-1.5">
                                             <template x-for="ratio in ratios" :key="ratio.id">
@@ -319,9 +320,10 @@
                                             <div class="mt-4 pt-4 border-t border-white/10">
                                                 <div class="text-white/50 text-sm font-medium mb-3">Kích thước</div>
                                                 <div class="flex items-center gap-3">
-                                                    <div class="flex-1 flex items-center gap-2 px-3 py-2.5 rounded-xl bg-white/5 border border-white/10">
+                                                    <div
+                                                        class="flex-1 flex items-center gap-2 px-3 py-2.5 rounded-xl bg-white/5 border border-white/10">
                                                         <span class="text-white/40 text-sm font-semibold">W</span>
-                                                        <input type="number" x-model="customWidth" 
+                                                        <input type="number" x-model="customWidth"
                                                             class="w-full bg-transparent border-none outline-none text-white text-base font-medium text-center"
                                                             placeholder="1024" min="512" max="4096" step="64">
                                                     </div>
@@ -330,7 +332,8 @@
                                                         :class="linkDimensions ? 'bg-purple-500/30 text-purple-400' : 'bg-white/5 text-white/40'">
                                                         <i class="fa-solid fa-link"></i>
                                                     </button>
-                                                    <div class="flex-1 flex items-center gap-2 px-3 py-2.5 rounded-xl bg-white/5 border border-white/10">
+                                                    <div
+                                                        class="flex-1 flex items-center gap-2 px-3 py-2.5 rounded-xl bg-white/5 border border-white/10">
                                                         <span class="text-white/40 text-sm font-semibold">H</span>
                                                         <input type="number" x-model="customHeight"
                                                             class="w-full bg-transparent border-none outline-none text-white text-base font-medium text-center"
