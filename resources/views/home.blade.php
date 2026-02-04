@@ -354,7 +354,7 @@
                                 <!-- Image -->
                                 <div class="relative aspect-[3/4] overflow-hidden">
                                     <img src="{{ $style->thumbnail }}" alt="{{ $style->name }}"
-                                        class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                                        class="w-full h-full object-cover transition-all duration-500 group-hover:scale-110 group-hover:blur-sm"
                                         loading="lazy" decoding="async">
                                     <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent">
                                     </div>
@@ -373,11 +373,15 @@
                                         <i class="fa-solid fa-star text-yellow-400"></i> {{ number_format($style->price, 0) }}
                                     </div>
 
-                                    <!-- Hover CTA -->
+                                    <!-- Hover Description Overlay -->
                                     <div
-                                        class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-black/40">
+                                        class="absolute inset-0 flex flex-col items-center justify-center p-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-black/60 backdrop-blur-sm">
+                                        <p
+                                            class="text-white/90 text-[10px] sm:text-xs text-center line-clamp-4 leading-relaxed mb-2">
+                                            {{ $style->description ?? 'Khám phá phong cách độc đáo này!' }}
+                                        </p>
                                         <span
-                                            class="px-3 py-1.5 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs font-semibold shadow-lg">
+                                            class="px-3 py-1.5 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white text-[10px] sm:text-xs font-semibold shadow-lg">
                                             Thử ngay
                                         </span>
                                     </div>
