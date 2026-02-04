@@ -303,72 +303,102 @@
                                     </template>
 
                                     <!-- Bottom Sheet - Mobile -->
-                                    <div x-show="showRatioDropdown" x-cloak
-                                        class="sm:hidden fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-sm"
-                                        @click.self="showRatioDropdown = false">
-                                        <div x-show="showRatioDropdown"
-                                            x-transition:enter="transition ease-out duration-300"
-                                            x-transition:enter-start="translate-y-full"
-                                            x-transition:enter-end="translate-y-0"
-                                            x-transition:leave="transition ease-in duration-200"
-                                            x-transition:leave-start="translate-y-0"
-                                            x-transition:leave-end="translate-y-full"
-                                            class="w-full max-w-lg p-4 pb-8 rounded-t-2xl bg-[#1a1b20] border-t border-white/10 safe-area-bottom">
-                                            <div class="w-10 h-1 mx-auto mb-4 rounded-full bg-white/20"></div>
-                                            <div class="text-white/50 text-sm font-medium mb-3">Tỉ lệ khung hình</div>
-                                            <div class="grid grid-cols-5 gap-2">
-                                                <template x-for="ratio in ratios" :key="ratio.id">
-                                                    <button type="button" @click="selectRatio(ratio.id)"
-                                                        class="flex flex-col items-center gap-1.5 p-3 rounded-xl transition-all"
-                                                        :class="selectedRatio === ratio.id ? 'bg-purple-500/30 border border-purple-500/50' : 'bg-white/5 hover:bg-white/10 border border-transparent'">
-                                                        <div class="w-8 h-8 flex items-center justify-center">
-                                                            <template x-if="ratio.icon">
-                                                                <i :class="'fa-solid ' + ratio.icon"
-                                                                    class="text-white/60 text-lg"></i>
-                                                            </template>
-                                                            <template x-if="!ratio.icon">
-                                                                <div class="border-2 border-white/40 rounded-sm" :style="{
-                                                                        width: ratio.id.split(':')[0] > ratio.id.split(':')[1] ? '28px' : (ratio.id.split(':')[0] == ratio.id.split(':')[1] ? '24px' : '16px'),
-                                                                        height: ratio.id.split(':')[1] > ratio.id.split(':')[0] ? '28px' : (ratio.id.split(':')[0] == ratio.id.split(':')[1] ? '24px' : '16px')
-                                                                    }"></div>
-                                                            </template>
-                                                        </div>
-                                                        <span class="text-white/70 text-xs font-medium"
-                                                            x-text="ratio.label"></span>
-                                                    </button>
-                                                </template>
-                                            </div>
+                                    <template x-teleport="body">
+                                        <div x-show="showRatioDropdown" x-cloak
+                                            class="sm:hidden fixed inset-0 z-[100] flex items-end justify-center bg-black/80 backdrop-blur-md"
+                                            style="z-index: 9999;" @click.self="showRatioDropdown = false">
+                                            <div x-show="showRatioDropdown"
+                                                x-transition:enter="transition ease-out duration-300"
+                                                x-transition:enter-start="translate-y-full"
+                                                x-transition:enter-end="translate-y-0"
+                                                x-transition:leave="transition ease-in duration-200"
+                                                x-transition:leave-start="translate-y-0"
+                                                x-transition:leave-end="translate-y-full"
+                                                class="w-full max-w-lg bg-[#1a1b20] border-t border-white/10 rounded-t-3xl flex flex-col max-h-[85vh] shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
 
-                                            <!-- Size Section - Mobile -->
-                                            <div class="mt-4 pt-4 border-t border-white/10">
-                                                <div class="text-white/50 text-sm font-medium mb-3">Kích thước</div>
-                                                <div class="flex items-center gap-3">
-                                                    <div
-                                                        class="flex-1 flex items-center gap-2 px-3 py-2.5 rounded-xl bg-white/5 border border-white/10">
-                                                        <span class="text-white/40 text-sm font-semibold">W</span>
-                                                        <input type="number" x-model="customWidth"
-                                                            @input="updateWidth($event.target.value)"
-                                                            class="w-full bg-transparent border-none outline-none ring-0 focus:ring-0 focus:outline-none text-white text-base font-medium text-center"
-                                                            placeholder="1024" min="512" max="4096" step="64">
-                                                    </div>
-                                                    <button type="button" @click="linkDimensions = !linkDimensions"
-                                                        class="w-10 h-10 flex items-center justify-center rounded-xl transition-all"
-                                                        :class="linkDimensions ? 'bg-purple-500/30 text-purple-400' : 'bg-white/5 text-white/40'">
-                                                        <i class="fa-solid fa-link"></i>
+                                                <!-- Header -->
+                                                <div
+                                                    class="flex items-center justify-between p-4 border-b border-white/5 shrink-0">
+                                                    <span class="text-white font-semibold text-base">Tùy chỉnh khung
+                                                        hình</span>
+                                                    <button type="button" @click="showRatioDropdown = false"
+                                                        class="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 text-white/60 active:scale-95 transition-transform">
+                                                        <i class="fa-solid fa-xmark"></i>
                                                     </button>
-                                                    <div
-                                                        class="flex-1 flex items-center gap-2 px-3 py-2.5 rounded-xl bg-white/5 border border-white/10">
-                                                        <span class="text-white/40 text-sm font-semibold">H</span>
-                                                        <input type="number" x-model="customHeight"
-                                                            @input="updateHeight($event.target.value)"
-                                                            class="w-full bg-transparent border-none outline-none ring-0 focus:ring-0 focus:outline-none text-white text-base font-medium text-center"
-                                                            placeholder="1024" min="512" max="4096" step="64">
+                                                </div>
+
+                                                <!-- Scrollable Content -->
+                                                <div class="p-4 overflow-y-auto overscroll-contain">
+                                                    <div class="text-white/50 text-sm font-medium mb-3">Tỉ lệ</div>
+                                                    <div class="grid grid-cols-4 gap-2 mb-6">
+                                                        <template x-for="ratio in ratios" :key="ratio.id">
+                                                            <button type="button" @click="selectRatio(ratio.id)"
+                                                                class="flex flex-col items-center gap-1.5 p-3 rounded-xl transition-all"
+                                                                :class="selectedRatio === ratio.id ? 'bg-purple-500/30 border border-purple-500/50' : 'bg-white/5 active:bg-white/10 border border-transparent'">
+                                                                <div class="w-8 h-8 flex items-center justify-center">
+                                                                    <template x-if="ratio.icon">
+                                                                        <i :class="'fa-solid ' + ratio.icon"
+                                                                            class="text-white/60 text-lg"></i>
+                                                                    </template>
+                                                                    <template x-if="!ratio.icon">
+                                                                        <div class="border-2 border-white/40 rounded-sm"
+                                                                            :style="{
+                                                                                width: ratio.id.split(':')[0] > ratio.id.split(':')[1] ? '28px' : (ratio.id.split(':')[0] == ratio.id.split(':')[1] ? '24px' : '16px'),
+                                                                                height: ratio.id.split(':')[1] > ratio.id.split(':')[0] ? '28px' : (ratio.id.split(':')[0] == ratio.id.split(':')[1] ? '24px' : '16px')
+                                                                            }"></div>
+                                                                    </template>
+                                                                </div>
+                                                                <span class="text-white/70 text-xs font-medium"
+                                                                    x-text="ratio.label"></span>
+                                                            </button>
+                                                        </template>
                                                     </div>
-                                                    <span class="text-white/40 text-sm font-semibold">PX</span>
+
+                                                    <!-- Size Section - Mobile -->
+                                                    <div class="pt-4 border-t border-white/10">
+                                                        <div class="text-white/50 text-sm font-medium mb-3">Kích thước
+                                                            tùy
+                                                            chỉnh (PX)</div>
+                                                        <div class="flex items-center gap-3">
+                                                            <div
+                                                                class="flex-1 flex items-center gap-2 px-3 py-3 rounded-xl bg-white/5 border border-white/10 focus-within:border-purple-500/50 transition-colors">
+                                                                <span
+                                                                    class="text-white/40 text-sm font-semibold">W</span>
+                                                                <input type="number" x-model="customWidth"
+                                                                    @input="updateWidth($event.target.value)"
+                                                                    class="w-full bg-transparent border-none outline-none ring-0 focus:ring-0 focus:outline-none text-white text-lg font-medium text-center"
+                                                                    placeholder="1024" min="512" max="4096" step="64">
+                                                            </div>
+                                                            <button type="button"
+                                                                @click="linkDimensions = !linkDimensions"
+                                                                class="w-12 h-12 flex items-center justify-center rounded-xl transition-all shrink-0"
+                                                                :class="linkDimensions ? 'bg-purple-500/30 text-purple-400' : 'bg-white/5 text-white/40'">
+                                                                <i class="fa-solid fa-link text-lg"></i>
+                                                            </button>
+                                                            <div
+                                                                class="flex-1 flex items-center gap-2 px-3 py-3 rounded-xl bg-white/5 border border-white/10 focus-within:border-purple-500/50 transition-colors">
+                                                                <span
+                                                                    class="text-white/40 text-sm font-semibold">H</span>
+                                                                <input type="number" x-model="customHeight"
+                                                                    @input="updateHeight($event.target.value)"
+                                                                    class="w-full bg-transparent border-none outline-none ring-0 focus:ring-0 focus:outline-none text-white text-lg font-medium text-center"
+                                                                    placeholder="1024" min="512" max="4096" step="64">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Footer Action -->
+                                                <div
+                                                    class="p-4 border-t border-white/5 bg-[#1a1b20] safe-area-bottom shrink-0">
+                                                    <button type="button" @click="showRatioDropdown = false"
+                                                        class="w-full py-3.5 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold text-center active:scale-[0.98] transition-transform shadow-lg shadow-purple-900/20">
+                                                        Áp dụng & Đóng
+                                                    </button>
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>
+                                    </template>
                                 </div>
 
                                 <button type="button"
@@ -439,9 +469,10 @@
                                     </template>
 
                                     <!-- Model Dropdown - Mobile (Bottom Sheet) -->
-                                    <div x-show="showModelDropdown" x-cloak
-                                        class="sm:hidden fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-sm"
-                                        @click.self="showModelDropdown = false">
+                                    <template x-teleport="body">
+                                        <div x-show="showModelDropdown" x-cloak
+                                            class="sm:hidden fixed inset-0 z-[100] flex items-end justify-center bg-black/80 backdrop-blur-md"
+                                            style="z-index: 9999;" @click.self="showModelDropdown = false">
                                         <div x-show="showModelDropdown"
                                             x-transition:enter="transition ease-out duration-300"
                                             x-transition:enter-start="translate-y-full"
@@ -449,29 +480,58 @@
                                             x-transition:leave="transition ease-in duration-200"
                                             x-transition:leave-start="translate-y-0"
                                             x-transition:leave-end="translate-y-full"
-                                            class="w-full max-w-lg p-4 pb-8 rounded-t-2xl bg-[#1a1b20] border-t border-white/10 safe-area-bottom">
-                                            <div class="w-10 h-1 mx-auto mb-4 rounded-full bg-white/20"></div>
-                                            <div class="text-white/50 text-sm font-medium mb-3">Chọn Model AI</div>
-                                            <div class="space-y-1">
-                                                <template x-for="model in models" :key="model.id">
-                                                    <button type="button"
-                                                        @click="selectedModel = model.id; showModelDropdown = false"
-                                                        class="w-full flex items-center gap-3 p-3 rounded-xl transition-all text-left"
-                                                        :class="selectedModel === model.id ? 'bg-purple-500/30 border border-purple-500/50' : 'bg-white/5 border border-transparent'">
-                                                        <span class="text-xl" x-text="model.icon"></span>
-                                                        <div class="flex-1 min-w-0">
-                                                            <div class="text-white font-medium" x-text="model.name">
+                                            class="w-full max-w-lg bg-[#1a1b20] border-t border-white/10 rounded-t-3xl flex flex-col max-h-[85vh] shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
+
+                                            <!-- Header -->
+                                            <div
+                                                class="flex items-center justify-between p-4 border-b border-white/5 shrink-0">
+                                                <span class="text-white font-semibold text-base">Chọn Model AI</span>
+                                                <button type="button" @click="showModelDropdown = false"
+                                                    class="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 text-white/60 active:scale-95 transition-transform">
+                                                    <i class="fa-solid fa-xmark"></i>
+                                                </button>
+                                            </div>
+
+                                            <!-- Scrollable List -->
+                                            <div class="p-4 overflow-y-auto overscroll-contain">
+                                                <div class="text-white/50 text-sm font-medium mb-3">Danh sách Model
+                                                </div>
+                                                <div class="space-y-1">
+                                                    <template x-for="model in models" :key="model.id">
+                                                        <button type="button"
+                                                            @click="selectedModel = model.id; showModelDropdown = false"
+                                                            class="w-full flex items-center gap-3 p-3 rounded-xl transition-all text-left"
+                                                            :class="selectedModel === model.id ? 'bg-purple-500/30 border border-purple-500/50' : 'bg-white/5 active:bg-white/10 border border-transparent'">
+                                                            <span class="text-2xl" x-text="model.icon"></span>
+                                                            <div class="flex-1 min-w-0">
+                                                                <div class="text-white font-semibold text-base"
+                                                                    x-text="model.name">
+                                                                </div>
+                                                                <div class="text-white/50 text-sm mt-0.5"
+                                                                    x-text="model.desc">
+                                                                </div>
                                                             </div>
-                                                            <div class="text-white/40 text-sm" x-text="model.desc">
+                                                            <div class="w-6 h-6 rounded-full border-2 flex items-center justify-center"
+                                                                :class="selectedModel === model.id ? 'border-purple-500 bg-purple-500' : 'border-white/20'">
+                                                                <i x-show="selectedModel === model.id"
+                                                                    class="fa-solid fa-check text-white text-xs"></i>
                                                             </div>
-                                                        </div>
-                                                        <i x-show="selectedModel === model.id"
-                                                            class="fa-solid fa-check text-purple-400"></i>
-                                                    </button>
-                                                </template>
+                                                        </button>
+                                                    </template>
+                                                </div>
+                                            </div>
+
+                                            <!-- Footer Action -->
+                                            <div
+                                                class="p-4 border-t border-white/5 bg-[#1a1b20] safe-area-bottom shrink-0">
+                                                <button type="button" @click="showModelDropdown = false"
+                                                    class="w-full py-3.5 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold text-center active:scale-[0.98] transition-transform shadow-lg shadow-purple-900/20">
+                                                    Xác nhận lựa chọn
+                                                </button>
                                             </div>
                                         </div>
-                                    </div>
+                                        </div>
+                                    </template>
 
                                     <input type="hidden" name="model" :value="selectedModel">
                                 </div>
