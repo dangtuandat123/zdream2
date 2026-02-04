@@ -216,15 +216,24 @@
                                             :class="{ 'rotate-180': showRatioDropdown }"></i>
                                     </button>
 
-                                    <!-- Dropdown Panel - Desktop (shows above button to avoid hero mask) -->
-                                    <div x-show="showRatioDropdown" x-cloak
-                                        x-transition:enter="transition ease-out duration-200"
-                                        x-transition:enter-start="opacity-0 translate-y-2"
-                                        x-transition:enter-end="opacity-100 translate-y-0"
-                                        x-transition:leave="transition ease-in duration-150"
-                                        x-transition:leave-start="opacity-100 translate-y-0"
-                                        x-transition:leave-end="opacity-0 translate-y-2"
-                                        class="hidden sm:block absolute bottom-full left-0 mb-2 w-72 p-3 rounded-xl bg-[#1a1b20] border border-white/10 shadow-2xl z-[100]">
+                                    <!-- Dropdown Panel - Desktop (teleported to body to escape hero mask) -->
+                                    <template x-teleport="body">
+                                        <div x-show="showRatioDropdown" x-cloak
+                                            x-transition:enter="transition ease-out duration-200"
+                                            x-transition:enter-start="opacity-0 -translate-y-2"
+                                            x-transition:enter-end="opacity-100 translate-y-0"
+                                            x-transition:leave="transition ease-in duration-150"
+                                            x-transition:leave-start="opacity-100 translate-y-0"
+                                            x-transition:leave-end="opacity-0 -translate-y-2"
+                                            class="hidden sm:block fixed w-72 p-3 rounded-xl bg-[#1a1b20] border border-white/10 shadow-2xl z-[9999]"
+                                            x-init="$watch('showRatioDropdown', value => {
+                                                if (value) {
+                                                    const btn = $root.querySelector('button');
+                                                    const rect = btn.getBoundingClientRect();
+                                                    $el.style.top = (rect.bottom + 8) + 'px';
+                                                    $el.style.left = rect.left + 'px';
+                                                }
+                                            })">
                                         <div class="text-white/50 text-xs font-medium mb-2">Tỉ lệ khung hình</div>
                                         <div class="grid grid-cols-5 gap-1.5">
                                             <template x-for="ratio in ratios" :key="ratio.id">
@@ -276,8 +285,8 @@
                                             </div>
                                         </div>
 
-                                        <input type="hidden" name="aspect_ratio" :value="selectedRatio">
-                                    </div>
+                                        </div>
+                                    </template>
 
                                     <!-- Bottom Sheet - Mobile -->
                                     <div x-show="showRatioDropdown" x-cloak
@@ -350,6 +359,11 @@
                                     class="flex items-center justify-center w-9 h-9 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition-all cursor-pointer">
                                     <i class="fa-solid fa-image text-white/50 text-sm"></i>
                                 </button>
+                                
+                                <!-- Hidden inputs for form submission -->
+                                <input type="hidden" name="aspect_ratio" :value="selectedRatio">
+                                <input type="hidden" name="width" :value="customWidth">
+                                <input type="hidden" name="height" :value="customHeight">
                             </div>
 
                             <!-- Generate Button -->
