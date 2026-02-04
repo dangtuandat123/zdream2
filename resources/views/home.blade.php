@@ -142,7 +142,8 @@
         <div class="home-hero-overlay"></div>
 
         <!-- Hero Content -->
-        <div class="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 py-12 sm:py-20 lg:py-28 text-center">
+        <div
+            class="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 pt-10 pb-20 sm:pt-16 sm:pb-28 lg:pt-24 lg:pb-36 text-center">
             <!-- Title - ZDream Logo -->
             <h1 class="text-3xl sm:text-5xl lg:text-6xl font-black mb-6 sm:mb-10 flex items-center justify-center gap-2 sm:gap-3 tracking-tight"
                 style="font-family: 'Inter', sans-serif; letter-spacing: -0.02em;">
@@ -265,9 +266,13 @@
             if (!this.scrollContainer) return;
             // Calculate true stride (width + gap)
             const style = window.getComputedStyle(this.scrollContainer);
-            const gap = parseFloat(style.gap) || 12; // Fallback to 12 if dynamic fail
+            const gap = parseFloat(style.gap) || 12;
             const cardWidth = this.scrollContainer.querySelector('.style-card-wrapper')?.offsetWidth || 180;
             const stride = cardWidth + gap;
+            
+            // On desktop (width >= 1024), scroll 6 cards at a time
+            const multiplier = window.innerWidth >= 1024 ? 6 : (window.innerWidth >= 640 ? 3 : 1);
+            const scrollAmount = stride * multiplier;
 
             const maxScroll = this.scrollContainer.scrollWidth - this.scrollContainer.clientWidth;
             
@@ -275,7 +280,7 @@
             if (this.scrollContainer.scrollLeft >= maxScroll - 10) {
                 this.scrollContainer.scrollTo({ left: 0, behavior: 'smooth' });
             } else {
-                this.scrollContainer.scrollBy({ left: stride, behavior: 'smooth' });
+                this.scrollContainer.scrollBy({ left: scrollAmount, behavior: 'smooth' });
             }
         },
 
@@ -287,12 +292,16 @@
             const cardWidth = this.scrollContainer.querySelector('.style-card-wrapper')?.offsetWidth || 180;
             const stride = cardWidth + gap;
             
+            // On desktop (width >= 1024), scroll 6 cards at a time
+            const multiplier = window.innerWidth >= 1024 ? 6 : (window.innerWidth >= 640 ? 3 : 1);
+            const scrollAmount = stride * multiplier;
+            
             // If at start, loop to end
             if (this.scrollContainer.scrollLeft <= 10) {
                 const maxScroll = this.scrollContainer.scrollWidth - this.scrollContainer.clientWidth;
                 this.scrollContainer.scrollTo({ left: maxScroll, behavior: 'smooth' });
             } else {
-                this.scrollContainer.scrollBy({ left: -stride, behavior: 'smooth' });
+                this.scrollContainer.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
             }
         }
     }">
@@ -332,23 +341,14 @@
                 </div>
             </div>
         @else
-            <!-- Carousel Container with Edge Fades -->
-            <div class="relative" @mouseenter="pauseAutoScroll()" @mouseleave="paused = false">
-                <!-- Left Fade Gradient -->
-                <div
-                    class="absolute left-0 top-0 bottom-0 w-6 sm:w-10 lg:w-12 bg-gradient-to-r from-[#0a0a0f] to-transparent z-10 pointer-events-none">
-                </div>
-                <!-- Right Fade Gradient -->
-                <div
-                    class="absolute right-0 top-0 bottom-0 w-6 sm:w-10 lg:w-12 bg-gradient-to-l from-[#0a0a0f] to-transparent z-10 pointer-events-none">
-                </div>
-
+            <!-- Carousel Container -->
+            <div class="relative px-2 sm:px-4" @mouseenter="pauseAutoScroll()" @mouseleave="paused = false">
                 <div x-ref="carousel"
-                    class="flex gap-3 sm:gap-4 overflow-x-auto scroll-smooth pt-6 pb-1 px-2 sm:px-4 no-scrollbar snap-x snap-mandatory"
+                    class="flex gap-3 sm:gap-4 overflow-x-auto scroll-smooth pt-4 pb-1 no-scrollbar snap-x snap-mandatory"
                     style="-webkit-overflow-scrolling: touch;">
                     @foreach($styles as $style)
                         <a href="{{ route('studio.show', $style->slug) }}"
-                            class="style-card-wrapper flex-shrink-0 w-52 sm:w-60 lg:w-64 group relative z-0 hover:z-20 snap-start">
+                            class="style-card-wrapper flex-shrink-0 w-40 sm:w-44 lg:w-[calc((100%-5rem)/6)] group relative z-0 hover:z-20 snap-start">
                             <div
                                 class="bg-[#1b1c21] border border-[#2a2b30] rounded-xl overflow-hidden transition-all duration-300 hover:border-purple-500/40 hover:scale-105 hover:-translate-y-2">
                                 <!-- Image -->
