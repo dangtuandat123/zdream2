@@ -286,11 +286,30 @@
             }
         }
     }">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <!-- Centered Header (Matching Inspiration Gallery) -->
-            <div class="text-center mb-8 sm:mb-10">
-                <h2 class="text-xl sm:text-2xl lg:text-3xl font-bold text-[#d3d6db] mb-2">Chọn Style yêu thích</h2>
-                <p class="text-white/50 text-sm sm:text-base">Biến ảnh thường thành tác phẩm nghệ thuật</p>
+        <div class="px-2 sm:px-4">
+            <!-- Header -->
+            <div class="flex items-center justify-between mb-6">
+                <div>
+                    <h2 class="text-lg sm:text-xl lg:text-2xl font-bold text-[#d3d6db]">Chọn Style yêu thích</h2>
+                    <p class="text-white/40 text-xs sm:text-sm mt-1">Biến ảnh thường thành tác phẩm nghệ thuật</p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <!-- Nav Buttons -->
+                    <button @click="prev(); pauseAutoScroll();"
+                        class="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 hover:border-purple-500/50 text-white/60 hover:text-white transition-all flex items-center justify-center">
+                        <i class="fa-solid fa-chevron-left text-sm"></i>
+                    </button>
+                    <button @click="next(); pauseAutoScroll();"
+                        class="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 hover:border-purple-500/50 text-white/60 hover:text-white transition-all flex items-center justify-center">
+                        <i class="fa-solid fa-chevron-right text-sm"></i>
+                    </button>
+                    <!-- View All -->
+                    <a href="{{ route('styles.index') }}"
+                        class="hidden sm:flex items-center gap-1.5 px-4 py-2 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 text-white text-sm font-medium hover:from-purple-500 hover:to-pink-500 transition-all">
+                        <span>Xem tất cả</span>
+                        <i class="fa-solid fa-arrow-right text-xs"></i>
+                    </a>
+                </div>
             </div>
         </div>
 
@@ -304,25 +323,15 @@
             </div>
         @else
             <!-- Carousel Container with Edge Fades -->
-            <div class="relative group/carousel" @mouseenter="pauseAutoScroll()" @mouseleave="paused = false">
+            <div class="relative" @mouseenter="pauseAutoScroll()" @mouseleave="paused = false">
                 <!-- Left Fade Gradient -->
                 <div
-                    class="absolute left-0 top-0 bottom-0 w-12 sm:w-20 lg:w-32 bg-gradient-to-r from-[#0a0a0f] to-transparent z-10 pointer-events-none">
+                    class="absolute left-0 top-0 bottom-0 w-6 sm:w-10 lg:w-12 bg-gradient-to-r from-[#0a0a0f] to-transparent z-10 pointer-events-none">
                 </div>
                 <!-- Right Fade Gradient -->
                 <div
-                    class="absolute right-0 top-0 bottom-0 w-12 sm:w-20 lg:w-32 bg-gradient-to-l from-[#0a0a0f] to-transparent z-10 pointer-events-none">
+                    class="absolute right-0 top-0 bottom-0 w-6 sm:w-10 lg:w-12 bg-gradient-to-l from-[#0a0a0f] to-transparent z-10 pointer-events-none">
                 </div>
-
-                <!-- Floating Nav Buttons -->
-                <button @click="prev(); pauseAutoScroll();"
-                    class="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-black/50 border border-white/10 text-white/80 hover:bg-black/80 hover:text-white hover:scale-110 active:scale-95 transition-all backdrop-blur-md flex items-center justify-center opacity-0 group-hover/carousel:opacity-100 duration-300">
-                    <i class="fa-solid fa-chevron-left"></i>
-                </button>
-                <button @click="next(); pauseAutoScroll();"
-                    class="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-black/50 border border-white/10 text-white/80 hover:bg-black/80 hover:text-white hover:scale-110 active:scale-95 transition-all backdrop-blur-md flex items-center justify-center opacity-0 group-hover/carousel:opacity-100 duration-300">
-                    <i class="fa-solid fa-chevron-right"></i>
-                </button>
 
                 <div x-ref="carousel"
                     class="flex gap-3 sm:gap-4 overflow-x-auto scroll-smooth py-4 px-2 sm:px-4 no-scrollbar"
