@@ -174,7 +174,6 @@
 
                         <!-- Bottom row: icons + button -->
                         <div class="flex items-center justify-between gap-3">
-                            <!-- Left icons -->
                             <div class="flex items-center gap-2" x-data="{ 
                                 showRatioDropdown: false,
                                 selectedRatio: 'auto',
@@ -196,12 +195,25 @@
                                     this.selectedRatio = id;
                                     if (id !== 'auto') {
                                         const [w, h] = id.split(':').map(Number);
-                                        // Calculate dimensions based on ratio (keeping megapixels around 1MP)
                                         const baseSize = 1024;
                                         this.customWidth = Math.round(baseSize * Math.sqrt(w / h) / 64) * 64;
                                         this.customHeight = Math.round(baseSize * Math.sqrt(h / w) / 64) * 64;
                                     }
                                     this.showRatioDropdown = false;
+                                },
+                                updateWidth(newWidth) {
+                                    this.customWidth = newWidth;
+                                    if (this.linkDimensions && this.selectedRatio !== 'auto') {
+                                        const [w, h] = this.selectedRatio.split(':').map(Number);
+                                        this.customHeight = Math.round(newWidth * h / w / 64) * 64;
+                                    }
+                                },
+                                updateHeight(newHeight) {
+                                    this.customHeight = newHeight;
+                                    if (this.linkDimensions && this.selectedRatio !== 'auto') {
+                                        const [w, h] = this.selectedRatio.split(':').map(Number);
+                                        this.customWidth = Math.round(newHeight * w / h / 64) * 64;
+                                    }
                                 }
                             }" @click.away="showRatioDropdown = false">
                                 <!-- Aspect Ratio Button -->
@@ -225,7 +237,7 @@
                                             x-transition:leave="transition ease-in duration-150"
                                             x-transition:leave-start="opacity-100 translate-y-0"
                                             x-transition:leave-end="opacity-0 -translate-y-2"
-                                            class="hidden sm:block fixed w-72 p-3 rounded-xl bg-[#1a1b20] border border-white/10 shadow-2xl z-[9999]"
+                                            class="hidden sm:block fixed w-80 p-3 rounded-xl bg-[#1a1b20] border border-white/10 shadow-2xl z-[9999]"
                                             x-init="$watch('showRatioDropdown', value => {
                                                 if (value) {
                                                     const btn = $root.querySelector('button');
@@ -233,58 +245,59 @@
                                                     $el.style.top = (rect.bottom + 8) + 'px';
                                                     $el.style.left = rect.left + 'px';
                                                 }
-                                            })"
-                                            @click.stop>
-                                        <div class="text-white/50 text-xs font-medium mb-2">Tỉ lệ khung hình</div>
-                                        <div class="grid grid-cols-5 gap-1.5">
-                                            <template x-for="ratio in ratios" :key="ratio.id">
-                                                <button type="button" @click="selectRatio(ratio.id)"
-                                                    class="flex flex-col items-center gap-1 p-2 rounded-lg transition-all"
-                                                    :class="selectedRatio === ratio.id ? 'bg-purple-500/30 border border-purple-500/50' : 'bg-white/5 hover:bg-white/10 border border-transparent'">
-                                                    <div class="w-6 h-6 flex items-center justify-center">
-                                                        <template x-if="ratio.icon">
-                                                            <i :class="'fa-solid ' + ratio.icon"
-                                                                class="text-white/60 text-sm"></i>
-                                                        </template>
-                                                        <template x-if="!ratio.icon">
-                                                            <div class="border border-white/40 rounded-sm" :style="{
+                                            })" @click.stop>
+                                            <div class="text-white/50 text-xs font-medium mb-2">Tỉ lệ khung hình</div>
+                                            <div class="grid grid-cols-5 gap-1.5">
+                                                <template x-for="ratio in ratios" :key="ratio.id">
+                                                    <button type="button" @click="selectRatio(ratio.id)"
+                                                        class="flex flex-col items-center gap-1 p-2 rounded-lg transition-all"
+                                                        :class="selectedRatio === ratio.id ? 'bg-purple-500/30 border border-purple-500/50' : 'bg-white/5 hover:bg-white/10 border border-transparent'">
+                                                        <div class="w-6 h-6 flex items-center justify-center">
+                                                            <template x-if="ratio.icon">
+                                                                <i :class="'fa-solid ' + ratio.icon"
+                                                                    class="text-white/60 text-sm"></i>
+                                                            </template>
+                                                            <template x-if="!ratio.icon">
+                                                                <div class="border border-white/40 rounded-sm" :style="{
                                                                     width: ratio.id.split(':')[0] > ratio.id.split(':')[1] ? '20px' : (ratio.id.split(':')[0] == ratio.id.split(':')[1] ? '16px' : '12px'),
                                                                     height: ratio.id.split(':')[1] > ratio.id.split(':')[0] ? '20px' : (ratio.id.split(':')[0] == ratio.id.split(':')[1] ? '16px' : '12px')
                                                                 }"></div>
-                                                        </template>
-                                                    </div>
-                                                    <span class="text-white/70 text-[10px] font-medium"
-                                                        x-text="ratio.label"></span>
-                                                </button>
-                                            </template>
-                                        </div>
-
-                                        <!-- Size Section -->
-                                        <div class="mt-3 pt-3 border-t border-white/10">
-                                            <div class="text-white/50 text-xs font-medium mb-2">Kích thước</div>
-                                            <div class="flex items-center gap-2">
-                                                <div
-                                                    class="flex-1 flex items-center gap-1.5 px-2.5 py-2 rounded-lg bg-white/5 border border-white/10">
-                                                    <span class="text-white/40 text-xs font-medium">W</span>
-                                                    <input type="number" name="width" x-model="customWidth"
-                                                        class="w-full bg-transparent border-none outline-none ring-0 focus:ring-0 focus:outline-none text-white text-sm font-medium text-center"
-                                                        placeholder="1024" min="512" max="4096" step="64">
-                                                </div>
-                                                <button type="button" @click="linkDimensions = !linkDimensions"
-                                                    class="w-8 h-8 flex items-center justify-center rounded-lg transition-all"
-                                                    :class="linkDimensions ? 'bg-purple-500/30 text-purple-400' : 'bg-white/5 text-white/40 hover:bg-white/10'">
-                                                    <i class="fa-solid fa-link text-xs"></i>
-                                                </button>
-                                                <div
-                                                    class="flex-1 flex items-center gap-1.5 px-2.5 py-2 rounded-lg bg-white/5 border border-white/10">
-                                                    <span class="text-white/40 text-xs font-medium">H</span>
-                                                    <input type="number" name="height" x-model="customHeight"
-                                                        class="w-full bg-transparent border-none outline-none ring-0 focus:ring-0 focus:outline-none text-white text-sm font-medium text-center"
-                                                        placeholder="1024" min="512" max="4096" step="64">
-                                                </div>
-                                                <span class="text-white/40 text-xs font-medium">PX</span>
+                                                            </template>
+                                                        </div>
+                                                        <span class="text-white/70 text-[10px] font-medium"
+                                                            x-text="ratio.label"></span>
+                                                    </button>
+                                                </template>
                                             </div>
-                                        </div>
+
+                                            <!-- Size Section -->
+                                            <div class="mt-3 pt-3 border-t border-white/10">
+                                                <div class="text-white/50 text-xs font-medium mb-2">Kích thước</div>
+                                                <div class="flex items-center gap-2">
+                                                    <div
+                                                        class="flex-1 flex items-center gap-1.5 px-2.5 py-2 rounded-lg bg-white/5 border border-white/10">
+                                                        <span class="text-white/40 text-xs font-medium">W</span>
+                                                        <input type="number" name="width" x-model="customWidth"
+                                                            @input="updateWidth($event.target.value)"
+                                                            class="w-full bg-transparent border-none outline-none ring-0 focus:ring-0 focus:outline-none text-white text-sm font-medium text-center"
+                                                            placeholder="1024" min="512" max="4096" step="64">
+                                                    </div>
+                                                    <button type="button" @click="linkDimensions = !linkDimensions"
+                                                        class="w-8 h-8 flex items-center justify-center rounded-lg transition-all"
+                                                        :class="linkDimensions ? 'bg-purple-500/30 text-purple-400' : 'bg-white/5 text-white/40 hover:bg-white/10'">
+                                                        <i class="fa-solid fa-link text-xs"></i>
+                                                    </button>
+                                                    <div
+                                                        class="flex-1 flex items-center gap-1.5 px-2.5 py-2 rounded-lg bg-white/5 border border-white/10">
+                                                        <span class="text-white/40 text-xs font-medium">H</span>
+                                                        <input type="number" name="height" x-model="customHeight"
+                                                            @input="updateHeight($event.target.value)"
+                                                            class="w-full bg-transparent border-none outline-none ring-0 focus:ring-0 focus:outline-none text-white text-sm font-medium text-center"
+                                                            placeholder="1024" min="512" max="4096" step="64">
+                                                    </div>
+                                                    <span class="text-white/40 text-xs font-medium">PX</span>
+                                                </div>
+                                            </div>
 
                                         </div>
                                     </template>
@@ -334,7 +347,8 @@
                                                         class="flex-1 flex items-center gap-2 px-3 py-2.5 rounded-xl bg-white/5 border border-white/10">
                                                         <span class="text-white/40 text-sm font-semibold">W</span>
                                                         <input type="number" x-model="customWidth"
-                                                            class="w-full bg-transparent border-none outline-none text-white text-base font-medium text-center"
+                                                            @input="updateWidth($event.target.value)"
+                                                            class="w-full bg-transparent border-none outline-none ring-0 focus:ring-0 focus:outline-none text-white text-base font-medium text-center"
                                                             placeholder="1024" min="512" max="4096" step="64">
                                                     </div>
                                                     <button type="button" @click="linkDimensions = !linkDimensions"
@@ -346,7 +360,8 @@
                                                         class="flex-1 flex items-center gap-2 px-3 py-2.5 rounded-xl bg-white/5 border border-white/10">
                                                         <span class="text-white/40 text-sm font-semibold">H</span>
                                                         <input type="number" x-model="customHeight"
-                                                            class="w-full bg-transparent border-none outline-none text-white text-base font-medium text-center"
+                                                            @input="updateHeight($event.target.value)"
+                                                            class="w-full bg-transparent border-none outline-none ring-0 focus:ring-0 focus:outline-none text-white text-base font-medium text-center"
                                                             placeholder="1024" min="512" max="4096" step="64">
                                                     </div>
                                                     <span class="text-white/40 text-sm font-semibold">PX</span>
@@ -360,7 +375,7 @@
                                     class="flex items-center justify-center w-9 h-9 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition-all cursor-pointer">
                                     <i class="fa-solid fa-image text-white/50 text-sm"></i>
                                 </button>
-                                
+
                                 <!-- Hidden inputs for form submission -->
                                 <input type="hidden" name="aspect_ratio" :value="selectedRatio">
                                 <input type="hidden" name="width" :value="customWidth">
