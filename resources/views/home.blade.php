@@ -147,37 +147,45 @@
             <h1 class="text-3xl sm:text-5xl lg:text-6xl font-black mb-6 sm:mb-10 flex items-center justify-center gap-1 sm:gap-2"
                 style="font-family: 'Inter', sans-serif; letter-spacing: -0.03em;">
                 <i class="fa-solid fa-wand-magic-sparkles text-4xl sm:text-6xl lg:text-7xl text-purple-400"></i>
-                <span class="inline-block px-2 py-1 bg-gradient-to-r from-white via-pink-300 to-white bg-clip-text text-transparent animate-gradient bg-[length:200%_auto] italic">
+                <span
+                    class="inline-block px-2 py-1 bg-gradient-to-r from-white via-pink-300 to-white bg-clip-text text-transparent animate-gradient bg-[length:200%_auto] italic">
                     ZDream
                 </span>
             </h1>
 
             <!-- Prompt Input Bar - Enhanced -->
-            <form action="{{ route('styles.index') }}" method="GET" class="w-full max-w-2xl mx-auto mb-6 sm:mb-8 group/form">
+            <form action="{{ route('styles.index') }}" method="GET"
+                class="w-full max-w-2xl mx-auto mb-6 sm:mb-8 group/form">
                 <div class="relative">
                     <!-- Glow effect -->
-                    <div class="absolute -inset-0.5 sm:-inset-1 bg-gradient-to-r from-purple-600 via-pink-500 to-purple-600 rounded-2xl opacity-20 blur-md sm:blur-lg group-hover/form:opacity-35 transition-opacity duration-500"></div>
-                    
+                    <div
+                        class="absolute -inset-0.5 sm:-inset-1 bg-gradient-to-r from-purple-600 via-pink-500 to-purple-600 rounded-2xl opacity-20 blur-md sm:blur-lg group-hover/form:opacity-35 transition-opacity duration-500">
+                    </div>
+
                     <!-- Input container -->
-                    <div class="relative flex flex-col gap-3 p-3 sm:p-4 rounded-2xl bg-black/50 backdrop-blur-2xl border border-white/15 shadow-2xl">
+                    <div
+                        class="relative flex flex-col gap-3 p-3 sm:p-4 rounded-2xl bg-black/50 backdrop-blur-2xl border border-white/15 shadow-2xl">
                         <!-- Textarea - Fixed height with scroll -->
-                        <textarea name="prompt" rows="3" placeholder="Mô tả ý tưởng của bạn..." 
+                        <textarea name="prompt" rows="3" placeholder="Mô tả ý tưởng của bạn..."
                             class="w-full h-20 bg-transparent border-none outline-none ring-0 focus:ring-0 focus:outline-none text-white placeholder-white/40 text-sm sm:text-base resize-none focus:placeholder-white/60 transition-all overflow-y-auto"></textarea>
-                        
+
                         <!-- Bottom row: icons + button -->
                         <div class="flex items-center justify-between gap-3">
                             <!-- Left icons -->
                             <div class="flex items-center gap-2">
-                                <button type="button" class="flex items-center justify-center w-9 h-9 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition-all cursor-pointer">
+                                <button type="button"
+                                    class="flex items-center justify-center w-9 h-9 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition-all cursor-pointer">
                                     <i class="fa-solid fa-image text-white/50 text-sm"></i>
                                 </button>
-                                <button type="button" class="flex items-center justify-center w-9 h-9 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition-all cursor-pointer">
+                                <button type="button"
+                                    class="flex items-center justify-center w-9 h-9 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition-all cursor-pointer">
                                     <i class="fa-solid fa-palette text-white/50 text-sm"></i>
                                 </button>
                             </div>
-                            
+
                             <!-- Generate Button -->
-                            <button type="submit" class="flex items-center gap-2 px-5 sm:px-6 py-2.5 rounded-xl bg-gradient-to-r from-purple-500 via-fuchsia-500 to-pink-500 text-white font-semibold text-sm hover:scale-[1.02] hover:shadow-lg hover:shadow-purple-500/30 active:scale-[0.98] transition-all duration-200">
+                            <button type="submit"
+                                class="flex items-center gap-2 px-5 sm:px-6 py-2.5 rounded-xl bg-gradient-to-r from-purple-500 via-fuchsia-500 to-pink-500 text-white font-semibold text-sm hover:scale-[1.02] hover:shadow-lg hover:shadow-purple-500/30 active:scale-[0.98] transition-all duration-200">
                                 <i class="fa-solid fa-wand-magic-sparkles text-sm"></i>
                                 <span>Tạo ảnh</span>
                             </button>
@@ -205,99 +213,202 @@
                     <span class="text-[10px] sm:text-sm font-medium">AI Art</span>
                     <span
                         class="absolute -top-0.5 -right-0.5 sm:-top-1 sm:-right-1 w-2 h-2 sm:w-auto sm:h-auto sm:px-1 sm:py-0.5 rounded-full text-[8px] font-bold bg-gradient-to-r from-pink-500 to-purple-500 text-white sm:text-[9px]">
-                              <span class="hidden sm:inline">NEW</span>
-                        </span> </a>
-                        <a href="{{ route('history.index') }}"
-                            class="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 sm:py-2 rounded-xl sm:rounded-full text-white/60 hover:text-white hover:bg-white/10 transition-all">
-                            <i class="fa-solid fa-images text-lg sm:text-base"></i>
-                                <span class="text-[10px] sm:text-sm font-medium">Gallery</span>
+                        <span class="hidden sm:inline">NEW</span>
+                    </span> </a>
+                <a href="{{ route('history.index') }}"
+                    class="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 sm:py-2 rounded-xl sm:rounded-full text-white/60 hover:text-white hover:bg-white/10 transition-all">
+                    <i class="fa-solid fa-images text-lg sm:text-base"></i>
+                    <span class="text-[10px] sm:text-sm font-medium">Gallery</span>
                 </a>
             </div>
         </div>
     </section>
 
-    <!-- ========== STYLES GRID ========== -->
-    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12" id="styles">
+    <!-- ========== STYLES CAROUSEL ========== -->
+    <section class="py-8 sm:py-12" id="styles" x-data="{
+        currentIndex: 0,
+        itemCount: {{ $styles->count() }},
+        autoScroll: null,
+        paused: false,
+        scrollContainer: null,
+
+        init() {
+            this.scrollContainer = this.$refs.carousel;
+            this.startAutoScroll();
+        },
+
+        startAutoScroll() {
+            this.autoScroll = setInterval(() => {
+                if (!this.paused) {
+                    this.next();
+                }
+            }, 2000);
+        },
+
+        stopAutoScroll() {
+            if (this.autoScroll) {
+                clearInterval(this.autoScroll);
+                this.autoScroll = null;
+            }
+        },
+
+        pauseAutoScroll() {
+            this.paused = true;
+            // Resume after 5 seconds of no interaction
+            setTimeout(() => {
+                this.paused = false;
+            }, 5000);
+        },
+
+        next() {
+            if (!this.scrollContainer) return;
+            const cardWidth = this.scrollContainer.querySelector('.style-card-wrapper')?.offsetWidth || 180;
+            const maxScroll = this.scrollContainer.scrollWidth - this.scrollContainer.clientWidth;
+            
+            // If near end, loop back to start
+            if (this.scrollContainer.scrollLeft >= maxScroll - 10) {
+                this.scrollContainer.scrollTo({ left: 0, behavior: 'smooth' });
+            } else {
+                this.scrollContainer.scrollBy({ left: cardWidth + 12, behavior: 'smooth' });
+            }
+        },
+
+        prev() {
+            if (!this.scrollContainer) return;
+            const cardWidth = this.scrollContainer.querySelector('.style-card-wrapper')?.offsetWidth || 180;
+            
+            // If at start, loop to end
+            if (this.scrollContainer.scrollLeft <= 10) {
+                const maxScroll = this.scrollContainer.scrollWidth - this.scrollContainer.clientWidth;
+                this.scrollContainer.scrollTo({ left: maxScroll, behavior: 'smooth' });
+            } else {
+                this.scrollContainer.scrollBy({ left: -(cardWidth + 12), behavior: 'smooth' });
+            }
+        }
+    }">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <!-- Header -->
+            <div class="flex items-center justify-between mb-6">
+                <div>
+                    <h2 class="text-lg sm:text-xl lg:text-2xl font-bold text-[#d3d6db]">Chọn Style yêu thích</h2>
+                    <p class="text-white/40 text-xs sm:text-sm mt-1">Biến ảnh thường thành tác phẩm nghệ thuật</p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <!-- Nav Buttons -->
+                    <button @click="prev(); pauseAutoScroll();"
+                        class="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 hover:border-purple-500/50 text-white/60 hover:text-white transition-all flex items-center justify-center">
+                        <i class="fa-solid fa-chevron-left text-sm"></i>
+                    </button>
+                    <button @click="next(); pauseAutoScroll();"
+                        class="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 hover:border-purple-500/50 text-white/60 hover:text-white transition-all flex items-center justify-center">
+                        <i class="fa-solid fa-chevron-right text-sm"></i>
+                    </button>
+                    <!-- View All -->
+                    <a href="{{ route('styles.index') }}"
+                        class="hidden sm:flex items-center gap-1.5 px-4 py-2 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 text-white text-sm font-medium hover:from-purple-500 hover:to-pink-500 transition-all">
+                        <span>Xem tất cả</span>
+                        <i class="fa-solid fa-arrow-right text-xs"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
 
         @if($styles->isEmpty())
-            <div class="bg-[#1b1c21]  border border-[#2a2b30] rounded-2xl text-center py-16 sm:py-24">
-                <i class="fa-solid fa-palette text-4xl text-white/20 mb-4"></i>
-                <p class="text-white/50 text-lg mb-2">Chưa có Style nào</p>
-                <p class="text-white/30 text-sm">Hãy quay lại sau nhé!</p>
-                    </div>
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="bg-[#1b1c21] border border-[#2a2b30] rounded-2xl text-center py-16">
+                    <i class="fa-solid fa-palette text-4xl text-white/20 mb-4"></i>
+                    <p class="text-white/50 text-lg mb-2">Chưa có Style nào</p>
+                    <p class="text-white/30 text-sm">Hãy quay lại sau nhé!</p>
+                </div>
+            </div>
         @else
-                    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-5">
-                        @foreach($styles as $index => $style)
-                                    <a href="{{ route('studio.show', $style->slug) }}" class="group block h-full">
-                                        <div
-                                            class="style-card relative overflow-hidden h-full bg-[#1b1c21]  border border-[#2a2b30] rounded-2xl transition-all duration-500 hover:border-purple-500/30 hover:shadow-[0_20px_60px_rgba(168,85,247,0.15)] hover:-translate-y-2 cursor-pointer flex flex-col shine-effect">
-                                            <div class="relative aspect-[3/4] overflow-hidden rounded-t-2xl">
-                                                <img src="{{ $style->thumbnail }}" alt="{{ $style->name }}"
-                                                    class="w-full h-full object-cover transition-all duration-700 group-hover:scale-110"
-                                                    loading="lazy" decoding="async" fetchpriority="low">
-                                                <div
-                                                    class="absolute inset-0 bg-gradient-to-t from-[#000000] via-transparent to-transparent opacity-80">
-                                                </div>
-                                                <div
-                                                    class="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-pink-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
-                                                </div>
-                                                <div class="absolute top-2 sm:top-3 left-2 sm:left-3 right-2 sm:right-3 flex items-start
-                                                    justify-between">
-                                                    @if($style->tag)
-                                                        <span
-                                                            class="inline-flex items-center gap-1 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full bg-gradient-to-r from-{{ $style->tag->color_from }} to-{{ $style->tag->color_to }} text-[#d3d6db] text-[9px] sm:text-xs font-bold shadow-lg">
-                                                            <i class="fa-solid {{ $style->tag->icon }} w-2 h-2 sm:w-2.5 sm:h-2.5"></i> {{ $style->tag->name }}
-                                                                </span>
-                                                    @else
-                                                                            <div>
-                                                            </div>
-                                                        @endif
-                                            <div
-                                                class="px-2 sm:px-3 py-0.5 sm:py-1.5 rounded-full bg-black/60  border border-white/[0.15] shadow-lg">
-                                                <span class="text-[#d3d6db] font-bold text-[9px] sm:text-xs flex items-center gap-0.5 sm:gap-1">
-                                                                <i class=" fa-solid fa-star w-2 h-2 sm:w-3 sm:h-3 text-yellow-400"></i> {{ number_format($style->price, 0) }} Xu
-                                                </span>
-                                            </div>
-                                        </div>
-                                        <div
-                                            class="hidden sm:flex absolute inset-0 items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300">
-                                            <div
-                                                class="transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
-                                                <div
-                                                    class="px-6 py-3 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-[#d3d6db] font-semibold text-sm shadow-xl shadow-purple-500/30 flex items-center gap-2">
-                                                    Thử ngay <i class="fa-solid fa-arrow-right w-3.5 h-3.5"></i>
-                                                </div>
-                                            </div>
-                                        </div>
-                            </div>
-                            <div class="flex flex-col flex-1 p-2.5 sm:p-4">
-                                <h3 class="font-bold text-[#d3d6db] text-xs sm:text-base lg:text-lg line-clamp-1 group-hover:text-purple-300
-                                transition-colors duration-300">{{ $style->name }}</h3>
-                                @if($style->description)
-                                    <p class="hidden sm:block text-white/40 text-[10px] sm:text-sm mt-1 sm:mt-1.5 line-clamp-2 flex-1">{{ $style->description }}</p>
-                                @endif
-                                <div class="flex items-center justify-between mt-2 sm:mt-3 pt-2 sm:pt-3 border-t border-[#2a2b30]">
-                                    <div class="flex items-center gap-1 sm:gap-1.5 text-white/50 text-[10px] sm:text-xs">
-                                        <i class="fa-solid fa-images w-2.5 h-2.5 sm:w-3 sm:h-3"></i>
-                                        {{ number_format($style->generated_images_count) }} lượt tạo
+            <!-- Carousel Container with Edge Fades -->
+            <div class="relative" @mouseenter="pauseAutoScroll()" @mouseleave="paused = false">
+                <!-- Left Fade Gradient -->
+                <div
+                    class="absolute left-0 top-0 bottom-0 w-6 sm:w-10 lg:w-12 bg-gradient-to-r from-[#0a0a0f] to-transparent z-10 pointer-events-none">
+                </div>
+                <!-- Right Fade Gradient -->
+                <div
+                    class="absolute right-0 top-0 bottom-0 w-6 sm:w-10 lg:w-12 bg-gradient-to-l from-[#0a0a0f] to-transparent z-10 pointer-events-none">
+                </div>
+
+                <div x-ref="carousel"
+                    class="flex gap-3 sm:gap-4 overflow-x-auto scroll-smooth py-4 px-2 sm:px-4 no-scrollbar"
+                    style="-webkit-overflow-scrolling: touch;">
+                    @foreach($styles as $style)
+                        <a href="{{ route('studio.show', $style->slug) }}"
+                            class="style-card-wrapper flex-shrink-0 w-52 sm:w-60 lg:w-64 group relative z-0 hover:z-20">
+                            <div
+                                class="bg-[#1b1c21] border border-[#2a2b30] rounded-xl overflow-hidden transition-all duration-300 hover:border-purple-500/40 hover:shadow-xl hover:shadow-purple-500/20 hover:scale-105">
+                                <!-- Image -->
+                                <div class="relative aspect-[3/4] overflow-hidden">
+                                    <img src="{{ $style->thumbnail }}" alt="{{ $style->name }}"
+                                        class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                                        loading="lazy" decoding="async">
+                                    <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent">
                                     </div>
-                                    <div class="flex items-center gap-1 text-purple-400 text-[10px] sm:text-xs font-medium">
-                                        <i class="fa-solid fa-arrow-right w-2.5 h-2.5 sm:w-3 sm:h-3"></i>
+
+                                    <!-- Tag -->
+                                    @if($style->tag)
+                                        <span
+                                            class="absolute top-2 left-2 inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-gradient-to-r from-{{ $style->tag->color_from }} to-{{ $style->tag->color_to }} text-white text-[8px] sm:text-[9px] font-bold shadow">
+                                            <i class="fa-solid {{ $style->tag->icon }}"></i> {{ $style->tag->name }}
+                                        </span>
+                                    @endif
+
+                                    <!-- Price -->
+                                    <div
+                                        class="absolute top-2 right-2 px-1.5 py-0.5 rounded-full bg-black/60 border border-white/10 text-white text-[9px] sm:text-[10px] font-bold flex items-center gap-0.5">
+                                        <i class="fa-solid fa-star text-yellow-400"></i> {{ number_format($style->price, 0) }}
+                                    </div>
+
+                                    <!-- Hover CTA -->
+                                    <div
+                                        class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-black/40">
+                                        <span
+                                            class="px-3 py-1.5 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs font-semibold shadow-lg">
+                                            Thử ngay
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <!-- Info -->
+                                <div class="p-2 sm:p-2.5">
+                                    <h3
+                                        class="font-semibold text-white text-xs sm:text-sm line-clamp-1 group-hover:text-purple-300 transition-colors">
+                                        {{ $style->name }}
+                                    </h3>
+                                    <div class="flex items-center gap-1 text-white/40 text-[9px] sm:text-[10px] mt-1">
+                                        <i class="fa-solid fa-images"></i>
+                                        {{ number_format($style->generated_images_count) }} lượt
                                     </div>
                                 </div>
                             </div>
-                            </div>
-                </a>
-                        @endforeach
+                        </a>
+                    @endforeach
                 </div>
-                <div class="flex justify-center mt-8">
-                        <a href=" {{ route('styles.index') }}"
-                    class="px-6 sm:px-8 py-3 rounded-xl bg-gradient-to-r from-pink-500 via-fuchsia-500 to-purple-500 text-[#d3d6db] font-semibold text-sm sm:text-base shadow-lg shadow-fuchsia-500/35 hover:shadow-fuchsia-500/55 hover:from-pink-400 hover:to-purple-400 transition-all inline-flex items-center gap-2">
-                    <span>Xem tất cả Styles</span>
-                    <i class="fa-solid fa-arrow-right w-3.5 h-3.5"></i>
-                    </a>
-                        </div>
-            @endif
+            </div>
+        @endif
+
+        <!-- Mobile View All Button -->
+        <div class="flex justify-center mt-4 sm:hidden px-4">
+            <a href="{{ route('styles.index') }}"
+                class="w-full py-3 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white text-sm font-semibold text-center">
+                Xem tất cả Styles
+            </a>
+        </div>
+
+        <style>
+            .no-scrollbar::-webkit-scrollbar {
+                display: none;
+            }
+
+            .no-scrollbar {
+                -ms-overflow-style: none;
+                scrollbar-width: none;
+            }
+        </style>
     </section>
 
     <!-- ========== INSPIRATIONS GALLERY ========== -->
