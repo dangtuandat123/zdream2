@@ -233,7 +233,8 @@
                                                     $el.style.top = (rect.bottom + 8) + 'px';
                                                     $el.style.left = rect.left + 'px';
                                                 }
-                                            })">
+                                            })"
+                                            @click.stop>
                                         <div class="text-white/50 text-xs font-medium mb-2">Tỉ lệ khung hình</div>
                                         <div class="grid grid-cols-5 gap-1.5">
                                             <template x-for="ratio in ratios" :key="ratio.id">
@@ -266,7 +267,7 @@
                                                     class="flex-1 flex items-center gap-1.5 px-2.5 py-2 rounded-lg bg-white/5 border border-white/10">
                                                     <span class="text-white/40 text-xs font-medium">W</span>
                                                     <input type="number" name="width" x-model="customWidth"
-                                                        class="w-full bg-transparent border-none outline-none text-white text-sm font-medium text-center"
+                                                        class="w-full bg-transparent border-none outline-none ring-0 focus:ring-0 focus:outline-none text-white text-sm font-medium text-center"
                                                         placeholder="1024" min="512" max="4096" step="64">
                                                 </div>
                                                 <button type="button" @click="linkDimensions = !linkDimensions"
@@ -278,7 +279,7 @@
                                                     class="flex-1 flex items-center gap-1.5 px-2.5 py-2 rounded-lg bg-white/5 border border-white/10">
                                                     <span class="text-white/40 text-xs font-medium">H</span>
                                                     <input type="number" name="height" x-model="customHeight"
-                                                        class="w-full bg-transparent border-none outline-none text-white text-sm font-medium text-center"
+                                                        class="w-full bg-transparent border-none outline-none ring-0 focus:ring-0 focus:outline-none text-white text-sm font-medium text-center"
                                                         placeholder="1024" min="512" max="4096" step="64">
                                                 </div>
                                                 <span class="text-white/40 text-xs font-medium">PX</span>
