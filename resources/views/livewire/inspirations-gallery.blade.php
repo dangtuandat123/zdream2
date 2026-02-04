@@ -27,9 +27,15 @@
                 if (e.key === 'Escape') this.activeInspiration = null;
             });
 
-            // Toggle body scroll (Simple approach)
+            // Toggle body scroll (Aggressive)
             this.$watch('activeInspiration', value => {
-                document.body.style.overflow = value ? 'hidden' : '';
+                if (value) {
+                    document.documentElement.style.setProperty('overflow', 'hidden', 'important');
+                    document.body.style.setProperty('overflow', 'hidden', 'important');
+                } else {
+                    document.documentElement.style.removeProperty('overflow');
+                    document.body.style.removeProperty('overflow');
+                }
             });
         },
         
