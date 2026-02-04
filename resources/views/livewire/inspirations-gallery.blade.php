@@ -1,4 +1,4 @@
-<section class="px-2 sm:px-4 py-8 sm:py-12" wire:ignore x-data="{
+<section class="px-2 sm:px-4 pt-2 pb-4 sm:pt-4 sm:pb-8" wire:ignore x-data="{
         items: {{ \Illuminate\Support\Js::from($initialInspirations) }},
         columns: [[], [], [], []],
         columnCount: 4,
@@ -92,7 +92,7 @@
             this.loading = false;
         }
     }">
-    <div class="text-left mb-6 sm:mb-8">
+    <div class="text-left mb-4 sm:mb-6">
         <h2 class="text-xl sm:text-2xl lg:text-3xl font-bold text-[#d3d6db] mb-2">Inspiration Gallery</h2>
         <p class="text-white/50 text-sm sm:text-base">Khám phá ý tưởng sáng tạo từ cộng đồng</p>
     </div>

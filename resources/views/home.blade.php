@@ -225,7 +225,7 @@
     </section>
 
     <!-- ========== STYLES CAROUSEL ========== -->
-    <section class="py-8 sm:py-12" id="styles" x-data="{
+    <section class="py-4 sm:py-8" id="styles" x-data="{
         currentIndex: 0,
         itemCount: {{ $styles->count() }},
         autoScroll: null,
@@ -297,7 +297,7 @@
     }">
         <div class="px-2 sm:px-4">
             <!-- Header -->
-            <div class="flex items-center justify-between mb-6">
+            <div class="flex items-center justify-between mb-3">
                 <div>
                     <h2 class="text-lg sm:text-xl lg:text-2xl font-bold text-[#d3d6db]">Chọn Style yêu thích</h2>
                     <p class="text-white/40 text-xs sm:text-sm mt-1">Biến ảnh thường thành tác phẩm nghệ thuật</p>
@@ -343,7 +343,7 @@
                 </div>
 
                 <div x-ref="carousel"
-                    class="flex gap-3 sm:gap-4 overflow-x-auto scroll-smooth py-8 px-2 sm:px-4 no-scrollbar snap-x snap-mandatory"
+                    class="flex gap-3 sm:gap-4 overflow-x-auto scroll-smooth py-4 pb-1 px-2 sm:px-4 no-scrollbar snap-x snap-mandatory"
                     style="-webkit-overflow-scrolling: touch;">
                     @foreach($styles as $style)
                         <a href="{{ route('studio.show', $style->slug) }}"
