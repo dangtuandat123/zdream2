@@ -32,7 +32,7 @@ class HomeController extends Controller
             ])
             ->orderByDesc('month_generated_count')
             ->orderByDesc('generated_images_count')
-            ->take(8)
+            ->take(20)
             ->get();
 
         return view('home', compact('styles'));

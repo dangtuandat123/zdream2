@@ -244,7 +244,7 @@
                 if (!this.paused) {
                     this.next();
                 }
-            }, 2000);
+            }, 3000);
         },
 
         stopAutoScroll() {
@@ -270,9 +270,8 @@
             const cardWidth = this.scrollContainer.querySelector('.style-card-wrapper')?.offsetWidth || 180;
             const stride = cardWidth + gap;
             
-            // On desktop (width >= 1024), scroll 6 cards at a time
-            const multiplier = window.innerWidth >= 1024 ? 6 : (window.innerWidth >= 640 ? 3 : 1);
-            const scrollAmount = stride * multiplier;
+            // Always scroll 1 card at a time
+            const scrollAmount = stride;
 
             const maxScroll = this.scrollContainer.scrollWidth - this.scrollContainer.clientWidth;
             
@@ -292,9 +291,8 @@
             const cardWidth = this.scrollContainer.querySelector('.style-card-wrapper')?.offsetWidth || 180;
             const stride = cardWidth + gap;
             
-            // On desktop (width >= 1024), scroll 6 cards at a time
-            const multiplier = window.innerWidth >= 1024 ? 6 : (window.innerWidth >= 640 ? 3 : 1);
-            const scrollAmount = stride * multiplier;
+            // Always scroll 1 card at a time
+            const scrollAmount = stride;
             
             // If at start, loop to end
             if (this.scrollContainer.scrollLeft <= 10) {
@@ -362,14 +360,14 @@
                                     <!-- Tag -->
                                     @if($style->tag)
                                         <span
-                                            class="absolute top-2 left-2 inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-gradient-to-r from-{{ $style->tag->color_from }} to-{{ $style->tag->color_to }} text-white text-[8px] sm:text-[9px] font-bold shadow">
+                                            class="absolute top-2 left-2 z-20 inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-gradient-to-r from-{{ $style->tag->color_from }} to-{{ $style->tag->color_to }} text-white text-[8px] sm:text-[9px] font-bold shadow">
                                             <i class="fa-solid {{ $style->tag->icon }}"></i> {{ $style->tag->name }}
                                         </span>
                                     @endif
 
                                     <!-- Price -->
                                     <div
-                                        class="absolute top-2 right-2 px-1.5 py-0.5 rounded-full bg-black/60 border border-white/10 text-white text-[9px] sm:text-[10px] font-bold flex items-center gap-0.5">
+                                        class="absolute top-2 right-2 z-20 px-1.5 py-0.5 rounded-full bg-black/60 border border-white/10 text-white text-[9px] sm:text-[10px] font-bold flex items-center gap-0.5">
                                         <i class="fa-solid fa-star text-yellow-400"></i> {{ number_format($style->price, 0) }}
                                     </div>
 
