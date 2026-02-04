@@ -16,7 +16,7 @@
             position: absolute;
             inset: -30%;
             background-image: url('/images/hero/home-grid.png');
-            background-size: 900px auto;
+            background-size: 1200px auto;
             background-repeat: repeat;
             opacity: 0.45;
             filter: saturate(1) contrast(1.02);

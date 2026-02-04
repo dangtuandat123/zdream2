@@ -11,7 +11,7 @@
 
         init() {
             this.updateColumnCount();
-            this.distributeNewItems();
+            this.redistributeAll(); // Resizes columns to match count
             
             // Re-distribute on resize
             window.addEventListener('resize', () => {
@@ -163,7 +163,7 @@
     </div>
 
     <!-- Infinite Scroll Trigger -->
-    <div x-show="hasMore" x-intersect.threshold.50="loadMoreItems()" class="flex justify-center p-4 mt-4">
+    <div x-show="hasMore" x-intersect.margin.2000px="loadMoreItems()" class="flex justify-center p-4 mt-4">
         <div x-show="loading" class="flex items-center gap-2 text-white/50">
             <i class="fa-solid fa-circle-notch fa-spin"></i>
             <span>Đang tải thêm...</span>
@@ -189,8 +189,8 @@
             x-transition:leave-end="opacity-0 translate-y-8 scale-95">
             <!-- Close Button -->
             <button @click="activeInspiration = null"
-                class="absolute top-4 right-4 z-50 p-2 text-white/50 hover:text-white bg-black/40 md:bg-transparent rounded-lg md:rounded-none backdrop-blur-md md:backdrop-blur-none transition-colors">
-                <i class="fa-solid fa-xmark text-2xl"></i>
+                class="absolute top-4 right-4 z-50 w-10 h-10 flex items-center justify-center text-white/70 hover:text-white bg-black/50 hover:bg-black/70 rounded-full backdrop-blur-md transition-all shadow-lg">
+                <i class="fa-solid fa-xmark text-xl"></i>
             </button>
 
             <!-- Right: Main Image (Mobile: Top) -->
