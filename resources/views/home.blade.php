@@ -199,7 +199,9 @@
                                         this.customWidth = Math.round(baseSize * Math.sqrt(w / h) / 64) * 64;
                                         this.customHeight = Math.round(baseSize * Math.sqrt(h / w) / 64) * 64;
                                     }
-                                    this.showRatioDropdown = false;
+                                    if (window.innerWidth >= 640) { // On desktop, close immediately
+                                        this.showRatioDropdown = false;
+                                    }
                                 },
                                 updateWidth(newWidth) {
                                     this.customWidth = newWidth;
@@ -306,7 +308,7 @@
                                     <template x-teleport="body">
                                         <div x-show="showRatioDropdown" x-cloak
                                             class="sm:hidden fixed inset-0 z-[100] flex items-end justify-center bg-black/80 backdrop-blur-md"
-                                            style="z-index: 9999;" @click.self="showRatioDropdown = false">
+                                            style="z-index: 9999;" @click.self="showRatioDropdown = false" @click.stop>
                                             <div x-show="showRatioDropdown"
                                                 x-transition:enter="transition ease-out duration-300"
                                                 x-transition:enter-start="translate-y-full"
@@ -472,64 +474,64 @@
                                     <template x-teleport="body">
                                         <div x-show="showModelDropdown" x-cloak
                                             class="sm:hidden fixed inset-0 z-[100] flex items-end justify-center bg-black/80 backdrop-blur-md"
-                                            style="z-index: 9999;" @click.self="showModelDropdown = false">
-                                        <div x-show="showModelDropdown"
-                                            x-transition:enter="transition ease-out duration-300"
-                                            x-transition:enter-start="translate-y-full"
-                                            x-transition:enter-end="translate-y-0"
-                                            x-transition:leave="transition ease-in duration-200"
-                                            x-transition:leave-start="translate-y-0"
-                                            x-transition:leave-end="translate-y-full"
-                                            class="w-full max-w-lg bg-[#1a1b20] border-t border-white/10 rounded-t-3xl flex flex-col max-h-[85vh] shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
+                                            style="z-index: 9999;" @click.self="showModelDropdown = false" @click.stop>
+                                            <div x-show="showModelDropdown"
+                                                x-transition:enter="transition ease-out duration-300"
+                                                x-transition:enter-start="translate-y-full"
+                                                x-transition:enter-end="translate-y-0"
+                                                x-transition:leave="transition ease-in duration-200"
+                                                x-transition:leave-start="translate-y-0"
+                                                x-transition:leave-end="translate-y-full"
+                                                class="w-full max-w-lg bg-[#1a1b20] border-t border-white/10 rounded-t-3xl flex flex-col max-h-[85vh] shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
 
-                                            <!-- Header -->
-                                            <div
-                                                class="flex items-center justify-between p-4 border-b border-white/5 shrink-0">
-                                                <span class="text-white font-semibold text-base">Chọn Model AI</span>
-                                                <button type="button" @click="showModelDropdown = false"
-                                                    class="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 text-white/60 active:scale-95 transition-transform">
-                                                    <i class="fa-solid fa-xmark"></i>
-                                                </button>
-                                            </div>
-
-                                            <!-- Scrollable List -->
-                                            <div class="p-4 overflow-y-auto overscroll-contain">
-                                                <div class="text-white/50 text-sm font-medium mb-3">Danh sách Model
+                                                <!-- Header -->
+                                                <div
+                                                    class="flex items-center justify-between p-4 border-b border-white/5 shrink-0">
+                                                    <span class="text-white font-semibold text-base">Chọn Model
+                                                        AI</span>
+                                                    <button type="button" @click="showModelDropdown = false"
+                                                        class="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 text-white/60 active:scale-95 transition-transform">
+                                                        <i class="fa-solid fa-xmark"></i>
+                                                    </button>
                                                 </div>
-                                                <div class="space-y-1">
-                                                    <template x-for="model in models" :key="model.id">
-                                                        <button type="button"
-                                                            @click="selectedModel = model.id; showModelDropdown = false"
-                                                            class="w-full flex items-center gap-3 p-3 rounded-xl transition-all text-left"
-                                                            :class="selectedModel === model.id ? 'bg-purple-500/30 border border-purple-500/50' : 'bg-white/5 active:bg-white/10 border border-transparent'">
-                                                            <span class="text-2xl" x-text="model.icon"></span>
-                                                            <div class="flex-1 min-w-0">
-                                                                <div class="text-white font-semibold text-base"
-                                                                    x-text="model.name">
+
+                                                <!-- Scrollable List -->
+                                                <div class="p-4 overflow-y-auto overscroll-contain">
+                                                    <div class="text-white/50 text-sm font-medium mb-3">Danh sách Model
+                                                    </div>
+                                                    <div class="space-y-1">
+                                                        <template x-for="model in models" :key="model.id">
+                                                            <button type="button" @click="selectedModel = model.id"
+                                                                class="w-full flex items-center gap-3 p-3 rounded-xl transition-all text-left"
+                                                                :class="selectedModel === model.id ? 'bg-purple-500/30 border border-purple-500/50' : 'bg-white/5 active:bg-white/10 border border-transparent'">
+                                                                <span class="text-2xl" x-text="model.icon"></span>
+                                                                <div class="flex-1 min-w-0">
+                                                                    <div class="text-white font-semibold text-base"
+                                                                        x-text="model.name">
+                                                                    </div>
+                                                                    <div class="text-white/50 text-sm mt-0.5"
+                                                                        x-text="model.desc">
+                                                                    </div>
                                                                 </div>
-                                                                <div class="text-white/50 text-sm mt-0.5"
-                                                                    x-text="model.desc">
+                                                                <div class="w-6 h-6 rounded-full border-2 flex items-center justify-center"
+                                                                    :class="selectedModel === model.id ? 'border-purple-500 bg-purple-500' : 'border-white/20'">
+                                                                    <i x-show="selectedModel === model.id"
+                                                                        class="fa-solid fa-check text-white text-xs"></i>
                                                                 </div>
-                                                            </div>
-                                                            <div class="w-6 h-6 rounded-full border-2 flex items-center justify-center"
-                                                                :class="selectedModel === model.id ? 'border-purple-500 bg-purple-500' : 'border-white/20'">
-                                                                <i x-show="selectedModel === model.id"
-                                                                    class="fa-solid fa-check text-white text-xs"></i>
-                                                            </div>
-                                                        </button>
-                                                    </template>
+                                                            </button>
+                                                        </template>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Footer Action -->
+                                                <div
+                                                    class="p-4 border-t border-white/5 bg-[#1a1b20] safe-area-bottom shrink-0">
+                                                    <button type="button" @click="showModelDropdown = false"
+                                                        class="w-full py-3.5 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold text-center active:scale-[0.98] transition-transform shadow-lg shadow-purple-900/20">
+                                                        Xác nhận lựa chọn
+                                                    </button>
                                                 </div>
                                             </div>
-
-                                            <!-- Footer Action -->
-                                            <div
-                                                class="p-4 border-t border-white/5 bg-[#1a1b20] safe-area-bottom shrink-0">
-                                                <button type="button" @click="showModelDropdown = false"
-                                                    class="w-full py-3.5 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold text-center active:scale-[0.98] transition-transform shadow-lg shadow-purple-900/20">
-                                                    Xác nhận lựa chọn
-                                                </button>
-                                            </div>
-                                        </div>
                                         </div>
                                     </template>
 
