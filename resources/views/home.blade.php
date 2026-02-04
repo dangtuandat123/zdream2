@@ -262,27 +262,36 @@
 
         next() {
             if (!this.scrollContainer) return;
+            // Calculate true stride (width + gap)
+            const style = window.getComputedStyle(this.scrollContainer);
+            const gap = parseFloat(style.gap) || 12; // Fallback to 12 if dynamic fail
             const cardWidth = this.scrollContainer.querySelector('.style-card-wrapper')?.offsetWidth || 180;
+            const stride = cardWidth + gap;
+
             const maxScroll = this.scrollContainer.scrollWidth - this.scrollContainer.clientWidth;
             
             // If near end, loop back to start
             if (this.scrollContainer.scrollLeft >= maxScroll - 10) {
                 this.scrollContainer.scrollTo({ left: 0, behavior: 'smooth' });
             } else {
-                this.scrollContainer.scrollBy({ left: cardWidth + 12, behavior: 'smooth' });
+                this.scrollContainer.scrollBy({ left: stride, behavior: 'smooth' });
             }
         },
 
         prev() {
             if (!this.scrollContainer) return;
+            // Calculate true stride
+            const style = window.getComputedStyle(this.scrollContainer);
+            const gap = parseFloat(style.gap) || 12;
             const cardWidth = this.scrollContainer.querySelector('.style-card-wrapper')?.offsetWidth || 180;
+            const stride = cardWidth + gap;
             
             // If at start, loop to end
             if (this.scrollContainer.scrollLeft <= 10) {
                 const maxScroll = this.scrollContainer.scrollWidth - this.scrollContainer.clientWidth;
                 this.scrollContainer.scrollTo({ left: maxScroll, behavior: 'smooth' });
             } else {
-                this.scrollContainer.scrollBy({ left: -(cardWidth + 12), behavior: 'smooth' });
+                this.scrollContainer.scrollBy({ left: -stride, behavior: 'smooth' });
             }
         }
     }">
@@ -334,11 +343,11 @@
                 </div>
 
                 <div x-ref="carousel"
-                    class="flex gap-3 sm:gap-4 overflow-x-auto scroll-smooth py-4 px-2 sm:px-4 no-scrollbar"
+                    class="flex gap-3 sm:gap-4 overflow-x-auto scroll-smooth py-4 px-2 sm:px-4 no-scrollbar snap-x snap-mandatory"
                     style="-webkit-overflow-scrolling: touch;">
                     @foreach($styles as $style)
                         <a href="{{ route('studio.show', $style->slug) }}"
-                            class="style-card-wrapper flex-shrink-0 w-52 sm:w-60 lg:w-64 group relative z-0 hover:z-20">
+                            class="style-card-wrapper flex-shrink-0 w-52 sm:w-60 lg:w-64 group relative z-0 hover:z-20 snap-start">
                             <div
                                 class="bg-[#1b1c21] border border-[#2a2b30] rounded-xl overflow-hidden transition-all duration-300 hover:border-purple-500/40 hover:shadow-xl hover:shadow-purple-500/20 hover:scale-105">
                                 <!-- Image -->
