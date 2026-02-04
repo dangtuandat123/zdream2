@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Style;
+use App\Models\Inspiration;
 use Illuminate\View\View;
 
 /**
@@ -25,14 +26,22 @@ class HomeController extends Controller
             ->active()
             ->with('tag')
             ->withCount('generatedImages')
-            ->withCount(['generatedImages as month_generated_count' => function ($query) use ($startOfMonth, $endOfMonth) {
-                $query->whereBetween('created_at', [$startOfMonth, $endOfMonth]);
-            }])
+            ->withCount([
+                'generatedImages as month_generated_count' => function ($query) use ($startOfMonth, $endOfMonth) {
+                    $query->whereBetween('created_at', [$startOfMonth, $endOfMonth]);
+                }
+            ])
             ->orderByDesc('month_generated_count')
             ->orderByDesc('generated_images_count')
             ->take(8)
             ->get();
 
-        return view('home', compact('styles'));
+        // Lấy random inspirations để hiển thị
+        $inspirations = Inspiration::where('is_active', true)
+            ->inRandomOrder()
+            ->take(20)
+            ->get();
+
+        return view('home', compact('styles', 'inspirations'));
     }
 }

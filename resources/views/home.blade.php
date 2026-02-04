@@ -143,12 +143,12 @@
 
         <!-- Hero Content -->
         <div class="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 py-20 sm:py-28 lg:py-36 text-center">
-            <!-- Title - Colorful & Stylish -->
-            <h1 class="text-3xl sm:text-5xl lg:text-7xl font-black mb-6 sm:mb-10"
+            <!-- Title - ZDream Logo -->
+            <h1 class="text-3xl sm:text-5xl lg:text-6xl font-black mb-6 sm:mb-10 flex items-center justify-center gap-1 sm:gap-2"
                 style="font-family: 'Inter', sans-serif; letter-spacing: -0.03em;">
-                <span
-                   class="inline-block px-2 sm:px-4 bg-gradient-to-r from-white via-pink-300 to-white bg-clip-text text-transparent animate-gradient bg-[length:200%_auto]" style="font-style: italic;">
-                    Let's Create
+                <i class="fa-solid fa-wand-magic-sparkles text-4xl sm:text-6xl lg:text-7xl text-purple-400"></i>
+                <span class="inline-block px-2 py-1 bg-gradient-to-r from-white via-pink-300 to-white bg-clip-text text-transparent animate-gradient bg-[length:200%_auto] italic">
+                    ZDream
                 </span>
             </h1>
 
@@ -230,8 +230,8 @@
                         @foreach($styles as $index => $style)
                                     <a href="{{ route('studio.show', $style->slug) }}" class="group block h-full">
                                         <div
-                                            class="style-card relative overflow-hidden h-full bg-[#1b1c21]  border border-[#2a2b30] rounded-2xl sm:rounded-3xl transition-all duration-500 hover:border-purple-500/30 hover:shadow-[0_20px_60px_rgba(168,85,247,0.15)] hover:-translate-y-2 cursor-pointer flex flex-col shine-effect">
-                                            <div class="relative aspect-[3/4] overflow-hidden rounded-t-2xl sm:rounded-t-3xl">
+                                            class="style-card relative overflow-hidden h-full bg-[#1b1c21]  border border-[#2a2b30] rounded-2xl transition-all duration-500 hover:border-purple-500/30 hover:shadow-[0_20px_60px_rgba(168,85,247,0.15)] hover:-translate-y-2 cursor-pointer flex flex-col shine-effect">
+                                            <div class="relative aspect-[3/4] overflow-hidden rounded-t-2xl">
                                                 <img src="{{ $style->thumbnail }}" alt="{{ $style->name }}"
                                                     class="w-full h-full object-cover transition-all duration-700 group-hover:scale-110"
                                                     loading="lazy" decoding="async" fetchpriority="low">
@@ -287,7 +287,7 @@
                                 </div>
                             </div>
                             </div>
-                                </a>
+                </a>
                         @endforeach
                 </div>
                 <div class="flex justify-center mt-8">
@@ -300,57 +300,54 @@
             @endif
     </section>
 
-    <!-- ========== HOW IT WORKS ========== -->
-    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16">
-        <div class="text-center mb-8 sm:mb-12">
-            <h2 class="text-xl sm:text-2xl lg:text-3xl font-bold text-[#d3d6db] mb-2">Cách sử dụng</h2>
-            <p class="text-white/50 text-sm sm:text-base">3 bước đơn giản</p>
+    <!-- ========== INSPIRATIONS GALLERY ========== -->
+    @if($inspirations->isNotEmpty())
+    <section class="px-2 sm:px-4 py-8 sm:py-12">
+        <div class="text-center mb-8 sm:mb-10">
+            <h2 class="text-xl sm:text-2xl lg:text-3xl font-bold text-[#d3d6db] mb-2">Inspiration Gallery</h2>
+            <p class="text-white/50 text-sm sm:text-base">Khám phá ý tưởng sáng tạo từ cộng đồng</p>
         </div>
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
-            <div
-                class="flex sm:flex-col items-center sm:text-center gap-4 sm:gap-0 bg-[#1b1c21] border border-[#2a2b30] rounded-xl sm:rounded-2xl p-4 sm:p-6">
-                <div
-                    class="flex-shrink-0 w-12 h-12 sm:w-14 sm:h-14 sm:mb-4 rounded-xl sm:rounded-2xl bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center">
-                    <i class="fa-solid fa-palette w-5 h-5 sm:w-6 sm:h-6 text-[#d3d6db]"></i>
+
+        <!-- Masonry Grid -->
+        <div class="columns-2 sm:columns-3 lg:columns-4 gap-1 sm:gap-1.5">
+            @foreach($inspirations as $inspiration)
+            <div class="group relative mb-1 sm:mb-1.5 break-inside-avoid">
+                <div class="inspiration-card relative overflow-hidden rounded-lg bg-[#1b1c21] border border-[#2a2b30] transition-all duration-300 hover:border-purple-500/40 hover:shadow-lg hover:shadow-purple-500/10">
+                    <!-- Skeleton Loading -->
+                    <div class="skeleton-loader aspect-square bg-gradient-to-r from-[#1b1c21] via-[#2a2b30] to-[#1b1c21] bg-[length:200%_100%] animate-pulse">
+                        <div class="absolute inset-0 flex items-center justify-center">
+                            <i class="fa-solid fa-image text-white/10 text-2xl"></i>
+                        </div>
+                    </div>
+                    
+                    <!-- Image (hidden until loaded) -->
+                    <img 
+                        src="{{ $inspiration->image_url }}" 
+                        alt="Inspiration" 
+                        class="inspiration-img absolute inset-0 w-full h-full object-cover transition-all duration-500 opacity-0 group-hover:scale-105"
+                        loading="lazy"
+                        decoding="async"
+                        onload="this.classList.remove('opacity-0'); this.classList.add('opacity-100'); this.previousElementSibling.style.display='none'; this.classList.remove('absolute', 'inset-0'); this.classList.add('relative');"
+                    >
+                    
+                    <!-- Hover Overlay with Prompt -->
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-3 sm:p-4">
+                        <p class="text-white/90 text-xs sm:text-sm line-clamp-4 leading-relaxed">
+                            {{ Str::limit($inspiration->prompt, 150) }}
+                        </p>
+                        @if($inspiration->ref_images && count($inspiration->ref_images) > 0)
+                        <div class="mt-2 flex items-center gap-1.5">
+                            <i class="fa-solid fa-images text-purple-400 text-xs"></i>
+                            <span class="text-purple-300 text-xs">{{ count($inspiration->ref_images) }} ảnh tham chiếu</span>
+                        </div>
+                        @endif
+                    </div>
                 </div>
-                <div class="flex-1 sm:flex-none">
-                    <h3 class="font-semibold text-[#d3d6db] text-base sm:text-lg">Chọn Style</h3>
-                    <p class="text-white/50 text-sm">Chọn style yêu thích</p>
-                </div>
-                <div
-                    class="sm:hidden w-8 h-8 rounded-full bg-white/[0.05] flex items-center justify-center text-white/40 text-sm font-mono">
-                    1</div>
             </div>
-            <div
-                class="flex sm:flex-col items-center sm:text-center gap-4 sm:gap-0 bg-[#1b1c21] border border-[#2a2b30] rounded-xl sm:rounded-2xl p-4 sm:p-6">
-                <div
-                    class="flex-shrink-0 w-12 h-12 sm:w-14 sm:h-14 sm:mb-4 rounded-xl sm:rounded-2xl bg-gradient-to-br from-pink-500 to-pink-600 flex items-center justify-center">
-                    <i class="fa-solid fa-sliders w-5 h-5 sm:w-6 sm:h-6 text-[#d3d6db]"></i>
-                </div>
-                <div class="flex-1 sm:flex-none">
-                    <h3 class="font-semibold text-[#d3d6db] text-base sm:text-lg">Chọn Options</h3>
-                    <p class="text-white/50 text-sm">Tùy chỉnh theo ý thích</p>
-                </div>
-                <div
-                    class="sm:hidden w-8 h-8 rounded-full bg-white/[0.05] flex items-center justify-center text-white/40 text-sm font-mono">
-                    2</div>
-            </div>
-            <div
-                class="flex sm:flex-col items-center sm:text-center gap-4 sm:gap-0 bg-[#1b1c21] border border-[#2a2b30] rounded-xl sm:rounded-2xl p-4 sm:p-6">
-                <div
-                    class="flex-shrink-0 w-12 h-12 sm:w-14 sm:h-14 sm:mb-4 rounded-xl sm:rounded-2xl bg-gradient-to-br from-cyan-500 to-cyan-600 flex items-center justify-center">
-                    <i class="fa-solid fa-wand-magic-sparkles w-5 h-5 sm:w-6 sm:h-6 text-[#d3d6db]"></i>
-                </div>
-                <div class="flex-1 sm:flex-none">
-                    <h3 class="font-semibold text-[#d3d6db] text-base sm:text-lg">Nhận Kết Quả</h3>
-                    <p class="text-white/50 text-sm">Nhận ảnh trong 10s</p>
-                </div>
-                <div
-                    class="sm:hidden w-8 h-8 rounded-full bg-white/[0.05] flex items-center justify-center text-white/40 text-sm font-mono">
-                    3</div>
-            </div>
+            @endforeach
         </div>
     </section>
+    @endif
 
     <!-- ========== CTA ========== -->
     @guest
