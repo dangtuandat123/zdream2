@@ -6,6 +6,7 @@
         hasMore: {{ $hasMore ? 'true' : 'false' }},
         
         lastDistributedIndex: 0,
+        activeInspiration: null,
 
         init() {
             this.updateColumnCount();
@@ -18,6 +19,16 @@
                 if (oldCols !== this.columnCount) {
                     this.redistributeAll();
                 }
+            });
+
+            // Close modal on escape
+            window.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') this.activeInspiration = null;
+            });
+
+            // Toggle body scroll
+            this.$watch('activeInspiration', value => {
+                document.body.style.overflow = value ? 'hidden' : '';
             });
         },
         
@@ -69,6 +80,8 @@
                 console.error(e);
                 this.loading = false; // Ensure loading is reset on error
             }
+            // Note: We don't necessarily reset loading to false immediately if we want to throttle,
+            // but here we should reset it.
             this.loading = false;
         }
     }">
@@ -83,8 +96,8 @@
             <div class="flex-1 flex flex-col gap-1 sm:gap-1.5">
                 <template x-for="inspiration in colItems" :key="inspiration.id">
                     <div class="group relative break-inside-avoid">
-                        <div
-                            class="inspiration-card relative overflow-hidden rounded-lg bg-[#1b1c21] border border-[#2a2b30] transition-all duration-300 hover:border-purple-500/40 hover:shadow-lg hover:shadow-purple-500/10">
+                        <div @click="activeInspiration = inspiration"
+                            class="inspiration-card relative overflow-hidden rounded-lg bg-[#1b1c21] border border-[#2a2b30] transition-all duration-300 hover:border-purple-500/40 hover:shadow-lg hover:shadow-purple-500/10 cursor-pointer">
                             <!-- Skeleton Loading -->
                             <div
                                 class="skeleton-loader aspect-square bg-gradient-to-r from-[#1b1c21] via-[#2a2b30] to-[#1b1c21] bg-[length:200%_100%] animate-pulse">
@@ -122,7 +135,7 @@
 
                             <!-- Hover Overlay -->
                             <div
-                                class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-3 sm:p-4 pointer-events-none group-hover:pointer-events-auto">
+                                class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-3 sm:p-4 pointer-events-none">
                                 <p class="text-white/90 text-xs sm:text-sm line-clamp-4 leading-relaxed"
                                     x-text="inspiration.prompt.length > 150 ? inspiration.prompt.substring(0, 150) + '...' : inspiration.prompt">
                                 </p>
@@ -147,6 +160,86 @@
         <div x-show="loading" class="flex items-center gap-2 text-white/50">
             <i class="fa-solid fa-circle-notch fa-spin"></i>
             <span>Đang tải thêm...</span>
+        </div>
+    </div>
+
+    <!-- Detail Modal -->
+    <div x-show="activeInspiration" style="display: none;"
+        class="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6"
+        x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0"
+        x-transition:enter-end="opacity-100" x-transition:leave="transition ease-in duration-200"
+        x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0">
+        <!-- Backdrop -->
+        <div class="absolute inset-0 bg-black/90 backdrop-blur-xl" @click="activeInspiration = null"></div>
+
+        <!-- Modal Content -->
+        <div class="relative w-full max-w-6xl max-h-[90vh] bg-[#15161A] border border-white/10 rounded-2xl shadow-2xl flex flex-col md:flex-row overflow-hidden"
+            @click.stop x-transition:enter="transition ease-out duration-300 delay-100"
+            x-transition:enter-start="opacity-0 translate-y-8 scale-95"
+            x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+            x-transition:leave="transition ease-in duration-200"
+            x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+            x-transition:leave-end="opacity-0 translate-y-8 scale-95">
+            <!-- Close Button -->
+            <button @click="activeInspiration = null"
+                class="absolute top-4 right-4 z-50 p-2 text-white/50 hover:text-white bg-black/20 hover:bg-black/40 rounded-full backdrop-blur-md transition-all">
+                <i class="fa-solid fa-xmark text-xl"></i>
+            </button>
+
+            <!-- Left: Reference Images -->
+            <div
+                class="w-full md:w-1/3 border-r border-white/5 bg-[#0F1014] p-6 overflow-y-auto custom-scrollbar flex flex-col gap-6">
+                <div>
+                    <h3 class="text-white/70 font-semibold mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-images text-purple-400"></i> Ảnh tham chiếu
+                    </h3>
+                    <template
+                        x-if="activeInspiration && activeInspiration.ref_images && activeInspiration.ref_images.length > 0">
+                        <div class="grid grid-cols-2 gap-3">
+                            <template x-for="(refImg, idx) in activeInspiration.ref_images" :key="idx">
+                                <div
+                                    class="relative aspect-square rounded-lg overflow-hidden border border-white/10 group/ref">
+                                    <img :src="refImg"
+                                        class="w-full h-full object-cover transition-transform duration-500 group-hover/ref:scale-110">
+                                </div>
+                            </template>
+                        </div>
+                    </template>
+                    <template
+                        x-if="!activeInspiration || !activeInspiration.ref_images || activeInspiration.ref_images.length === 0">
+                        <div
+                            class="text-white/30 text-sm italic py-8 text-center border border-dashed border-white/10 rounded-lg">
+                            Không có ảnh tham chiếu
+                        </div>
+                    </template>
+                </div>
+
+                <!-- Prompt Section (Desktop - moved to left so images get more space) -->
+                <div class="mt-auto">
+                    <h3 class="text-white/70 font-semibold mb-3 flex items-center gap-2">
+                        <i class="fa-solid fa-quote-left text-purple-400"></i> Prompt
+                    </h3>
+                    <div class="bg-white/5 rounded-xl p-4 border border-white/10">
+                        <p class="text-gray-300 text-sm leading-relaxed max-h-40 overflow-y-auto custom-scrollbar"
+                            x-text="activeInspiration ? activeInspiration.prompt : ''"></p>
+                    </div>
+                </div>
+
+                <!-- Action Button -->
+                <button
+                    class="w-full py-3 px-4 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-bold rounded-xl shadow-lg shadow-purple-500/25 transition-all flex items-center justify-center gap-2 group/btn">
+                    <span>Phối lại ảnh này</span>
+                    <i class="fa-solid fa-wand-magic-sparkles transition-transform group-hover/btn:rotate-12"></i>
+                </button>
+            </div>
+
+            <!-- Right: Main Image -->
+            <div class="flex-1 bg-black/50 relative flex items-center justify-center p-4 md:p-8">
+                <template x-if="activeInspiration">
+                    <img :src="activeInspiration.image_url"
+                        class="max-w-full max-h-full object-contain rounded-lg shadow-2xl">
+                </template>
+            </div>
         </div>
     </div>
 </section>
