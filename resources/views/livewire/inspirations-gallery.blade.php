@@ -100,13 +100,13 @@
     <!-- Flex Masonry Grid -->
     <div class="flex gap-1 sm:gap-1.5 align-top">
         <template x-for="(colItems, colIndex) in columns" :key="colIndex">
-            <div class="flex-1 flex flex-col gap-1 sm:gap-1.5">
+            <div class="flex-1 flex flex-col gap-1 sm:gap-1.5 min-w-0">
                 <template x-for="inspiration in colItems" :key="inspiration.id">
-                    <div class="group relative break-inside-avoid">
+                    <div class="group relative break-inside-avoid" x-data="{ imgLoaded: false }">
                         <div @click="activeInspiration = inspiration"
                             class="inspiration-card relative overflow-hidden rounded-lg bg-[#1b1c21] border border-[#2a2b30] transition-all duration-300 hover:border-purple-500/40 hover:shadow-lg hover:shadow-purple-500/10 cursor-pointer">
                             <!-- Skeleton Loading -->
-                            <div
+                            <div x-show="!imgLoaded"
                                 class="skeleton-loader aspect-square bg-gradient-to-r from-[#1b1c21] via-[#2a2b30] to-[#1b1c21] bg-[length:200%_100%] animate-pulse">
                                 <!-- Icon placeholder -->
                                 <div class="absolute inset-0 flex items-center justify-center">
@@ -116,9 +116,9 @@
 
                             <!-- Image -->
                             <img :src="inspiration.image_url" alt="Inspiration"
-                                class="inspiration-img absolute inset-0 w-full h-full object-cover transition-all duration-500 opacity-0 group-hover:scale-105"
-                                loading="lazy" decoding="async"
-                                onload="this.classList.remove('opacity-0'); this.classList.add('opacity-100'); this.previousElementSibling.style.display='none'; this.classList.remove('absolute', 'inset-0', 'h-full'); this.classList.add('relative', 'h-auto');">
+                                class="inspiration-img w-full object-cover transition-all duration-500 group-hover:scale-105"
+                                :class="imgLoaded ? 'relative h-auto opacity-100' : 'absolute inset-0 h-full opacity-0'"
+                                loading="lazy" decoding="async" @load="imgLoaded = true">
 
                             <!-- Reference Images Grid (Top Left) -->
                             <template x-if="inspiration.ref_images && inspiration.ref_images.length > 0">
