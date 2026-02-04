@@ -61,7 +61,7 @@
 
                 <!-- User's History với Style này (Desktop) - Livewire reactive -->
                 <div id="desktop-history" class="hidden lg:block">
-                    @livewire('user-style-history', ['style' => $style], key('desktop-history-' . $style->id))
+                    <livewire:user-style-history :style="$style" :key="'desktop-history-' . $style->id" />
                 </div>
             </div>
 
