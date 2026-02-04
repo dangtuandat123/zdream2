@@ -376,6 +376,106 @@
                                     <i class="fa-solid fa-image text-white/50 text-sm"></i>
                                 </button>
 
+                                <!-- Model Selector -->
+                                <div class="relative" x-data="{
+                                    showModelDropdown: false,
+                                    selectedModel: 'flux-pro-1.1-ultra',
+                                    models: [
+                                        { id: 'flux-2-max', name: 'FLUX.2 Max', desc: 'Cao cấp nhất', icon: '👑' },
+                                        { id: 'flux-2-pro', name: 'FLUX.2 Pro', desc: 'Chất lượng cao', icon: '⭐' },
+                                        { id: 'flux-pro-1.1-ultra', name: 'FLUX 1.1 Ultra', desc: 'Siêu nhanh', icon: '⚡' },
+                                        { id: 'flux-pro-1.1', name: 'FLUX 1.1 Pro', desc: 'Cân bằng', icon: '🎯' },
+                                        { id: 'flux-dev', name: 'FLUX Dev', desc: 'Thử nghiệm', icon: '🔬' }
+                                    ],
+                                    getSelectedModel() {
+                                        return this.models.find(m => m.id === this.selectedModel) || this.models[2];
+                                    }
+                                }" @click.away="showModelDropdown = false">
+                                    <button type="button" @click="showModelDropdown = !showModelDropdown"
+                                        class="flex items-center gap-1.5 h-9 px-2.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition-all cursor-pointer"
+                                        :class="{ 'bg-purple-500/20 border-purple-500/40': showModelDropdown }">
+                                        <i class="fa-solid fa-microchip text-white/50 text-sm"></i>
+                                        <span class="text-white/70 text-xs font-medium hidden sm:inline"
+                                            x-text="getSelectedModel().name"></span>
+                                        <i class="fa-solid fa-chevron-down text-white/40 text-[10px] transition-transform"
+                                            :class="{ 'rotate-180': showModelDropdown }"></i>
+                                    </button>
+
+                                    <!-- Model Dropdown - Desktop -->
+                                    <template x-teleport="body">
+                                        <div x-show="showModelDropdown" x-cloak
+                                            x-transition:enter="transition ease-out duration-200"
+                                            x-transition:enter-start="opacity-0 -translate-y-2"
+                                            x-transition:enter-end="opacity-100 translate-y-0"
+                                            x-transition:leave="transition ease-in duration-150"
+                                            x-transition:leave-start="opacity-100 translate-y-0"
+                                            x-transition:leave-end="opacity-0 -translate-y-2"
+                                            class="hidden sm:block fixed w-64 p-2 rounded-xl bg-[#1a1b20] border border-white/10 shadow-2xl z-[9999]"
+                                            x-init="$watch('showModelDropdown', value => {
+                                                if (value) {
+                                                    const btn = $root.querySelector('button');
+                                                    const rect = btn.getBoundingClientRect();
+                                                    $el.style.top = (rect.bottom + 8) + 'px';
+                                                    $el.style.left = rect.left + 'px';
+                                                }
+                                            })" @click.stop>
+                                            <div class="text-white/50 text-xs font-medium mb-2 px-2">Chọn Model AI</div>
+                                            <template x-for="model in models" :key="model.id">
+                                                <button type="button"
+                                                    @click="selectedModel = model.id; showModelDropdown = false"
+                                                    class="w-full flex items-center gap-3 p-2.5 rounded-lg transition-all text-left"
+                                                    :class="selectedModel === model.id ? 'bg-purple-500/30 border border-purple-500/50' : 'hover:bg-white/5 border border-transparent'">
+                                                    <span class="text-lg" x-text="model.icon"></span>
+                                                    <div class="flex-1 min-w-0">
+                                                        <div class="text-white text-sm font-medium" x-text="model.name">
+                                                        </div>
+                                                        <div class="text-white/40 text-xs" x-text="model.desc"></div>
+                                                    </div>
+                                                    <i x-show="selectedModel === model.id"
+                                                        class="fa-solid fa-check text-purple-400 text-sm"></i>
+                                                </button>
+                                            </template>
+                                        </div>
+                                    </template>
+
+                                    <!-- Model Dropdown - Mobile (Bottom Sheet) -->
+                                    <div x-show="showModelDropdown" x-cloak
+                                        class="sm:hidden fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-sm"
+                                        @click.self="showModelDropdown = false">
+                                        <div x-show="showModelDropdown"
+                                            x-transition:enter="transition ease-out duration-300"
+                                            x-transition:enter-start="translate-y-full"
+                                            x-transition:enter-end="translate-y-0"
+                                            x-transition:leave="transition ease-in duration-200"
+                                            x-transition:leave-start="translate-y-0"
+                                            x-transition:leave-end="translate-y-full"
+                                            class="w-full max-w-lg p-4 pb-8 rounded-t-2xl bg-[#1a1b20] border-t border-white/10 safe-area-bottom">
+                                            <div class="w-10 h-1 mx-auto mb-4 rounded-full bg-white/20"></div>
+                                            <div class="text-white/50 text-sm font-medium mb-3">Chọn Model AI</div>
+                                            <div class="space-y-1">
+                                                <template x-for="model in models" :key="model.id">
+                                                    <button type="button"
+                                                        @click="selectedModel = model.id; showModelDropdown = false"
+                                                        class="w-full flex items-center gap-3 p-3 rounded-xl transition-all text-left"
+                                                        :class="selectedModel === model.id ? 'bg-purple-500/30 border border-purple-500/50' : 'bg-white/5 border border-transparent'">
+                                                        <span class="text-xl" x-text="model.icon"></span>
+                                                        <div class="flex-1 min-w-0">
+                                                            <div class="text-white font-medium" x-text="model.name">
+                                                            </div>
+                                                            <div class="text-white/40 text-sm" x-text="model.desc">
+                                                            </div>
+                                                        </div>
+                                                        <i x-show="selectedModel === model.id"
+                                                            class="fa-solid fa-check text-purple-400"></i>
+                                                    </button>
+                                                </template>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <input type="hidden" name="model" :value="selectedModel">
+                                </div>
+
                                 <!-- Hidden inputs for form submission -->
                                 <input type="hidden" name="aspect_ratio" :value="selectedRatio">
                                 <input type="hidden" name="width" :value="customWidth">
