@@ -343,13 +343,13 @@
                 </div>
 
                 <div x-ref="carousel"
-                    class="flex gap-3 sm:gap-4 overflow-x-auto scroll-smooth py-4 px-2 sm:px-4 no-scrollbar snap-x snap-mandatory"
+                    class="flex gap-3 sm:gap-4 overflow-x-auto scroll-smooth py-8 px-2 sm:px-4 no-scrollbar snap-x snap-mandatory"
                     style="-webkit-overflow-scrolling: touch;">
                     @foreach($styles as $style)
                         <a href="{{ route('studio.show', $style->slug) }}"
                             class="style-card-wrapper flex-shrink-0 w-52 sm:w-60 lg:w-64 group relative z-0 hover:z-20 snap-start">
                             <div
-                                class="bg-[#1b1c21] border border-[#2a2b30] rounded-xl overflow-hidden transition-all duration-300 hover:border-purple-500/40 hover:shadow-xl hover:shadow-purple-500/20 hover:scale-105">
+                                class="bg-[#1b1c21] border border-[#2a2b30] rounded-xl overflow-hidden transition-all duration-300 hover:border-purple-500/40 hover:scale-105">
                                 <!-- Image -->
                                 <div class="relative aspect-[3/4] overflow-hidden">
                                     <img src="{{ $style->thumbnail }}" alt="{{ $style->name }}"
