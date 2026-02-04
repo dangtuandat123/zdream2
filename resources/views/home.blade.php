@@ -8,6 +8,8 @@
             isolation: isolate;
             background: radial-gradient(120% 140% at 0% 0%, rgba(216, 180, 254, 0.2) 0%, rgba(10, 10, 15, 0.92) 55%, rgba(10, 10, 15, 1) 100%);
             box-shadow: 0 26px 60px rgba(0, 0, 0, 0.45), inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+            -webkit-mask-image: linear-gradient(to bottom, black 0%, black 70%, transparent 100%);
+            mask-image: linear-gradient(to bottom, black 0%, black 70%, transparent 100%);
         }
 
         .home-hero-grid {
@@ -16,7 +18,7 @@
             background-image: url('/images/hero/home-grid.png');
             background-size: 900px auto;
             background-repeat: repeat;
-            opacity: 0.4;
+            opacity: 0.45;
             filter: saturate(1) contrast(1.02);
             animation: home-grid-scroll 120s linear infinite;
             will-change: background-position;
@@ -160,7 +162,7 @@
                     <div class="relative flex flex-col gap-3 p-3 sm:p-4 rounded-2xl bg-black/50 backdrop-blur-2xl border border-white/15 shadow-2xl">
                         <!-- Textarea - Fixed height with scroll -->
                         <textarea name="prompt" rows="3" placeholder="Mô tả ý tưởng của bạn..." 
-                            class="w-full h-20 bg-transparent border-none outline-none text-white placeholder-white/40 text-sm sm:text-base resize-none focus:placeholder-white/60 transition-all overflow-y-auto"></textarea>
+                            class="w-full h-20 bg-transparent border-none outline-none ring-0 focus:ring-0 focus:outline-none text-white placeholder-white/40 text-sm sm:text-base resize-none focus:placeholder-white/60 transition-all overflow-y-auto"></textarea>
                         
                         <!-- Bottom row: icons + button -->
                         <div class="flex items-center justify-between gap-3">
