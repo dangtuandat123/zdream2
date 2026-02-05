@@ -176,15 +176,16 @@
     <div x-show="activeInspiration" x-transition:enter="transition-opacity ease-out duration-300"
         x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
         x-transition:leave="transition-opacity ease-in duration-200" x-transition:leave-start="opacity-100"
-        x-transition:leave-end="opacity-0" class="fixed inset-0 z-[99] bg-black/60 backdrop-blur-2xl"
+        x-transition:leave-end="opacity-0"
+        class="fixed inset-0 z-[99] bg-black/40 sm:bg-black/50 backdrop-blur-xl sm:backdrop-blur-2xl"
         @click="activeInspiration = null" style="display: none;">
     </div>
 
     <!-- Detail Modal -->
     <div x-show="activeInspiration" style="display: none;"
-        class="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
+        class="fixed inset-0 z-[100] flex items-center justify-center p-0 sm:p-6">
         <!-- Modal Content -->
-        <div class="relative w-full max-w-6xl h-full md:h-auto md:max-h-[90vh] bg-[#15161A] border-0 md:border border-white/10 rounded-none md:rounded-2xl shadow-2xl flex flex-col md:flex-row-reverse overflow-hidden"
+        <div class="relative w-full max-w-6xl h-full md:h-auto md:max-h-[90vh] bg-[#15161A] border-0 md:border border-white/10 rounded-none sm:rounded-2xl shadow-2xl flex flex-col md:flex-row-reverse overflow-hidden"
             @click.stop x-transition:enter="transition ease-out duration-300"
             x-transition:enter-start="opacity-0 translate-y-8 scale-95"
             x-transition:enter-end="opacity-100 translate-y-0 scale-100"
