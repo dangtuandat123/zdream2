@@ -53,6 +53,39 @@
             background: #0a0a0f;
         }
 
+        /* SPA Page Transitions */
+        [wire\:navigate] {
+            cursor: pointer;
+        }
+
+        /* Loading progress bar */
+        .nprogress-custom {
+            pointer-events: none;
+        }
+
+        /* Main content fade transition */
+        main {
+            animation: page-fade-in 0.3s ease-out;
+        }
+
+        @keyframes page-fade-in {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Loading state indicator */
+        body.livewire-navigating main {
+            opacity: 0.7;
+            transition: opacity 0.15s ease;
+        }
+
         .ambient-bg {
             position: fixed;
             inset: -10%;
@@ -628,38 +661,44 @@
 </head>
 
 <body class="min-h-screen text-white antialiased">
+    @persist('ambient-bg')
     <div class="ambient-bg" aria-hidden="true"></div>
+    @endpersist
 
     <!-- ========== MOBILE HEADER ========== -->
+    @persist('mobile-header')
     <header class="md:hidden fixed top-0 left-0 right-0 z-50 bg-[#0a0a0f]/95 backdrop-blur-xl border-b border-white/10">
         <div class="flex items-center justify-between h-14 px-4">
             <!-- Logo -->
-            <a href="{{ route('home') }}" class="flex items-center gap-2">
+            <a href="{{ route('home') }}" wire:navigate class="flex items-center gap-2">
                 <i class="fa-solid fa-wand-magic-sparkles text-purple-400"></i>
                 <span
                     class="text-lg font-bold bg-gradient-to-r from-purple-400 to-pink-500 bg-clip-text text-transparent">ZDream</span>
             </a>
             <!-- Xu Display -->
             @auth
-                <a href="{{ route('wallet.index') }}"
+                <a href="{{ route('wallet.index') }}" wire:navigate
                     class="flex items-center gap-1.5 px-3 h-9 rounded-full bg-white/5 border border-white/10">
                     <i class="fa-solid fa-gem text-cyan-400 text-sm"></i>
                     <span class="font-semibold text-sm"><livewire:header-credits /></span>
                 </a>
             @else
-                <a href="{{ route('login') }}"
+                <a href="{{ route('login') }}" wire:navigate
                     class="px-4 py-2 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white text-sm font-medium">
                     Đăng nhập
                 </a>
             @endauth
         </div>
     </header>
+    @endpersist
 
     <!-- ========== DESKTOP LEFT SIDEBAR (Compact Icon Style) ========== -->
+    @persist('desktop-sidebar')
     <aside
         class="hidden md:flex fixed left-0 top-0 bottom-0 z-50 w-[72px] flex-col bg-[#0a0a0f]/95 border-r border-white/10">
         <!-- Logo -->
-        <a href="{{ route('home') }}" class="flex items-center justify-center h-16 border-b border-white/5">
+        <a href="{{ route('home') }}" wire:navigate
+            class="flex items-center justify-center h-16 border-b border-white/5">
             <div
                 class="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow-lg shadow-purple-500/30">
                 <i class="fa-solid fa-wand-magic-sparkles text-white"></i>
@@ -667,20 +706,25 @@
         </a>
 
         <!-- Navigation -->
-        <nav class="flex-1 flex flex-col items-center py-4 gap-1 overflow-y-auto">
-            <a href="{{ route('home') }}"
-                class="flex flex-col items-center justify-center w-14 h-14 rounded-xl transition-all {{ request()->routeIs('home') ? 'bg-purple-500/20 text-white' : 'text-white/50 hover:text-white hover:bg-white/5' }}">
+        <nav class="flex-1 flex flex-col items-center py-4 gap-1 overflow-y-auto"
+            x-data="{ currentPath: window.location.pathname }" @popstate.window="currentPath = window.location.pathname"
+            x-init="document.addEventListener('livewire:navigated', () => { currentPath = window.location.pathname })">
+            <a href="{{ route('home') }}" wire:navigate
+                class="flex flex-col items-center justify-center w-14 h-14 rounded-xl transition-all"
+                :class="currentPath === '/' || currentPath === '/home' ? 'bg-purple-500/20 text-white' : 'text-white/50 hover:text-white hover:bg-white/5'">
                 <i class="fa-solid fa-house text-lg mb-1"></i>
                 <span class="text-[10px] font-medium">Trang chủ</span>
             </a>
-            <a href="{{ route('styles.index') }}"
-                class="flex flex-col items-center justify-center w-14 h-14 rounded-xl transition-all {{ request()->routeIs('styles.*') || request()->routeIs('studio.*') ? 'bg-purple-500/20 text-white' : 'text-white/50 hover:text-white hover:bg-white/5' }}">
+            <a href="{{ route('styles.index') }}" wire:navigate
+                class="flex flex-col items-center justify-center w-14 h-14 rounded-xl transition-all"
+                :class="currentPath.startsWith('/styles') || currentPath.startsWith('/studio') ? 'bg-purple-500/20 text-white' : 'text-white/50 hover:text-white hover:bg-white/5'">
                 <i class="fa-solid fa-palette text-lg mb-1"></i>
                 <span class="text-[10px] font-medium">Styles</span>
             </a>
             @auth
-                <a href="{{ route('history.index') }}"
-                    class="flex flex-col items-center justify-center w-14 h-14 rounded-xl transition-all {{ request()->routeIs('history.*') ? 'bg-purple-500/20 text-white' : 'text-white/50 hover:text-white hover:bg-white/5' }}">
+                <a href="{{ route('history.index') }}" wire:navigate
+                    class="flex flex-col items-center justify-center w-14 h-14 rounded-xl transition-all"
+                    :class="currentPath.startsWith('/history') ? 'bg-purple-500/20 text-white' : 'text-white/50 hover:text-white hover:bg-white/5'">
                     <i class="fa-solid fa-images text-lg mb-1"></i>
                     <span class="text-[10px] font-medium">Thư viện</span>
                 </a>
@@ -690,8 +734,9 @@
             <div class="flex-1"></div>
 
             <!-- Settings -->
-            <a href="{{ route('profile.edit') }}"
-                class="flex flex-col items-center justify-center w-14 h-14 rounded-xl transition-all {{ request()->routeIs('profile.*') ? 'bg-purple-500/20 text-white' : 'text-white/50 hover:text-white hover:bg-white/5' }}">
+            <a href="{{ route('profile.edit') }}" wire:navigate
+                class="flex flex-col items-center justify-center w-14 h-14 rounded-xl transition-all"
+                :class="currentPath.startsWith('/profile') ? 'bg-purple-500/20 text-white' : 'text-white/50 hover:text-white hover:bg-white/5'">
                 <i class="fa-solid fa-gear text-lg mb-1"></i>
                 <span class="text-[10px] font-medium">Cài đặt</span>
             </a>
@@ -701,14 +746,14 @@
         <div class="flex flex-col items-center py-3 border-t border-white/5 gap-2">
             @auth
                 <!-- Credits -->
-                <a href="{{ route('wallet.index') }}"
+                <a href="{{ route('wallet.index') }}" wire:navigate
                     class="flex flex-col items-center justify-center w-14 py-2 rounded-xl bg-gradient-to-b from-purple-500/10 to-transparent hover:bg-purple-500/20 transition-all">
                     <i class="fa-solid fa-gem text-cyan-400 text-sm mb-0.5"></i>
                     <span class="text-[11px] font-bold"><livewire:header-credits /></span>
                 </a>
 
                 <!-- Upgrade -->
-                <a href="{{ route('wallet.index') }}"
+                <a href="{{ route('wallet.index') }}" wire:navigate
                     class="flex items-center justify-center w-14 h-8 rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 text-white text-[10px] font-semibold shadow-lg shadow-purple-500/30">
                     Nạp Xu
                 </a>
@@ -727,7 +772,7 @@
                             <p class="text-sm font-medium truncate">{{ auth()->user()->name }}</p>
                             <p class="text-xs text-white/50 truncate">{{ auth()->user()->email }}</p>
                         </div>
-                        <a href="{{ route('profile.edit') }}"
+                        <a href="{{ route('profile.edit') }}" wire:navigate
                             class="flex items-center gap-2 px-3 py-2.5 text-sm text-white/70 hover:text-white hover:bg-white/5">
                             <i class="fa-solid fa-user w-4 text-blue-400"></i> Hồ sơ
                         </a>
@@ -747,7 +792,7 @@
                     </div>
                 </div>
             @else
-                <a href="{{ route('login') }}"
+                <a href="{{ route('login') }}" wire:navigate
                     class="flex flex-col items-center justify-center w-14 h-14 rounded-xl text-white/50 hover:text-white hover:bg-white/5 transition-all">
                     <i class="fa-solid fa-right-to-bracket text-lg mb-1"></i>
                     <span class="text-[10px] font-medium">Đăng nhập</span>
@@ -755,6 +800,7 @@
             @endauth
         </div>
     </aside>
+    @endpersist
 
     <!-- ========== MOBILE MENU OVERLAY ========== -->
     <div id="menu-overlay"
@@ -771,7 +817,7 @@
             </div>
             <div class="p-4 space-y-2">
                 @auth
-                    <a href="{{ route('wallet.index') }}"
+                    <a href="{{ route('wallet.index') }}" wire:navigate
                         class="block p-4 rounded-xl bg-gradient-to-br from-purple-500/10 to-pink-500/10 border border-purple-500/20">
                         <div class="flex items-center justify-between mb-3">
                             <span class="text-white/60 text-sm">Số dư</span>
@@ -785,13 +831,13 @@
                     </a>
                 @endauth
                 <div class="h-px bg-white/[0.05] my-4"></div>
-                <a href="{{ route('home') }}"
+                <a href="{{ route('home') }}" wire:navigate
                     class="flex items-center justify-between px-4 py-3 rounded-xl transition-all {{ request()->routeIs('home') ? 'bg-purple-500/10 border-purple-500/30 text-white' : 'bg-[#13131a] hover:bg-white/[0.05] border-[#222230] text-white/80 hover:text-white' }} border">
                     <span class="flex items-center gap-3"><i class="fa-solid fa-house w-4 h-4 text-purple-400"></i>
                         Trang chủ</span>
                     <i class="fa-solid fa-chevron-right w-3 h-3 text-white/30"></i>
                 </a>
-                <a href="{{ route('styles.index') }}"
+                <a href="{{ route('styles.index') }}" wire:navigate
                     class="flex items-center justify-between px-4 py-3 rounded-xl transition-all {{ request()->routeIs('styles.*') || request()->routeIs('studio.*') ? 'bg-purple-500/10 border-purple-500/30 text-white' : 'bg-[#13131a] hover:bg-white/[0.05] border-[#222230] text-white/80 hover:text-white' }} border">
                     <span class="flex items-center gap-3"><i class="fa-solid fa-palette w-4 h-4 text-purple-400"></i>
                         Styles</span>
@@ -805,7 +851,7 @@
                     <i class="fa-solid fa-chevron-right w-3 h-3 text-white/30"></i>
                 </a> --}}
                 @auth
-                    <a href="{{ route('history.index') }}"
+                    <a href="{{ route('history.index') }}" wire:navigate
                         class="flex items-center justify-between px-4 py-3 rounded-xl transition-all {{ request()->routeIs('history.*') ? 'bg-purple-500/10 border-purple-500/30 text-white' : 'bg-[#13131a] hover:bg-white/[0.05] border-[#222230] text-white/80 hover:text-white' }} border">
                         <span class="flex items-center gap-3"><i class="fa-solid fa-images w-4 h-4 text-purple-400"></i> Ảnh
                             của tôi</span>
@@ -830,17 +876,17 @@
 
                         <!-- Dropdown Items -->
                         <div x-show="userMenuOpen" x-collapse class="mt-1 ml-4 space-y-1">
-                            <a href="{{ route('dashboard') }}"
+                            <a href="{{ route('dashboard') }}" wire:navigate
                                 class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm text-white/70 hover:text-white hover:bg-white/[0.05] transition-colors">
                                 <i class="fa-solid fa-gauge w-4 text-purple-400"></i>
                                 Dashboard
                             </a>
-                            <a href="{{ route('profile.edit') }}"
+                            <a href="{{ route('profile.edit') }}" wire:navigate
                                 class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm text-white/70 hover:text-white hover:bg-white/[0.05] transition-colors">
                                 <i class="fa-solid fa-user w-4 text-blue-400"></i>
                                 Hồ sơ cá nhân
                             </a>
-                            <a href="{{ route('wallet.index') }}"
+                            <a href="{{ route('wallet.index') }}" wire:navigate
                                 class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm text-white/70 hover:text-white hover:bg-white/[0.05] transition-colors">
                                 <i class="fa-solid fa-wallet w-4 text-yellow-400"></i>
                                 Ví tiền
@@ -866,12 +912,12 @@
                     </form>
                 @else
                     <div class="h-px bg-white/[0.05] my-4"></div>
-                    <a href="{{ route('register') }}"
+                    <a href="{{ route('register') }}" wire:navigate
                         class="w-full py-3 rounded-xl bg-white text-gray-900 font-medium inline-flex items-center justify-center gap-2 hover:bg-gray-100 transition-colors">
                         <i class="fa-solid fa-crown" style="font-size: 14px;"></i>
                         <span>Đăng ký miễn phí</span>
                     </a>
-                    <a href="{{ route('login') }}"
+                    <a href="{{ route('login') }}" wire:navigate
                         class="w-full py-3 rounded-xl bg-white/[0.05] border border-white/[0.1] text-white/80 font-medium inline-flex items-center justify-center gap-2 hover:bg-white/[0.1] transition-colors mt-2">
                         <i class="fa-solid fa-right-to-bracket" style="font-size: 14px;"></i>
                         <span>Đăng nhập</span>
@@ -891,52 +937,54 @@
     </main>
 
     <!-- ========== MOBILE BOTTOM TAB BAR ========== -->
-    <nav
-        class="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-[#0a0a0f]/95 backdrop-blur-xl border-t border-white/10 safe-area-bottom">
+    @persist('mobile-bottom-nav')
+    <nav class="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-[#0a0a0f]/95 backdrop-blur-xl border-t border-white/10 safe-area-bottom"
+        x-data="{ currentPath: window.location.pathname }" @popstate.window="currentPath = window.location.pathname"
+        x-init="document.addEventListener('livewire:navigated', () => { currentPath = window.location.pathname })">
         <div class="flex items-center justify-around h-16 px-2 max-w-lg mx-auto">
             <!-- Home -->
-            <a href="{{ route('home') }}"
-                class="flex flex-col items-center justify-center gap-1 py-2 px-4 rounded-xl transition-all {{ request()->routeIs('home') ? 'text-white' : 'text-white/50' }}">
-                @if(request()->routeIs('home'))
-                    <div class="absolute -top-0.5 w-8 h-1 rounded-full bg-gradient-to-r from-purple-500 to-pink-500"></div>
-                @endif
+            <a href="{{ route('home') }}" wire:navigate
+                class="relative flex flex-col items-center justify-center gap-1 py-2 px-4 rounded-xl transition-all"
+                :class="currentPath === '/' || currentPath === '/home' ? 'text-white' : 'text-white/50'">
+                <div x-show="currentPath === '/' || currentPath === '/home'"
+                    class="absolute -top-0.5 w-8 h-1 rounded-full bg-gradient-to-r from-purple-500 to-pink-500"></div>
                 <i class="fa-solid fa-house text-lg"></i>
                 <span class="text-[10px] font-medium">Trang chủ</span>
             </a>
 
             <!-- Styles -->
-            <a href="{{ route('styles.index') }}"
-                class="flex flex-col items-center justify-center gap-1 py-2 px-4 rounded-xl transition-all {{ request()->routeIs('styles.*') || request()->routeIs('studio.*') ? 'text-white' : 'text-white/50' }}">
-                @if(request()->routeIs('styles.*') || request()->routeIs('studio.*'))
-                    <div class="absolute -top-0.5 w-8 h-1 rounded-full bg-gradient-to-r from-purple-500 to-pink-500"></div>
-                @endif
+            <a href="{{ route('styles.index') }}" wire:navigate
+                class="relative flex flex-col items-center justify-center gap-1 py-2 px-4 rounded-xl transition-all"
+                :class="currentPath.startsWith('/styles') || currentPath.startsWith('/studio') ? 'text-white' : 'text-white/50'">
+                <div x-show="currentPath.startsWith('/styles') || currentPath.startsWith('/studio')"
+                    class="absolute -top-0.5 w-8 h-1 rounded-full bg-gradient-to-r from-purple-500 to-pink-500"></div>
                 <i class="fa-solid fa-palette text-lg"></i>
                 <span class="text-[10px] font-medium">Styles</span>
             </a>
 
             @auth
                 <!-- History -->
-                <a href="{{ route('history.index') }}"
-                    class="flex flex-col items-center justify-center gap-1 py-2 px-4 rounded-xl transition-all {{ request()->routeIs('history.*') ? 'text-white' : 'text-white/50' }}">
-                    @if(request()->routeIs('history.*'))
-                        <div class="absolute -top-0.5 w-8 h-1 rounded-full bg-gradient-to-r from-purple-500 to-pink-500"></div>
-                    @endif
+                <a href="{{ route('history.index') }}" wire:navigate
+                    class="relative flex flex-col items-center justify-center gap-1 py-2 px-4 rounded-xl transition-all"
+                    :class="currentPath.startsWith('/history') ? 'text-white' : 'text-white/50'">
+                    <div x-show="currentPath.startsWith('/history')"
+                        class="absolute -top-0.5 w-8 h-1 rounded-full bg-gradient-to-r from-purple-500 to-pink-500"></div>
                     <i class="fa-solid fa-images text-lg"></i>
                     <span class="text-[10px] font-medium">Ảnh của tôi</span>
                 </a>
 
                 <!-- Profile -->
-                <a href="{{ route('profile.edit') }}"
-                    class="flex flex-col items-center justify-center gap-1 py-2 px-4 rounded-xl transition-all {{ request()->routeIs('profile.*') ? 'text-white' : 'text-white/50' }}">
-                    @if(request()->routeIs('profile.*'))
-                        <div class="absolute -top-0.5 w-8 h-1 rounded-full bg-gradient-to-r from-purple-500 to-pink-500"></div>
-                    @endif
+                <a href="{{ route('profile.edit') }}" wire:navigate
+                    class="relative flex flex-col items-center justify-center gap-1 py-2 px-4 rounded-xl transition-all"
+                    :class="currentPath.startsWith('/profile') ? 'text-white' : 'text-white/50'">
+                    <div x-show="currentPath.startsWith('/profile')"
+                        class="absolute -top-0.5 w-8 h-1 rounded-full bg-gradient-to-r from-purple-500 to-pink-500"></div>
                     <i class="fa-solid fa-user text-lg"></i>
                     <span class="text-[10px] font-medium">Tài khoản</span>
                 </a>
             @else
                 <!-- Login -->
-                <a href="{{ route('login') }}"
+                <a href="{{ route('login') }}" wire:navigate
                     class="flex flex-col items-center justify-center gap-1 py-2 px-4 rounded-xl transition-all text-white/50">
                     <i class="fa-solid fa-right-to-bracket text-lg"></i>
                     <span class="text-[10px] font-medium">Đăng nhập</span>
@@ -944,6 +992,7 @@
             @endauth
         </div>
     </nav>
+    @endpersist
 
     <!-- Custom Scripts -->
     <script>
