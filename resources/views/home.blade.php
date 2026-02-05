@@ -218,6 +218,12 @@
                                     }
                                 }
                             }" @click.away="showRatioDropdown = false">
+                                <!-- Image Button -->
+                                <button type="button"
+                                    class="flex items-center justify-center w-9 h-9 rounded-lg bg-gradient-to-br from-purple-500/20 to-pink-500/20 hover:from-purple-500/30 hover:to-pink-500/30 border border-purple-500/30 transition-all cursor-pointer">
+                                    <i class="fa-solid fa-image text-purple-400 text-sm"></i>
+                                </button>
+
                                 <!-- Aspect Ratio Button -->
                                 <div class="relative">
                                     <button type="button" @click="showRatioDropdown = !showRatioDropdown"
@@ -403,10 +409,6 @@
                                     </template>
                                 </div>
 
-                                <button type="button"
-                                    class="flex items-center justify-center w-9 h-9 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition-all cursor-pointer">
-                                    <i class="fa-solid fa-image text-white/50 text-sm"></i>
-                                </button>
 
                                 <!-- Model Selector -->
                                 <div class="relative" x-data="{
