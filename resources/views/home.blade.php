@@ -732,9 +732,9 @@
 
                                     <!-- Hover Description Overlay -->
                                     <div
-                                        class="absolute inset-0 flex flex-col items-center justify-center p-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-black/60 backdrop-blur-sm">
+                                        class="absolute inset-0 flex flex-col items-center justify-center p-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-black/40 backdrop-blur-[2px]">
                                         <p
-                                            class="text-white/90 text-[10px] sm:text-xs text-center line-clamp-4 leading-relaxed mb-2">
+                                            class="text-white/90 text-[10px] sm:text-xs text-center line-clamp-3 leading-relaxed mb-2">
                                             {{ $style->description ?? 'Khám phá phong cách độc đáo này!' }}
                                         </p>
                                         <span
