@@ -177,7 +177,7 @@
         x-transition:enter-end="opacity-100" x-transition:leave="transition ease-in duration-200"
         x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0">
         <!-- Backdrop -->
-        <div class="absolute inset-0 bg-black/90 backdrop-blur-xl" @click="activeInspiration = null"></div>
+        <div class="absolute inset-0 bg-black/60 backdrop-blur-2xl" @click="activeInspiration = null"></div>
 
         <!-- Modal Content -->
         <div class="relative w-full max-w-6xl h-full md:h-auto md:max-h-[90vh] bg-[#15161A] border-0 md:border border-white/10 rounded-none md:rounded-2xl shadow-2xl flex flex-col md:flex-row-reverse overflow-hidden"
