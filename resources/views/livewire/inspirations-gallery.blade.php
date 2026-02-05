@@ -204,7 +204,7 @@
 
             <!-- Left: Reference Images & Details (Mobile: Bottom) -->
             <div
-                class="w-full md:w-96 lg:w-[28rem] border-t md:border-t-0 md:border-r border-white/5 bg-[#0F1014] p-5 md:p-6 overflow-y-auto custom-scrollbar flex flex-col gap-6 h-full">
+                class="w-full md:w-96 lg:w-[28rem] border-t md:border-t-0 md:border-r border-white/5 bg-[#0F1014] p-5 md:p-6 overflow-y-auto custom-scrollbar flex flex-col gap-6 flex-1 md:min-h-[80vh]">
                 <div>
                     <h3 class="text-white/70 font-semibold mb-4 flex items-center gap-2">
                         <i class="fa-solid fa-images text-purple-400"></i> Ảnh tham chiếu
@@ -231,10 +231,19 @@
                 </div>
 
                 <!-- Prompt Section -->
-                <div class="mt-auto">
-                    <h3 class="text-white/70 font-semibold mb-3 flex items-center gap-2">
-                        <i class="fa-solid fa-quote-left text-purple-400"></i> Prompt
-                    </h3>
+                <div class="mt-auto" x-data="{ copied: false }">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="text-white/70 font-semibold flex items-center gap-2">
+                            <i class="fa-solid fa-quote-left text-purple-400"></i> Prompt
+                        </h3>
+                        <button
+                            @click="navigator.clipboard.writeText(activeInspiration.prompt); copied = true; setTimeout(() => copied = false, 2000)"
+                            class="px-3 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-1.5"
+                            :class="copied ? 'bg-green-500/20 text-green-400 border border-green-500/30' : 'bg-white/5 text-white/60 hover:text-white hover:bg-white/10 border border-white/10'">
+                            <i class="fa-solid" :class="copied ? 'fa-check' : 'fa-copy'"></i>
+                            <span x-text="copied ? 'Đã copy!' : 'Copy'"></span>
+                        </button>
+                    </div>
                     <div class="bg-white/5 rounded-xl p-4 border border-white/10">
                         <p class="text-gray-300 text-xs sm:text-sm leading-relaxed max-h-32 md:max-h-40 overflow-y-auto custom-scrollbar"
                             x-text="activeInspiration ? activeInspiration.prompt : ''"></p>
