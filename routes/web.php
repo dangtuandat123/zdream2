@@ -75,6 +75,17 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    // API-like routes for AJAX calls
+    Route::get('/api/user/recent-images', function () {
+        $images = auth()->user()->generatedImages()
+            ->latest()
+            ->take(8)
+            ->get(['id', 'image_url'])
+            ->map(fn($img) => ['id' => $img->id, 'url' => $img->image_url]);
+
+        return response()->json(['images' => $images]);
+    })->name('api.recent-images');
 });
 
 // =============================================
