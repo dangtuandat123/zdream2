@@ -65,58 +65,11 @@
             cursor: pointer;
         }
 
-        /* View Transitions API */
-        @view-transition {
-            navigation: auto;
-        }
-
-        ::view-transition-old(main-content) {
-            animation: fade-out 0.15s ease-out;
-        }
-
-        ::view-transition-new(main-content) {
-            animation: fade-in 0.2s ease-out;
-        }
-
-        main {
-            view-transition-name: main-content;
-        }
-
-        /* Main content fade transition (fallback) */
-        main {
-            animation: page-fade-in 0.3s ease-out;
-        }
-
-        @keyframes page-fade-in {
-            from {
-                opacity: 0;
-                transform: translateY(8px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @keyframes fade-out {
-            from {
-                opacity: 1;
-            }
-
-            to {
-                opacity: 0;
-            }
-        }
-
-        @keyframes fade-in {
-            from {
-                opacity: 0;
-            }
-
-            to {
-                opacity: 1;
-            }
+        /* Simple loading state - just dim content slightly */
+        body.livewire-navigating main {
+            opacity: 0.6;
+            pointer-events: none;
+            transition: opacity 0.1s ease;
         }
 
         /* ========== LOADING SKELETON ========== */
@@ -138,34 +91,6 @@
             100% {
                 background-position: -200% 0;
             }
-        }
-
-        /* Loading overlay with skeleton */
-        body.livewire-navigating::after {
-            content: '';
-            position: fixed;
-            top: 0;
-            left: 72px;
-            right: 0;
-            bottom: 0;
-            background: rgba(10, 10, 15, 0.5);
-            backdrop-filter: blur(2px);
-            z-index: 40;
-            animation: fade-in 0.1s ease-out;
-        }
-
-        @media (max-width: 768px) {
-            body.livewire-navigating::after {
-                left: 0;
-                top: 56px;
-                bottom: 64px;
-            }
-        }
-
-        body.livewire-navigating main {
-            opacity: 0.5;
-            pointer-events: none;
-            transition: opacity 0.15s ease;
         }
 
         /* ========== MICRO-INTERACTIONS ========== */
