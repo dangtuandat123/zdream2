@@ -44,6 +44,8 @@
 
         body {
             overflow-x: hidden;
+            overflow-y: hidden !important;
+            /* Never show body scrollbar - only html */
             max-width: 100%;
             width: 100%;
         }
@@ -84,6 +86,17 @@
         body.livewire-navigating main {
             opacity: 0.7;
             transition: opacity 0.15s ease;
+        }
+
+        /* Prevent double scrollbar - main should NEVER have its own scrollbar */
+        main {
+            overflow: visible !important;
+            overflow-y: visible !important;
+        }
+
+        /* Force all scrollable containers inside main to not create extra scrollbars */
+        main>* {
+            max-width: 100%;
         }
 
         .ambient-bg {
