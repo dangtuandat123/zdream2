@@ -362,7 +362,13 @@
                                             </div>
                                         </template>
                                         <template x-if="selectedImages.length === 0">
-                                            <i class="fa-solid fa-image text-purple-400 text-sm"></i>
+                                            <div class="flex items-center gap-2">
+                                                <i class="fa-solid fa-image text-purple-400 text-sm"></i>
+                                                <span class="text-purple-300 text-sm font-medium hidden sm:inline">Chọn
+                                                    ảnh mẫu</span>
+                                                <span class="text-purple-300 text-xs font-medium sm:hidden">Ảnh
+                                                    mẫu</span>
+                                            </div>
                                         </template>
                                     </button>
 
@@ -383,7 +389,7 @@
                                                     document.body.style.removeProperty('overflow');
                                                 }
                                             })"
-                                            class="hidden sm:flex fixed inset-0 z-[100] items-center justify-center bg-black/50 backdrop-blur-2xl"
+                                            class="hidden sm:flex fixed inset-0 z-[100] items-center justify-center backdrop-blur-sm"
                                             x-transition:enter="transition ease-out duration-300"
                                             x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
                                             x-transition:leave="transition ease-in duration-200"
@@ -680,7 +686,7 @@
                                     <!-- Mobile Bottom Sheet (teleported) -->
                                     <template x-teleport="body">
                                         <div x-show="showImagePicker" x-cloak
-                                            class="sm:hidden fixed inset-0 z-[100] flex items-end justify-center bg-black/80 backdrop-blur-md"
+                                            class="sm:hidden fixed inset-0 z-[100] flex items-end justify-center backdrop-blur-sm"
                                             @click.self="showImagePicker = false">
                                             <div x-show="showImagePicker"
                                                 x-transition:enter="transition ease-out duration-300"
