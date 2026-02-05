@@ -31,9 +31,11 @@
             this.$watch('activeInspiration', value => {
                 if (value) {
                     document.documentElement.style.setProperty('overflow', 'hidden', 'important');
+                    document.documentElement.style.setProperty('scrollbar-gutter', 'auto', 'important');
                     document.body.style.setProperty('overflow', 'hidden', 'important');
                 } else {
                     document.documentElement.style.removeProperty('overflow');
+                    document.documentElement.style.removeProperty('scrollbar-gutter');
                     document.body.style.removeProperty('overflow');
                 }
             });
@@ -170,18 +172,20 @@
         </div>
     </div>
 
+    <!-- Backdrop Blur Layer (separate for smooth fade) -->
+    <div x-show="activeInspiration" x-transition:enter="transition-opacity ease-out duration-300"
+        x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+        x-transition:leave="transition-opacity ease-in duration-200" x-transition:leave-start="opacity-100"
+        x-transition:leave-end="opacity-0" class="fixed inset-0 z-[99] bg-black/60 backdrop-blur-2xl"
+        @click="activeInspiration = null" style="display: none;">
+    </div>
+
     <!-- Detail Modal -->
     <div x-show="activeInspiration" style="display: none;"
-        class="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6"
-        x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0"
-        x-transition:enter-end="opacity-100" x-transition:leave="transition ease-in duration-200"
-        x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0">
-        <!-- Backdrop -->
-        <div class="absolute inset-0 bg-black/60 backdrop-blur-2xl" @click="activeInspiration = null"></div>
-
+        class="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
         <!-- Modal Content -->
         <div class="relative w-full max-w-6xl h-full md:h-auto md:max-h-[90vh] bg-[#15161A] border-0 md:border border-white/10 rounded-none md:rounded-2xl shadow-2xl flex flex-col md:flex-row-reverse overflow-hidden"
-            @click.stop x-transition:enter="transition ease-out duration-300 delay-100"
+            @click.stop x-transition:enter="transition ease-out duration-300"
             x-transition:enter-start="opacity-0 translate-y-8 scale-95"
             x-transition:enter-end="opacity-100 translate-y-0 scale-100"
             x-transition:leave="transition ease-in duration-200"

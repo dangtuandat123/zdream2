@@ -98,6 +98,12 @@
             overflow-y: hidden !important;
         }
 
+        /* Modal backdrop - blur transition not supported, using static blur */
+        .modal-backdrop-animate {
+            backdrop-filter: blur(40px);
+            -webkit-backdrop-filter: blur(40px);
+        }
+
         /* ========== MICRO-INTERACTIONS ========== */
         /* Button hover effects */
         .btn-glow {
