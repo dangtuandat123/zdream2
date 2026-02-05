@@ -6,6 +6,8 @@
             position: relative;
             overflow: hidden;
             isolation: isolate;
+            min-height: 420px;
+            /* Fixed minimum height */
             background: radial-gradient(120% 140% at 0% 0%, rgba(216, 180, 254, 0.2) 0%, rgba(10, 10, 15, 0.92) 55%, rgba(10, 10, 15, 1) 100%);
             box-shadow: 0 26px 60px rgba(0, 0, 0, 0.45), inset 0 0 0 1px rgba(255, 255, 255, 0.08);
             -webkit-mask-image: linear-gradient(to bottom, black 0%, black 70%, transparent 100%);
@@ -263,26 +265,27 @@
                     <div
                         class="relative flex flex-col gap-3 p-3 sm:p-4 rounded-2xl bg-black/50 backdrop-blur-2xl border border-white/15 shadow-2xl">
 
-                        <!-- Selected Images Preview (shown above textarea) -->
+                        <!-- Selected Images Preview (horizontal scroll, fixed height) -->
                         <template x-if="selectedImages.length > 0">
-                            <div class="flex flex-wrap gap-2 pb-2 border-b border-white/10">
+                            <div class="flex gap-2 pb-2 border-b border-white/10 overflow-x-auto scrollbar-none"
+                                style="scrollbar-width: none; -ms-overflow-style: none;">
                                 <template x-for="(img, idx) in selectedImages" :key="img.id">
-                                    <div class="relative group">
+                                    <div class="relative group shrink-0">
                                         <img :src="img.url"
-                                            class="w-14 h-14 sm:w-16 sm:h-16 rounded-xl object-cover border border-white/20 shadow-lg">
+                                            class="w-12 h-12 rounded-lg object-cover border border-white/20 shadow-lg">
                                         <button type="button" @click="removeImage(img.id)"
-                                            class="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-red-500/90 text-white text-[10px] flex items-center justify-center opacity-0 group-hover:opacity-100 sm:opacity-100 transition-opacity hover:bg-red-600 shadow-md">
+                                            class="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-red-500/90 text-white text-[8px] flex items-center justify-center opacity-0 group-hover:opacity-100 sm:opacity-100 transition-opacity hover:bg-red-600 shadow-md">
                                             <i class="fa-solid fa-xmark"></i>
                                         </button>
-                                        <div class="absolute bottom-0.5 right-0.5 w-4 h-4 rounded-full bg-purple-500 text-white text-[9px] flex items-center justify-center font-bold"
+                                        <div class="absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full bg-purple-500 text-white text-[8px] flex items-center justify-center font-bold"
                                             x-text="idx + 1"></div>
                                     </div>
                                 </template>
                                 <!-- Add more button if not at max -->
                                 <template x-if="selectedImages.length < maxImages">
                                     <button type="button" @click="showImagePicker = true; loadRecentImages()"
-                                        class="w-14 h-14 sm:w-16 sm:h-16 rounded-xl border-2 border-dashed border-white/20 flex items-center justify-center text-white/40 hover:border-purple-500/50 hover:text-purple-400 hover:bg-purple-500/5 transition-all">
-                                        <i class="fa-solid fa-plus text-sm"></i>
+                                        class="shrink-0 w-12 h-12 rounded-lg border border-dashed border-white/20 flex items-center justify-center text-white/40 hover:border-purple-500/50 hover:text-purple-400 transition-all">
+                                        <i class="fa-solid fa-plus text-xs"></i>
                                     </button>
                                 </template>
                             </div>
