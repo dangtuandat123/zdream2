@@ -13,6 +13,11 @@
     </title>
     <meta name="description" content="Chọn style → Upload ảnh → Nhận kết quả. Chỉ 3 bước, không cần prompt!">
 
+    <!-- PWA -->
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="/images/icon-192.svg">
+    <meta name="mobile-web-app-capable" content="yes">
+
     <!-- Fonts: Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -55,17 +60,29 @@
             background: #0a0a0f;
         }
 
-        /* SPA Page Transitions */
+        /* ========== SPA PAGE TRANSITIONS ========== */
         [wire\:navigate] {
             cursor: pointer;
         }
 
-        /* Loading progress bar */
-        .nprogress-custom {
-            pointer-events: none;
+        /* View Transitions API */
+        @view-transition {
+            navigation: auto;
         }
 
-        /* Main content fade transition */
+        ::view-transition-old(main-content) {
+            animation: fade-out 0.15s ease-out;
+        }
+
+        ::view-transition-new(main-content) {
+            animation: fade-in 0.2s ease-out;
+        }
+
+        main {
+            view-transition-name: main-content;
+        }
+
+        /* Main content fade transition (fallback) */
         main {
             animation: page-fade-in 0.3s ease-out;
         }
@@ -82,10 +99,160 @@
             }
         }
 
-        /* Loading state indicator */
+        @keyframes fade-out {
+            from {
+                opacity: 1;
+            }
+
+            to {
+                opacity: 0;
+            }
+        }
+
+        @keyframes fade-in {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        /* ========== LOADING SKELETON ========== */
+        .skeleton {
+            background: linear-gradient(90deg,
+                    rgba(255, 255, 255, 0.05) 25%,
+                    rgba(255, 255, 255, 0.1) 50%,
+                    rgba(255, 255, 255, 0.05) 75%);
+            background-size: 200% 100%;
+            animation: skeleton-shimmer 1.5s infinite;
+            border-radius: 8px;
+        }
+
+        @keyframes skeleton-shimmer {
+            0% {
+                background-position: 200% 0;
+            }
+
+            100% {
+                background-position: -200% 0;
+            }
+        }
+
+        /* Loading overlay with skeleton */
+        body.livewire-navigating::after {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 72px;
+            right: 0;
+            bottom: 0;
+            background: rgba(10, 10, 15, 0.5);
+            backdrop-filter: blur(2px);
+            z-index: 40;
+            animation: fade-in 0.1s ease-out;
+        }
+
+        @media (max-width: 768px) {
+            body.livewire-navigating::after {
+                left: 0;
+                top: 56px;
+                bottom: 64px;
+            }
+        }
+
         body.livewire-navigating main {
-            opacity: 0.7;
+            opacity: 0.5;
+            pointer-events: none;
             transition: opacity 0.15s ease;
+        }
+
+        /* ========== MICRO-INTERACTIONS ========== */
+        /* Button hover effects */
+        .btn-glow {
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .btn-glow:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 40px -10px currentColor;
+        }
+
+        .btn-glow:active {
+            transform: translateY(0) scale(0.98);
+        }
+
+        /* Card hover lift effect */
+        .card-lift {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .card-lift:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px -15px rgba(139, 92, 246, 0.3);
+        }
+
+        /* Icon bounce on hover */
+        .icon-bounce:hover i,
+        .icon-bounce:hover svg {
+            animation: icon-bounce 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        @keyframes icon-bounce {
+
+            0%,
+            100% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.2);
+            }
+        }
+
+        /* Ripple effect for buttons */
+        .ripple {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .ripple::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at var(--ripple-x, 50%) var(--ripple-y, 50%),
+                    rgba(255, 255, 255, 0.3) 0%, transparent 60%);
+            opacity: 0;
+            transform: scale(0);
+            transition: transform 0.5s ease, opacity 0.3s ease;
+        }
+
+        .ripple:active::before {
+            opacity: 1;
+            transform: scale(2);
+        }
+
+        /* Smooth link underline animation */
+        .link-underline {
+            position: relative;
+        }
+
+        .link-underline::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: linear-gradient(90deg, #a855f7, #ec4899);
+            transition: width 0.3s ease;
+        }
+
+        .link-underline:hover::after {
+            width: 100%;
         }
 
         /* Prevent double scrollbar - main should NEVER have its own scrollbar */
@@ -97,6 +264,27 @@
         /* Force all scrollable containers inside main to not create extra scrollbars */
         main>* {
             max-width: 100%;
+        }
+
+        /* ========== IMAGE LAZY LOADING ========== */
+        /* Only apply to images that need fade-in, use .lazy-fade class */
+        img.lazy-fade {
+            opacity: 0;
+        }
+
+        img.lazy-fade.loaded {
+            opacity: 1;
+            transition: opacity 0.3s ease;
+        }
+
+        /* Placeholder while image loads */
+        .img-placeholder {
+            background: linear-gradient(90deg,
+                    rgba(255, 255, 255, 0.03) 25%,
+                    rgba(255, 255, 255, 0.06) 50%,
+                    rgba(255, 255, 255, 0.03) 75%);
+            background-size: 200% 100%;
+            animation: skeleton-shimmer 1.5s infinite;
         }
 
         .ambient-bg {
@@ -1312,6 +1500,21 @@
     </script>
 
     @stack('scripts')
+
+    <!-- Service Worker Registration -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then((registration) => {
+                        console.log('[SW] Registered:', registration.scope);
+                    })
+                    .catch((error) => {
+                        console.log('[SW] Registration failed:', error);
+                    });
+            });
+        }
+    </script>
 
     <!-- Livewire Scripts (REQUIRED for wire:click) -->
     @livewireScripts
