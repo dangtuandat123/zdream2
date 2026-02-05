@@ -443,236 +443,208 @@
                                                     </button>
                                                 </div>
 
-                                                <!-- Content - Two Column Layout -->
-                                                <div class="flex-1 flex flex-col lg:flex-row overflow-hidden">
+                                                <!-- Content Area -->
+                                                <div class="flex-1 flex flex-col overflow-hidden">
 
-                                                    <!-- Left Column: Action Tabs (Upload/URL/Library) -->
-                                                    <div class="lg:w-1/2 p-5 overflow-y-auto scrollbar-none border-r border-white/5"
-                                                        style="-ms-overflow-style: none; scrollbar-width: none;"
-                                                        :class="selectedImages.length > 0 ? 'lg:border-r' : 'lg:border-r-0 lg:w-full'">
+                                                    <!-- Tab Content -->
+                                                    <div class="flex-1 p-4 overflow-y-auto">
 
-                                                        <!-- Tab Content Wrapper -->
-                                                        <div class="relative min-h-[200px]">
-                                                            <!-- Upload Tab -->
-                                                            <div x-show="activeTab === 'upload'"
-                                                                x-transition:enter="transition ease-out duration-200"
-                                                                x-transition:enter-start="opacity-0"
-                                                                x-transition:enter-end="opacity-100"
-                                                                :class="activeTab === 'upload' ? '' : 'absolute inset-0 pointer-events-none'">
-                                                                <label
-                                                                    class="relative flex flex-col items-center justify-center py-12 rounded-2xl border-2 border-dashed cursor-pointer transition-all group"
-                                                                    :class="isDragging ? 'border-purple-500 bg-purple-500/15 scale-[1.01]' : 'border-white/15 hover:border-purple-500/50 bg-white/[0.02] hover:bg-purple-500/5'"
-                                                                    @dragover.prevent="isDragging = true"
-                                                                    @dragleave.prevent="isDragging = false"
-                                                                    @drop.prevent="handleDrop($event)">
-                                                                    <input type="file" accept="image/*" multiple
-                                                                        class="hidden"
-                                                                        @change="handleFileSelect($event)">
-                                                                    <div class="text-center">
+                                                        <!-- Upload Tab -->
+                                                        <div x-show="activeTab === 'upload'"
+                                                            class="h-full flex flex-col">
+                                                            <!-- Compact Upload Zone -->
+                                                            <label
+                                                                class="shrink-0 flex items-center gap-4 p-4 rounded-xl border border-dashed cursor-pointer transition-all group"
+                                                                :class="isDragging ? 'border-purple-500 bg-purple-500/10' : 'border-white/20 hover:border-purple-500/50 bg-white/[0.02]'"
+                                                                @dragover.prevent="isDragging = true"
+                                                                @dragleave.prevent="isDragging = false"
+                                                                @drop.prevent="handleDrop($event)">
+                                                                <input type="file" accept="image/*" multiple
+                                                                    class="hidden" @change="handleFileSelect($event)">
+                                                                <div
+                                                                    class="w-12 h-12 rounded-xl bg-purple-500/20 flex items-center justify-center shrink-0">
+                                                                    <i
+                                                                        class="fa-solid fa-cloud-arrow-up text-xl text-purple-400"></i>
+                                                                </div>
+                                                                <div class="flex-1 min-w-0">
+                                                                    <p class="text-white font-medium text-sm">Kéo thả
+                                                                        hoặc <span class="text-purple-400">chọn
+                                                                            ảnh</span></p>
+                                                                    <p class="text-white/40 text-xs">PNG, JPG, WebP •
+                                                                        Tối đa 10MB • Chọn tối đa <span
+                                                                            x-text="maxImages"></span> ảnh</p>
+                                                                </div>
+                                                            </label>
+
+                                                            <!-- Selected Images Grid (Dynamic) -->
+                                                            <div x-show="selectedImages.length > 0" class="mt-4 flex-1">
+                                                                <div class="flex items-center justify-between mb-3">
+                                                                    <span class="text-white/60 text-sm">
+                                                                        <i
+                                                                            class="fa-solid fa-images text-purple-400 mr-1.5"></i>
+                                                                        Đã chọn <span class="text-white font-medium"
+                                                                            x-text="selectedImages.length"></span>/<span
+                                                                            x-text="maxImages"></span>
+                                                                    </span>
+                                                                    <button type="button" @click="clearAll()"
+                                                                        class="text-red-400/60 text-xs hover:text-red-400 transition-colors">
+                                                                        Xóa tất cả
+                                                                    </button>
+                                                                </div>
+
+                                                                <!-- 4 images in 1 row -->
+                                                                <div class="grid grid-cols-4 gap-2">
+                                                                    <template x-for="(img, index) in selectedImages"
+                                                                        :key="img.id">
                                                                         <div
-                                                                            class="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-500/20 to-pink-500/20 flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
-                                                                            <i
-                                                                                class="fa-solid fa-cloud-arrow-up text-3xl text-purple-400"></i>
+                                                                            class="relative group rounded-xl overflow-hidden bg-black/40 border border-white/10 aspect-square">
+                                                                            <img :src="img.url"
+                                                                                class="w-full h-full object-contain">
+                                                                            <!-- Hover Actions -->
+                                                                            <div
+                                                                                class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                                                                                <button type="button"
+                                                                                    @click="removeImage(img.id)"
+                                                                                    class="w-9 h-9 rounded-full bg-red-500/80 hover:bg-red-500 text-white flex items-center justify-center transition-colors">
+                                                                                    <i
+                                                                                        class="fa-solid fa-trash-can text-sm"></i>
+                                                                                </button>
+                                                                            </div>
+                                                                            <!-- Index -->
+                                                                            <div class="absolute top-2 left-2 w-5 h-5 rounded-full bg-purple-500 text-white text-[10px] font-bold flex items-center justify-center"
+                                                                                x-text="index + 1"></div>
                                                                         </div>
-                                                                        <p class="text-white font-semibold mb-1">Kéo thả
-                                                                            ảnh vào đây</p>
-                                                                        <p class="text-white/50 text-sm">hoặc <span
-                                                                                class="text-purple-400 underline underline-offset-2">chọn
-                                                                                từ máy tính</span></p>
-                                                                        <div
-                                                                            class="flex items-center justify-center gap-2 mt-3 text-white/30 text-xs">
-                                                                            <span>PNG, JPG, WebP</span>
-                                                                            <span
-                                                                                class="w-1 h-1 rounded-full bg-white/20"></span>
-                                                                            <span>Max 10MB</span>
-                                                                        </div>
-                                                                    </div>
-                                                                </label>
-                                                            </div>
-
-                                                            <!-- URL Tab -->
-                                                            <div x-show="activeTab === 'url'"
-                                                                x-transition:enter="transition ease-out duration-200"
-                                                                x-transition:enter-start="opacity-0"
-                                                                x-transition:enter-end="opacity-100"
-                                                                :class="activeTab === 'url' ? '' : 'absolute inset-0 pointer-events-none'">
-                                                                <div class="space-y-4">
-                                                                    <div>
-                                                                        <label
-                                                                            class="text-white/60 text-sm font-medium mb-2 block">Dán
-                                                                            URL ảnh</label>
-                                                                        <div class="flex gap-2">
-                                                                            <input type="text" x-model="urlInput"
-                                                                                placeholder="https://example.com/image.jpg"
-                                                                                @keydown.enter.prevent="addFromUrl()"
-                                                                                class="flex-1 px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-white/30 focus:outline-none focus:border-purple-500/50 focus:ring-2 focus:ring-purple-500/20 transition-all text-sm">
-                                                                            <button type="button" @click="addFromUrl()"
-                                                                                class="px-5 py-3 rounded-xl bg-purple-500 text-white font-medium hover:bg-purple-600 transition-colors flex items-center gap-2 text-sm shrink-0">
-                                                                                <i class="fa-solid fa-plus"></i> Thêm
-                                                                            </button>
-                                                                        </div>
-                                                                        <p class="text-white/30 text-xs mt-2">
-                                                                            <i
-                                                                                class="fa-solid fa-info-circle mr-1 text-white/40"></i>
-                                                                            URL phải bắt đầu bằng http:// hoặc https://
-                                                                        </p>
-                                                                    </div>
+                                                                    </template>
                                                                 </div>
                                                             </div>
 
-                                                            <!-- Recent/Library Tab -->
-                                                            <div x-show="activeTab === 'recent'"
-                                                                x-transition:enter="transition ease-out duration-200"
-                                                                x-transition:enter-start="opacity-0"
-                                                                x-transition:enter-end="opacity-100"
-                                                                :class="activeTab === 'recent' ? '' : 'absolute inset-0 pointer-events-none'">
-                                                                <template x-if="recentImages.length > 0">
-                                                                    <div>
-                                                                        <p class="text-white/50 text-sm mb-3">Chọn từ
-                                                                            ảnh bạn đã tạo:</p>
-                                                                        <div class="grid grid-cols-3 gap-2">
-                                                                            <template x-for="img in recentImages"
-                                                                                :key="img.id">
-                                                                                <button type="button"
-                                                                                    @click="selectFromRecent(img.url)"
-                                                                                    class="aspect-square rounded-xl overflow-hidden border-2 transition-all relative group"
-                                                                                    :class="isSelected(img.url) ? 'border-purple-500 ring-2 ring-purple-500/30' : 'border-transparent hover:border-white/30'">
-                                                                                    <img :src="img.url"
-                                                                                        class="w-full h-full object-cover">
-                                                                                    <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
-                                                                                        x-show="!isSelected(img.url)">
-                                                                                        <i
-                                                                                            class="fa-solid fa-plus text-white text-lg"></i>
-                                                                                    </div>
-                                                                                    <div x-show="isSelected(img.url)"
-                                                                                        class="absolute inset-0 bg-purple-500/40 flex items-center justify-center">
-                                                                                        <div
-                                                                                            class="w-7 h-7 rounded-full bg-purple-500 flex items-center justify-center">
-                                                                                            <i
-                                                                                                class="fa-solid fa-check text-white text-sm"></i>
-                                                                                        </div>
-                                                                                    </div>
-                                                                                </button>
-                                                                            </template>
-                                                                        </div>
-                                                                    </div>
-                                                                </template>
-                                                                <template
-                                                                    x-if="recentImages.length === 0 && !isLoading">
-                                                                    <div class="text-center py-10">
-                                                                        <div
-                                                                            class="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mx-auto mb-3">
-                                                                            <i
-                                                                                class="fa-regular fa-image text-2xl text-white/30"></i>
-                                                                        </div>
-                                                                        <p class="text-white/50 font-medium text-sm">
-                                                                            Chưa có ảnh nào</p>
-                                                                        <p class="text-white/30 text-xs mt-1">Ảnh bạn
-                                                                            tạo sẽ xuất hiện ở đây</p>
-                                                                    </div>
-                                                                </template>
-                                                                <template x-if="isLoading">
-                                                                    <div class="text-center py-10">
+                                                            <!-- Empty State -->
+                                                            <div x-show="selectedImages.length === 0"
+                                                                class="flex-1 flex items-center justify-center">
+                                                                <div class="text-center py-8">
+                                                                    <div
+                                                                        class="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center mx-auto mb-3">
                                                                         <i
-                                                                            class="fa-solid fa-spinner fa-spin text-xl text-purple-400"></i>
-                                                                        <p class="text-white/50 mt-2 text-sm">Đang
-                                                                            tải...</p>
+                                                                            class="fa-regular fa-images text-2xl text-white/20"></i>
+                                                                    </div>
+                                                                    <p class="text-white/40 text-sm">Chưa có ảnh nào
+                                                                        được chọn</p>
+                                                                    <p class="text-white/25 text-xs mt-1">Tải ảnh lên
+                                                                        hoặc chọn từ thư viện</p>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        <!-- URL Tab -->
+                                                        <div x-show="activeTab === 'url'" class="space-y-4">
+                                                            <div class="flex gap-2">
+                                                                <input type="text" x-model="urlInput"
+                                                                    placeholder="Dán URL ảnh vào đây..."
+                                                                    @keydown.enter.prevent="addFromUrl()"
+                                                                    class="flex-1 px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-white/30 focus:outline-none focus:border-purple-500/50 text-sm">
+                                                                <button type="button" @click="addFromUrl()"
+                                                                    class="px-5 py-3 rounded-xl bg-purple-500 text-white font-medium hover:bg-purple-600 transition-colors text-sm shrink-0">
+                                                                    <i class="fa-solid fa-plus mr-1"></i> Thêm
+                                                                </button>
+                                                            </div>
+
+                                                            <!-- Show selected images in URL tab too -->
+                                                            <div x-show="selectedImages.length > 0"
+                                                                class="grid grid-cols-4 gap-2 mt-4">
+                                                                <template x-for="(img, index) in selectedImages"
+                                                                    :key="img.id">
+                                                                    <div
+                                                                        class="relative group aspect-square rounded-lg overflow-hidden border border-white/10">
+                                                                        <img :src="img.url"
+                                                                            class="w-full h-full object-cover">
+                                                                        <button type="button"
+                                                                            @click="removeImage(img.id)"
+                                                                            class="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                                                            <i class="fa-solid fa-xmark text-white"></i>
+                                                                        </button>
                                                                     </div>
                                                                 </template>
                                                             </div>
                                                         </div>
+
+                                                        <!-- Library Tab -->
+                                                        <div x-show="activeTab === 'recent'" class="h-full">
+                                                            <template x-if="recentImages.length > 0">
+                                                                <div class="grid grid-cols-4 gap-2">
+                                                                    <template x-for="img in recentImages" :key="img.id">
+                                                                        <button type="button"
+                                                                            @click="selectFromRecent(img.url)"
+                                                                            class="aspect-square rounded-lg overflow-hidden border-2 transition-all relative group"
+                                                                            :class="isSelected(img.url) ? 'border-purple-500 ring-2 ring-purple-500/30' : 'border-transparent hover:border-white/20'">
+                                                                            <img :src="img.url"
+                                                                                class="w-full h-full object-cover">
+                                                                            <div x-show="!isSelected(img.url)"
+                                                                                class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                                                                <i
+                                                                                    class="fa-solid fa-plus text-white"></i>
+                                                                            </div>
+                                                                            <div x-show="isSelected(img.url)"
+                                                                                class="absolute inset-0 bg-purple-500/30 flex items-center justify-center">
+                                                                                <div
+                                                                                    class="w-6 h-6 rounded-full bg-purple-500 flex items-center justify-center">
+                                                                                    <i
+                                                                                        class="fa-solid fa-check text-white text-xs"></i>
+                                                                                </div>
+                                                                            </div>
+                                                                        </button>
+                                                                    </template>
+                                                                </div>
+                                                            </template>
+                                                            <template x-if="recentImages.length === 0 && !isLoading">
+                                                                <div class="h-full flex items-center justify-center">
+                                                                    <div class="text-center py-8">
+                                                                        <i
+                                                                            class="fa-regular fa-image text-2xl text-white/20 mb-2"></i>
+                                                                        <p class="text-white/40 text-sm">Chưa có ảnh
+                                                                            trong thư viện</p>
+                                                                    </div>
+                                                                </div>
+                                                            </template>
+                                                            <template x-if="isLoading">
+                                                                <div class="h-full flex items-center justify-center">
+                                                                    <i
+                                                                        class="fa-solid fa-spinner fa-spin text-xl text-purple-400"></i>
+                                                                </div>
+                                                            </template>
+                                                        </div>
                                                     </div>
 
-                                                    <!-- Right Column: Selected Images Preview (Large) -->
-                                                    <div x-show="selectedImages.length > 0"
-                                                        x-transition:enter="transition ease-out duration-300"
-                                                        x-transition:enter-start="opacity-0 translate-x-4"
-                                                        x-transition:enter-end="opacity-100 translate-x-0"
-                                                        class="lg:w-1/2 p-5 bg-white/[0.01] flex flex-col">
+                                                    <!-- Footer (Always visible, not overlapping) -->
+                                                    <div
+                                                        class="shrink-0 p-4 border-t border-white/5 bg-black/30 flex items-center justify-between gap-4">
+                                                        <!-- Left: Selection info -->
+                                                        <div class="flex items-center gap-2 text-white/50 text-sm">
+                                                            <template x-if="selectedImages.length > 0">
+                                                                <span class="flex items-center gap-1.5">
+                                                                    <span
+                                                                        class="w-2 h-2 rounded-full bg-green-400"></span>
+                                                                    <span
+                                                                        x-text="selectedImages.length + ' ảnh đã chọn'"></span>
+                                                                </span>
+                                                            </template>
+                                                            <template x-if="selectedImages.length === 0">
+                                                                <span>Chưa chọn ảnh nào</span>
+                                                            </template>
+                                                        </div>
 
-                                                        <!-- Header -->
-                                                        <div class="flex items-center justify-between mb-4">
-                                                            <div class="flex items-center gap-2">
-                                                                <div
-                                                                    class="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center">
-                                                                    <i
-                                                                        class="fa-solid fa-images text-purple-400 text-sm"></i>
-                                                                </div>
-                                                                <div>
-                                                                    <p class="text-white font-medium text-sm">Ảnh đã
-                                                                        chọn</p>
-                                                                    <p class="text-white/40 text-xs"
-                                                                        x-text="selectedImages.length + '/' + maxImages + ' ảnh'">
-                                                                    </p>
-                                                                </div>
-                                                            </div>
-                                                            <button type="button" @click="clearAll()"
-                                                                class="text-red-400/70 text-xs hover:text-red-400 transition-colors flex items-center gap-1">
-                                                                <i class="fa-solid fa-trash-can"></i> Xóa tất cả
+                                                        <!-- Right: Actions -->
+                                                        <div class="flex items-center gap-2">
+                                                            <button type="button" @click="showImagePicker = false"
+                                                                class="px-4 py-2 rounded-lg text-white/60 font-medium hover:bg-white/5 transition-colors text-sm">
+                                                                Hủy
+                                                            </button>
+                                                            <button type="button" @click="confirmSelection()"
+                                                                class="px-5 py-2 rounded-lg bg-purple-500 hover:bg-purple-600 text-white font-medium transition-colors text-sm disabled:opacity-40 disabled:cursor-not-allowed"
+                                                                :disabled="selectedImages.length === 0">
+                                                                <i class="fa-solid fa-check mr-1.5"></i>Xác nhận
                                                             </button>
                                                         </div>
-
-                                                        <!-- Large Image Grid (2x2) -->
-                                                        <div class="flex-1 grid gap-3"
-                                                            :class="selectedImages.length === 1 ? 'grid-cols-1' : 'grid-cols-2'">
-                                                            <template x-for="(img, index) in selectedImages"
-                                                                :key="img.id">
-                                                                <div
-                                                                    class="relative group rounded-xl overflow-hidden bg-black/50 border border-white/10 aspect-square flex items-center justify-center">
-                                                                    <img :src="img.url"
-                                                                        class="w-full h-full object-contain">
-                                                                    <!-- Hover overlay with actions -->
-                                                                    <div
-                                                                        class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-all duration-200">
-                                                                        <div
-                                                                            class="absolute bottom-0 left-0 right-0 p-3 flex items-center justify-between">
-                                                                            <span
-                                                                                class="text-white/70 text-xs bg-black/50 px-2 py-1 rounded-md"
-                                                                                x-text="'Ảnh ' + (index + 1)"></span>
-                                                                            <button type="button"
-                                                                                @click="removeImage(img.id)"
-                                                                                class="w-8 h-8 rounded-lg bg-red-500/90 hover:bg-red-500 text-white flex items-center justify-center transition-colors shadow-lg">
-                                                                                <i
-                                                                                    class="fa-solid fa-trash-can text-sm"></i>
-                                                                            </button>
-                                                                        </div>
-                                                                    </div>
-                                                                    <!-- Index badge -->
-                                                                    <div class="absolute top-2 left-2 w-6 h-6 rounded-full bg-purple-500 text-white text-xs font-bold flex items-center justify-center shadow-lg"
-                                                                        x-text="index + 1"></div>
-                                                                </div>
-                                                            </template>
-
-                                                            <!-- Add more placeholder slots -->
-                                                            <template x-for="n in (maxImages - selectedImages.length)"
-                                                                :key="'empty-' + n">
-                                                                <button type="button" @click="activeTab = 'upload'"
-                                                                    class="aspect-square rounded-xl border-2 border-dashed border-white/10 hover:border-purple-500/50 flex flex-col items-center justify-center text-white/30 hover:text-purple-400 transition-all group">
-                                                                    <i
-                                                                        class="fa-solid fa-plus text-xl mb-1 group-hover:scale-110 transition-transform"></i>
-                                                                    <span class="text-xs">Thêm ảnh</span>
-                                                                </button>
-                                                            </template>
-                                                        </div>
                                                     </div>
-                                                </div>
-
-                                                <!-- Footer -->
-                                                <div
-                                                    class="p-4 border-t border-white/5 flex justify-end gap-3 shrink-0 bg-black/20">
-                                                    <button type="button" @click="showImagePicker = false"
-                                                        class="px-5 py-2.5 rounded-xl text-white/60 font-medium hover:bg-white/5 transition-colors text-sm">
-                                                        Hủy
-                                                    </button>
-                                                    <button type="button" @click="confirmSelection()"
-                                                        class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-medium hover:from-purple-700 hover:to-pink-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm flex items-center gap-2"
-                                                        :disabled="selectedImages.length === 0">
-                                                        <i class="fa-solid fa-check"></i>
-                                                        Xác nhận
-                                                        <span x-show="selectedImages.length > 0"
-                                                            class="bg-white/20 px-2 py-0.5 rounded-md text-xs"
-                                                            x-text="selectedImages.length + ' ảnh'"></span>
-                                                    </button>
                                                 </div>
                                             </div>
                                     </template>
