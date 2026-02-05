@@ -362,13 +362,7 @@
                                             </div>
                                         </template>
                                         <template x-if="selectedImages.length === 0">
-                                            <div class="flex items-center gap-2">
-                                                <i class="fa-solid fa-image text-purple-400 text-sm"></i>
-                                                <span class="text-purple-300 text-sm font-medium hidden sm:inline">Chọn
-                                                    ảnh mẫu</span>
-                                                <span class="text-purple-300 text-xs font-medium sm:hidden">Ảnh
-                                                    mẫu</span>
-                                            </div>
+                                            <i class="fa-solid fa-image text-purple-400 text-sm"></i>
                                         </template>
                                     </button>
 
@@ -410,8 +404,8 @@
                                                 <div
                                                     class="flex items-center justify-between p-5 border-b border-white/5 shrink-0">
                                                     <div>
-                                                        <h3 class="text-white font-semibold text-lg">📸 Thêm ảnh tham
-                                                            chiếu</h3>
+                                                        <h3 class="text-white font-semibold text-lg">📸 Chọn ảnh mẫu
+                                                        </h3>
                                                         <p class="text-white/50 text-sm mt-0.5">Chọn tối đa <span
                                                                 x-text="maxImages"></span> ảnh làm tham chiếu</p>
                                                     </div>
@@ -624,9 +618,9 @@
                                                             <template x-for="(img, index) in selectedImages"
                                                                 :key="img.id">
                                                                 <div
-                                                                    class="relative group rounded-xl overflow-hidden bg-black/30 aspect-square">
+                                                                    class="relative group rounded-xl overflow-hidden bg-black/50 border border-white/10 aspect-square flex items-center justify-center">
                                                                     <img :src="img.url"
-                                                                        class="w-full h-full object-cover">
+                                                                        class="w-full h-full object-contain">
                                                                     <!-- Hover overlay with actions -->
                                                                     <div
                                                                         class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-all duration-200">
@@ -702,8 +696,8 @@
                                                 <div
                                                     class="flex items-center justify-between p-4 border-b border-white/5 shrink-0">
                                                     <div>
-                                                        <span class="text-white font-semibold text-base">📸 Thêm ảnh
-                                                            tham chiếu</span>
+                                                        <span class="text-white font-semibold text-base">📸 Chọn ảnh
+                                                            mẫu</span>
                                                         <span class="text-white/40 text-xs ml-2"
                                                             x-text="selectedImages.length + '/' + maxImages"></span>
                                                     </div>
