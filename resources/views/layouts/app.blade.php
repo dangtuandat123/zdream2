@@ -93,6 +93,11 @@
             }
         }
 
+        /* Disable scroll when hovering style cards */
+        html:has(.style-card:hover) {
+            overflow-y: hidden !important;
+        }
+
         /* ========== MICRO-INTERACTIONS ========== */
         /* Button hover effects */
         .btn-glow {
@@ -1123,6 +1128,27 @@
     <!-- Custom Scripts -->
     <script>
         document.addEventListener('DOMContentLoaded', function () {
+            // Style card hover scroll lock - prevent wheel scrolling
+            let isHoveringCard = false;
+            document.addEventListener('wheel', function (e) {
+                if (isHoveringCard) {
+                    e.preventDefault();
+                }
+            }, { passive: false });
+
+            document.querySelectorAll('.style-card').forEach(card => {
+                card.addEventListener('mouseenter', () => isHoveringCard = true);
+                card.addEventListener('mouseleave', () => isHoveringCard = false);
+            });
+
+            // Re-attach after Livewire navigates
+            document.addEventListener('livewire:navigated', () => {
+                document.querySelectorAll('.style-card').forEach(card => {
+                    card.addEventListener('mouseenter', () => isHoveringCard = true);
+                    card.addEventListener('mouseleave', () => isHoveringCard = false);
+                });
+            });
+
             const menuBtn = document.getElementById('menu-btn');
             const closeMenuBtn = document.getElementById('close-menu-btn');
             const menuOverlay = document.getElementById('menu-overlay');

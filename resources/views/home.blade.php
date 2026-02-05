@@ -705,7 +705,7 @@
                     style="-webkit-overflow-scrolling: touch;">
                     @foreach($styles as $style)
                         <a href="{{ route('studio.show', $style->slug) }}"
-                            class="style-card-wrapper flex-shrink-0 w-40 sm:w-44 lg:w-[calc((100%-5rem)/6)] group relative z-0 hover:z-20 snap-start">
+                            class="style-card style-card-wrapper flex-shrink-0 w-40 sm:w-44 lg:w-[calc((100%-5rem)/6)] group relative z-0 hover:z-20 snap-start">
                             <div
                                 class="bg-[#1b1c21] border border-[#2a2b30] rounded-xl overflow-hidden transition-all duration-300 hover:border-purple-500/40">
                                 <!-- Image -->
