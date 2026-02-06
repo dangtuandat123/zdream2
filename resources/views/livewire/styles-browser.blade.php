@@ -115,7 +115,7 @@
                                         @endif
                                     </div>
                                 </div>
-                                <div class="hidden sm:flex absolute inset-0 items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300">
+                                <div class="hidden sm:flex absolute inset-0 items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none">
                                     <div class="transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
                                         <div class="px-6 py-3 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-[#d3d6db] font-semibold text-sm shadow-xl shadow-purple-500/30 flex items-center gap-2">
                                             Thử ngay <i class="fa-solid fa-arrow-right w-3.5 h-3.5"></i>
