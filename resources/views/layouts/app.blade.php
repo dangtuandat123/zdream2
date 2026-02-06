@@ -117,7 +117,7 @@
             transform: translateY(0) scale(0.98);
         }
 
-        /* Card hover lift effect */
+        /* Card hover lift effect .*/
         .card-lift {
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
