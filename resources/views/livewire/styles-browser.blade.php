@@ -93,7 +93,7 @@
                 <a href="{{ route('studio.show', $style->slug) }}" wire:navigate class="group block h-full">
                         <div class="style-card relative overflow-hidden h-full bg-[#1b1c21] border border-[#2a2b30] rounded-xl sm:rounded-2xl transition-all duration-300 hover:border-purple-500/50 hover:shadow-lg hover:shadow-purple-500/10 hover:-translate-y-1 cursor-pointer flex flex-col">
                             <div class="relative aspect-[3/4] overflow-hidden rounded-t-xl sm:rounded-t-2xl">
-                                <img src="{{ $style->thumbnail }}" alt="{{ $style->name }}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" decoding="async" fetchpriority="low">
+                                <img src="{{ $style->thumbnail }}" alt="{{ $style->name }}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" decoding="async" fetchpriority="low" onerror="this.onerror=null;this.src='/images/placeholder.svg';">
                                 <div class="absolute inset-0 bg-gradient-to-t from-[#1b1c21] via-transparent to-transparent opacity-90"></div>
                                 <div class="absolute top-2 sm:top-3 left-2 sm:left-3 right-2 sm:right-3 flex items-start justify-between">
                                     @if($style->tag)

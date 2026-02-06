@@ -27,7 +27,7 @@ Route::middleware(['auth:sanctum', 'active'])->group(function () {
         $images = $request->user()->generatedImages()
             ->latest()
             ->take(8)
-            ->get(['id', 'image_url'])
+            ->get(['id', 'storage_path'])
             ->map(fn($img) => ['id' => $img->id, 'url' => $img->image_url]);
 
         return response()->json(['images' => $images]);

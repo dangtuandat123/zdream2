@@ -800,7 +800,7 @@
 
     <!-- ========== MOBILE HEADER ========== -->
     @persist('mobile-header')
-    <header class="md:hidden fixed top-0 left-0 right-0 z-50 bg-[#0a0a0f]/95 backdrop-blur-xl border-b border-white/10">
+    <header id="header" class="md:hidden fixed top-0 left-0 right-0 z-50 bg-[#0a0a0f]/95 backdrop-blur-xl border-b border-white/10">
         <div class="flex items-center justify-between h-14 px-4">
             <!-- Logo -->
             <a href="{{ route('home') }}" wire:navigate class="flex items-center gap-2">
@@ -1139,6 +1139,7 @@
             const menuIconXmark = document.getElementById('menu-icon-xmark');
             let menuIsOpen = false;
             function openMenu() {
+                if (!menuOverlay || !mobileMenu) return;
                 menuOverlay.classList.remove('opacity-0', 'pointer-events-none');
                 menuOverlay.classList.add('opacity-100');
                 mobileMenu.classList.remove('closed');
@@ -1150,6 +1151,7 @@
                 menuIsOpen = true;
             }
             function closeMenu() {
+                if (!menuOverlay || !mobileMenu) return;
                 menuOverlay.classList.add('opacity-0', 'pointer-events-none');
                 menuOverlay.classList.remove('opacity-100');
                 mobileMenu.classList.add('closed');
@@ -1170,18 +1172,20 @@
             if (menuBtn) menuBtn.addEventListener('click', toggleMenu);
             if (closeMenuBtn) closeMenuBtn.addEventListener('click', closeMenu);
             if (menuOverlay) menuOverlay.addEventListener('click', function (e) {
-                if (e.target === menuOverlay || e.target.classList.contains('')) closeMenu();
+                if (e.target === menuOverlay) closeMenu();
             });
 
             // Header scroll effect
             const header = document.getElementById('header');
-            window.addEventListener('scroll', function () {
-                if (window.scrollY > 50) {
-                    header.classList.add('scrolled');
-                } else {
-                    header.classList.remove('scrolled');
-                }
-            });
+            if (header) {
+                window.addEventListener('scroll', function () {
+                    if (window.scrollY > 50) {
+                        header.classList.add('scrolled');
+                    } else {
+                        header.classList.remove('scrolled');
+                    }
+                });
+            }
         });
     </script>
     <script>

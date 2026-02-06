@@ -170,8 +170,33 @@ class Style extends Model
      */
     public function getThumbnailAttribute(): string
     {
-        return $this->thumbnail_url 
-            ?? 'https://via.placeholder.com/400x600/1e1e32/ffffff?text=' . urlencode($this->name);
+        $value = trim((string) ($this->thumbnail_url ?? ''));
+
+        if ($value === '') {
+            return '/images/placeholder.svg';
+        }
+
+        if (filter_var($value, FILTER_VALIDATE_URL)) {
+            $host = strtolower((string) parse_url($value, PHP_URL_HOST));
+            $placeholderHosts = [
+                'cdn.yourservice.com',
+                'cdn.example.com',
+                'yourservice.com',
+                'example.com',
+            ];
+
+            if (in_array($host, $placeholderHosts, true)) {
+                return '/images/placeholder.svg';
+            }
+
+            return $value;
+        }
+
+        if (str_starts_with($value, '/')) {
+            return $value;
+        }
+
+        return '/storage/' . ltrim($value, '/');
     }
 
     /**

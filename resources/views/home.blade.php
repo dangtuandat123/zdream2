@@ -263,7 +263,7 @@
 
                     <!-- Input container -->
                     <div
-                        class="relative flex flex-col gap-3 p-3 sm:p-4 rounded-2xl bg-black/50 backdrop-blur-2xl border border-white/15 shadow-2xl">
+                        class="relative flex flex-col gap-3 p-3 sm:p-4 rounded-2xl bg-black/50 backdrop-blur-2xl border border-white/15 shadow-2xl h-52 sm:h-56 overflow-y-auto scrollbar-none">
 
                         <!-- Selected images are shown in the image button (thumbnails) and in the modal -->
 
