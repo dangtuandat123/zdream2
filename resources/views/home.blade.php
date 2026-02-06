@@ -265,31 +265,7 @@
                     <div
                         class="relative flex flex-col gap-3 p-3 sm:p-4 rounded-2xl bg-black/50 backdrop-blur-2xl border border-white/15 shadow-2xl">
 
-                        <!-- Selected Images Preview (horizontal scroll, fixed height) -->
-                        <template x-if="selectedImages.length > 0">
-                            <div class="flex gap-2 pb-2 border-b border-white/10 overflow-x-auto scrollbar-none"
-                                style="scrollbar-width: none; -ms-overflow-style: none;">
-                                <template x-for="(img, idx) in selectedImages" :key="img.id">
-                                    <div class="relative group shrink-0">
-                                        <img :src="img.url"
-                                            class="w-12 h-12 rounded-lg object-cover border border-white/20 shadow-lg">
-                                        <button type="button" @click="removeImage(img.id)"
-                                            class="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-red-500/90 text-white text-[8px] flex items-center justify-center opacity-0 group-hover:opacity-100 sm:opacity-100 transition-opacity hover:bg-red-600 shadow-md">
-                                            <i class="fa-solid fa-xmark"></i>
-                                        </button>
-                                        <div class="absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full bg-purple-500 text-white text-[8px] flex items-center justify-center font-bold"
-                                            x-text="idx + 1"></div>
-                                    </div>
-                                </template>
-                                <!-- Add more button if not at max -->
-                                <template x-if="selectedImages.length < maxImages">
-                                    <button type="button" @click="showImagePicker = true; loadRecentImages()"
-                                        class="shrink-0 w-12 h-12 rounded-lg border border-dashed border-white/20 flex items-center justify-center text-white/40 hover:border-purple-500/50 hover:text-purple-400 transition-all">
-                                        <i class="fa-solid fa-plus text-xs"></i>
-                                    </button>
-                                </template>
-                            </div>
-                        </template>
+                        <!-- Selected images are shown in the image button (thumbnails) and in the modal -->
 
                         <!-- Textarea - Fixed height with scroll -->
                         <textarea name="prompt" rows="3" placeholder="Mô tả ý tưởng của bạn..."
