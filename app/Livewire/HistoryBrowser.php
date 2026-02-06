@@ -12,6 +12,16 @@ class HistoryBrowser extends Component
 {
     use WithPagination;
 
+    public function paginationView()
+    {
+        return 'vendor.pagination.zdream';
+    }
+
+    public function paginationSimpleView()
+    {
+        return 'vendor.pagination.zdream-simple';
+    }
+
     #[Url(except: '')]
     public $status = '';
 
