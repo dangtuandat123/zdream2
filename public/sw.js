@@ -1,6 +1,6 @@
 // ZDream Service Worker - Cache First Strategy for Static Assets
-const CACHE_NAME = 'zdream-v3';
-const STATIC_CACHE = 'zdream-static-v3';
+const CACHE_NAME = 'zdream-v1';
+const STATIC_CACHE = 'zdream-static-v1';
 
 // Assets to cache immediately
 const STATIC_ASSETS = [
@@ -45,15 +45,29 @@ self.addEventListener('fetch', (event) => {
     if (url.origin !== location.origin) return;
 
     // Skip Livewire/API requests
-    if (url.pathname.includes('livewire') ||
+    if (url.pathname.includes('/livewire/') ||
         url.pathname.includes('/api/') ||
         url.pathname.includes('/broadcasting/')) {
         return;
     }
 
-    // For navigation requests (HTML) - Network Only
+    // For navigation requests (HTML) - Network first
     if (request.mode === 'navigate') {
-        return; // Let the browser handle it (Network only)
+        event.respondWith(
+            fetch(request)
+                .then((response) => {
+                    // Clone and cache successful responses
+                    if (response.ok) {
+                        const responseClone = response.clone();
+                        caches.open(CACHE_NAME).then((cache) => {
+                            cache.put(request, responseClone);
+                        });
+                    }
+                    return response;
+                })
+                .catch(() => caches.match(request))
+        );
+        return;
     }
 
     // For static assets (CSS, JS, images) - Cache first
