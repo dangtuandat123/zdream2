@@ -800,7 +800,8 @@
 
     <!-- ========== MOBILE HEADER ========== -->
     @persist('mobile-header')
-    <header class="md:hidden fixed top-0 left-0 right-0 z-50 bg-[#0a0a0f]/95 backdrop-blur-xl border-b border-white/10">
+    <header id="header"
+        class="md:hidden fixed top-0 left-0 right-0 z-50 bg-[#0a0a0f]/95 backdrop-blur-xl border-b border-white/10">
         <div class="flex items-center justify-between h-14 px-4">
             <!-- Logo -->
             <a href="{{ route('home') }}" wire:navigate class="flex items-center gap-2">
@@ -1175,13 +1176,15 @@
 
             // Header scroll effect
             const header = document.getElementById('header');
-            window.addEventListener('scroll', function () {
-                if (window.scrollY > 50) {
-                    header.classList.add('scrolled');
-                } else {
-                    header.classList.remove('scrolled');
-                }
-            });
+            if (header) {
+                window.addEventListener('scroll', function () {
+                    if (window.scrollY > 50) {
+                        header.classList.add('scrolled');
+                    } else {
+                        header.classList.remove('scrolled');
+                    }
+                });
+            }
         });
     </script>
     <script>

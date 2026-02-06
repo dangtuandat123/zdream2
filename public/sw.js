@@ -1,6 +1,6 @@
 // ZDream Service Worker - Cache First Strategy for Static Assets
-const CACHE_NAME = 'zdream-v1';
-const STATIC_CACHE = 'zdream-static-v1';
+const CACHE_NAME = 'zdream-v2';
+const STATIC_CACHE = 'zdream-static-v2';
 
 // Assets to cache immediately
 const STATIC_ASSETS = [
@@ -45,7 +45,7 @@ self.addEventListener('fetch', (event) => {
     if (url.origin !== location.origin) return;
 
     // Skip Livewire/API requests
-    if (url.pathname.includes('/livewire/') ||
+    if (url.pathname.includes('livewire') ||
         url.pathname.includes('/api/') ||
         url.pathname.includes('/broadcasting/')) {
         return;
