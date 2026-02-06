@@ -236,7 +236,7 @@
                             @elseif($image->status === 'failed' && $image->style)
                                 <!-- Retry button for failed images -->
                                 <div class="flex gap-2 mt-2">
-                                    <a href="{{ route('studio.show', $image->style->slug) }}"
+                                    <a href="{{ route('studio.show', $image->style->slug) }}" wire:navigate
                                        class="flex-1 py-1.5 sm:py-2 rounded-lg bg-purple-500/20 text-purple-300 text-[10px] sm:text-xs font-medium text-center hover:bg-purple-500/30 transition-colors inline-flex items-center justify-center gap-1">
                                         <i class="fa-solid fa-redo"></i> <span class="hidden sm:inline">Tạo lại</span>
                                     </a>

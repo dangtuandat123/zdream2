@@ -90,7 +90,7 @@
         @else
             <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-5">
                 @foreach($styles as $style)
-                    <a href="{{ route('studio.show', $style->slug) }}" class="group block h-full">
+                <a href="{{ route('studio.show', $style->slug) }}" wire:navigate class="group block h-full">
                         <div class="style-card relative overflow-hidden h-full bg-[#1b1c21] border border-[#2a2b30] rounded-xl sm:rounded-2xl transition-all duration-300 hover:border-purple-500/50 hover:shadow-lg hover:shadow-purple-500/10 hover:-translate-y-1 cursor-pointer flex flex-col">
                             <div class="relative aspect-[3/4] overflow-hidden rounded-t-xl sm:rounded-t-2xl">
                                 <img src="{{ $style->thumbnail }}" alt="{{ $style->name }}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" decoding="async" fetchpriority="low">
