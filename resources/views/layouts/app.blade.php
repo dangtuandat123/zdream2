@@ -1456,6 +1456,38 @@
         });
     </script>
 
+    <script>
+        // Global Alpine component for Select2 + Livewire integration
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('select2Livewire', ({ model, minResults = 5 }) => ({
+                model,
+                minResults,
+                init() {
+                    const $select = $(this.$refs.select);
+                    const $dropdownParent = $select.parent();
+                    $select.select2({
+                        minimumResultsForSearch: this.minResults,
+                        dropdownAutoWidth: false,
+                        width: '100%',
+                        dropdownParent: $dropdownParent
+                    });
+
+                    $select.val(this.model).trigger('change.select2');
+
+                    $select.on('change', (event) => {
+                        this.model = event.target.value;
+                    });
+
+                    this.$watch('model', (value) => {
+                        if ($select.val() !== value) {
+                            $select.val(value).trigger('change.select2');
+                        }
+                    });
+                }
+            }));
+        });
+    </script>
+
     @stack('scripts')
 
     <!-- Service Worker Registration -->
