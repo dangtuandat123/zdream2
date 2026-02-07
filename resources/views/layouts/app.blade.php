@@ -800,6 +800,24 @@
     <div class="ambient-bg" aria-hidden="true"></div>
     @endpersist
 
+    @if (session('error') || session('success') || session('status'))
+        @php
+            $flashMessage = session('error') ?? session('success') ?? session('status');
+            $isError = (bool) session('error');
+        @endphp
+        <div x-data="{ show: true }" x-show="show" x-transition.opacity x-init="setTimeout(() => show = false, 6500)"
+            class="fixed top-4 right-4 z-[10001] max-w-sm rounded-xl border px-4 py-3 shadow-2xl"
+            :class="{{ $isError ? '\'bg-red-500/15 border-red-500/40 text-red-100\'' : '\'bg-emerald-500/15 border-emerald-500/40 text-emerald-100\'' }}">
+            <div class="flex items-start gap-3">
+                <i class="fa-solid {{ $isError ? 'fa-triangle-exclamation text-red-300' : 'fa-circle-check text-emerald-300' }} mt-0.5"></i>
+                <p class="text-sm leading-5">{{ $flashMessage }}</p>
+                <button type="button" @click="show = false" class="ml-auto text-white/60 hover:text-white">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+        </div>
+    @endif
+
     <!-- ========== MOBILE HEADER ========== -->
     @persist('mobile-header')
     <header id="header" class="md:hidden fixed top-0 left-0 right-0 z-50 bg-[#0a0a0f]/95 backdrop-blur-xl border-b border-white/10">

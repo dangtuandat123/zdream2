@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use Laravel\Socialite\Facades\Socialite;
+use Laravel\Socialite\Two\InvalidStateException;
 
 class GoogleAuthController extends Controller
 {
@@ -26,7 +27,8 @@ class GoogleAuthController extends Controller
 
             return redirect()
                 ->route('home')
-                ->with('error', 'Chưa cấu hình đăng nhập Google trên hệ thống.');
+                ->with('error', 'Chưa cấu hình đăng nhập Google trên hệ thống.')
+                ->with('open_auth_modal', true);
         }
 
         try {
@@ -38,7 +40,8 @@ class GoogleAuthController extends Controller
 
             return redirect()
                 ->route('home')
-                ->with('error', 'Không thể kết nối Google Login. Vui lòng thử lại.');
+                ->with('error', 'Không thể kết nối Google Login. Vui lòng thử lại.')
+                ->with('open_auth_modal', true);
         }
     }
 
@@ -47,7 +50,8 @@ class GoogleAuthController extends Controller
         if (!$this->hasGoogleOAuthConfig()) {
             return redirect()
                 ->route('home')
-                ->with('error', 'Chưa cấu hình đăng nhập Google trên hệ thống.');
+                ->with('error', 'Chưa cấu hình đăng nhập Google trên hệ thống.')
+                ->with('open_auth_modal', true);
         }
 
         if (!$this->hasGoogleUserColumns()) {
@@ -57,17 +61,27 @@ class GoogleAuthController extends Controller
 
             return redirect()
                 ->route('home')
-                ->with('error', 'Database chưa cập nhật cho Google Login. Vui lòng liên hệ admin.');
+                ->with('error', 'Database chưa cập nhật cho Google Login. Vui lòng liên hệ admin.')
+                ->with('open_auth_modal', true);
         }
 
         try {
-            $googleUser = Socialite::driver('google')->user();
+            try {
+                $googleUser = Socialite::driver('google')->user();
+            } catch (InvalidStateException $e) {
+                Log::warning('Google OAuth callback invalid state, fallback to stateless', [
+                    'error' => $e->getMessage(),
+                ]);
+
+                $googleUser = Socialite::driver('google')->stateless()->user();
+            }
         } catch (\Throwable $e) {
             Log::error('Google OAuth callback failed', ['error' => $e->getMessage()]);
 
             return redirect()
                 ->route('home')
-                ->with('error', 'Đăng nhập Google thất bại. Vui lòng thử lại.');
+                ->with('error', 'Đăng nhập Google thất bại. Vui lòng thử lại.')
+                ->with('open_auth_modal', true);
         }
 
         $googleId = (string) ($googleUser->getId() ?? '');
@@ -76,7 +90,8 @@ class GoogleAuthController extends Controller
         if ($googleId === '' || $email === '') {
             return redirect()
                 ->route('home')
-                ->with('error', 'Không lấy được thông tin email từ Google.');
+                ->with('error', 'Không lấy được thông tin email từ Google.')
+                ->with('open_auth_modal', true);
         }
 
         try {
@@ -88,7 +103,8 @@ class GoogleAuthController extends Controller
 
             return redirect()
                 ->route('home')
-                ->with('error', 'Không thể truy vấn tài khoản. Vui lòng thử lại.');
+                ->with('error', 'Không thể truy vấn tài khoản. Vui lòng thử lại.')
+                ->with('open_auth_modal', true);
         }
 
         try {
@@ -129,13 +145,15 @@ class GoogleAuthController extends Controller
 
             return redirect()
                 ->route('home')
-                ->with('error', 'Không thể tạo/cập nhật tài khoản. Vui lòng thử lại.');
+                ->with('error', 'Không thể tạo/cập nhật tài khoản. Vui lòng thử lại.')
+                ->with('open_auth_modal', true);
         }
 
         if (!$user->is_active) {
             return redirect()
                 ->route('home')
-                ->with('error', 'Tài khoản của bạn đã bị vô hiệu hóa. Vui lòng liên hệ hỗ trợ.');
+                ->with('error', 'Tài khoản của bạn đã bị vô hiệu hóa. Vui lòng liên hệ hỗ trợ.')
+                ->with('open_auth_modal', true);
         }
 
         Auth::login($user, true);
