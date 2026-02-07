@@ -1191,51 +1191,35 @@
                     <i class="fa-solid fa-xmark"></i>
                 </button>
 
-                <div class="mb-5">
-                    <div class="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-white/10 text-white shadow-lg shadow-purple-500/20">
-                        <i class="fa-solid fa-user-shield text-base"></i>
-                    </div>
-                    <h3 class="text-xl font-semibold leading-tight text-white">Đăng nhập để tiếp tục</h3>
-                    <p class="mt-2 text-sm leading-6 text-white/65">Đồng bộ lịch sử ảnh, ví xu và thiết lập cá nhân của bạn trên mọi thiết bị.</p>
+                <div class="mb-4">
+                    <h3 class="text-lg font-semibold text-white">Đăng nhập để tiếp tục</h3>
+                    <p class="mt-1 text-sm text-white/60">Đồng bộ ảnh, lịch sử tạo ảnh và số dư tài khoản của bạn.</p>
                 </div>
 
                 @if ($lastGoogleName !== '')
-                    <div class="mb-4 rounded-2xl border border-white/10 bg-white/[0.04] p-3.5">
-                        <p class="mb-2.5 text-[11px] font-semibold uppercase tracking-wide text-white/45">Tài khoản đã dùng gần nhất</p>
+                    <div class="mb-4 rounded-xl border border-white/10 bg-white/[0.03] p-3">
+                        <p class="mb-2 text-xs uppercase tracking-wide text-white/40">Tài khoản đã dùng gần nhất</p>
                         <div class="flex items-center gap-3">
                             @if ($lastGoogleAvatar !== '')
                                 <img src="{{ $lastGoogleAvatar }}" alt="{{ $lastGoogleName }}"
-                                    class="h-11 w-11 rounded-full border border-white/20 object-cover shadow-md shadow-black/30">
+                                    class="h-10 w-10 rounded-full border border-white/20 object-cover">
                             @else
                                 <div
-                                    class="h-11 w-11 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 text-white text-sm font-semibold flex items-center justify-center shadow-md shadow-purple-500/30">
+                                    class="h-10 w-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 text-white text-sm font-semibold flex items-center justify-center">
                                     {{ $lastGoogleInitial }}
                                 </div>
                             @endif
                             <div class="min-w-0">
-                                <p class="truncate text-sm font-semibold text-white">{{ $lastGoogleName }}</p>
-                                <p class="text-xs text-white/55">Google Account</p>
+                                <p class="truncate text-sm font-medium text-white">{{ $lastGoogleName }}</p>
+                                <p class="text-xs text-white/50">Google Account</p>
                             </div>
                         </div>
                     </div>
                 @endif
 
-                <div class="mb-5 grid grid-cols-1 gap-2 text-xs">
-                    <div class="flex items-center gap-2.5 rounded-lg bg-white/[0.03] px-3 py-2 text-white/70">
-                        <i class="fa-solid fa-clock-rotate-left text-purple-300"></i>
-                        <span>Lưu lịch sử tạo ảnh tự động</span>
-                    </div>
-                    <div class="flex items-center gap-2.5 rounded-lg bg-white/[0.03] px-3 py-2 text-white/70">
-                        <i class="fa-solid fa-gem text-cyan-300"></i>
-                        <span>Đồng bộ số dư xu và giao dịch</span>
-                    </div>
-                </div>
-
                 <a href="{{ route('auth.google.redirect') }}"
-                    class="group inline-flex w-full items-center justify-center gap-3 rounded-xl bg-gradient-to-r from-white to-white/95 px-4 py-3.5 font-semibold text-[#1a1a1a] transition hover:scale-[1.01] hover:shadow-xl hover:shadow-white/15">
-                    <span class="flex h-7 w-7 items-center justify-center rounded-full bg-[#111218]/10">
-                        <i class="fa-brands fa-google text-sm"></i>
-                    </span>
+                    class="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-white px-4 py-3 font-semibold text-[#1a1a1a] transition hover:bg-white/90">
+                    <i class="fa-brands fa-google"></i>
                     @if ($lastGoogleName !== '')
                         <span>Tiếp tục với {{ \Illuminate\Support\Str::limit($lastGoogleName, 24) }}</span>
                     @else

@@ -65,6 +65,18 @@ class StyleOption extends Model
 
         $value = (string) $this->thumbnail;
         if (filter_var($value, FILTER_VALIDATE_URL)) {
+            $host = strtolower((string) parse_url($value, PHP_URL_HOST));
+            $placeholderHosts = [
+                'cdn.yourservice.com',
+                'cdn.example.com',
+                'yourservice.com',
+                'example.com',
+            ];
+
+            if (in_array($host, $placeholderHosts, true)) {
+                return '/images/placeholder.svg';
+            }
+
             return $value;
         }
 
