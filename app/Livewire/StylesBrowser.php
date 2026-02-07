@@ -68,6 +68,7 @@ class StylesBrowser extends Component
     public function render()
     {
         $query = Style::query()
+            ->notSystem()
             ->active()
             ->with('tag')
             ->withCount('generatedImages');

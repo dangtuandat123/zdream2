@@ -44,6 +44,7 @@ class Style extends Model
         'is_active',
         'is_featured',
         'is_new',
+        'is_system',
         'tag_id',
         'allow_user_custom_prompt',
         'image_slots',
@@ -59,16 +60,23 @@ class Style extends Model
         'is_active' => 'boolean',
         'is_featured' => 'boolean',
         'is_new' => 'boolean',
+        'is_system' => 'boolean',
         'tag_id' => 'integer',
         'allow_user_custom_prompt' => 'boolean',
         'sort_order' => 'integer',
     ];
 
     /**
+     * Slug for the system text-to-image style
+     */
+    public const SYSTEM_T2I_SLUG = 'text-to-image';
+
+    /**
      * Defaults - đảm bảo không bị undefined khi create
      */
     protected $attributes = [
         'is_active' => true,
+        'is_system' => false,
         'tag_id' => null,
         'allow_user_custom_prompt' => false,
         'sort_order' => 0,
@@ -87,13 +95,13 @@ class Style extends Model
                 $baseSlug = Str::slug($style->name);
                 $slug = $baseSlug;
                 $counter = 1;
-                
+
                 // Đảm bảo slug unique
                 while (static::where('slug', $slug)->exists()) {
                     $slug = $baseSlug . '-' . $counter;
                     $counter++;
                 }
-                
+
                 $style->slug = $slug;
             }
         });
@@ -151,6 +159,22 @@ class Style extends Model
     public function scopeFeatured($query)
     {
         return $query->where('is_featured', true);
+    }
+
+    /**
+     * Scope: Chỉ lấy style có is_system = true
+     */
+    public function scopeSystem($query)
+    {
+        return $query->where('is_system', true);
+    }
+
+    /**
+     * Scope: Loại bỏ system styles (cho public gallery)
+     */
+    public function scopeNotSystem($query)
+    {
+        return $query->where('is_system', false);
     }
 
     /**
@@ -224,7 +248,7 @@ class Style extends Model
      * Max prompt length to avoid API rejection và memory issues
      */
     const MAX_PROMPT_LENGTH = 4000;
-    
+
     /**
      * Standard separator giữa các prompt fragments
      */
@@ -382,13 +406,32 @@ class Style extends Model
         if ($match(['mau', 'color', 'palette', 'hex'])) {
             return 'color';
         }
-        if ($match([
-            'trang phuc', 'outfit', 'clothes', 'clothing', 'wardrobe',
-            'phu kien', 'accessory', 'accessories',
-            'toc', 'hair', 'hairstyle',
-            'makeup', 'trang diem', 'mat', 'face', 'skin',
-            'giay', 'shoe', 'bag', 'tui', 'hat', 'non',
-        ])) {
+        if (
+            $match([
+                'trang phuc',
+                'outfit',
+                'clothes',
+                'clothing',
+                'wardrobe',
+                'phu kien',
+                'accessory',
+                'accessories',
+                'toc',
+                'hair',
+                'hairstyle',
+                'makeup',
+                'trang diem',
+                'mat',
+                'face',
+                'skin',
+                'giay',
+                'shoe',
+                'bag',
+                'tui',
+                'hat',
+                'non',
+            ])
+        ) {
             return 'details';
         }
         if ($match(['chi tiet', 'detail', 'texture', 'chat lieu', 'material', 'pattern'])) {
@@ -448,7 +491,7 @@ class Style extends Model
 
         $replacements = array_merge([
             '{{base}}' => $basePrompt,
-        ], collect($slotText)->mapWithKeys(fn ($value, $slot) => ['{{' . $slot . '}}' => $value])->toArray());
+        ], collect($slotText)->mapWithKeys(fn($value, $slot) => ['{{' . $slot . '}}' => $value])->toArray());
 
         $prompt = strtr($template, $replacements);
 
@@ -479,15 +522,15 @@ class Style extends Model
     {
         // Trim whitespace
         $fragment = trim($fragment);
-        
+
         if (empty($fragment)) {
             return '';
         }
-        
+
         // Loại bỏ leading separators (comma, semicolon, space)
         $fragment = ltrim($fragment, ', ;');
         $fragment = trim($fragment);
-        
+
         return $fragment;
     }
 
@@ -512,7 +555,7 @@ class Style extends Model
 
         // Thêm image_config CHỈ cho Gemini models (theo OpenRouter docs)
         $isGeminiModel = str_contains(strtolower($this->openrouter_model_id), 'gemini');
-        
+
         if ($isGeminiModel && !empty($this->config_payload)) {
             $payload['image_config'] = $this->config_payload;
         }

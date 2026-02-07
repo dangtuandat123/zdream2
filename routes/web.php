@@ -58,6 +58,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Studio - Tạo ảnh
     Route::get('/studio/{style:slug}', [StudioController::class, 'show'])->name('studio.show');
 
+    // Create - Text-to-Image (uses system style)
+    Route::get('/create', function () {
+        $style = \App\Models\Style::where('slug', \App\Models\Style::SYSTEM_T2I_SLUG)->firstOrFail();
+        return view('studio.show', [
+            'style' => $style,
+            'optionGroups' => collect(),
+            'initialPrompt' => request('prompt', ''),
+        ]);
+    })->name('create');
+
     // Direct Image Edit Studio
     // Route::get('/edit', function () {
     //     return view('edit.index');

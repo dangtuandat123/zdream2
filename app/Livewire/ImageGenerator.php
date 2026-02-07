@@ -27,38 +27,38 @@ use Livewire\WithFileUploads;
 class ImageGenerator extends Component
 {
     use WithFileUploads;
-    
+
     // Style đang sử dụng
     public Style $style;
-    
+
     // Selected option IDs (grouped by group_name)
     public array $selectedOptions = [];
-    
+
     // User custom input (nếu được phép)
     public string $customInput = '';
-    
+
     // Aspect Ratio đã chọn
     public string $selectedAspectRatio = '1:1';
-    
+
     // Image Size đã chọn (chỉ Gemini)
     public string $selectedImageSize = '1K';
-    
+
     // Các aspect ratios hỗ trợ (load từ BflService)
     public array $aspectRatios = [];
-    
+
     // Các image sizes (chỉ Gemini models)
     public array $imageSizes = [
         '1K' => '1K (Chuẩn)',
         '2K' => '2K (Cao)',
         '4K' => '4K (Rất cao)',
     ];
-    
+
     // Model có hỗ trợ image_size (legacy Gemini) không
     public bool $supportsImageConfig = false;
-    
+
     // Model có hỗ trợ aspect_ratio trực tiếp không
     public bool $supportsAspectRatio = true;
-    
+
     // Model có hỗ trợ ảnh tham chiếu (input_image) không
     public bool $supportsImageInput = false;
 
@@ -97,39 +97,39 @@ class ImageGenerator extends Component
     public int $dimensionMin = 256;
     public int $dimensionMax = 1408;
     public int $dimensionMultiple = 32;
-    
+
     // State
     public bool $isGenerating = false;
     public ?string $generatedImageUrl = null;
     public ?string $errorMessage = null;
-    
+
     // Uploaded images for img2img (key => file)
     public array $uploadedImages = [];
     public array $uploadedImagePreviews = [];
-    
+
     // Last generated image
     public ?int $lastImageId = null;
-    
+
     // Async mode: Use queue job for generation
     public bool $useAsyncMode = true;
-    
+
     // Polling interval (ms) for async mode
     public int $pollingInterval = 2000;
-    
+
     // Timeout cho async processing (phút) - sau đó sẽ refund
     protected int $processingTimeoutMinutes = 5;
 
     /**
      * Mount component với Style
      */
-    public function mount(Style $style): void
+    public function mount(Style $style, ?string $initialPrompt = null): void
     {
         $this->style = $style;
         $this->style->loadMissing('options');
-        
+
         // HIGH-02 FIX: Chỉ dùng async mode khi QUEUE_CONNECTION != 'sync'
         $this->useAsyncMode = config('queue.default') !== 'sync';
-        
+
         // Load aspect ratios từ service (đồng bộ với config)
         $bflService = app(BflService::class);
         $modelId = $style->bfl_model_id ?? $style->openrouter_model_id ?? '';
@@ -143,15 +143,20 @@ class ImageGenerator extends Component
         // BFL không dùng image_size như OpenRouter/Gemini
         $this->supportsImageConfig = false;
         $this->applyModelCapabilities($modelId);
-        
+
         // Set default aspect ratio từ style config (với fallback)
         $this->selectedAspectRatio = $style->aspect_ratio ?? '1:1';
 
         // Load advanced defaults từ config_payload (nếu có)
         $this->applyDefaultAdvancedSettings();
-        
+
         // Pre-select default options
         $this->preselectDefaultOptions();
+
+        // Set initial prompt from query string (if provided)
+        if (!empty($initialPrompt)) {
+            $this->customInput = $initialPrompt;
+        }
     }
 
     /**
@@ -233,7 +238,7 @@ class ImageGenerator extends Component
     protected function getUploadedImagesBase64(): array
     {
         $result = [];
-        
+
         foreach ($this->uploadedImages as $key => $image) {
             if ($image && method_exists($image, 'getRealPath')) {
                 try {
@@ -248,7 +253,7 @@ class ImageGenerator extends Component
                 }
             }
         }
-        
+
         return $result;
     }
 
@@ -459,7 +464,7 @@ class ImageGenerator extends Component
 
         $params = array_merge($params, $overrides);
 
-        return array_filter($params, fn ($value) => !($value === null || $value === ''));
+        return array_filter($params, fn($value) => !($value === null || $value === ''));
     }
 
     /**
@@ -491,7 +496,7 @@ class ImageGenerator extends Component
         $this->resetState();
 
         $user = Auth::user();
-        
+
         if (!$user) {
             $this->errorMessage = 'Vui lòng đăng nhập để tạo ảnh.';
             return;
@@ -519,7 +524,7 @@ class ImageGenerator extends Component
                 $modelManager = app(\App\Services\ModelManager::class);
                 return collect($modelManager->fetchModels())->pluck('id')->toArray();
             });
-            
+
             /* 
             // DISABLED: Allow custom models manually entered by admin
             $modelId = $this->style->bfl_model_id ?? $this->style->openrouter_model_id;
@@ -628,7 +633,7 @@ class ImageGenerator extends Component
                 );
 
                 $this->lastImageId = $generatedImage->id;
-                
+
                 Log::info('Image generation job dispatched', [
                     'image_id' => $generatedImage->id,
                     'user_id' => $user->id,
@@ -641,7 +646,7 @@ class ImageGenerator extends Component
 
             // SYNC MODE: Gọi trực tiếp (legacy, for testing)
             $bflService = app(BflService::class);
-            
+
             $result = $bflService->generateImage(
                 $this->style,
                 $selectedOptionIds,
@@ -713,7 +718,7 @@ class ImageGenerator extends Component
                 $generatedImage->markAsFailed('Không đủ credits');
             }
             $this->errorMessage = 'Bạn không đủ credits để tạo ảnh.';
-            
+
         } catch (\Throwable $e) {
             $refunded = $this->handleRefund(
                 $walletService,
@@ -742,7 +747,7 @@ class ImageGenerator extends Component
             $this->errorMessage = config('app.debug')
                 ? 'Có lỗi xảy ra: ' . $e->getMessage() . $refundMsg
                 : 'Có lỗi xảy ra trong quá trình tạo ảnh.' . $refundMsg;
-            
+
             if ($this->useAsyncMode && !$this->lastImageId) {
                 $this->isGenerating = false;
             }
@@ -774,7 +779,7 @@ class ImageGenerator extends Component
         }
 
         $image = GeneratedImage::find($this->lastImageId);
-        
+
         if (!$image) {
             $this->isGenerating = false;
             $this->errorMessage = 'Không tìm thấy ảnh.';
@@ -801,28 +806,28 @@ class ImageGenerator extends Component
             $this->isGenerating = false;
             $this->generatedImageUrl = $image->image_url;
             $this->dispatch('imageGenerated');
-            
+
         } elseif ($image->status === GeneratedImage::STATUS_FAILED) {
             $this->isGenerating = false;
             // [FIX IMG-05] Hiển thị lỗi cụ thể thay vì chung chung
-            $this->errorMessage = $image->error_message 
+            $this->errorMessage = $image->error_message
                 ? 'Lỗi: ' . $image->error_message . '. Credits đã được hoàn lại.'
                 : 'Tạo ảnh thất bại. Credits đã được hoàn lại.';
             $this->dispatch('imageGenerated');
-            
+
         } elseif ($image->status === GeneratedImage::STATUS_PROCESSING) {
             // HIGH-02 FIX: Watchdog - kiểm tra timeout
             $processingMinutes = now()->diffInMinutes($image->created_at);
-            
+
             if ($processingMinutes >= $this->processingTimeoutMinutes) {
                 Log::warning('Watchdog: Job timeout detected', [
                     'image_id' => $image->id,
                     'processing_minutes' => $processingMinutes,
                 ]);
-                
+
                 // Mark as failed và refund credits
                 $image->markAsFailed('Timeout: Job không hoàn thành sau ' . $this->processingTimeoutMinutes . ' phút');
-                
+
                 // Refund credits - [BUG FIX P4-02] Check nếu đã refund trước đó
                 $user = $image->user;
                 if ($user && $image->credits_used > 0) {
@@ -830,7 +835,7 @@ class ImageGenerator extends Component
                     $alreadyRefunded = \App\Models\WalletTransaction::where('source', 'refund')
                         ->where('reference_id', (string) $image->id)
                         ->exists();
-                    
+
                     if (!$alreadyRefunded) {
                         try {
                             $walletService = app(WalletService::class);
@@ -852,7 +857,7 @@ class ImageGenerator extends Component
                         ]);
                     }
                 }
-                
+
                 $this->isGenerating = false;
                 $this->errorMessage = 'Xử lý quá lâu. Credits đã được hoàn lại. Vui lòng thử lại.';
             }
@@ -961,7 +966,7 @@ class ImageGenerator extends Component
             }
         }
 
-        
+
 
         if (!$this->supportsWidthHeight) {
             $this->customWidth = null;
@@ -1037,7 +1042,7 @@ class ImageGenerator extends Component
                 $totalSize += $image->getSize();
             }
         }
-        
+
         // 25MB limit (conservative)
         if ($totalSize > 25 * 1024 * 1024) {
             $this->errorMessage = 'Tổng dung lượng ảnh tải lên quá lớn (Max 25MB). Vui lòng giảm dung lượng hoặc số lượng ảnh.';
@@ -1056,7 +1061,7 @@ class ImageGenerator extends Component
 
         // Nếu model không hỗ trợ ảnh tham chiếu nhưng style bắt buộc ảnh hoặc có system images
         if (!$this->supportsImageInput) {
-            $hasRequiredSlot = collect($imageSlots)->contains(fn ($slot) => !empty($slot['required']));
+            $hasRequiredSlot = collect($imageSlots)->contains(fn($slot) => !empty($slot['required']));
             $hasUploaded = !empty($this->uploadedImages);
             $hasSystemImages = !empty($this->style->system_images);
             if ($hasRequiredSlot || $hasUploaded || $hasSystemImages) {
@@ -1072,12 +1077,12 @@ class ImageGenerator extends Component
                 return false;
             }
         }
-        
+
         foreach ($imageSlots as $slot) {
             $slotKey = $slot['key'] ?? '';
             $isRequired = $slot['required'] ?? false;
             $slotLabel = $slot['label'] ?? 'Ảnh';
-            
+
             if ($isRequired && empty($this->uploadedImages[$slotKey])) {
                 $this->errorMessage = "Vui lòng upload ảnh: {$slotLabel}";
                 return false;
@@ -1150,7 +1155,7 @@ class ImageGenerator extends Component
         $this->selectedAspectRatio = $this->style->aspect_ratio ?? '1:1';
         $this->selectedImageSize = '1K';
         $this->applyDefaultAdvancedSettings();
-        
+
         // Re-select defaults
         $this->preselectDefaultOptions();
     }

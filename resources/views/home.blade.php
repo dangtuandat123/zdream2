@@ -164,7 +164,7 @@
             </h1>
 
             <!-- Prompt Input Bar - Enhanced -->
-            <form action="{{ route('styles.index') }}" method="GET"
+            <form action="{{ route('create') }}" method="GET"
                 class="w-full max-w-2xl mx-auto mb-6 sm:mb-8 group/form relative z-50" x-data="{
                     showImagePicker: false,
                     selectedImages: [],
