@@ -44,8 +44,23 @@ class TextToImage extends Component
     public bool $useAsyncMode = true;
     public int $pollingInterval = 2000;
 
-    // Credit cost (fixed for text-to-image)
-    public float $creditCost = 5.0;
+    // History data
+    public int $perPage = 12;
+    public bool $loadingMore = false;
+
+    // Computed property would be better but let's keep it simple for now
+    public function getHistoryProperty()
+    {
+        if (!Auth::check())
+            return collect();
+
+        return GeneratedImage::where('user_id', Auth::id())
+            ->whereHas('style', function ($q) {
+                $q->where('is_system', true)->where('slug', Style::SYSTEM_T2I_SLUG);
+            })
+            ->latest()
+            ->paginate($this->perPage);
+    }
 
     public function mount(?string $initialPrompt = null): void
     {
@@ -337,8 +352,15 @@ class TextToImage extends Component
         $this->isGenerating = false;
     }
 
+    public function loadMore(): void
+    {
+        $this->perPage += 12;
+    }
+
     public function render()
     {
-        return view('livewire.text-to-image');
+        return view('livewire.text-to-image', [
+            'history' => $this->history
+        ]);
     }
 }
