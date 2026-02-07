@@ -179,7 +179,10 @@ class GoogleAuthController extends Controller
         Auth::login($user, true);
         request()->session()->regenerate();
 
-        return redirect()->intended(route('home'));
+        return redirect()
+            ->intended(route('home'))
+            ->cookie('zd_last_google_name', (string) $user->name, 60 * 24 * 30)
+            ->cookie('zd_last_google_avatar', (string) ($user->avatar ?? ''), 60 * 24 * 30);
     }
 
     private function hasGoogleOAuthConfig(): bool

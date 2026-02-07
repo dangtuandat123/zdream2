@@ -923,7 +923,12 @@
                 <div x-data="{ open: false }" class="relative">
                     <button @click="open = !open"
                         class="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold text-sm hover:scale-105 transition-transform">
-                        {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
+                        @if(auth()->user()->avatar)
+                            <img src="{{ auth()->user()->avatar }}" alt="{{ auth()->user()->name }}"
+                                class="h-10 w-10 rounded-full object-cover border border-white/20">
+                        @else
+                            {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
+                        @endif
                     </button>
                     <!-- Dropdown -->
                     <div x-show="open" @click.outside="open = false" x-transition:enter="transition ease-out duration-150"
@@ -1026,7 +1031,12 @@
                             <span class="flex items-center gap-3">
                                 <div
                                     class="w-7 h-7 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white text-xs font-bold shadow-lg shadow-purple-500/30">
-                                    {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
+                                    @if(auth()->user()->avatar)
+                                        <img src="{{ auth()->user()->avatar }}" alt="{{ auth()->user()->name }}"
+                                            class="h-7 w-7 rounded-full object-cover border border-white/20">
+                                    @else
+                                        {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
+                                    @endif
                                 </div>
                                 <span
                                     class="truncate max-w-[150px] font-medium">{{ str_contains(auth()->user()->name, '@') ? Str::before(auth()->user()->name, '@') : auth()->user()->name }}</span>
@@ -1154,35 +1164,67 @@
         </div>
     </nav>
     @endpersist
-
     <!-- ========== AUTH PROMPT MODAL (GOOGLE ONLY) ========== -->
     @guest
+        @php
+            $lastGoogleName = (string) request()->cookie('zd_last_google_name', '');
+            $lastGoogleAvatar = (string) request()->cookie('zd_last_google_avatar', '');
+            $lastGoogleInitial = strtoupper(substr($lastGoogleName !== '' ? $lastGoogleName : 'G', 0, 1));
+        @endphp
         <div x-show="authPromptOpen" x-cloak
             class="fixed inset-0 z-[9998] flex items-center justify-center p-4"
             x-transition.opacity
             @click.self="authPromptOpen = false">
             <div class="absolute inset-0 bg-black/70 backdrop-blur-sm"></div>
-            <div class="relative w-full max-w-md rounded-2xl border border-white/10 bg-[#111218] p-6 shadow-2xl"
+            <div class="relative w-full max-w-md overflow-hidden rounded-2xl border border-white/10 bg-[#111218] p-6 shadow-2xl"
                 x-transition:enter="transition ease-out duration-200"
                 x-transition:enter-start="opacity-0 translate-y-2 scale-95"
                 x-transition:enter-end="opacity-100 translate-y-0 scale-100"
                 x-transition:leave="transition ease-in duration-150"
                 x-transition:leave-start="opacity-100 translate-y-0 scale-100"
                 x-transition:leave-end="opacity-0 translate-y-2 scale-95">
+                <div class="pointer-events-none absolute -right-16 -top-16 h-44 w-44 rounded-full bg-purple-500/20 blur-2xl"></div>
+                <div class="pointer-events-none absolute -bottom-12 -left-12 h-36 w-36 rounded-full bg-pink-500/20 blur-2xl"></div>
+
                 <button type="button" @click="authPromptOpen = false"
                     class="absolute right-3 top-3 h-8 w-8 rounded-full bg-white/5 text-white/60 hover:bg-white/10 hover:text-white">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
 
                 <div class="mb-4">
-                    <h3 class="text-lg font-semibold text-white">Yêu cầu đăng nhập</h3>
-                    <p class="mt-1 text-sm text-white/60">Bạn cần đăng nhập để sử dụng tính năng này.</p>
+                    <h3 class="text-lg font-semibold text-white">Dang nhap de tiep tuc</h3>
+                    <p class="mt-1 text-sm text-white/60">Dong bo anh, lich su tao anh va so du tai khoan cua ban.</p>
                 </div>
+
+                @if ($lastGoogleName !== '')
+                    <div class="mb-4 rounded-xl border border-white/10 bg-white/[0.03] p-3">
+                        <p class="mb-2 text-xs uppercase tracking-wide text-white/40">Tai khoan da dung gan nhat</p>
+                        <div class="flex items-center gap-3">
+                            @if ($lastGoogleAvatar !== '')
+                                <img src="{{ $lastGoogleAvatar }}" alt="{{ $lastGoogleName }}"
+                                    class="h-10 w-10 rounded-full border border-white/20 object-cover">
+                            @else
+                                <div
+                                    class="h-10 w-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 text-white text-sm font-semibold flex items-center justify-center">
+                                    {{ $lastGoogleInitial }}
+                                </div>
+                            @endif
+                            <div class="min-w-0">
+                                <p class="truncate text-sm font-medium text-white">{{ $lastGoogleName }}</p>
+                                <p class="text-xs text-white/50">Google Account</p>
+                            </div>
+                        </div>
+                    </div>
+                @endif
 
                 <a href="{{ route('auth.google.redirect') }}"
                     class="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-white px-4 py-3 font-semibold text-[#1a1a1a] transition hover:bg-white/90">
                     <i class="fa-brands fa-google"></i>
-                    <span>Tiếp tục với Google</span>
+                    @if ($lastGoogleName !== '')
+                        <span>Tiep tuc voi {{ \Illuminate\Support\Str::limit($lastGoogleName, 24) }}</span>
+                    @else
+                        <span>Tiep tuc voi Google</span>
+                    @endif
                 </a>
             </div>
         </div>
