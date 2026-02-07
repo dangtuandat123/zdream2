@@ -139,7 +139,7 @@
             </div>
 
             {{-- Load More --}}
-            @if($history->hasMorePages())
+            @if(method_exists($history, 'hasMorePages') && $history->hasMorePages())
                 <div class="mt-10 text-center">
                     <button wire:click="loadMore"
                         class="px-6 py-2 rounded-full bg-white/5 border border-white/10 text-sm text-white/60 hover:text-white hover:bg-white/10 transition-all">

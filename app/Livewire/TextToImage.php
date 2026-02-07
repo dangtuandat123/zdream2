@@ -11,6 +11,7 @@ use App\Services\StorageService;
 use App\Services\WalletService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Livewire\Attributes\Computed;
 use Livewire\Component;
 
 /**
@@ -48,8 +49,8 @@ class TextToImage extends Component
     public int $perPage = 12;
     public bool $loadingMore = false;
 
-    // Computed property would be better but let's keep it simple for now
-    public function getHistoryProperty()
+    #[Computed]
+    public function history()
     {
         if (!Auth::check())
             return collect();
