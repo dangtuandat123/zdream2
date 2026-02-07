@@ -22,16 +22,6 @@ Route::middleware(['auth:sanctum', 'active'])->group(function () {
         return $request->user()->only(['id', 'name', 'email', 'credits']);
     });
 
-    // Get recent images for image picker
-    Route::get('/user/recent-images', function (Request $request) {
-        $images = $request->user()->generatedImages()
-            ->latest()
-            ->take(8)
-            ->get(['id', 'storage_path'])
-            ->map(fn($img) => ['id' => $img->id, 'url' => $img->image_url]);
-
-        return response()->json(['images' => $images]);
-    });
 });
 
 // =============================================

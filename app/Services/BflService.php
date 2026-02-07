@@ -27,9 +27,21 @@ class BflService
 
     public function __construct()
     {
-        $this->apiKey = (string) (Setting::get('bfl_api_key', config('services_custom.bfl.api_key', '')) ?? '');
-        $baseUrl = Setting::get('bfl_base_url', config('services_custom.bfl.base_url', 'https://api.bfl.ai'));
-        $baseUrl = trim((string) $baseUrl);
+        $fallbackApiKey = (string) config('services_custom.bfl.api_key', '');
+        $fallbackBaseUrl = (string) config('services_custom.bfl.base_url', 'https://api.bfl.ai');
+
+        try {
+            $this->apiKey = (string) (Setting::get('bfl_api_key', $fallbackApiKey) ?? '');
+            $baseUrl = (string) (Setting::get('bfl_base_url', $fallbackBaseUrl) ?? $fallbackBaseUrl);
+        } catch (\Throwable $e) {
+            Log::warning('BflService: cannot load DB settings, using config fallback', [
+                'error' => $e->getMessage(),
+            ]);
+            $this->apiKey = $fallbackApiKey;
+            $baseUrl = $fallbackBaseUrl;
+        }
+
+        $baseUrl = trim($baseUrl);
         $this->baseUrl = rtrim($baseUrl, '/');
         if ($this->baseUrl === '') {
             $this->baseUrl = 'https://api.bfl.ai';
@@ -134,7 +146,7 @@ Rules:
             $response = Http::withHeaders([
                 'Authorization' => 'Bearer ' . $openRouterKey,
                 'Content-Type' => 'application/json',
-            ])->withOptions(['verify' => false]) // Fix SSL cert issue on Windows
+            ])->withOptions(['verify' => $this->verifySsl])
                 ->timeout(15)
                 ->post('https://openrouter.ai/api/v1/chat/completions', [
                     'model' => $model,
@@ -193,7 +205,7 @@ Rules:
             $response = Http::withHeaders([
                 'Authorization' => 'Bearer ' . $openRouterKey,
                 'Content-Type' => 'application/json',
-            ])->withOptions(['verify' => false])
+            ])->withOptions(['verify' => $this->verifySsl])
                 ->timeout(20)
                 ->post('https://openrouter.ai/api/v1/chat/completions', [
                     'model' => $model,

@@ -8,6 +8,7 @@ use App\Models\Setting;
 use App\Services\BflService;
 use App\Services\WalletService;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Component;
@@ -422,6 +423,9 @@ class ImageEditStudio extends Component
 
         $this->errorMessage = '';
         $this->resultImage = '';
+        $walletService = app(WalletService::class);
+        $creditsDeducted = false;
+        $generatedImage = null;
 
         try {
             // Get mode label
@@ -434,13 +438,13 @@ class ImageEditStudio extends Component
             $modeLabel = $modeLabels[$this->editMode] ?? 'Edit';
 
             // Deduct credits BEFORE dispatching job
-            $walletService = app(WalletService::class);
             $walletService->deductCredits(
                 $user,
                 $creditCost,
                 "Edit Studio: {$modeLabel}",
                 'edit_studio'
             );
+            $creditsDeducted = true;
 
             // Update local credits display
             $user->refresh();
@@ -454,7 +458,7 @@ class ImageEditStudio extends Component
             // Create GeneratedImage record (processing status)
             $generatedImage = GeneratedImage::create([
                 'user_id' => $user->id,
-                'style_id' => null, // Edit Studio không dùng style
+                'style_id' => null,
                 'final_prompt' => $finalPrompt,
                 'user_custom_input' => $this->editPrompt,
                 'generation_params' => [
@@ -474,7 +478,7 @@ class ImageEditStudio extends Component
                 $this->editMode,
                 $this->sourceImage,
                 $this->maskData,
-                $finalPrompt, // Use built prompt
+                $finalPrompt,
                 $this->expandDirections
             );
 
@@ -493,10 +497,32 @@ class ImageEditStudio extends Component
                 'mode' => $this->editMode,
                 'error' => $e->getMessage(),
             ]);
+
+            if ($generatedImage && $generatedImage->status === GeneratedImage::STATUS_PROCESSING) {
+                $generatedImage->markAsFailed('Dispatch error: ' . $e->getMessage());
+            }
+
+            if ($creditsDeducted) {
+                try {
+                    $walletService->refundCredits(
+                        $user,
+                        $creditCost,
+                        'Dispatch failed: ' . $e->getMessage(),
+                        $generatedImage ? (string) $generatedImage->id : 'edit-studio-dispatch-' . uniqid('', true)
+                    );
+                    $user->refresh();
+                    $this->userCredits = (float) $user->credits;
+                } catch (\Throwable $refundException) {
+                    Log::error('ImageEditStudio: Failed to refund credits after dispatch error', [
+                        'mode' => $this->editMode,
+                        'error' => $refundException->getMessage(),
+                    ]);
+                }
+            }
+
             $this->errorMessage = 'Có lỗi xảy ra: ' . $e->getMessage();
         }
     }
-
     /**
      * Poll for job status (called by wire:poll)
      */
@@ -703,9 +729,8 @@ class ImageEditStudio extends Component
                 $base64 = $parts[1] ?? '';
                 $imageContent = base64_decode($base64);
             } elseif (str_starts_with($imageData, 'http')) {
-                // URL - download content
-                $imageContent = @file_get_contents($imageData);
-                if ($imageContent === false) {
+                $imageContent = $this->downloadImageFromUrl($imageData);
+                if (empty($imageContent)) {
                     Log::warning('ImageEditStudio: Failed to download result image for storage');
                     return;
                 }
@@ -776,6 +801,93 @@ class ImageEditStudio extends Component
 
         // Dispatch event to reload canvas with new image
         $this->dispatch('image-loaded', ['src' => $this->sourceImage]);
+    }
+
+    protected function downloadImageFromUrl(string $url): ?string
+    {
+        if (!filter_var($url, FILTER_VALIDATE_URL)) {
+            return null;
+        }
+
+        $scheme = parse_url($url, PHP_URL_SCHEME);
+        if (!in_array($scheme, ['http', 'https'], true)) {
+            return null;
+        }
+
+        $host = parse_url($url, PHP_URL_HOST);
+        if (!empty($host) && $this->isPrivateOrLocalHost($host)) {
+            Log::warning('ImageEditStudio: blocked private/local URL', ['url' => $url, 'host' => $host]);
+            return null;
+        }
+
+        try {
+            $response = Http::withOptions([
+                'verify' => (bool) config('services_custom.bfl.verify_ssl', true),
+            ])->timeout(30)->connectTimeout(10)->get($url);
+
+            if (!$response->successful()) {
+                Log::warning('ImageEditStudio: failed to download image', [
+                    'url' => $url,
+                    'status' => $response->status(),
+                ]);
+                return null;
+            }
+
+            $body = $response->body();
+            if ($body === '') {
+                return null;
+            }
+
+            $maxBytes = (int) config('services_custom.bfl.max_image_bytes', 26214400);
+            if (strlen($body) > $maxBytes) {
+                Log::warning('ImageEditStudio: image too large', [
+                    'url' => $url,
+                    'bytes' => strlen($body),
+                    'max_bytes' => $maxBytes,
+                ]);
+                return null;
+            }
+
+            $finfo = new \finfo(FILEINFO_MIME_TYPE);
+            $mime = $finfo->buffer($body) ?: '';
+            if (!str_starts_with($mime, 'image/')) {
+                return null;
+            }
+
+            return $body;
+        } catch (\Throwable $e) {
+            Log::warning('ImageEditStudio: download image exception', [
+                'url' => $url,
+                'error' => $e->getMessage(),
+            ]);
+            return null;
+        }
+    }
+
+    protected function isPrivateOrLocalHost(string $host): bool
+    {
+        if (in_array(strtolower($host), ['localhost', '127.0.0.1', '::1', '0.0.0.0'], true)) {
+            return true;
+        }
+
+        if (filter_var($host, FILTER_VALIDATE_IP)) {
+            return filter_var(
+                $host,
+                FILTER_VALIDATE_IP,
+                FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE
+            ) === false;
+        }
+
+        $ip = gethostbyname($host);
+        if ($ip === $host) {
+            return false;
+        }
+
+        return filter_var(
+            $ip,
+            FILTER_VALIDATE_IP,
+            FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE
+        ) === false;
     }
 
     // =============================================

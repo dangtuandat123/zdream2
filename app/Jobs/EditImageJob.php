@@ -12,7 +12,9 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 /**
  * EditImageJob
@@ -122,10 +124,11 @@ class EditImageJob implements ShouldQueue
             // Get image data
             $imageBase64 = $result['image_base64'] ?? null;
             if (!$imageBase64 && isset($result['image_url'])) {
-                // Download from URL
-                $imageContent = @file_get_contents($result['image_url']);
-                if ($imageContent) {
-                    $imageBase64 = 'data:image/png;base64,' . base64_encode($imageContent);
+                $imageContent = $this->downloadImageFromUrl((string) $result['image_url']);
+                if (!empty($imageContent)) {
+                    $finfo = new \finfo(FILEINFO_MIME_TYPE);
+                    $mime = $finfo->buffer($imageContent) ?: 'image/png';
+                    $imageBase64 = 'data:' . $mime . ';base64,' . base64_encode($imageContent);
                 }
             }
 
@@ -184,10 +187,10 @@ class EditImageJob implements ShouldQueue
             return $this->sourceImagePath;
         }
 
-        // If it's a URL, download it
+        // If it's a URL, download it with timeout and SSRF guard
         if (str_starts_with($this->sourceImagePath, 'http')) {
-            $content = @file_get_contents($this->sourceImagePath);
-            if ($content) {
+            $content = $this->downloadImageFromUrl($this->sourceImagePath);
+            if (!empty($content)) {
                 $finfo = new \finfo(FILEINFO_MIME_TYPE);
                 $mime = $finfo->buffer($content) ?: 'image/jpeg';
                 return 'data:' . $mime . ';base64,' . base64_encode($content);
@@ -197,7 +200,7 @@ class EditImageJob implements ShouldQueue
 
         // Try to load from MinIO
         try {
-            $content = \Illuminate\Support\Facades\Storage::disk('minio')->get($this->sourceImagePath);
+            $content = Storage::disk('minio')->get($this->sourceImagePath);
             if ($content) {
                 $finfo = new \finfo(FILEINFO_MIME_TYPE);
                 $mime = $finfo->buffer($content) ?: 'image/jpeg';
@@ -285,7 +288,11 @@ class EditImageJob implements ShouldQueue
 
         // Refund credits if job fails permanently
         if ($this->generatedImage->status === GeneratedImage::STATUS_PROCESSING) {
-            $this->refundCreditsDirectly($this->generatedImage->user, $this->generatedImage);
+            $this->generatedImage->markAsFailed('Job failed: ' . $exception->getMessage());
+            $user = $this->generatedImage->user;
+            if ($user && $this->generatedImage->credits_used > 0) {
+                $this->refundCreditsDirectly($user, $this->generatedImage);
+            }
         }
     }
 
@@ -299,19 +306,13 @@ class EditImageJob implements ShouldQueue
         }
 
         try {
-            $user->increment('credits', $generatedImage->credits_used);
-
-            \App\Models\WalletTransaction::create([
-                'user_id' => $user->id,
-                'type' => 'refund',
-                'amount' => $generatedImage->credits_used,
-                'balance_after' => $user->fresh()->credits,
-                'description' => 'Hoàn xu do edit thất bại: ' . ($generatedImage->error_message ?? 'Unknown error'),
-                'reference_type' => 'generated_image',
-                'reference_id' => (string) $generatedImage->id,
-            ]);
-
-            $generatedImage->markAsFailed('Job failed permanently: ' . ($generatedImage->error_message ?? 'Unknown'));
+            $walletService = app(WalletService::class);
+            $walletService->refundCredits(
+                $user,
+                $generatedImage->credits_used,
+                'Job failed permanently',
+                (string) $generatedImage->id
+            );
 
             Log::info('Credits refunded directly', [
                 'user_id' => $user->id,
@@ -325,5 +326,96 @@ class EditImageJob implements ShouldQueue
                 'error' => $e->getMessage(),
             ]);
         }
+    }
+
+    protected function downloadImageFromUrl(string $url): ?string
+    {
+        if (!filter_var($url, FILTER_VALIDATE_URL)) {
+            return null;
+        }
+
+        $scheme = parse_url($url, PHP_URL_SCHEME);
+        if (!in_array($scheme, ['http', 'https'], true)) {
+            return null;
+        }
+
+        $host = parse_url($url, PHP_URL_HOST);
+        if (!empty($host) && $this->isPrivateOrLocalHost($host)) {
+            Log::warning('EditImageJob: blocked private/local URL', ['url' => $url, 'host' => $host]);
+            return null;
+        }
+
+        try {
+            $response = Http::withOptions([
+                'verify' => (bool) config('services_custom.bfl.verify_ssl', true),
+            ])->timeout(30)->connectTimeout(10)->get($url);
+
+            if (!$response->successful()) {
+                Log::warning('EditImageJob: failed to download image', [
+                    'url' => $url,
+                    'status' => $response->status(),
+                ]);
+                return null;
+            }
+
+            $body = $response->body();
+            if ($body === '') {
+                return null;
+            }
+
+            $maxBytes = (int) config('services_custom.bfl.max_image_bytes', 26214400);
+            if (strlen($body) > $maxBytes) {
+                Log::warning('EditImageJob: image too large', [
+                    'url' => $url,
+                    'bytes' => strlen($body),
+                    'max_bytes' => $maxBytes,
+                ]);
+                return null;
+            }
+
+            $finfo = new \finfo(FILEINFO_MIME_TYPE);
+            $detectedMime = $finfo->buffer($body) ?: '';
+            if (!str_starts_with($detectedMime, 'image/')) {
+                Log::warning('EditImageJob: downloaded content is not image', [
+                    'url' => $url,
+                    'mime' => $detectedMime,
+                ]);
+                return null;
+            }
+
+            return $body;
+        } catch (\Throwable $e) {
+            Log::warning('EditImageJob: download image exception', [
+                'url' => $url,
+                'error' => $e->getMessage(),
+            ]);
+            return null;
+        }
+    }
+
+    protected function isPrivateOrLocalHost(string $host): bool
+    {
+        if (in_array(strtolower($host), ['localhost', '127.0.0.1', '::1', '0.0.0.0'], true)) {
+            return true;
+        }
+
+        if (filter_var($host, FILTER_VALIDATE_IP)) {
+            return filter_var(
+                $host,
+                FILTER_VALIDATE_IP,
+                FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE
+            ) === false;
+        }
+
+        $ip = gethostbyname($host);
+        if ($ip === $host) {
+            return false;
+        }
+
+        return filter_var(
+            $ip,
+            FILTER_VALIDATE_IP,
+            FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE
+        ) === false;
     }
 }

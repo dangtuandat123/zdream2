@@ -99,8 +99,8 @@ self.addEventListener('fetch', (event) => {
 self.addEventListener('push', (event) => {
     const options = {
         body: event.data?.text() || 'Có thông báo mới từ ZDream',
-        icon: '/images/icon-192.png',
-        badge: '/images/icon-192.png',
+        icon: '/images/icon-192.svg',
+        badge: '/images/icon-192.svg',
         vibrate: [100, 50, 100],
         data: {
             dateOfArrival: Date.now(),

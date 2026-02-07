@@ -808,19 +808,27 @@
                 <span
                     class="text-lg font-bold bg-gradient-to-r from-purple-400 to-pink-500 bg-clip-text text-transparent">ZDream</span>
             </a>
-            <!-- Xu Display -->
-            @auth
-                <a href="{{ route('wallet.index') }}" wire:navigate
-                    class="flex items-center gap-1.5 px-3 h-9 rounded-full bg-white/5 border border-white/10">
-                    <i class="fa-solid fa-gem text-cyan-400 text-sm"></i>
-                    <span class="font-semibold text-sm"><livewire:header-credits /></span>
-                </a>
-            @else
-                <a href="{{ route('login') }}" wire:navigate
-                    class="px-4 py-2 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white text-sm font-medium">
-                    Đăng nhập
-                </a>
-            @endauth
+            <div class="flex items-center gap-2">
+                @auth
+                    <a href="{{ route('wallet.index') }}" wire:navigate
+                        class="flex items-center gap-1.5 px-3 h-9 rounded-full bg-white/5 border border-white/10">
+                        <i class="fa-solid fa-gem text-cyan-400 text-sm"></i>
+                        <span class="font-semibold text-sm"><livewire:header-credits /></span>
+                    </a>
+                @else
+                    <a href="{{ route('login') }}" wire:navigate
+                        class="px-4 py-2 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white text-sm font-medium">
+                        Đăng nhập
+                    </a>
+                @endauth
+
+                <button id="menu-btn" type="button"
+                    class="w-9 h-9 rounded-lg bg-white/5 border border-white/10 text-white/70 hover:text-white hover:bg-white/10 flex items-center justify-center transition-colors"
+                    aria-label="Open menu">
+                    <i id="menu-icon-bars" class="fa-solid fa-bars w-4 h-4"></i>
+                    <i id="menu-icon-xmark" class="fa-solid fa-xmark w-4 h-4" style="display:none"></i>
+                </button>
+            </div>
         </div>
     </header>
     @endpersist
