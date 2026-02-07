@@ -180,7 +180,7 @@
     </div>
 
     {{-- ========== FIXED PROMPT BAR (Exact Copy from Home) ========== --}}
-    <div class="fixed bottom-16 md:bottom-0 left-0 right-0 md:left-[72px] z-40 p-4 safe-area-bottom">
+    <div class="fixed bottom-20 md:bottom-6 left-0 right-0 md:left-[72px] z-40 px-4 safe-area-bottom">
         <div class="max-w-3xl mx-auto group/form">
             <div class="relative">
                 {{-- Glow effect --}}
