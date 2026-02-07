@@ -58,12 +58,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Studio - Tạo ảnh
     Route::get('/studio/{style:slug}', [StudioController::class, 'show'])->name('studio.show');
 
-    // Create - Text-to-Image (uses system style)
+    // Create - Text-to-Image (simple, clean interface)
     Route::get('/create', function () {
-        $style = \App\Models\Style::where('slug', \App\Models\Style::SYSTEM_T2I_SLUG)->firstOrFail();
-        return view('studio.show', [
-            'style' => $style,
-            'optionGroups' => collect(),
+        return view('create', [
             'initialPrompt' => request('prompt', ''),
         ]);
     })->name('create');
