@@ -151,14 +151,14 @@
     </div>
 
     {{-- Bottom Fixed Prompt Bar (Home-Style) --}}
-    <div class="fixed bottom-0 left-0 right-0 z-[60] safe-area-bottom">
+    <div class="fixed bottom-0 left-0 right-0 md:left-[72px] z-[60] safe-area-bottom">
         {{-- Fade gradient --}}
         <div
             class="absolute inset-x-0 bottom-full h-24 bg-gradient-to-t from-[#0a0a0f] to-transparent pointer-events-none">
         </div>
 
-        <div class="bg-[#0a0a0f]/80 backdrop-blur-xl border-t border-white/5 px-4 py-4 sm:py-6">
-            <div class="max-w-3xl mx-auto">
+        <div class="px-4 py-4 sm:py-6 sm:mb-2">
+            <div class="max-w-4xl mx-auto">
                 <div class="relative group/form">
                     {{-- Glow --}}
                     <div
