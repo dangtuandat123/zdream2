@@ -49,6 +49,9 @@ class TextToImage extends Component
     public int $perPage = 12;
     public bool $loadingMore = false;
 
+    // Credit cost
+    public float $creditCost = 5.0;
+
     #[Computed]
     public function history()
     {
