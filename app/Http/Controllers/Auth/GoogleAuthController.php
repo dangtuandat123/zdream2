@@ -36,7 +36,12 @@ class GoogleAuthController extends Controller
                 ->with(['prompt' => 'select_account'])
                 ->redirect();
         } catch (\Throwable $e) {
-            Log::error('Google OAuth redirect failed', ['error' => $e->getMessage()]);
+            Log::error('Google OAuth redirect failed', [
+                'error' => $e->getMessage(),
+                'exception' => get_class($e),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ]);
 
             return redirect()
                 ->route('home')
@@ -76,7 +81,12 @@ class GoogleAuthController extends Controller
                 $googleUser = Socialite::driver('google')->stateless()->user();
             }
         } catch (\Throwable $e) {
-            Log::error('Google OAuth callback failed', ['error' => $e->getMessage()]);
+            Log::error('Google OAuth callback failed', [
+                'error' => $e->getMessage(),
+                'exception' => get_class($e),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ]);
 
             return redirect()
                 ->route('home')
@@ -99,7 +109,12 @@ class GoogleAuthController extends Controller
                 ->orWhere('email', $email)
                 ->first();
         } catch (\Throwable $e) {
-            Log::error('Google OAuth user lookup failed', ['error' => $e->getMessage()]);
+            Log::error('Google OAuth user lookup failed', [
+                'error' => $e->getMessage(),
+                'exception' => get_class($e),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ]);
 
             return redirect()
                 ->route('home')
@@ -141,7 +156,12 @@ class GoogleAuthController extends Controller
                 $user->save();
             }
         } catch (\Throwable $e) {
-            Log::error('Google OAuth user create/update failed', ['error' => $e->getMessage()]);
+            Log::error('Google OAuth user create/update failed', [
+                'error' => $e->getMessage(),
+                'exception' => get_class($e),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ]);
 
             return redirect()
                 ->route('home')

@@ -22,10 +22,10 @@ class Kernel extends ConsoleKernel
         // Runs every 5 minutes to fail/refund processing jobs older than 10 minutes
         $schedule->call(function () {
             $this->cleanupStalledProcessingJobs();
-        })->everyFiveMinutes()
+        })->name('watchdog:processing-jobs')
+          ->everyFiveMinutes()
           ->withoutOverlapping()
-          ->runInBackground()
-          ->name('watchdog:processing-jobs');
+          ->runInBackground();
     }
     
     /**
