@@ -793,8 +793,7 @@
     </style>
 </head>
 
-<body class="min-h-screen text-white antialiased"
-    x-data="{ authPromptOpen: @js((bool) session('open_auth_modal')) }"
+<body class="min-h-screen text-white antialiased" x-data="{ authPromptOpen: @js((bool) session('open_auth_modal')) }"
     @open-auth-modal.window="authPromptOpen = true">
     @persist('ambient-bg')
     <div class="ambient-bg" aria-hidden="true"></div>
@@ -809,7 +808,8 @@
             class="fixed top-4 right-4 z-[10001] max-w-sm rounded-xl border px-4 py-3 shadow-2xl"
             :class="{{ $isError ? '\'bg-red-500/15 border-red-500/40 text-red-100\'' : '\'bg-emerald-500/15 border-emerald-500/40 text-emerald-100\'' }}">
             <div class="flex items-start gap-3">
-                <i class="fa-solid {{ $isError ? 'fa-triangle-exclamation text-red-300' : 'fa-circle-check text-emerald-300' }} mt-0.5"></i>
+                <i
+                    class="fa-solid {{ $isError ? 'fa-triangle-exclamation text-red-300' : 'fa-circle-check text-emerald-300' }} mt-0.5"></i>
                 <p class="text-sm leading-5">{{ $flashMessage }}</p>
                 <button type="button" @click="show = false" class="ml-auto text-white/60 hover:text-white">
                     <i class="fa-solid fa-xmark"></i>
@@ -820,7 +820,8 @@
 
     <!-- ========== MOBILE HEADER ========== -->
     @persist('mobile-header')
-    <header id="header" class="md:hidden fixed top-0 left-0 right-0 z-50 bg-[#0a0a0f]/95 backdrop-blur-xl border-b border-white/10">
+    <header id="header"
+        class="md:hidden fixed top-0 left-0 right-0 z-50 bg-[#0a0a0f]/95 backdrop-blur-xl border-b border-white/10">
         <div class="flex items-center justify-between h-14 px-4">
             <!-- Logo -->
             <a href="{{ route('home') }}" wire:navigate class="flex items-center gap-2">
@@ -841,13 +842,6 @@
                         Đăng nhập
                     </a>
                 @endauth
-
-                <button id="menu-btn" type="button"
-                    class="w-9 h-9 rounded-lg bg-white/5 border border-white/10 text-white/70 hover:text-white hover:bg-white/10 flex items-center justify-center transition-colors"
-                    aria-label="Open menu">
-                    <i id="menu-icon-bars" class="fa-solid fa-bars w-4 h-4"></i>
-                    <i id="menu-icon-xmark" class="fa-solid fa-xmark w-4 h-4" style="display:none"></i>
-                </button>
             </div>
         </div>
     </header>
@@ -968,135 +962,6 @@
     </aside>
     @endpersist
 
-    <!-- ========== MOBILE MENU OVERLAY ========== -->
-    <div id="menu-overlay"
-        class="fixed inset-0 z-[60] md:hidden opacity-0 pointer-events-none transition-opacity duration-300">
-        <div class="absolute inset-0 bg-black/60 "></div>
-        <div id="mobile-menu"
-            class="mobile-menu closed absolute right-0 top-0 h-full w-72 max-w-[85vw] bg-[#0a0a0f] backdrop-blur-[24px] border-l border-[#2a2a35] overflow-y-auto overscroll-contain">
-            <div class="sticky top-0 z-10 p-4 border-b border-[#222230] bg-[#0a0a0f] flex items-center justify-between">
-                <span class="text-white/80 font-medium">Menu</span>
-                <button id="close-menu-btn"
-                    class="w-8 h-8 rounded-lg bg-white/[0.05] flex items-center justify-center text-white/60 hover:text-white">
-                    <i class="fa-solid fa-xmark w-4 h-4"></i>
-                </button>
-            </div>
-            <div class="p-4 space-y-2">
-                @auth
-                    <a href="{{ route('wallet.index') }}" wire:navigate
-                        class="block p-4 rounded-xl bg-gradient-to-br from-purple-500/10 to-pink-500/10 border border-purple-500/20">
-                        <div class="flex items-center justify-between mb-3">
-                            <span class="text-white/60 text-sm">Số dư</span>
-                            <i class="fa-solid fa-gem w-4 h-4 text-cyan-400"></i>
-                        </div>
-                        <div class="text-2xl font-bold text-white mb-3"><livewire:header-credits /> Xu</div>
-                        <div
-                            class="w-full py-2.5 rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 text-white font-medium text-sm flex items-center justify-center gap-2 shadow-lg shadow-purple-500/25">
-                            <i class="fa-solid fa-plus w-3.5 h-3.5"></i> Nạp thêm Xu
-                        </div>
-                    </a>
-                @endauth
-                <div class="h-px bg-white/[0.05] my-4"></div>
-                <a href="{{ route('home') }}" wire:navigate
-                    class="flex items-center justify-between px-4 py-3 rounded-xl transition-all {{ request()->routeIs('home') ? 'bg-purple-500/10 border-purple-500/30 text-white' : 'bg-[#13131a] hover:bg-white/[0.05] border-[#222230] text-white/80 hover:text-white' }} border">
-                    <span class="flex items-center gap-3"><i class="fa-solid fa-house w-4 h-4 text-purple-400"></i>
-                        Trang chủ</span>
-                    <i class="fa-solid fa-chevron-right w-3 h-3 text-white/30"></i>
-                </a>
-                <a href="{{ route('styles.index') }}" wire:navigate
-                    class="flex items-center justify-between px-4 py-3 rounded-xl transition-all {{ request()->routeIs('styles.*') || request()->routeIs('studio.*') ? 'bg-purple-500/10 border-purple-500/30 text-white' : 'bg-[#13131a] hover:bg-white/[0.05] border-[#222230] text-white/80 hover:text-white' }} border">
-                    <span class="flex items-center gap-3"><i class="fa-solid fa-palette w-4 h-4 text-purple-400"></i>
-                        Styles</span>
-                    <i class="fa-solid fa-chevron-right w-3 h-3 text-white/30"></i>
-                </a>
-                {{-- <a href="{{ route('edit.index') }}"
-                    class="flex items-center justify-between px-4 py-3 rounded-xl bg-[#13131a] hover:bg-white/[0.05] border border-[#222230] text-white/80 hover:text-white transition-all">
-                    <span class="flex items-center gap-3"><i
-                            class="fa-solid fa-wand-magic-sparkles w-4 h-4 text-pink-400"></i>
-                        Magic Edit</span>
-                    <i class="fa-solid fa-chevron-right w-3 h-3 text-white/30"></i>
-                </a> --}}
-                @auth
-                    <a href="{{ route('history.index') }}" wire:navigate
-                        class="flex items-center justify-between px-4 py-3 rounded-xl transition-all {{ request()->routeIs('history.*') ? 'bg-purple-500/10 border-purple-500/30 text-white' : 'bg-[#13131a] hover:bg-white/[0.05] border-[#222230] text-white/80 hover:text-white' }} border">
-                        <span class="flex items-center gap-3"><i class="fa-solid fa-images w-4 h-4 text-purple-400"></i> Ảnh
-                            của tôi</span>
-                        <i class="fa-solid fa-chevron-right w-3 h-3 text-white/30"></i>
-                    </a>
-
-                    <!-- User Menu Dropdown -->
-                    <div x-data="{ userMenuOpen: false }" class="mt-2">
-                        <button @click="userMenuOpen = !userMenuOpen"
-                            class="w-full flex items-center justify-between px-4 py-3 rounded-xl bg-gradient-to-r from-purple-500/10 to-pink-500/10 hover:from-purple-500/20 hover:to-pink-500/20 border border-purple-500/30 text-white hover:text-white transition-all">
-                            <span class="flex items-center gap-3">
-                                <div
-                                    class="w-7 h-7 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white text-xs font-bold shadow-lg shadow-purple-500/30">
-                                    @if(auth()->user()->avatar)
-                                        <img src="{{ auth()->user()->avatar }}" alt="{{ auth()->user()->name }}"
-                                            class="h-7 w-7 rounded-full object-cover border border-white/20">
-                                    @else
-                                        {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
-                                    @endif
-                                </div>
-                                <span
-                                    class="truncate max-w-[150px] font-medium">{{ str_contains(auth()->user()->name, '@') ? Str::before(auth()->user()->name, '@') : auth()->user()->name }}</span>
-                            </span>
-                            <i class="fa-solid fa-chevron-down w-3 h-3 text-purple-400 transition-transform duration-200"
-                                :class="{ 'rotate-180': userMenuOpen }"></i>
-                        </button>
-
-                        <!-- Dropdown Items -->
-                        <div x-show="userMenuOpen" x-collapse class="mt-1 ml-4 space-y-1">
-                            <a href="{{ route('dashboard') }}" wire:navigate
-                                class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm text-white/70 hover:text-white hover:bg-white/[0.05] transition-colors">
-                                <i class="fa-solid fa-gauge w-4 text-purple-400"></i>
-                                Dashboard
-                            </a>
-                            <a href="{{ route('profile.edit') }}" wire:navigate
-                                class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm text-white/70 hover:text-white hover:bg-white/[0.05] transition-colors">
-                                <i class="fa-solid fa-user w-4 text-blue-400"></i>
-                                Hồ sơ cá nhân
-                            </a>
-                            <a href="{{ route('wallet.index') }}" wire:navigate
-                                class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm text-white/70 hover:text-white hover:bg-white/[0.05] transition-colors">
-                                <i class="fa-solid fa-wallet w-4 text-yellow-400"></i>
-                                Ví tiền
-                                <span class="ml-auto text-xs text-cyan-400 font-medium"><livewire:header-credits />
-                                    Xu</span>
-                            </a>
-                        </div>
-                    </div>
-                    @if(auth()->user()->is_admin)
-                        <a href="{{ route('admin.dashboard') }}"
-                            class="flex items-center justify-between px-4 py-3 rounded-xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 hover:bg-cyan-500/15 transition-all">
-                            <span class="flex items-center gap-3"><i class="fa-solid fa-crown w-4 h-4"></i> Admin Panel</span>
-                            <i class="fa-solid fa-chevron-right w-3 h-3 text-cyan-400/50"></i>
-                        </a>
-                    @endif
-                    <div class="h-px bg-white/[0.05] my-4"></div>
-                    <form method="POST" action="{{ route('logout') }}">
-                        @csrf
-                        <button type="submit"
-                            class="w-full py-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 font-medium flex items-center justify-center gap-2 hover:bg-red-500/15 transition-colors">
-                            <i class="fa-solid fa-right-from-bracket w-4 h-4"></i> Đăng xuất
-                        </button>
-                    </form>
-                @else
-                    <div class="h-px bg-white/[0.05] my-4"></div>
-                    <a href="{{ route('register') }}" wire:navigate
-                        class="w-full py-3 rounded-xl bg-white text-gray-900 font-medium inline-flex items-center justify-center gap-2 hover:bg-gray-100 transition-colors">
-                        <i class="fa-solid fa-crown" style="font-size: 14px;"></i>
-                        <span>Đăng ký miễn phí</span>
-                    </a>
-                    <a href="{{ route('login') }}" wire:navigate
-                        class="w-full py-3 rounded-xl bg-white/[0.05] border border-white/[0.1] text-white/80 font-medium inline-flex items-center justify-center gap-2 hover:bg-white/[0.1] transition-colors mt-2">
-                        <i class="fa-solid fa-right-to-bracket" style="font-size: 14px;"></i>
-                        <span>Đăng nhập</span>
-                    </a>
-                @endauth
-            </div>
-        </div>
-    </div>
 
     <!-- ========== MAIN CONTENT ========== -->
     <main class="pt-14 md:pt-0 pb-20 md:pb-0 md:ml-[72px]">
@@ -1171,10 +1036,8 @@
             $lastGoogleAvatar = (string) request()->cookie('zd_last_google_avatar', '');
             $lastGoogleInitial = strtoupper(substr($lastGoogleName !== '' ? $lastGoogleName : 'G', 0, 1));
         @endphp
-        <div x-show="authPromptOpen" x-cloak
-            class="fixed inset-0 z-[9998] flex items-center justify-center p-4"
-            x-transition.opacity
-            @click.self="authPromptOpen = false">
+        <div x-show="authPromptOpen" x-cloak class="fixed inset-0 z-[9998] flex items-center justify-center p-4"
+            x-transition.opacity @click.self="authPromptOpen = false">
             <div class="absolute inset-0 bg-black/70 backdrop-blur-sm"></div>
             <div class="relative w-full max-w-md overflow-hidden rounded-2xl border border-white/10 bg-[#111218] p-6 shadow-2xl"
                 x-transition:enter="transition ease-out duration-200"
@@ -1183,8 +1046,12 @@
                 x-transition:leave="transition ease-in duration-150"
                 x-transition:leave-start="opacity-100 translate-y-0 scale-100"
                 x-transition:leave-end="opacity-0 translate-y-2 scale-95">
-                <div class="pointer-events-none absolute -right-16 -top-16 h-44 w-44 rounded-full bg-purple-500/20 blur-2xl"></div>
-                <div class="pointer-events-none absolute -bottom-12 -left-12 h-36 w-36 rounded-full bg-pink-500/20 blur-2xl"></div>
+                <div
+                    class="pointer-events-none absolute -right-16 -top-16 h-44 w-44 rounded-full bg-purple-500/20 blur-2xl">
+                </div>
+                <div
+                    class="pointer-events-none absolute -bottom-12 -left-12 h-36 w-36 rounded-full bg-pink-500/20 blur-2xl">
+                </div>
 
                 <button type="button" @click="authPromptOpen = false"
                     class="absolute right-3 top-3 h-8 w-8 rounded-full bg-white/5 text-white/60 hover:bg-white/10 hover:text-white">
@@ -1233,51 +1100,6 @@
     <!-- Custom Scripts -->
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-
-            const menuBtn = document.getElementById('menu-btn');
-            const closeMenuBtn = document.getElementById('close-menu-btn');
-            const menuOverlay = document.getElementById('menu-overlay');
-            const mobileMenu = document.getElementById('mobile-menu');
-            const menuIconBars = document.getElementById('menu-icon-bars');
-            const menuIconXmark = document.getElementById('menu-icon-xmark');
-            let menuIsOpen = false;
-            function openMenu() {
-                if (!menuOverlay || !mobileMenu) return;
-                menuOverlay.classList.remove('opacity-0', 'pointer-events-none');
-                menuOverlay.classList.add('opacity-100');
-                mobileMenu.classList.remove('closed');
-                mobileMenu.classList.add('open');
-                document.body.classList.add('overflow-hidden');
-                // Toggle icon
-                if (menuIconBars) menuIconBars.style.display = 'none';
-                if (menuIconXmark) menuIconXmark.style.display = 'inline-flex';
-                menuIsOpen = true;
-            }
-            function closeMenu() {
-                if (!menuOverlay || !mobileMenu) return;
-                menuOverlay.classList.add('opacity-0', 'pointer-events-none');
-                menuOverlay.classList.remove('opacity-100');
-                mobileMenu.classList.add('closed');
-                mobileMenu.classList.remove('open');
-                document.body.classList.remove('overflow-hidden');
-                // Toggle icon
-                if (menuIconBars) menuIconBars.style.display = 'inline-flex';
-                if (menuIconXmark) menuIconXmark.style.display = 'none';
-                menuIsOpen = false;
-            }
-            function toggleMenu() {
-                if (menuIsOpen) {
-                    closeMenu();
-                } else {
-                    openMenu();
-                }
-            }
-            if (menuBtn) menuBtn.addEventListener('click', toggleMenu);
-            if (closeMenuBtn) closeMenuBtn.addEventListener('click', closeMenu);
-            if (menuOverlay) menuOverlay.addEventListener('click', function (e) {
-                if (e.target === menuOverlay) closeMenu();
-            });
-
             // Header scroll effect
             const header = document.getElementById('header');
             if (header) {
