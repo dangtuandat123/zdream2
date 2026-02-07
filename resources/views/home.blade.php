@@ -1101,8 +1101,6 @@
 
                                 <!-- Hidden inputs for form submission -->
                                 <input type="hidden" name="aspect_ratio" :value="selectedRatio">
-                                <input type="hidden" name="width" :value="customWidth">
-                                <input type="hidden" name="height" :value="customHeight">
                             </div>
 
                             <!-- Generate Button -->
@@ -1119,25 +1117,26 @@
             <!-- Tool Icons - Grid on mobile, inline on desktop -->
             <div
                 class="grid grid-cols-4 gap-2 sm:inline-flex sm:items-center sm:gap-1 p-1.5 sm:p-2 rounded-2xl sm:rounded-full bg-black/30 backdrop-blur-xl border border-white/10 max-w-xs sm:max-w-none mx-auto">
-                <a href="{{ route('styles.index') }}"
+                <a href="#" @click.prevent="document.querySelector('textarea[name=prompt]').focus()"
                     class="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 sm:py-2 rounded-xl sm:rounded-full text-white/60 hover:text-white hover:bg-white/10 transition-all">
-                    <i class="fa-solid fa-image text-lg sm:text-base"></i>
-                    <span class="text-[10px] sm:text-sm font-medium">Image</span>
+                    <i class="fa-solid fa-wand-magic-sparkles text-lg sm:text-base"></i>
+                    <span class="text-[10px] sm:text-sm font-medium">Tạo ảnh</span>
                 </a>
-                <a href="{{ route('styles.index') }}"
+                <a href="{{ route('styles.index') }}" wire:navigate
                     class="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 sm:py-2 rounded-xl sm:rounded-full text-white/60 hover:text-white hover:bg-white/10 transition-all">
                     <i class="fa-solid fa-palette text-lg sm:text-base"></i>
                     <span class="text-[10px] sm:text-sm font-medium">Styles</span>
                 </a>
-                <a href="{{ route('styles.index') }}"
+                <a href="{{ route('styles.index', ['sort' => 'popular']) }}" wire:navigate
                     class="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 sm:py-2 rounded-xl sm:rounded-full text-white/60 hover:text-white hover:bg-white/10 transition-all relative">
-                    <i class="fa-solid fa-wand-magic-sparkles text-lg sm:text-base"></i>
-                    <span class="text-[10px] sm:text-sm font-medium">AI Art</span>
+                    <i class="fa-solid fa-fire text-lg sm:text-base"></i>
+                    <span class="text-[10px] sm:text-sm font-medium">Trending</span>
                     <span
-                        class="absolute -top-0.5 -right-0.5 sm:-top-1 sm:-right-1 w-2 h-2 sm:w-auto sm:h-auto sm:px-1 sm:py-0.5 rounded-full text-[8px] font-bold bg-gradient-to-r from-pink-500 to-purple-500 text-white sm:text-[9px]">
-                        <span class="hidden sm:inline">NEW</span>
-                    </span> </a>
-                <a href="{{ route('history.index') }}"
+                        class="absolute -top-0.5 -right-0.5 sm:-top-1 sm:-right-1 w-2 h-2 sm:w-auto sm:h-auto sm:px-1 sm:py-0.5 rounded-full text-[8px] font-bold bg-gradient-to-r from-orange-500 to-red-500 text-white sm:text-[9px]">
+                        <span class="hidden sm:inline">HOT</span>
+                    </span>
+                </a>
+                <a href="{{ route('history.index') }}" wire:navigate
                     class="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 sm:py-2 rounded-xl sm:rounded-full text-white/60 hover:text-white hover:bg-white/10 transition-all">
                     <i class="fa-solid fa-images text-lg sm:text-base"></i>
                     <span class="text-[10px] sm:text-sm font-medium">Gallery</span>
@@ -1241,7 +1240,7 @@
                         <i class="fa-solid fa-chevron-right text-sm"></i>
                     </button>
                     <!-- View All -->
-                    <a href="{{ route('styles.index') }}"
+                    <a href="{{ route('styles.index') }}" wire:navigate
                         class="hidden sm:flex items-center gap-1.5 px-4 py-2 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 text-white text-sm font-medium hover:from-purple-500 hover:to-pink-500 transition-all">
                         <span>Xem tất cả</span>
                         <i class="fa-solid fa-arrow-right text-xs"></i>
@@ -1325,7 +1324,7 @@
 
         <!-- Mobile View All Button -->
         <div class="flex justify-center mt-4 sm:hidden px-4">
-            <a href="{{ route('styles.index') }}"
+            <a href="{{ route('styles.index') }}" wire:navigate
                 class="w-full py-3 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white text-sm font-semibold text-center">
                 Xem tất cả Styles
             </a>
