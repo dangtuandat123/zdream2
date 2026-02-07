@@ -793,7 +793,9 @@
     </style>
 </head>
 
-<body class="min-h-screen text-white antialiased">
+<body class="min-h-screen text-white antialiased"
+    x-data="{ authPromptOpen: @js((bool) session('open_auth_modal')) }"
+    @open-auth-modal.window="authPromptOpen = true">
     @persist('ambient-bg')
     <div class="ambient-bg" aria-hidden="true"></div>
     @endpersist
@@ -1134,6 +1136,39 @@
         </div>
     </nav>
     @endpersist
+
+    <!-- ========== AUTH PROMPT MODAL (GOOGLE ONLY) ========== -->
+    @guest
+        <div x-show="authPromptOpen" x-cloak
+            class="fixed inset-0 z-[9998] flex items-center justify-center p-4"
+            x-transition.opacity
+            @click.self="authPromptOpen = false">
+            <div class="absolute inset-0 bg-black/70 backdrop-blur-sm"></div>
+            <div class="relative w-full max-w-md rounded-2xl border border-white/10 bg-[#111218] p-6 shadow-2xl"
+                x-transition:enter="transition ease-out duration-200"
+                x-transition:enter-start="opacity-0 translate-y-2 scale-95"
+                x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                x-transition:leave="transition ease-in duration-150"
+                x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+                x-transition:leave-end="opacity-0 translate-y-2 scale-95">
+                <button type="button" @click="authPromptOpen = false"
+                    class="absolute right-3 top-3 h-8 w-8 rounded-full bg-white/5 text-white/60 hover:bg-white/10 hover:text-white">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+
+                <div class="mb-4">
+                    <h3 class="text-lg font-semibold text-white">Yêu cầu đăng nhập</h3>
+                    <p class="mt-1 text-sm text-white/60">Bạn cần đăng nhập để sử dụng tính năng này.</p>
+                </div>
+
+                <a href="{{ route('auth.google.redirect') }}"
+                    class="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-white px-4 py-3 font-semibold text-[#1a1a1a] transition hover:bg-white/90">
+                    <i class="fa-brands fa-google"></i>
+                    <span>Tiếp tục với Google</span>
+                </a>
+            </div>
+        </div>
+    @endguest
 
     <!-- Custom Scripts -->
     <script>

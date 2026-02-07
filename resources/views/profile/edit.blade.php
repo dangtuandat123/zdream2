@@ -51,56 +51,6 @@
             </form>
         </div>
 
-        <!-- Update Password -->
-        <div class="bg-[#1b1c21] border border-[#2a2b30] rounded-2xl p-6 mb-6">
-            <h2 class="text-lg font-semibold text-[#d3d6db] mb-4 flex items-center gap-2">
-                <i class="fa-solid fa-lock w-5 h-5 text-purple-400"></i>
-                Đổi mật khẩu
-            </h2>
-
-            <form method="post" action="{{ route('password.update') }}" class="space-y-4">
-                @csrf
-                @method('put')
-
-                <div>
-                    <label for="current_password" class="block text-sm font-medium text-white/70 mb-2">Mật khẩu hiện tại</label>
-                    <input id="current_password" type="password" name="current_password" 
-                           class="w-full px-4 py-3 rounded-xl bg-[#1b1c21] border border-[#2a2b30] text-white/90 focus:outline-none focus:ring-2 focus:ring-purple-500/40 focus:border-purple-500/40 transition-all" 
-                           autocomplete="current-password">
-                    @error('current_password', 'updatePassword')
-                        <p class="mt-1 text-sm text-red-400">{{ $message }}</p>
-                    @enderror
-                </div>
-
-                <div>
-                    <label for="password" class="block text-sm font-medium text-white/70 mb-2">Mật khẩu mới</label>
-                    <input id="password" type="password" name="password" 
-                           class="w-full px-4 py-3 rounded-xl bg-[#1b1c21] border border-[#2a2b30] text-white/90 focus:outline-none focus:ring-2 focus:ring-purple-500/40 focus:border-purple-500/40 transition-all" 
-                           autocomplete="new-password">
-                    @error('password', 'updatePassword')
-                        <p class="mt-1 text-sm text-red-400">{{ $message }}</p>
-                    @enderror
-                </div>
-
-                <div>
-                    <label for="password_confirmation" class="block text-sm font-medium text-white/70 mb-2">Xác nhận mật khẩu</label>
-                    <input id="password_confirmation" type="password" name="password_confirmation" 
-                           class="w-full px-4 py-3 rounded-xl bg-[#1b1c21] border border-[#2a2b30] text-white/90 focus:outline-none focus:ring-2 focus:ring-purple-500/40 focus:border-purple-500/40 transition-all" 
-                           autocomplete="new-password">
-                </div>
-
-                <div class="flex items-center gap-4">
-                    <button type="submit" class="px-6 py-2.5 rounded-xl bg-white/[0.05] border border-white/[0.1] text-[#d3d6db] font-medium flex items-center gap-2 hover:bg-white/[0.1] transition-all">
-                        <i class="fa-solid fa-key w-4 h-4"></i> Đổi mật khẩu
-                    </button>
-                    @if (session('status') === 'password-updated')
-                        <p class="text-sm text-green-400 flex items-center gap-1">
-                            <i class="fa-solid fa-check w-3 h-3"></i> Đã cập nhật!
-                        </p>
-                    @endif
-                </div>
-            </form>
-        </div>
 
         <!-- Delete Account -->
         <div class="bg-[#1b1c21] border border-red-500/20 rounded-2xl p-6" x-data="{ showConfirm: false }">
@@ -120,15 +70,15 @@
             <div x-show="showConfirm" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 ">
                 <div class="bg-[#0f0f18] border border-white/[0.1] rounded-2xl p-6 w-full max-w-md" @click.away="showConfirm = false">
                     <h3 class="text-lg font-semibold text-[#d3d6db] mb-2">Xác nhận xóa tài khoản</h3>
-                    <p class="text-white/50 text-sm mb-4">Nhập mật khẩu để xác nhận:</p>
+                    <p class="text-white/50 text-sm mb-4">Nhap "DELETE" de xac nhan:</p>
                     
                     <form method="post" action="{{ route('profile.destroy') }}">
                         @csrf
                         @method('delete')
                         
-                        <input type="password" name="password" 
+                        <input type="text" name="confirm_delete" 
                                class="w-full px-4 py-3 rounded-xl bg-[#1b1c21] border border-[#2a2b30] text-white/90 mb-4" 
-                               placeholder="Mật khẩu" required>
+                               placeholder="Nhap DELETE" required>
                         
                         <div class="flex items-center gap-3">
                             <button type="button" @click="showConfirm = false" class="flex-1 py-2.5 rounded-xl bg-white/[0.05] border border-white/[0.1] text-[#d3d6db] font-medium">

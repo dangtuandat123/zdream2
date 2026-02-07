@@ -567,10 +567,10 @@
                 </a>
             @endif
         @else
-            <a href="{{ route('login') }}" class="w-full py-3.5 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold text-base inline-flex items-center justify-center gap-2 hover:shadow-[0_8px_30px_rgba(168,85,247,0.5)] transition-all">
+            <button type="button" @click="$dispatch('open-auth-modal')" class="w-full py-3.5 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold text-base inline-flex items-center justify-center gap-2 hover:shadow-[0_8px_30px_rgba(168,85,247,0.5)] transition-all">
                 <i class="fa-solid fa-right-to-bracket" style="font-size: 18px;"></i>
-                <span>Đăng nhập để tạo ảnh</span>
-            </a>
+                <span>Dang nhap de tao anh</span>
+            </button>
         @endauth
 
         @auth

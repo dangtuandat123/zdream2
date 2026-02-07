@@ -41,8 +41,8 @@ class EnsureUserIsActive
             $request->session()->invalidate();
             $request->session()->regenerateToken();
             
-            // Redirect về login với thông báo
-            return redirect()->route('login')->with('error', 'Tài khoản của bạn đã bị vô hiệu hóa. Vui lòng liên hệ hỗ trợ.');
+            // Redirect về trang chủ với thông báo
+            return redirect()->route('home')->with('error', 'Tài khoản của bạn đã bị vô hiệu hóa. Vui lòng liên hệ hỗ trợ.');
         }
         
         return $next($request);

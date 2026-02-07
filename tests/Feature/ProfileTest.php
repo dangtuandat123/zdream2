@@ -68,7 +68,7 @@ class ProfileTest extends TestCase
         $response = $this
             ->actingAs($user)
             ->delete('/profile', [
-                'password' => 'password',
+                'confirm_delete' => '1',
             ]);
 
         $response
@@ -79,19 +79,17 @@ class ProfileTest extends TestCase
         $this->assertNull($user->fresh());
     }
 
-    public function test_correct_password_must_be_provided_to_delete_account(): void
+    public function test_delete_confirmation_is_required_to_delete_account(): void
     {
         $user = User::factory()->create();
 
         $response = $this
             ->actingAs($user)
             ->from('/profile')
-            ->delete('/profile', [
-                'password' => 'wrong-password',
-            ]);
+            ->delete('/profile', []);
 
         $response
-            ->assertSessionHasErrorsIn('userDeletion', 'password')
+            ->assertSessionHasErrorsIn('userDeletion', 'confirm_delete')
             ->assertRedirect('/profile');
 
         $this->assertNotNull($user->fresh());
