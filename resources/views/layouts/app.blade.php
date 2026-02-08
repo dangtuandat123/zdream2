@@ -1211,35 +1211,41 @@
         show: false,
         deferredPrompt: null,
         isIOS: false,
+        isAndroid: false,
+        canInstall: false,
         
         init() {
+            // Only show on mobile
+            if (window.innerWidth >= 768) return;
+            
             // Check if already installed as PWA
             if (window.matchMedia('(display-mode: standalone)').matches) return;
             if (window.navigator.standalone === true) return;
             
-            // Check if user dismissed recently (show again after 3 days)
+            // Check if user dismissed recently (show again after 7 days)
             const dismissed = localStorage.getItem('pwa_prompt_dismissed');
             if (dismissed) {
                 const dismissedTime = parseInt(dismissed);
-                const threeDays = 3 * 24 * 60 * 60 * 1000;
-                if (Date.now() - dismissedTime < threeDays) return;
+                const sevenDays = 7 * 24 * 60 * 60 * 1000;
+                if (Date.now() - dismissedTime < sevenDays) return;
             }
             
-            // Detect iOS
-            this.isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+            // Detect platform
+            const ua = navigator.userAgent;
+            this.isIOS = /iPad|iPhone|iPod/.test(ua) && !window.MSStream;
+            this.isAndroid = /Android/.test(ua);
             
-            // For Android/Chrome - listen for beforeinstallprompt
+            // Listen for beforeinstallprompt (Chrome/Edge)
             window.addEventListener('beforeinstallprompt', (e) => {
                 e.preventDefault();
                 this.deferredPrompt = e;
-                // Show after 3 seconds
-                setTimeout(() => { this.show = true; }, 3000);
+                this.canInstall = true;
             });
             
-            // For iOS - show instructions after 5 seconds
-            if (this.isIOS) {
-                setTimeout(() => { this.show = true; }, 5000);
-            }
+            // Show prompt after 4 seconds
+            setTimeout(() => { 
+                this.show = true; 
+            }, 4000);
         },
         
         async install() {
@@ -1248,6 +1254,7 @@
                 const { outcome } = await this.deferredPrompt.userChoice;
                 if (outcome === 'accepted') {
                     this.show = false;
+                    localStorage.setItem('pwa_installed', '1');
                 }
                 this.deferredPrompt = null;
             }
@@ -1334,19 +1341,38 @@
                         </div>
                     </template>
                     
+                    <!-- Android Instructions (when no native prompt) -->
+                    <template x-if="isAndroid && !canInstall">
+                        <div class="mb-4 p-3 rounded-xl bg-white/5 border border-white/10">
+                            <p class="text-sm text-white/80 mb-2">
+                                <i class="fa-brands fa-android mr-1.5 text-green-400"></i> Để cài đặt trên Android:
+                            </p>
+                            <div class="flex items-center gap-3 text-sm text-white/60">
+                                <span class="w-5 h-5 rounded-full bg-green-500 text-white text-xs flex items-center justify-center font-bold">1</span>
+                                <span>Nhấn <i class="fa-solid fa-ellipsis-vertical text-white/80 mx-1"></i> (Menu)</span>
+                            </div>
+                            <div class="flex items-center gap-3 text-sm text-white/60 mt-2">
+                                <span class="w-5 h-5 rounded-full bg-green-500 text-white text-xs flex items-center justify-center font-bold">2</span>
+                                <span>Chọn "Thêm vào MH chính" / "Install app"</span>
+                            </div>
+                        </div>
+                    </template>
+                    
                     <!-- Buttons -->
                     <div class="flex gap-3">
                         <button @click="dismiss()" 
                             class="flex-1 py-3 rounded-xl bg-white/5 border border-white/10 text-white/70 font-medium text-sm active:scale-[0.98] transition-transform">
                             Để sau
                         </button>
-                        <template x-if="!isIOS && deferredPrompt">
+                        <!-- Native install button (Android Chrome) -->
+                        <template x-if="canInstall">
                             <button @click="install()" 
                                 class="flex-1 py-3 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold text-sm active:scale-[0.98] transition-transform shadow-lg shadow-purple-500/30">
                                 <i class="fa-solid fa-download mr-1.5"></i> Cài đặt ngay
                             </button>
                         </template>
-                        <template x-if="isIOS">
+                        <!-- OK button (iOS or Android without native prompt) -->
+                        <template x-if="!canInstall">
                             <button @click="dismiss()" 
                                 class="flex-1 py-3 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold text-sm active:scale-[0.98] transition-transform shadow-lg shadow-purple-500/30">
                                 <i class="fa-solid fa-check mr-1.5"></i> Đã hiểu
