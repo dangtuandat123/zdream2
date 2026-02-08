@@ -266,12 +266,12 @@
                             {{-- Aspect Ratio Button --}}
                             <div class="relative">
                                 <button type="button" @click="showLocalRatioDropdown = !showLocalRatioDropdown"
-                                    class="flex items-center gap-1.5 h-9 px-2.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition-all cursor-pointer"
+                                    class="flex items-center gap-1.5 h-9 px-2 sm:px-2.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition-all cursor-pointer"
                                     :class="{ 'bg-purple-500/20 border-purple-500/40': showLocalRatioDropdown }">
                                     <i class="fa-solid fa-crop text-white/50 text-sm"></i>
-                                    <span class="text-white/70 text-xs font-medium"
+                                    <span class="text-white/70 text-xs font-medium hidden sm:inline"
                                         x-text="selectedRatio === 'auto' ? 'Tỉ lệ' : selectedRatio"></span>
-                                    <i class="fa-solid fa-chevron-down text-white/40 text-[10px] transition-transform"
+                                    <i class="fa-solid fa-chevron-down text-white/40 text-[10px] transition-transform hidden sm:inline"
                                         :class="{ 'rotate-180': showLocalRatioDropdown }"></i>
                                 </button>
 
@@ -318,12 +318,12 @@
                                 }
                             }" @click.away="showLocalModelDropdown = false">
                                 <button type="button" @click="showLocalModelDropdown = !showLocalModelDropdown"
-                                    class="flex items-center gap-1.5 h-9 px-2.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition-all cursor-pointer"
+                                    class="flex items-center gap-1.5 h-9 px-2 sm:px-2.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition-all cursor-pointer"
                                     :class="{ 'bg-purple-500/20 border-purple-500/40': showLocalModelDropdown }">
                                     <i class="fa-solid fa-microchip text-white/50 text-sm"></i>
                                     <span class="text-white/70 text-xs font-medium hidden sm:inline"
                                         x-text="getSelectedModel()?.name || 'Model'"></span>
-                                    <i class="fa-solid fa-chevron-down text-white/40 text-[10px] transition-transform"
+                                    <i class="fa-solid fa-chevron-down text-white/40 text-[10px] transition-transform hidden sm:inline"
                                         :class="{ 'rotate-180': showLocalModelDropdown }"></i>
                                 </button>
 
