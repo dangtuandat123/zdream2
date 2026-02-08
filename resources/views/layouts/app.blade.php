@@ -1054,31 +1054,39 @@
             $lastGoogleAvatar = (string) request()->cookie('zd_last_google_avatar', '');
             $lastGoogleInitial = strtoupper(substr($lastGoogleName !== '' ? $lastGoogleName : 'G', 0, 1));
         @endphp
-        <div x-show="authPromptOpen" x-cloak class="fixed inset-0 z-[9998] flex items-center justify-center p-4"
-            x-transition.opacity @click.self="authPromptOpen = false">
+        
+        {{-- Desktop Modal (Center) --}}
+        <div x-show="authPromptOpen" x-cloak 
+            class="hidden sm:flex fixed inset-0 z-[9998] items-center justify-center p-4"
+            x-transition:enter="transition ease-out duration-300"
+            x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+            x-transition:leave="transition ease-in duration-200"
+            x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
+            @click.self="authPromptOpen = false">
             <div class="absolute inset-0 bg-black/70 backdrop-blur-sm"></div>
             <div class="relative w-full max-w-md overflow-hidden rounded-2xl border border-white/10 bg-[#111218] p-6 shadow-2xl"
-                x-transition:enter="transition ease-out duration-200"
-                x-transition:enter-start="opacity-0 translate-y-2 scale-95"
+                x-show="authPromptOpen"
+                x-transition:enter="transition ease-out duration-300"
+                x-transition:enter-start="opacity-0 translate-y-4 scale-95"
                 x-transition:enter-end="opacity-100 translate-y-0 scale-100"
-                x-transition:leave="transition ease-in duration-150"
+                x-transition:leave="transition ease-in duration-200"
                 x-transition:leave-start="opacity-100 translate-y-0 scale-100"
-                x-transition:leave-end="opacity-0 translate-y-2 scale-95">
-                <div
-                    class="pointer-events-none absolute -right-16 -top-16 h-44 w-44 rounded-full bg-purple-500/20 blur-2xl">
-                </div>
-                <div
-                    class="pointer-events-none absolute -bottom-12 -left-12 h-36 w-36 rounded-full bg-pink-500/20 blur-2xl">
-                </div>
+                x-transition:leave-end="opacity-0 translate-y-4 scale-95"
+                @click.stop>
+                <div class="pointer-events-none absolute -right-16 -top-16 h-44 w-44 rounded-full bg-purple-500/20 blur-2xl"></div>
+                <div class="pointer-events-none absolute -bottom-12 -left-12 h-36 w-36 rounded-full bg-pink-500/20 blur-2xl"></div>
 
                 <button type="button" @click="authPromptOpen = false"
-                    class="absolute right-3 top-3 h-8 w-8 rounded-full bg-white/5 text-white/60 hover:bg-white/10 hover:text-white">
+                    class="absolute right-3 top-3 h-8 w-8 rounded-full bg-white/5 text-white/60 hover:bg-white/10 hover:text-white transition-colors">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
 
-                <div class="mb-4">
-                    <h3 class="text-lg font-semibold text-white">Đăng nhập để tiếp tục</h3>
-                    <p class="mt-1 text-sm text-white/60">Đồng bộ ảnh, lịch sử tạo ảnh và số dư tài khoản của bạn.</p>
+                <div class="mb-5 text-center">
+                    <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center mx-auto mb-4 shadow-lg shadow-purple-500/30">
+                        <i class="fa-solid fa-wand-magic-sparkles text-white text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-white">Đăng nhập để tiếp tục</h3>
+                    <p class="mt-2 text-sm text-white/60">Đồng bộ ảnh, lịch sử tạo ảnh và số dư tài khoản của bạn.</p>
                 </div>
 
                 @if ($lastGoogleName !== '')
@@ -1089,8 +1097,7 @@
                                 <img src="{{ $lastGoogleAvatar }}" alt="{{ $lastGoogleName }}"
                                     class="h-10 w-10 rounded-full border border-white/20 object-cover">
                             @else
-                                <div
-                                    class="h-10 w-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 text-white text-sm font-semibold flex items-center justify-center">
+                                <div class="h-10 w-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 text-white text-sm font-semibold flex items-center justify-center">
                                     {{ $lastGoogleInitial }}
                                 </div>
                             @endif
@@ -1103,14 +1110,100 @@
                 @endif
 
                 <a href="{{ route('auth.google.redirect') }}"
-                    class="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-white px-4 py-3 font-semibold text-[#1a1a1a] transition hover:bg-white/90">
-                    <i class="fa-brands fa-google"></i>
+                    class="inline-flex w-full items-center justify-center gap-3 rounded-xl bg-white px-4 py-3.5 font-semibold text-[#1a1a1a] transition hover:bg-white/90 active:scale-[0.98]">
+                    <i class="fa-brands fa-google text-lg"></i>
                     @if ($lastGoogleName !== '')
-                        <span>Tiếp tục với {{ \Illuminate\Support\Str::limit($lastGoogleName, 24) }}</span>
+                        <span>Tiếp tục với {{ \Illuminate\Support\Str::limit($lastGoogleName, 20) }}</span>
                     @else
                         <span>Tiếp tục với Google</span>
                     @endif
                 </a>
+
+                <p class="mt-4 text-center text-xs text-white/40">
+                    Bằng việc đăng nhập, bạn đồng ý với <a href="#" class="text-purple-400 hover:underline">Điều khoản</a> của chúng tôi
+                </p>
+            </div>
+        </div>
+
+        {{-- Mobile Bottom Sheet --}}
+        <div x-show="authPromptOpen" x-cloak 
+            class="sm:hidden fixed inset-0 z-[9998] flex items-end justify-center"
+            x-transition:enter="transition ease-out duration-300"
+            x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+            x-transition:leave="transition ease-in duration-200"
+            x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
+            @click.self="authPromptOpen = false">
+            <div class="absolute inset-0 bg-black/80 backdrop-blur-md"></div>
+            
+            <div class="relative w-full max-w-lg bg-[#1a1b20] border-t border-white/10 rounded-t-3xl overflow-hidden shadow-[0_-10px_40px_rgba(0,0,0,0.5)]"
+                x-show="authPromptOpen"
+                x-transition:enter="transition ease-out duration-300"
+                x-transition:enter-start="translate-y-full"
+                x-transition:enter-end="translate-y-0"
+                x-transition:leave="transition ease-in duration-200"
+                x-transition:leave-start="translate-y-0"
+                x-transition:leave-end="translate-y-full"
+                @click.stop>
+                
+                {{-- Handle indicator --}}
+                <div class="flex justify-center py-3">
+                    <div class="w-10 h-1 rounded-full bg-white/20"></div>
+                </div>
+
+                {{-- Glow effects --}}
+                <div class="pointer-events-none absolute -right-20 top-0 h-40 w-40 rounded-full bg-purple-500/20 blur-3xl"></div>
+                <div class="pointer-events-none absolute -left-20 bottom-20 h-32 w-32 rounded-full bg-pink-500/20 blur-3xl"></div>
+
+                <div class="px-6 pb-8">
+                    {{-- Icon & Title --}}
+                    <div class="text-center mb-6">
+                        <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center mx-auto mb-4 shadow-lg shadow-purple-500/30">
+                            <i class="fa-solid fa-wand-magic-sparkles text-white text-2xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-white">Đăng nhập để tiếp tục</h3>
+                        <p class="mt-2 text-sm text-white/60 max-w-xs mx-auto">Đồng bộ ảnh, lịch sử tạo ảnh và số dư tài khoản</p>
+                    </div>
+
+                    {{-- Last used account --}}
+                    @if ($lastGoogleName !== '')
+                        <div class="mb-5 rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+                            <p class="mb-3 text-xs uppercase tracking-wide text-white/40 font-medium">Tài khoản gần đây</p>
+                            <div class="flex items-center gap-3">
+                                @if ($lastGoogleAvatar !== '')
+                                    <img src="{{ $lastGoogleAvatar }}" alt="{{ $lastGoogleName }}"
+                                        class="h-12 w-12 rounded-full border border-white/20 object-cover">
+                                @else
+                                    <div class="h-12 w-12 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 text-white text-lg font-semibold flex items-center justify-center">
+                                        {{ $lastGoogleInitial }}
+                                    </div>
+                                @endif
+                                <div class="min-w-0 flex-1">
+                                    <p class="truncate text-base font-medium text-white">{{ $lastGoogleName }}</p>
+                                    <p class="text-sm text-white/50">Google Account</p>
+                                </div>
+                                <div class="w-5 h-5 rounded-full bg-green-500/20 flex items-center justify-center">
+                                    <i class="fa-solid fa-check text-green-400 text-[10px]"></i>
+                                </div>
+                            </div>
+                        </div>
+                    @endif
+
+                    {{-- Login Button --}}
+                    <a href="{{ route('auth.google.redirect') }}"
+                        class="flex w-full items-center justify-center gap-3 rounded-2xl bg-white px-6 py-4 font-bold text-[#1a1a1a] text-base transition active:scale-[0.98] shadow-lg">
+                        <img src="https://www.google.com/favicon.ico" alt="Google" class="w-5 h-5">
+                        @if ($lastGoogleName !== '')
+                            <span>Tiếp tục với Google</span>
+                        @else
+                            <span>Đăng nhập với Google</span>
+                        @endif
+                    </a>
+
+                    {{-- Terms --}}
+                    <p class="mt-5 text-center text-xs text-white/40 safe-area-bottom">
+                        Bằng việc đăng nhập, bạn đồng ý với <a href="#" class="text-purple-400">Điều khoản</a> của chúng tôi
+                    </p>
+                </div>
             </div>
         </div>
     @endguest
