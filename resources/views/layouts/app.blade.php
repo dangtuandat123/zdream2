@@ -837,10 +837,10 @@
                         <span class="font-semibold text-sm"><livewire:header-credits /></span>
                     </a>
                 @else
-                    <a href="{{ route('login') }}" wire:navigate
-                        class="px-4 py-2 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white text-sm font-medium">
+                    <button type="button" @click="authPromptOpen = true"
+                        class="px-4 py-2 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white text-sm font-medium active:scale-95 transition-transform">
                         Đăng nhập
-                    </a>
+                    </button>
                 @endauth
             </div>
         </div>
@@ -876,10 +876,10 @@
                 <i class="fa-solid fa-palette text-lg mb-1"></i>
                 <span class="text-[10px] font-medium">Styles</span>
             </a>
-            {{-- Create (AI Studio) - Primary Action --}}
+            {{-- Create (AI Studio) --}}
             <a href="{{ route('create') }}" wire:navigate
                 class="flex flex-col items-center justify-center w-14 h-14 rounded-xl transition-all"
-                :class="currentPath === '/create' ? 'bg-gradient-to-br from-purple-500 to-pink-500 text-white shadow-lg shadow-purple-500/30' : 'bg-gradient-to-br from-purple-500/20 to-pink-500/20 text-purple-300 hover:from-purple-500/30 hover:to-pink-500/30 border border-purple-500/30'">
+                :class="currentPath === '/create' ? 'bg-purple-500/20 text-white' : 'text-white/50 hover:text-white hover:bg-white/5'">
                 <i class="fa-solid fa-wand-magic-sparkles text-lg mb-1"></i>
                 <span class="text-[10px] font-medium">Tạo ảnh</span>
             </a>
@@ -959,11 +959,11 @@
                     </div>
                 </div>
             @else
-                <a href="{{ route('login') }}" wire:navigate
+                <button type="button" @click="authPromptOpen = true"
                     class="flex flex-col items-center justify-center w-14 h-14 rounded-xl text-white/50 hover:text-white hover:bg-white/5 transition-all">
                     <i class="fa-solid fa-right-to-bracket text-lg mb-1"></i>
                     <span class="text-[10px] font-medium">Đăng nhập</span>
-                </a>
+                </button>
             @endauth
         </div>
     </aside>
@@ -995,15 +995,14 @@
                 <span class="text-[10px] font-medium">Trang chủ</span>
             </a>
 
-            <!-- Create (AI Studio) - Primary Action -->
+            <!-- Create (AI Studio) -->
             <a href="{{ route('create') }}" wire:navigate
                 class="relative flex flex-col items-center justify-center gap-1 py-2 px-3 rounded-xl transition-all"
-                :class="currentPath === '/create' ? 'text-white' : 'text-purple-300'">
-                <div class="absolute -top-1 left-1/2 -translate-x-1/2 w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow-lg shadow-purple-500/40 -mt-3"
-                    :class="currentPath === '/create' ? 'ring-2 ring-white/30' : ''">
-                    <i class="fa-solid fa-wand-magic-sparkles text-white text-sm"></i>
-                </div>
-                <span class="text-[10px] font-medium mt-5">Tạo ảnh</span>
+                :class="currentPath === '/create' ? 'text-white' : 'text-white/50'">
+                <div x-show="currentPath === '/create'"
+                    class="absolute -top-0.5 w-8 h-1 rounded-full bg-gradient-to-r from-purple-500 to-pink-500"></div>
+                <i class="fa-solid fa-wand-magic-sparkles text-lg"></i>
+                <span class="text-[10px] font-medium">Tạo ảnh</span>
             </a>
 
             <!-- Styles -->
@@ -1038,11 +1037,11 @@
                 </a>
             @else
                 <!-- Login -->
-                <a href="{{ route('login') }}" wire:navigate
-                    class="flex flex-col items-center justify-center gap-1 py-2 px-4 rounded-xl transition-all text-white/50">
+                <button type="button" @click="$dispatch('open-auth-modal')"
+                    class="flex flex-col items-center justify-center gap-1 py-2 px-4 rounded-xl transition-all text-white/50 active:text-white">
                     <i class="fa-solid fa-right-to-bracket text-lg"></i>
                     <span class="text-[10px] font-medium">Đăng nhập</span>
-                </a>
+                </button>
             @endauth
         </div>
     </nav>
@@ -1131,9 +1130,8 @@
             x-transition:enter="transition ease-out duration-300"
             x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
             x-transition:leave="transition ease-in duration-200"
-            x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
-            @click.self="authPromptOpen = false">
-            <div class="absolute inset-0 bg-black/80 backdrop-blur-md"></div>
+            x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0">
+            <div class="absolute inset-0 bg-black/80 backdrop-blur-md" @click="authPromptOpen = false"></div>
             
             <div class="relative w-full max-w-lg bg-[#1a1b20] border-t border-white/10 rounded-t-3xl overflow-hidden shadow-[0_-10px_40px_rgba(0,0,0,0.5)]"
                 x-show="authPromptOpen"
