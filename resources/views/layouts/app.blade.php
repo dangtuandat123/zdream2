@@ -1206,6 +1206,162 @@
         </div>
     @endguest
 
+    <!-- ========== PWA INSTALL PROMPT (Mobile Only) ========== -->
+    <div x-data="{
+        show: false,
+        deferredPrompt: null,
+        isIOS: false,
+        
+        init() {
+            // Check if already installed as PWA
+            if (window.matchMedia('(display-mode: standalone)').matches) return;
+            if (window.navigator.standalone === true) return;
+            
+            // Check if user dismissed recently (show again after 3 days)
+            const dismissed = localStorage.getItem('pwa_prompt_dismissed');
+            if (dismissed) {
+                const dismissedTime = parseInt(dismissed);
+                const threeDays = 3 * 24 * 60 * 60 * 1000;
+                if (Date.now() - dismissedTime < threeDays) return;
+            }
+            
+            // Detect iOS
+            this.isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+            
+            // For Android/Chrome - listen for beforeinstallprompt
+            window.addEventListener('beforeinstallprompt', (e) => {
+                e.preventDefault();
+                this.deferredPrompt = e;
+                // Show after 3 seconds
+                setTimeout(() => { this.show = true; }, 3000);
+            });
+            
+            // For iOS - show instructions after 5 seconds
+            if (this.isIOS) {
+                setTimeout(() => { this.show = true; }, 5000);
+            }
+        },
+        
+        async install() {
+            if (this.deferredPrompt) {
+                this.deferredPrompt.prompt();
+                const { outcome } = await this.deferredPrompt.userChoice;
+                if (outcome === 'accepted') {
+                    this.show = false;
+                }
+                this.deferredPrompt = null;
+            }
+        },
+        
+        dismiss() {
+            this.show = false;
+            localStorage.setItem('pwa_prompt_dismissed', Date.now().toString());
+        }
+    }" x-cloak>
+        <!-- Mobile Bottom Sheet -->
+        <div x-show="show" 
+            class="md:hidden fixed inset-0 z-[9997] flex items-end justify-center"
+            x-transition:enter="transition ease-out duration-300"
+            x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+            x-transition:leave="transition ease-in duration-200"
+            x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0">
+            <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" @click="dismiss()"></div>
+            
+            <div class="relative w-full max-w-lg bg-[#1a1b20] border-t border-white/10 rounded-t-3xl overflow-hidden shadow-[0_-10px_40px_rgba(0,0,0,0.5)]"
+                x-show="show"
+                x-transition:enter="transition ease-out duration-300"
+                x-transition:enter-start="translate-y-full"
+                x-transition:enter-end="translate-y-0"
+                x-transition:leave="transition ease-in duration-200"
+                x-transition:leave-start="translate-y-0"
+                x-transition:leave-end="translate-y-full"
+                @click.stop>
+                
+                <!-- Handle -->
+                <div class="flex justify-center py-2.5">
+                    <div class="w-10 h-1 rounded-full bg-white/20"></div>
+                </div>
+                
+                <!-- Glow -->
+                <div class="pointer-events-none absolute -right-16 top-0 h-32 w-32 rounded-full bg-purple-500/20 blur-3xl"></div>
+                <div class="pointer-events-none absolute -left-16 bottom-10 h-24 w-24 rounded-full bg-cyan-500/20 blur-3xl"></div>
+                
+                <div class="px-5 pb-6">
+                    <!-- Icon & Title -->
+                    <div class="flex items-start gap-4 mb-4">
+                        <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow-lg shadow-purple-500/30 shrink-0">
+                            <i class="fa-solid fa-wand-magic-sparkles text-white text-xl"></i>
+                        </div>
+                        <div class="flex-1 min-w-0 pt-1">
+                            <h3 class="text-lg font-bold text-white">Cài đặt ZDream</h3>
+                            <p class="text-sm text-white/60 mt-0.5">Truy cập nhanh hơn, không cần mở trình duyệt!</p>
+                        </div>
+                        <button @click="dismiss()" class="w-8 h-8 rounded-full bg-white/5 text-white/40 flex items-center justify-center shrink-0">
+                            <i class="fa-solid fa-xmark text-sm"></i>
+                        </button>
+                    </div>
+                    
+                    <!-- Benefits -->
+                    <div class="space-y-2 mb-5">
+                        <div class="flex items-center gap-3 text-sm text-white/70">
+                            <i class="fa-solid fa-rocket text-purple-400 w-4"></i>
+                            <span>Mở app nhanh từ màn hình chính</span>
+                        </div>
+                        <div class="flex items-center gap-3 text-sm text-white/70">
+                            <i class="fa-solid fa-expand text-cyan-400 w-4"></i>
+                            <span>Toàn màn hình, không thanh địa chỉ</span>
+                        </div>
+                        <div class="flex items-center gap-3 text-sm text-white/70">
+                            <i class="fa-solid fa-bell text-pink-400 w-4"></i>
+                            <span>Nhận thông báo khi có ảnh mới</span>
+                        </div>
+                    </div>
+                    
+                    <!-- iOS Instructions -->
+                    <template x-if="isIOS">
+                        <div class="mb-4 p-3 rounded-xl bg-white/5 border border-white/10">
+                            <p class="text-sm text-white/80 mb-2">
+                                <i class="fa-brands fa-apple mr-1.5"></i> Để cài đặt trên iPhone:
+                            </p>
+                            <div class="flex items-center gap-3 text-sm text-white/60">
+                                <span class="w-5 h-5 rounded-full bg-blue-500 text-white text-xs flex items-center justify-center font-bold">1</span>
+                                <span>Nhấn <i class="fa-solid fa-arrow-up-from-bracket text-blue-400 mx-1"></i> (Share)</span>
+                            </div>
+                            <div class="flex items-center gap-3 text-sm text-white/60 mt-2">
+                                <span class="w-5 h-5 rounded-full bg-blue-500 text-white text-xs flex items-center justify-center font-bold">2</span>
+                                <span>Chọn "Thêm vào MH chính"</span>
+                            </div>
+                        </div>
+                    </template>
+                    
+                    <!-- Buttons -->
+                    <div class="flex gap-3">
+                        <button @click="dismiss()" 
+                            class="flex-1 py-3 rounded-xl bg-white/5 border border-white/10 text-white/70 font-medium text-sm active:scale-[0.98] transition-transform">
+                            Để sau
+                        </button>
+                        <template x-if="!isIOS && deferredPrompt">
+                            <button @click="install()" 
+                                class="flex-1 py-3 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold text-sm active:scale-[0.98] transition-transform shadow-lg shadow-purple-500/30">
+                                <i class="fa-solid fa-download mr-1.5"></i> Cài đặt ngay
+                            </button>
+                        </template>
+                        <template x-if="isIOS">
+                            <button @click="dismiss()" 
+                                class="flex-1 py-3 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold text-sm active:scale-[0.98] transition-transform shadow-lg shadow-purple-500/30">
+                                <i class="fa-solid fa-check mr-1.5"></i> Đã hiểu
+                            </button>
+                        </template>
+                    </div>
+                    
+                    <p class="mt-4 text-center text-[10px] text-white/30 safe-area-bottom">
+                        Bạn có thể cài đặt sau bất cứ lúc nào
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Custom Scripts -->
     <script>
         document.addEventListener('DOMContentLoaded', function () {
