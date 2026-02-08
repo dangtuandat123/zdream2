@@ -4,6 +4,7 @@
     showRatioDropdown: false,
     showModelDropdown: false,
     
+    // Image picker state
     showImagePicker: false,
     selectedImages: [],
     maxImages: 4,
@@ -12,6 +13,74 @@
     urlInput: '',
     activeTab: 'upload',
     isDragging: false,
+    
+    // Image preview modal state
+    showPreview: false,
+    previewImage: null,
+    previewIndex: 0,
+    
+    // Loading messages
+    loadingMessages: ['Đang sáng tạo...', 'Chút nữa thôi...', 'Sắp xong rồi...', 'AI đang vẽ...'],
+    currentLoadingMessage: 0,
+    loadingInterval: null,
+    
+    startLoadingMessages() {
+        this.currentLoadingMessage = 0;
+        this.loadingInterval = setInterval(() => {
+            this.currentLoadingMessage = (this.currentLoadingMessage + 1) % this.loadingMessages.length;
+        }, 2000);
+    },
+    stopLoadingMessages() {
+        if (this.loadingInterval) {
+            clearInterval(this.loadingInterval);
+            this.loadingInterval = null;
+        }
+    },
+    
+    // Preview modal methods
+    openPreview(image, index) {
+        this.previewImage = image;
+        this.previewIndex = index;
+        this.showPreview = true;
+        document.body.style.overflow = 'hidden';
+    },
+    closePreview() {
+        this.showPreview = false;
+        this.previewImage = null;
+        document.body.style.overflow = '';
+    },
+    nextImage() {
+        const images = @js($history->pluck('image_url', 'id')->toArray());
+        const keys = Object.keys(images);
+        if (this.previewIndex < keys.length - 1) {
+            this.previewIndex++;
+            // Update preview image from history
+        }
+    },
+    prevImage() {
+        if (this.previewIndex > 0) {
+            this.previewIndex--;
+        }
+    },
+    useAsReference() {
+        if (this.previewImage && this.selectedImages.length < this.maxImages) {
+            if (!this.selectedImages.find(img => img.url === this.previewImage.url)) {
+                this.selectedImages.push({ 
+                    type: 'url', 
+                    url: this.previewImage.url, 
+                    id: Date.now() 
+                });
+            }
+            this.closePreview();
+        }
+    },
+    copyPrompt() {
+        if (this.previewImage && this.previewImage.prompt) {
+            $wire.set('prompt', this.previewImage.prompt);
+            this.closePreview();
+        }
+    },
+    
     
     async loadRecentImages() {
         if (this.recentImages.length > 0) return;
@@ -100,54 +169,93 @@
 
         {{-- Grid --}}
         <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
-            {{-- Loading State --}}
+            {{-- Enhanced Loading State --}}
             @if($isGenerating && !$generatedImageUrl)
-                <div
-                    class="aspect-square rounded-2xl bg-[#1b1c21] border border-white/5 flex flex-col items-center justify-center gap-4 animate-pulse">
-                    <div class="w-10 h-10 rounded-full border-2 border-purple-500/30 border-t-purple-500 animate-spin">
+                <div x-init="startLoadingMessages()" x-effect="if (!@js($isGenerating)) stopLoadingMessages()"
+                    class="aspect-square rounded-2xl bg-[#1b1c21] border border-purple-500/30 overflow-hidden relative">
+                    {{-- Shimmer Effect --}}
+                    <div class="absolute inset-0 bg-gradient-to-r from-transparent via-purple-500/10 to-transparent animate-shimmer"></div>
+                    
+                    {{-- Glow Pulse --}}
+                    <div class="absolute inset-0 bg-gradient-to-br from-purple-600/20 via-transparent to-pink-600/20 animate-pulse"></div>
+                    
+                    {{-- Content --}}
+                    <div class="absolute inset-0 flex flex-col items-center justify-center gap-4">
+                        {{-- Animated Spinner --}}
+                        <div class="relative">
+                            <div class="w-14 h-14 rounded-full border-[3px] border-purple-500/20"></div>
+                            <div class="absolute inset-0 w-14 h-14 rounded-full border-[3px] border-transparent border-t-purple-500 border-r-pink-500 animate-spin"></div>
+                            <div class="absolute inset-2 w-10 h-10 rounded-full border-2 border-transparent border-b-purple-400 animate-spin" style="animation-direction: reverse; animation-duration: 1.5s;"></div>
+                        </div>
+                        
+                        {{-- Rotating Message --}}
+                        <span class="text-sm text-white/50 font-medium transition-all duration-300"
+                            x-text="loadingMessages[currentLoadingMessage]"></span>
+                        
+                        {{-- Progress Dots --}}
+                        <div class="flex gap-1.5">
+                            <span class="w-1.5 h-1.5 rounded-full bg-purple-500 animate-bounce" style="animation-delay: 0ms;"></span>
+                            <span class="w-1.5 h-1.5 rounded-full bg-purple-400 animate-bounce" style="animation-delay: 150ms;"></span>
+                            <span class="w-1.5 h-1.5 rounded-full bg-pink-500 animate-bounce" style="animation-delay: 300ms;"></span>
+                        </div>
                     </div>
-                    <span class="text-xs text-white/30 font-medium">Đang sáng tạo...</span>
                 </div>
             @endif
 
             {{-- History Items --}}
-            @forelse($history as $image)
-                <div
-                    class="group relative aspect-square rounded-2xl bg-[#1b1c21] border border-white/5 overflow-hidden transition-all duration-300 hover:border-purple-500/30 hover:shadow-2xl hover:shadow-purple-500/10">
+            @forelse($history as $index => $image)
+                <div @click="openPreview({ url: '{{ $image->image_url }}', prompt: `{{ addslashes($image->final_prompt) }}`, id: {{ $image->id }} }, {{ $index }})"
+                    class="group relative aspect-square rounded-2xl bg-[#1b1c21] border border-white/5 overflow-hidden transition-all duration-300 hover:border-purple-500/30 hover:shadow-2xl hover:shadow-purple-500/10 cursor-pointer active:scale-[0.98]">
                     <img src="{{ $image->image_url }}" alt="Created"
-                        class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                        class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                         loading="lazy">
 
-                    {{-- Quick Action Overlay --}}
-                    <div
-                        class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center gap-3 scale-95 group-hover:scale-100">
-                        <button
+                    {{-- Desktop Hover Overlay --}}
+                    <div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-all duration-300 hidden sm:flex items-center justify-center gap-3">
+                        <button @click.stop="openPreview({ url: '{{ $image->image_url }}', prompt: `{{ addslashes($image->final_prompt) }}`, id: {{ $image->id }} }, {{ $index }})"
                             class="w-10 h-10 rounded-xl bg-white/10 hover:bg-white text-white hover:text-black flex items-center justify-center transition-all">
                             <i class="fa-solid fa-eye"></i>
                         </button>
-                        <a href="{{ $image->image_url }}" download
+                        <a href="{{ $image->image_url }}" download @click.stop
                             class="w-10 h-10 rounded-xl bg-white/10 hover:bg-white text-white hover:text-black flex items-center justify-center transition-all">
                             <i class="fa-solid fa-download"></i>
                         </a>
                     </div>
 
-                    {{-- Prompt Info --}}
-                    <div
-                        class="absolute inset-x-0 bottom-0 p-3 bg-gradient-to-t from-black/90 to-transparent pointer-events-none transform translate-y-1 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all delay-75">
+                    {{-- Mobile Touch Indicator --}}
+                    <div class="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center sm:hidden">
+                        <i class="fa-solid fa-expand text-white/70 text-xs"></i>
+                    </div>
+
+                    {{-- Prompt Info (Desktop only) --}}
+                    <div class="absolute inset-x-0 bottom-0 p-3 bg-gradient-to-t from-black/90 to-transparent pointer-events-none transform translate-y-1 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all delay-75 hidden sm:block">
                         <p class="text-[10px] text-white/90 line-clamp-1 italic font-light truncate">
                             "{{ $image->final_prompt }}"</p>
                     </div>
                 </div>
             @empty
                 @if(!$isGenerating)
-                    <div class="col-span-full py-24 text-center">
-                        <div
-                            class="w-20 h-20 rounded-3xl bg-white/5 flex items-center justify-center mx-auto mb-6 transform rotate-12 group-hover:rotate-0 transition-transform">
-                            <i class="fa-solid fa-wand-magic-sparkles text-white/10 text-3xl"></i>
+                    <div class="col-span-full py-16 text-center" x-data="{ prompts: ['Một chú mèo dễ thương đang ngủ trên đám mây', 'Phong cảnh núi tuyết lúc hoàng hôn', 'Logo công nghệ với màu xanh gradient'] }">
+                        {{-- Icon --}}
+                        <div class="relative w-24 h-24 mx-auto mb-6">
+                            <div class="absolute inset-0 rounded-3xl bg-gradient-to-br from-purple-500/20 to-pink-500/20 blur-xl"></div>
+                            <div class="relative w-24 h-24 rounded-3xl bg-gradient-to-br from-purple-500/10 to-pink-500/10 border border-white/10 flex items-center justify-center">
+                                <i class="fa-solid fa-wand-magic-sparkles text-purple-400/50 text-3xl"></i>
+                            </div>
                         </div>
-                        <h3 class="text-white/60 font-bold text-lg">Hệ thống sẵn sàng</h3>
-                        <p class="text-white/30 text-sm mt-2 max-w-sm mx-auto">Nhập prompt bên dưới để bắt đầu hành trình sáng
-                            tạo của bạn</p>
+                        
+                        <h3 class="text-white/70 font-bold text-lg mb-2">Bắt đầu sáng tạo!</h3>
+                        <p class="text-white/40 text-sm mb-6 max-w-sm mx-auto">Nhập mô tả bên dưới hoặc thử một trong những gợi ý:</p>
+                        
+                        {{-- Sample Prompts --}}
+                        <div class="flex flex-wrap justify-center gap-2 max-w-md mx-auto">
+                            <template x-for="(prompt, i) in prompts" :key="i">
+                                <button @click="$wire.set('prompt', prompt)"
+                                    class="px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-white/50 text-xs hover:text-white hover:bg-purple-500/20 hover:border-purple-500/30 transition-all">
+                                    <span x-text="prompt.substring(0, 30) + '...'"></span>
+                                </button>
+                            </template>
+                        </div>
                     </div>
                 @endif
             @endforelse
@@ -717,5 +825,124 @@
         .safe-area-bottom {
             padding-bottom: env(safe-area-inset-bottom, 0px);
         }
+        
+        /* Shimmer animation */
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+        .animate-shimmer {
+            animation: shimmer 2s infinite;
+        }
     </style>
+
+    {{-- ========== IMAGE PREVIEW MODAL ========== --}}
+    <template x-teleport="body">
+        {{-- Desktop Modal --}}
+        <div x-show="showPreview" x-cloak
+            class="hidden sm:flex fixed inset-0 z-[200] items-center justify-center bg-black/90 backdrop-blur-md"
+            x-transition:enter="transition ease-out duration-300"
+            x-transition:enter-start="opacity-0"
+            x-transition:enter-end="opacity-100"
+            x-transition:leave="transition ease-in duration-200"
+            x-transition:leave-start="opacity-100"
+            x-transition:leave-end="opacity-0"
+            @click.self="closePreview()"
+            @keydown.escape.window="closePreview()">
+            
+            <div x-show="showPreview" 
+                x-transition:enter="transition ease-out duration-300"
+                x-transition:enter-start="opacity-0 scale-95"
+                x-transition:enter-end="opacity-100 scale-100"
+                class="relative max-w-4xl w-full mx-4" @click.stop>
+                
+                {{-- Close Button --}}
+                <button @click="closePreview()" 
+                    class="absolute -top-12 right-0 w-10 h-10 rounded-full bg-white/10 text-white/70 hover:text-white hover:bg-white/20 flex items-center justify-center transition-all">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+                
+                {{-- Image --}}
+                <div class="rounded-2xl overflow-hidden bg-[#15161A] border border-white/10">
+                    <img :src="previewImage?.url" alt="Preview" 
+                        class="w-full max-h-[70vh] object-contain">
+                    
+                    {{-- Info & Actions --}}
+                    <div class="p-5 border-t border-white/5">
+                        {{-- Prompt --}}
+                        <p class="text-white/70 text-sm italic mb-4 line-clamp-2" x-text="'\"' + (previewImage?.prompt || '') + '\"'"></p>
+                        
+                        {{-- Action Buttons --}}
+                        <div class="flex flex-wrap gap-3">
+                            <a :href="previewImage?.url" download
+                                class="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white/70 hover:text-white text-sm font-medium transition-all">
+                                <i class="fa-solid fa-download"></i>
+                                Tải xuống
+                            </a>
+                            <button @click="useAsReference()"
+                                class="flex items-center gap-2 px-4 py-2 rounded-xl bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 hover:text-purple-200 text-sm font-medium transition-all">
+                                <i class="fa-solid fa-images"></i>
+                                Dùng làm mẫu
+                            </button>
+                            <button @click="copyPrompt()"
+                                class="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white/70 hover:text-white text-sm font-medium transition-all">
+                                <i class="fa-solid fa-copy"></i>
+                                Copy prompt
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        {{-- Mobile Bottom Sheet --}}
+        <div x-show="showPreview" x-cloak
+            class="sm:hidden fixed inset-0 z-[200] flex flex-col bg-black/95"
+            x-transition:enter="transition ease-out duration-300"
+            x-transition:enter-start="opacity-0"
+            x-transition:enter-end="opacity-100"
+            x-transition:leave="transition ease-in duration-200"
+            x-transition:leave-start="opacity-100"
+            x-transition:leave-end="opacity-0">
+            
+            {{-- Header --}}
+            <div class="shrink-0 flex items-center justify-between px-4 py-3 bg-[#0a0a0f]/80 backdrop-blur-sm border-b border-white/5 safe-area-top">
+                <span class="text-white font-semibold">Xem ảnh</span>
+                <button @click="closePreview()" 
+                    class="w-9 h-9 rounded-full bg-white/10 text-white/70 flex items-center justify-center active:scale-95 transition-transform">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            
+            {{-- Image Container --}}
+            <div class="flex-1 flex items-center justify-center p-4 overflow-hidden">
+                <img :src="previewImage?.url" alt="Preview" 
+                    class="max-w-full max-h-full object-contain rounded-xl">
+            </div>
+            
+            {{-- Prompt --}}
+            <div class="px-4 py-3 bg-white/5">
+                <p class="text-white/60 text-xs italic line-clamp-2" x-text="'\"' + (previewImage?.prompt || '') + '\"'"></p>
+            </div>
+            
+            {{-- Action Buttons --}}
+            <div class="shrink-0 grid grid-cols-3 gap-2 p-4 bg-[#0a0a0f] border-t border-white/5 safe-area-bottom">
+                <a :href="previewImage?.url" download
+                    class="flex flex-col items-center gap-1.5 py-3 rounded-xl bg-white/10 active:bg-white/20 transition-colors">
+                    <i class="fa-solid fa-download text-white/70"></i>
+                    <span class="text-white/60 text-xs font-medium">Tải xuống</span>
+                </a>
+                <button @click="useAsReference()"
+                    class="flex flex-col items-center gap-1.5 py-3 rounded-xl bg-purple-500/20 active:bg-purple-500/30 transition-colors">
+                    <i class="fa-solid fa-images text-purple-400"></i>
+                    <span class="text-purple-300 text-xs font-medium">Làm mẫu</span>
+                </button>
+                <button @click="copyPrompt()"
+                    class="flex flex-col items-center gap-1.5 py-3 rounded-xl bg-white/10 active:bg-white/20 transition-colors">
+                    <i class="fa-solid fa-copy text-white/70"></i>
+                    <span class="text-white/60 text-xs font-medium">Copy</span>
+                </button>
+            </div>
+        </div>
+    </template>
 </div>
