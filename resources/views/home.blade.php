@@ -272,7 +272,7 @@
                             class="w-full h-20 bg-transparent border-none outline-none ring-0 focus:ring-0 focus:outline-none text-white placeholder-white/40 text-sm sm:text-base resize-none focus:placeholder-white/60 transition-all overflow-y-auto"></textarea>
 
                         <!-- Bottom row: icons + button -->
-                        <div class="flex items-center justify-between gap-3">
+                        <div class="flex items-center justify-between gap-2 sm:gap-3">
                             <div class="flex items-center gap-2" x-data="{ 
                                 showRatioDropdown: false,
                                 selectedRatio: 'auto',
@@ -1105,7 +1105,7 @@
 
                             <!-- Generate Button -->
                             <button type="submit"
-                                class="flex items-center gap-2 px-5 sm:px-6 py-2.5 rounded-xl bg-gradient-to-r from-purple-500 via-fuchsia-500 to-pink-500 text-white font-semibold text-sm hover:scale-[1.02] hover:shadow-lg hover:shadow-purple-500/30 active:scale-[0.98] transition-all duration-200">
+                                class="shrink-0 flex items-center gap-2 px-4 sm:px-6 py-2.5 rounded-xl bg-gradient-to-r from-purple-500 via-fuchsia-500 to-pink-500 text-white font-semibold text-sm hover:scale-[1.02] hover:shadow-lg hover:shadow-purple-500/30 active:scale-[0.98] transition-all duration-200">
                                 <i class="fa-solid fa-wand-magic-sparkles text-sm"></i>
                                 <span>Tạo ảnh</span>
                             </button>

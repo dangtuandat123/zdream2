@@ -198,7 +198,7 @@
                         {{ $isGenerating ? 'disabled' : '' }}></textarea>
 
                     {{-- Bottom row: icons + button --}}
-                    <div class="flex items-center justify-between gap-3">
+                    <div class="flex items-center justify-between gap-2 sm:gap-3">
                         <div class="flex items-center gap-2" x-data="{ 
                             showLocalRatioDropdown: false,
                             selectedRatio: '{{ $aspectRatio }}',
@@ -355,7 +355,7 @@
 
                         {{-- Generate Button --}}
                         <button type="button" wire:click="generate" {{ $isGenerating ? 'disabled' : '' }}
-                            class="flex items-center gap-2 px-5 sm:px-6 py-2.5 rounded-xl bg-gradient-to-r from-purple-500 via-fuchsia-500 to-pink-500 text-white font-semibold text-sm hover:scale-[1.02] hover:shadow-lg hover:shadow-purple-500/30 active:scale-[0.98] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100">
+                            class="shrink-0 flex items-center gap-2 px-4 sm:px-6 py-2.5 rounded-xl bg-gradient-to-r from-purple-500 via-fuchsia-500 to-pink-500 text-white font-semibold text-sm hover:scale-[1.02] hover:shadow-lg hover:shadow-purple-500/30 active:scale-[0.98] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100">
                             @if($isGenerating)
                                 <i class="fa-solid fa-spinner fa-spin text-sm"></i>
                                 <span class="hidden sm:inline">Đang tạo...</span>
