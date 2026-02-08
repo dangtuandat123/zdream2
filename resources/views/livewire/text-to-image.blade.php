@@ -83,21 +83,6 @@
     }
 }" wire:poll.3s="pollImageStatus">
 
-    {{-- Header Section --}}
-    <div class="px-4 py-6">
-        <div class="max-w-6xl mx-auto flex items-center justify-between">
-            <h1 class="text-xl font-bold text-white flex items-center gap-2">
-                <i class="fa-solid fa-wand-magic-sparkles text-purple-500"></i>
-                <span>Tạo ảnh AI</span>
-            </h1>
-            <div
-                class="text-xs text-white/40 flex items-center gap-2 bg-white/5 px-3 py-1.5 rounded-full border border-white/10 uppercase tracking-widest font-medium">
-                <span class="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
-                AI Studio
-            </div>
-        </div>
-    </div>
-
     {{-- Gallery / Main Area --}}
     <div class="max-w-6xl mx-auto px-4">
         {{-- Status / Error --}}
