@@ -876,6 +876,13 @@
                 <i class="fa-solid fa-palette text-lg mb-1"></i>
                 <span class="text-[10px] font-medium">Styles</span>
             </a>
+            {{-- Create (AI Studio) - Primary Action --}}
+            <a href="{{ route('create') }}" wire:navigate
+                class="flex flex-col items-center justify-center w-14 h-14 rounded-xl transition-all"
+                :class="currentPath === '/create' ? 'bg-gradient-to-br from-purple-500 to-pink-500 text-white shadow-lg shadow-purple-500/30' : 'bg-gradient-to-br from-purple-500/20 to-pink-500/20 text-purple-300 hover:from-purple-500/30 hover:to-pink-500/30 border border-purple-500/30'">
+                <i class="fa-solid fa-wand-magic-sparkles text-lg mb-1"></i>
+                <span class="text-[10px] font-medium">Tạo ảnh</span>
+            </a>
             @auth
                 <a href="{{ route('history.index') }}" wire:navigate
                     class="flex flex-col items-center justify-center w-14 h-14 rounded-xl transition-all"
@@ -980,7 +987,7 @@
         <div class="flex items-center justify-around h-16 px-2 max-w-lg mx-auto">
             <!-- Home -->
             <a href="{{ route('home') }}" wire:navigate
-                class="relative flex flex-col items-center justify-center gap-1 py-2 px-4 rounded-xl transition-all"
+                class="relative flex flex-col items-center justify-center gap-1 py-2 px-3 rounded-xl transition-all"
                 :class="currentPath === '/' || currentPath === '/home' ? 'text-white' : 'text-white/50'">
                 <div x-show="currentPath === '/' || currentPath === '/home'"
                     class="absolute -top-0.5 w-8 h-1 rounded-full bg-gradient-to-r from-purple-500 to-pink-500"></div>
@@ -988,9 +995,20 @@
                 <span class="text-[10px] font-medium">Trang chủ</span>
             </a>
 
+            <!-- Create (AI Studio) - Primary Action -->
+            <a href="{{ route('create') }}" wire:navigate
+                class="relative flex flex-col items-center justify-center gap-1 py-2 px-3 rounded-xl transition-all"
+                :class="currentPath === '/create' ? 'text-white' : 'text-purple-300'">
+                <div class="absolute -top-1 left-1/2 -translate-x-1/2 w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow-lg shadow-purple-500/40 -mt-3"
+                    :class="currentPath === '/create' ? 'ring-2 ring-white/30' : ''">
+                    <i class="fa-solid fa-wand-magic-sparkles text-white text-sm"></i>
+                </div>
+                <span class="text-[10px] font-medium mt-5">Tạo ảnh</span>
+            </a>
+
             <!-- Styles -->
             <a href="{{ route('styles.index') }}" wire:navigate
-                class="relative flex flex-col items-center justify-center gap-1 py-2 px-4 rounded-xl transition-all"
+                class="relative flex flex-col items-center justify-center gap-1 py-2 px-3 rounded-xl transition-all"
                 :class="currentPath.startsWith('/styles') || currentPath.startsWith('/studio') ? 'text-white' : 'text-white/50'">
                 <div x-show="currentPath.startsWith('/styles') || currentPath.startsWith('/studio')"
                     class="absolute -top-0.5 w-8 h-1 rounded-full bg-gradient-to-r from-purple-500 to-pink-500"></div>
