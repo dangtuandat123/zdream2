@@ -984,63 +984,63 @@
     <nav class="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-[#0a0a0f]/95 backdrop-blur-xl border-t border-white/10 safe-area-bottom"
         x-data="{ currentPath: window.location.pathname }" @popstate.window="currentPath = window.location.pathname"
         x-init="document.addEventListener('livewire:navigated', () => { currentPath = window.location.pathname })">
-        <div class="flex items-center justify-around h-16 px-2 max-w-lg mx-auto">
+        <div class="flex items-center justify-around h-14 px-1 max-w-lg mx-auto">
             <!-- Home -->
             <a href="{{ route('home') }}" wire:navigate
-                class="relative flex flex-col items-center justify-center gap-1 py-2 px-3 rounded-xl transition-all"
+                class="relative flex flex-col items-center justify-center gap-0.5 py-1.5 px-2 rounded-lg transition-all"
                 :class="currentPath === '/' || currentPath === '/home' ? 'text-white' : 'text-white/50'">
                 <div x-show="currentPath === '/' || currentPath === '/home'"
-                    class="absolute -top-0.5 w-8 h-1 rounded-full bg-gradient-to-r from-purple-500 to-pink-500"></div>
-                <i class="fa-solid fa-house text-lg"></i>
-                <span class="text-[10px] font-medium">Trang chủ</span>
+                    class="absolute -top-0.5 w-6 h-0.5 rounded-full bg-gradient-to-r from-purple-500 to-pink-500"></div>
+                <i class="fa-solid fa-house text-base"></i>
+                <span class="text-[9px] font-medium">Trang chủ</span>
             </a>
 
             <!-- Create (AI Studio) -->
             <a href="{{ route('create') }}" wire:navigate
-                class="relative flex flex-col items-center justify-center gap-1 py-2 px-3 rounded-xl transition-all"
+                class="relative flex flex-col items-center justify-center gap-0.5 py-1.5 px-2 rounded-lg transition-all"
                 :class="currentPath === '/create' ? 'text-white' : 'text-white/50'">
                 <div x-show="currentPath === '/create'"
-                    class="absolute -top-0.5 w-8 h-1 rounded-full bg-gradient-to-r from-purple-500 to-pink-500"></div>
-                <i class="fa-solid fa-wand-magic-sparkles text-lg"></i>
-                <span class="text-[10px] font-medium">Tạo ảnh</span>
+                    class="absolute -top-0.5 w-6 h-0.5 rounded-full bg-gradient-to-r from-purple-500 to-pink-500"></div>
+                <i class="fa-solid fa-wand-magic-sparkles text-base"></i>
+                <span class="text-[9px] font-medium">Tạo ảnh</span>
             </a>
 
             <!-- Styles -->
             <a href="{{ route('styles.index') }}" wire:navigate
-                class="relative flex flex-col items-center justify-center gap-1 py-2 px-3 rounded-xl transition-all"
+                class="relative flex flex-col items-center justify-center gap-0.5 py-1.5 px-2 rounded-lg transition-all"
                 :class="currentPath.startsWith('/styles') || currentPath.startsWith('/studio') ? 'text-white' : 'text-white/50'">
                 <div x-show="currentPath.startsWith('/styles') || currentPath.startsWith('/studio')"
-                    class="absolute -top-0.5 w-8 h-1 rounded-full bg-gradient-to-r from-purple-500 to-pink-500"></div>
-                <i class="fa-solid fa-palette text-lg"></i>
-                <span class="text-[10px] font-medium">Styles</span>
+                    class="absolute -top-0.5 w-6 h-0.5 rounded-full bg-gradient-to-r from-purple-500 to-pink-500"></div>
+                <i class="fa-solid fa-palette text-base"></i>
+                <span class="text-[9px] font-medium">Styles</span>
             </a>
 
             @auth
                 <!-- History -->
                 <a href="{{ route('history.index') }}" wire:navigate
-                    class="relative flex flex-col items-center justify-center gap-1 py-2 px-4 rounded-xl transition-all"
+                    class="relative flex flex-col items-center justify-center gap-0.5 py-1.5 px-2 rounded-lg transition-all"
                     :class="currentPath.startsWith('/history') ? 'text-white' : 'text-white/50'">
                     <div x-show="currentPath.startsWith('/history')"
-                        class="absolute -top-0.5 w-8 h-1 rounded-full bg-gradient-to-r from-purple-500 to-pink-500"></div>
-                    <i class="fa-solid fa-images text-lg"></i>
-                    <span class="text-[10px] font-medium">Ảnh của tôi</span>
+                        class="absolute -top-0.5 w-6 h-0.5 rounded-full bg-gradient-to-r from-purple-500 to-pink-500"></div>
+                    <i class="fa-solid fa-images text-base"></i>
+                    <span class="text-[9px] font-medium">Ảnh của tôi</span>
                 </a>
 
                 <!-- Profile -->
                 <a href="{{ route('profile.edit') }}" wire:navigate
-                    class="relative flex flex-col items-center justify-center gap-1 py-2 px-4 rounded-xl transition-all"
+                    class="relative flex flex-col items-center justify-center gap-0.5 py-1.5 px-2 rounded-lg transition-all"
                     :class="currentPath.startsWith('/profile') ? 'text-white' : 'text-white/50'">
                     <div x-show="currentPath.startsWith('/profile')"
-                        class="absolute -top-0.5 w-8 h-1 rounded-full bg-gradient-to-r from-purple-500 to-pink-500"></div>
-                    <i class="fa-solid fa-user text-lg"></i>
-                    <span class="text-[10px] font-medium">Tài khoản</span>
+                        class="absolute -top-0.5 w-6 h-0.5 rounded-full bg-gradient-to-r from-purple-500 to-pink-500"></div>
+                    <i class="fa-solid fa-user text-base"></i>
+                    <span class="text-[9px] font-medium">Tài khoản</span>
                 </a>
             @else
                 <!-- Login -->
                 <button type="button" @click="$dispatch('open-auth-modal')"
-                    class="flex flex-col items-center justify-center gap-1 py-2 px-4 rounded-xl transition-all text-white/50 active:text-white">
-                    <i class="fa-solid fa-right-to-bracket text-lg"></i>
-                    <span class="text-[10px] font-medium">Đăng nhập</span>
+                    class="flex flex-col items-center justify-center gap-0.5 py-1.5 px-2 rounded-lg transition-all text-white/50 active:text-white">
+                    <i class="fa-solid fa-right-to-bracket text-base"></i>
+                    <span class="text-[9px] font-medium">Đăng nhập</span>
                 </button>
             @endauth
         </div>
