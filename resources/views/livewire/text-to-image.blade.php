@@ -222,17 +222,20 @@
         if (e.key === 'ArrowLeft') this.prevImage();
         else if (e.key === 'ArrowRight') this.nextImage();
         else if (e.key === 'Escape') this.closePreview();
+    },
+    
+    // Init method for setup
+    init() {
+        // Refresh historyData from server on events
+        const refreshHistory = async () => {
+            const data = await $wire.getHistoryData();
+            if (data) this.historyData = data;
+        };
+        $wire.on('historyUpdated', refreshHistory);
+        $wire.on('imageGenerated', refreshHistory);
+        Livewire.hook('morph.updated', refreshHistory);
     }
-}" @keydown.window="handleKeydown($event)" x-init="
-       // Refresh historyData from server on events
-       const refreshHistory = async () => {
-           const data = await $wire.getHistoryData();
-           if (data) this.historyData = data;
-       };
-       $wire.on('historyUpdated', refreshHistory);
-       $wire.on('imageGenerated', refreshHistory);
-       Livewire.hook('morph.updated', refreshHistory);
-   " @if($isGenerating) wire:poll.3s="pollImageStatus" @endif>
+}" @keydown.window="handleKeydown($event)" @if($isGenerating) wire:poll.3s="pollImageStatus" @endif>
 
     {{-- Toast Notification --}}
     <div x-show="showToast" x-cloak x-transition:enter="transition ease-out duration-300"
@@ -597,7 +600,8 @@
                                 selectedModel: '{{ $modelId }}',
                                 models: @js($availableModels),
                                 getSelectedModel() {
-                                    return this.models.find(m => m.id === this.selectedModel) || this.models[0];
+                                    const modelsArray = Object.values(this.models);
+                                    return modelsArray.find(m => m.id === this.selectedModel) || modelsArray[0];
                                 }
                             }" @click.away="showLocalModelDropdown = false">
                                 <button type="button" @click="showLocalModelDropdown = !showLocalModelDropdown"
@@ -618,7 +622,7 @@
                                     class="absolute bottom-full left-0 mb-2 w-64 p-2 rounded-xl bg-[#1a1b20] border border-white/10 shadow-2xl z-[9999]"
                                     @click.stop>
                                     <div class="text-white/50 text-xs font-medium mb-2 px-2">Chọn Model AI</div>
-                                    <template x-for="model in models" :key="model.id">
+                                    <template x-for="model in Object.values(models)" :key="model.id">
                                         <button type="button"
                                             @click="selectedModel = model.id; $wire.set('modelId', model.id); showLocalModelDropdown = false"
                                             class="w-full flex items-center gap-3 p-2.5 rounded-lg transition-all text-left"
@@ -654,9 +658,13 @@
                             </div>
                         @else
                             <button type="button" wire:click="generate" title="Ctrl+Enter để tạo ảnh"
-                                class="shrink-0 flex items-center gap-2 px-4 sm:px-6 py-2.5 rounded-xl bg-gradient-to-r from-purple-500 via-fuchsia-500 to-pink-500 text-white font-semibold text-sm hover:scale-[1.02] hover:shadow-lg hover:shadow-purple-500/30 active:scale-[0.98] transition-all duration-200">
-                                <i class="fa-solid fa-wand-magic-sparkles text-sm"></i>
-                                <span>Tạo ảnh</span>
+                                class="shrink-0 flex items-center gap-2 px-4 sm:px-6 py-2.5 rounded-xl bg-gradient-to-r from-purple-500 via-fuchsia-500 to-pink-500 text-white font-semibold text-sm hover:scale-[1.02] hover:shadow-lg hover:shadow-purple-500/30 active:scale-[0.98] transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100"
+                                wire:loading.attr="disabled" wire:target="generate">
+                                <i class="fa-solid fa-wand-magic-sparkles text-sm" wire:loading.remove
+                                    wire:target="generate"></i>
+                                <i class="fa-solid fa-spinner fa-spin text-sm" wire:loading wire:target="generate"></i>
+                                <span wire:loading.remove wire:target="generate">Tạo ảnh</span>
+                                <span wire:loading wire:target="generate">Đang tạo...</span>
                             </button>
                         @endif
                     </div>
@@ -1130,16 +1138,15 @@
                         {{-- Expandable Prompt --}}
                         <div x-data="{ expanded: false }" class="mb-3">
                             <div class="flex items-start gap-2">
-                                <i class="fa-solid fa-quote-left text-purple-400/50 text-sm mt-0.5 shrink-0" aria-hidden="true"></i>
-                                <p class="text-white/70 text-sm italic flex-1"
-                                    :class="expanded ? '' : 'line-clamp-2'"
+                                <i class="fa-solid fa-quote-left text-purple-400/50 text-sm mt-0.5 shrink-0"
+                                    aria-hidden="true"></i>
+                                <p class="text-white/70 text-sm italic flex-1" :class="expanded ? '' : 'line-clamp-2'"
                                     x-text="previewImage?.prompt || ''"></p>
                             </div>
-                            <button x-show="(previewImage?.prompt || '').length > 150"
-                                @click="expanded = !expanded"
+                            <button x-show="(previewImage?.prompt || '').length > 150" @click="expanded = !expanded"
                                 class="mt-2 text-purple-400 text-xs font-medium hover:text-purple-300 transition-colors flex items-center gap-1">
                                 <span x-text="expanded ? 'Thu gọn' : 'Xem thêm'"></span>
-                                <i class="fa-solid fa-chevron-down text-[10px] transition-transform" 
+                                <i class="fa-solid fa-chevron-down text-[10px] transition-transform"
                                     :class="expanded && 'rotate-180'" aria-hidden="true"></i>
                             </button>
                         </div>
