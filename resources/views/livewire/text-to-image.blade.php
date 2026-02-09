@@ -18,7 +18,7 @@
     showPreview: false,
     previewImage: null,
     previewIndex: 0,
-    historyData: @js($history->map(fn($img) => ['id' => $img->id, 'url' => $img->image_url, 'prompt' => $img->final_prompt])->values()->toArray()),
+    historyData: @js($historyData),
     
     // Toast notification
     toastMessage: '',
@@ -187,9 +187,29 @@
         this.selectedImages = [];
     },
     confirmSelection() {
+        // Send selected images to backend
+        const imageUrls = this.selectedImages.map(img => img.url);
+        $wire.setReferenceImages(imageUrls);
         this.showImagePicker = false;
+        this.showNotification('Đã chọn ' + this.selectedImages.length + ' ảnh mẫu');
+    },
+    
+    // Keyboard navigation for preview
+    handleKeydown(e) {
+        if (!this.showPreview) return;
+        if (e.key === 'ArrowLeft') this.prevImage();
+        else if (e.key === 'ArrowRight') this.nextImage();
+        else if (e.key === 'Escape') this.closePreview();
     }
-}" wire:poll.3s="pollImageStatus">
+}" @keydown.window="handleKeydown($event)" x-init="
+       // Listen for historyUpdated event to sync historyData
+       $wire.on('historyUpdated', () => {
+           setTimeout(() => { this.historyData = @js($historyData); }, 100);
+       });
+       $wire.on('imageGenerated', () => {
+           setTimeout(() => { this.historyData = @js($historyData); }, 100);
+       });
+   " @if($isGenerating) wire:poll.3s="pollImageStatus" @endif>
 
     {{-- Toast Notification --}}
     <div x-show="showToast" x-cloak x-transition
@@ -216,10 +236,16 @@
         @if($errorMessage)
             <div
                 class="mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm flex items-center gap-3">
-                <i class="fa-solid fa-circle-exclamation"></i>
-                {{ $errorMessage }}
+                <i class="fa-solid fa-circle-exclamation shrink-0"></i>
+                <span class="flex-1">{{ $errorMessage }}</span>
+                @if($lastPrompt)
+                    <button wire:click="retry"
+                        class="shrink-0 px-3 py-1 rounded-lg bg-purple-500/20 hover:bg-purple-500/30 text-purple-400 text-xs font-medium transition-colors">
+                        <i class="fa-solid fa-redo mr-1"></i>Thử lại
+                    </button>
+                @endif
                 <button @click="$wire.set('errorMessage', null)"
-                    class="ml-auto opacity-50 hover:opacity-100 transition-opacity">
+                    class="shrink-0 opacity-50 hover:opacity-100 transition-opacity">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
@@ -341,8 +367,12 @@
         @if(method_exists($history, 'hasMorePages') && $history->hasMorePages())
             <div class="mt-12 text-center">
                 <button wire:click="loadMore"
-                    class="px-8 py-3 rounded-xl bg-white/5 border border-white/10 text-sm text-white/60 hover:text-white hover:bg-white/10 transition-all font-medium">
-                    Tải thêm lịch sử
+                    class="px-8 py-3 rounded-xl bg-white/5 border border-white/10 text-sm text-white/60 hover:text-white hover:bg-white/10 transition-all font-medium disabled:opacity-50"
+                    wire:loading.attr="disabled">
+                    <span wire:loading.remove wire:target="loadMore">Tải thêm lịch sử</span>
+                    <span wire:loading wire:target="loadMore" class="flex items-center gap-2">
+                        <i class="fa-solid fa-spinner fa-spin"></i> Đang tải...
+                    </span>
                 </button>
             </div>
         @endif
@@ -361,10 +391,20 @@
                 <div
                     class="relative flex flex-col gap-3 p-3 sm:p-4 rounded-2xl bg-black/50 backdrop-blur-2xl border border-white/15 shadow-2xl">
 
-                    {{-- Textarea --}}
-                    <textarea wire:model="prompt" rows="3" placeholder="Mô tả ý tưởng của bạn..."
-                        class="w-full h-20 bg-transparent border-none outline-none ring-0 focus:ring-0 focus:outline-none text-white placeholder-white/40 text-sm sm:text-base resize-none focus:placeholder-white/60 transition-all overflow-y-auto"
-                        {{ $isGenerating ? 'disabled' : '' }}></textarea>
+                    {{-- Textarea with character counter --}}
+                    <div class="relative" x-data="{ charCount: $wire.prompt?.length || 0 }">
+                        <textarea wire:model.live="prompt" rows="3" placeholder="Mô tả ý tưởng của bạn..."
+                            class="w-full min-h-[80px] max-h-32 bg-transparent border-none outline-none ring-0 focus:ring-0 focus:outline-none text-white placeholder-white/40 text-sm sm:text-base resize-y focus:placeholder-white/60 transition-all overflow-y-auto pr-16"
+                            @keydown.ctrl.enter.prevent="$wire.generate()"
+                            @keydown.meta.enter.prevent="$wire.generate()"
+                            @input="charCount = $event.target.value.length" x-init="charCount = '{{ strlen($prompt) }}'"
+                            {{ $isGenerating ? 'disabled' : '' }}></textarea>
+                        {{-- Character counter --}}
+                        <div class="absolute bottom-1 right-1 text-[10px] font-medium transition-colors"
+                            :class="charCount > 1800 ? 'text-red-400' : charCount > 1500 ? 'text-yellow-400' : 'text-white/30'">
+                            <span x-text="charCount"></span>/2000
+                        </div>
+                    </div>
 
                     {{-- Bottom row: icons + button --}}
                     <div class="flex items-center justify-between gap-2 sm:gap-3">
@@ -522,17 +562,25 @@
                             </div>
                         </div>
 
-                        {{-- Generate Button --}}
-                        <button type="button" wire:click="generate" {{ $isGenerating ? 'disabled' : '' }}
-                            class="shrink-0 flex items-center gap-2 px-4 sm:px-6 py-2.5 rounded-xl bg-gradient-to-r from-purple-500 via-fuchsia-500 to-pink-500 text-white font-semibold text-sm hover:scale-[1.02] hover:shadow-lg hover:shadow-purple-500/30 active:scale-[0.98] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100">
-                            @if($isGenerating)
-                                <i class="fa-solid fa-spinner fa-spin text-sm"></i>
-                                <span class="hidden sm:inline">Đang tạo...</span>
-                            @else
+                        {{-- Generate / Cancel Button --}}
+                        @if($isGenerating)
+                            <div class="shrink-0 flex items-center gap-2">
+                                {{-- Estimated time --}}
+                                <span class="text-white/40 text-xs hidden sm:block">~{{ $estimatedTime }}s</span>
+                                {{-- Cancel button --}}
+                                <button type="button" wire:click="cancelGeneration"
+                                    class="flex items-center gap-2 px-4 sm:px-5 py-2.5 rounded-xl bg-red-500/20 hover:bg-red-500/30 border border-red-500/30 text-red-400 font-semibold text-sm transition-all">
+                                    <i class="fa-solid fa-xmark text-sm"></i>
+                                    <span class="hidden sm:inline">Hủy</span>
+                                </button>
+                            </div>
+                        @else
+                            <button type="button" wire:click="generate" title="Ctrl+Enter để tạo ảnh"
+                                class="shrink-0 flex items-center gap-2 px-4 sm:px-6 py-2.5 rounded-xl bg-gradient-to-r from-purple-500 via-fuchsia-500 to-pink-500 text-white font-semibold text-sm hover:scale-[1.02] hover:shadow-lg hover:shadow-purple-500/30 active:scale-[0.98] transition-all duration-200">
                                 <i class="fa-solid fa-wand-magic-sparkles text-sm"></i>
                                 <span>Tạo ảnh</span>
-                            @endif
-                        </button>
+                            </button>
+                        @endif
                     </div>
                 </div>
             </div>
@@ -938,6 +986,16 @@
                     <i class="fa-solid fa-xmark text-xl"></i>
                 </button>
 
+                {{-- Navigation Arrows --}}
+                <button x-show="previewIndex > 0" @click="prevImage()"
+                    class="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-14 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white/70 hover:text-white flex items-center justify-center transition-all">
+                    <i class="fa-solid fa-chevron-left"></i>
+                </button>
+                <button x-show="previewIndex < historyData.length - 1" @click="nextImage()"
+                    class="absolute right-0 top-1/2 -translate-y-1/2 translate-x-14 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white/70 hover:text-white flex items-center justify-center transition-all">
+                    <i class="fa-solid fa-chevron-right"></i>
+                </button>
+
                 {{-- Image --}}
                 <div class="rounded-2xl overflow-hidden bg-[#15161A] border border-white/10">
                     <img :src="previewImage?.url" alt="Preview" class="w-full max-h-[70vh] object-contain">
@@ -945,8 +1003,28 @@
                     {{-- Info & Actions --}}
                     <div class="p-5 border-t border-white/5">
                         {{-- Prompt --}}
-                        <p class="text-white/70 text-sm italic mb-4 line-clamp-2"
+                        <p class="text-white/70 text-sm italic mb-3 line-clamp-2"
                             x-text="'\"' + (previewImage?.prompt || '') + ' \"'"></p>
+
+                        {{-- Metadata --}}
+                        <div class="flex flex-wrap items-center gap-3 mb-4 text-xs text-white/40">
+                            <span x-show="previewImage?.model" class="flex items-center gap-1">
+                                <i class="fa-solid fa-microchip"></i>
+                                <span x-text="previewImage?.model"></span>
+                            </span>
+                            <span x-show="previewImage?.ratio" class="flex items-center gap-1">
+                                <i class="fa-solid fa-crop"></i>
+                                <span x-text="previewImage?.ratio"></span>
+                            </span>
+                            <span x-show="previewImage?.created_at" class="flex items-center gap-1">
+                                <i class="fa-regular fa-clock"></i>
+                                <span x-text="previewImage?.created_at"></span>
+                            </span>
+                            <span class="flex items-center gap-1">
+                                <i class="fa-solid fa-image"></i>
+                                <span x-text="(previewIndex + 1) + '/' + historyData.length"></span>
+                            </span>
+                        </div>
 
                         {{-- Action Buttons --}}
                         <div class="flex flex-wrap gap-3">

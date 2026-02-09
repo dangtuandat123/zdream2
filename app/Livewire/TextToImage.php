@@ -52,6 +52,16 @@ class TextToImage extends Component
     // Credit cost
     public float $creditCost = 5.0;
 
+    // Reference images from image picker
+    public array $referenceImages = [];
+
+    // For retry functionality
+    public ?string $lastPrompt = null;
+    public ?array $lastSettings = null;
+
+    // Estimated generation time (seconds)
+    public int $estimatedTime = 20;
+
     #[Computed]
     public function history()
     {
@@ -130,6 +140,14 @@ class TextToImage extends Component
         }
 
         $this->isGenerating = true;
+
+        // Save for retry functionality
+        $this->lastPrompt = $prompt;
+        $this->lastSettings = [
+            'aspectRatio' => $this->aspectRatio,
+            'modelId' => $this->modelId,
+        ];
+
         $walletService = app(WalletService::class);
         $creditsDeducted = false;
         $generatedImage = null;
@@ -352,19 +370,91 @@ class TextToImage extends Component
     public function resetForm(): void
     {
         $this->prompt = '';
+        $this->referenceImages = [];
         $this->resetState();
         $this->isGenerating = false;
     }
 
     public function loadMore(): void
     {
+        $this->loadingMore = true;
         $this->perPage += 12;
+        $this->loadingMore = false;
+        $this->dispatch('historyUpdated');
+    }
+
+    /**
+     * Retry last generation with same settings
+     */
+    public function retry(): void
+    {
+        if ($this->lastPrompt) {
+            $this->prompt = $this->lastPrompt;
+            if ($this->lastSettings) {
+                $this->aspectRatio = $this->lastSettings['aspectRatio'] ?? $this->aspectRatio;
+                $this->modelId = $this->lastSettings['modelId'] ?? $this->modelId;
+            }
+            $this->errorMessage = null;
+            $this->generate();
+        }
+    }
+
+    /**
+     * Cancel ongoing generation (for async mode)
+     */
+    public function cancelGeneration(): void
+    {
+        if ($this->isGenerating && $this->lastImageId) {
+            $image = GeneratedImage::find($this->lastImageId);
+            if ($image && $image->user_id === Auth::id() && $image->status === GeneratedImage::STATUS_PROCESSING) {
+                // Mark as cancelled and refund
+                $image->markAsFailed('Đã hủy bởi user');
+
+                $walletService = app(WalletService::class);
+                $walletService->addCredits(
+                    Auth::user(),
+                    $this->creditCost,
+                    'Hoàn tiền: Hủy tạo ảnh',
+                    'refund',
+                    (string) $image->id
+                );
+            }
+        }
+
+        $this->isGenerating = false;
+        $this->lastImageId = null;
+        $this->errorMessage = null;
+    }
+
+    /**
+     * Set reference images from frontend
+     */
+    public function setReferenceImages(array $images): void
+    {
+        $this->referenceImages = array_slice($images, 0, 4); // Max 4 images
+    }
+
+    /**
+     * Get history data for Alpine.js sync
+     */
+    public function getHistoryData(): array
+    {
+        return $this->history->map(fn($img) => [
+            'id' => $img->id,
+            'url' => $img->image_url,
+            'prompt' => $img->final_prompt,
+            'model' => $img->generation_params['model_id'] ?? null,
+            'ratio' => $img->generation_params['aspect_ratio'] ?? null,
+            'created_at' => $img->created_at->diffForHumans(),
+        ])->values()->toArray();
     }
 
     public function render()
     {
+        $history = $this->history;
         return view('livewire.text-to-image', [
-            'history' => $this->history
+            'history' => $history,
+            'historyData' => $this->getHistoryData(),
         ]);
     }
 }
