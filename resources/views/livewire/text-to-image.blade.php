@@ -1,4 +1,4 @@
-<div class="relative min-h-screen pb-32 sm:pb-40" x-data="{
+<div class="relative min-h-screen pb-44 sm:pb-48" x-data="{
     aspectRatios: @js($aspectRatios),
     models: @js($availableModels),
     showRatioDropdown: false,
@@ -82,6 +82,12 @@
         if (this.previewIndex > 0) {
             this.previewIndex--;
             this.previewImage = this.historyData[this.previewIndex];
+        }
+    },
+    goToImage(index) {
+        if (index >= 0 && index < this.historyData.length) {
+            this.previewIndex = index;
+            this.previewImage = this.historyData[index];
         }
     },
     handleTouchStart(e) {
@@ -250,7 +256,7 @@
     {{-- Gallery / Main Area --}}
     <div class="max-w-6xl mx-auto px-4 pt-4 sm:pt-6">
         {{-- Page Header --}}
-        <div class="flex items-center justify-between mb-6">
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
             <div>
                 <h1 class="text-xl sm:text-2xl font-bold text-white flex items-center gap-2">
                     <i class="fa-solid fa-wand-magic-sparkles text-purple-400"></i>
@@ -260,45 +266,52 @@
             </div>
             @auth
                 <div
-                    class="flex items-center gap-3 px-4 py-2.5 rounded-xl bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/20">
+                    class="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/20">
                     <div class="flex items-center gap-2">
-                        <div class="w-8 h-8 rounded-full bg-purple-500/20 flex items-center justify-center">
-                            <i class="fa-solid fa-coins text-purple-400 text-sm"></i>
+                        <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-purple-500/20 flex items-center justify-center">
+                            <i class="fa-solid fa-coins text-purple-400 text-xs sm:text-sm"></i>
                         </div>
                         <div>
                             <div class="text-white font-bold text-sm">
                                 {{ number_format(auth()->user()->credits ?? 0, 0, ',', '.') }}
                             </div>
-                            <div class="text-white/40 text-[10px] leading-none">credits</div>
+                            <div class="text-white/50 text-[10px] leading-none">credits</div>
                         </div>
                     </div>
-                    <div class="h-6 w-px bg-white/10"></div>
-                    <div class="text-purple-300 text-xs font-medium">-{{ number_format($creditCost, 0) }}/ảnh</div>
+                    <div class="h-5 sm:h-6 w-px bg-white/10"></div>
+                    <div class="text-purple-300 text-xs sm:text-sm font-medium whitespace-nowrap">
+                        -{{ number_format($creditCost, 0) }}/ảnh</div>
                 </div>
             @endauth
         </div>
 
-        {{-- Status / Error --}}
+        {{-- Status / Error with Animation --}}
         @if($errorMessage)
-            <div
-                class="mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm flex items-center gap-3">
-                <i class="fa-solid fa-circle-exclamation shrink-0"></i>
+            <div x-data="{ show: true }" x-show="show" x-cloak x-transition:enter="transition ease-out duration-300"
+                x-transition:enter-start="opacity-0 -translate-y-2" x-transition:enter-end="opacity-100 translate-y-0"
+                x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100 translate-y-0"
+                x-transition:leave-end="opacity-0 -translate-y-2"
+                class="mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm flex items-center gap-3"
+                role="alert">
+                <i class="fa-solid fa-circle-exclamation shrink-0 text-lg" aria-hidden="true"></i>
                 <span class="flex-1">{{ $errorMessage }}</span>
                 @if($lastPrompt)
                     <button wire:click="retry"
-                        class="shrink-0 px-3 py-1 rounded-lg bg-purple-500/20 hover:bg-purple-500/30 text-purple-400 text-xs font-medium transition-colors">
-                        <i class="fa-solid fa-redo mr-1"></i>Thử lại
+                        class="shrink-0 px-3 py-1.5 rounded-lg bg-purple-500/20 hover:bg-purple-500/30 text-purple-400 text-xs font-medium transition-colors"
+                        aria-label="Thử lại với prompt trước">
+                        <i class="fa-solid fa-redo mr-1" aria-hidden="true"></i>Thử lại
                     </button>
                 @endif
-                <button @click="$wire.set('errorMessage', null)"
-                    class="shrink-0 opacity-50 hover:opacity-100 transition-opacity">
-                    <i class="fa-solid fa-xmark"></i>
+                <button @click="show = false; setTimeout(() => $wire.set('errorMessage', null), 200)"
+                    class="shrink-0 w-8 h-8 rounded-lg hover:bg-white/10 flex items-center justify-center transition-colors"
+                    aria-label="Đóng thông báo lỗi">
+                    <i class="fa-solid fa-xmark" aria-hidden="true"></i>
                 </button>
             </div>
         @endif
 
         {{-- Grid --}}
-        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-5">
             {{-- Enhanced Loading State --}}
             @if($isGenerating && !$generatedImageUrl)
                 <div x-init="startLoadingMessages()" x-effect="if (!@js($isGenerating)) stopLoadingMessages()"
@@ -380,33 +393,42 @@
                 </div>
             @empty
                 @if(!$isGenerating)
-                    <div class="col-span-full py-16 text-center"
+                    <div class="col-span-full py-12 sm:py-16 text-center"
                         x-data="{ prompts: ['Một chú mèo dễ thương đang ngủ trên đám mây', 'Phong cảnh núi tuyết lúc hoàng hôn', 'Logo công nghệ với màu xanh gradient'] }">
-                        {{-- Icon --}}
-                        <div class="relative w-24 h-24 mx-auto mb-6">
+                        {{-- Icon with glow --}}
+                        <div class="relative w-20 h-20 sm:w-24 sm:h-24 mx-auto mb-6">
                             <div
-                                class="absolute inset-0 rounded-3xl bg-gradient-to-br from-purple-500/20 to-pink-500/20 blur-xl">
+                                class="absolute inset-0 rounded-3xl bg-gradient-to-br from-purple-500/30 to-pink-500/30 blur-xl animate-pulse">
                             </div>
                             <div
-                                class="relative w-24 h-24 rounded-3xl bg-gradient-to-br from-purple-500/10 to-pink-500/10 border border-white/10 flex items-center justify-center">
-                                <i class="fa-solid fa-wand-magic-sparkles text-purple-400/50 text-3xl"></i>
+                                class="relative w-full h-full rounded-3xl bg-gradient-to-br from-purple-500/15 to-pink-500/15 border border-white/10 flex items-center justify-center">
+                                <i class="fa-solid fa-wand-magic-sparkles text-purple-400 text-2xl sm:text-3xl"></i>
                             </div>
                         </div>
 
-                        <h3 class="text-white/70 font-bold text-lg mb-2">Bắt đầu sáng tạo!</h3>
-                        <p class="text-white/40 text-sm mb-6 max-w-sm mx-auto">Nhập mô tả bên dưới hoặc thử một trong những gợi
-                            ý:</p>
+                        <h3 class="text-white font-bold text-lg sm:text-xl mb-2">Bắt đầu sáng tạo!</h3>
+                        <p class="text-white/50 text-sm mb-6 max-w-sm mx-auto px-4">
+                            Nhập mô tả bên dưới hoặc thử một trong những gợi ý:
+                        </p>
 
                         {{-- Sample Prompts --}}
-                        <div class="flex flex-wrap justify-center gap-2 max-w-lg mx-auto">
+                        <div class="flex flex-wrap justify-center gap-2 max-w-lg mx-auto px-4 mb-6">
                             <template x-for="(prompt, i) in prompts" :key="i">
                                 <button @click="$wire.set('prompt', prompt)"
-                                    class="group px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white/60 text-xs hover:text-white hover:bg-purple-500/20 hover:border-purple-500/30 transition-all hover:scale-105">
-                                    <i class="fa-solid fa-quote-left text-purple-400/50 mr-1 text-[10px]"></i>
-                                    <span x-text="prompt.length > 35 ? prompt.substring(0, 35) + '...' : prompt"></span>
+                                    class="group px-3 sm:px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white/60 text-xs hover:text-white hover:bg-purple-500/20 hover:border-purple-500/30 transition-all hover:scale-105 active:scale-95">
+                                    <i class="fa-solid fa-quote-left text-purple-400/50 mr-1 text-[10px]"
+                                        aria-hidden="true"></i>
+                                    <span x-text="prompt.length > 30 ? prompt.substring(0, 30) + '...' : prompt"></span>
                                 </button>
                             </template>
                         </div>
+
+                        {{-- CTA Button --}}
+                        <button type="button" onclick="document.querySelector('textarea').focus()"
+                            class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold text-sm hover:shadow-lg hover:shadow-purple-500/30 active:scale-95 transition-all">
+                            <i class="fa-solid fa-pen" aria-hidden="true"></i>
+                            Viết prompt của bạn
+                        </button>
                     </div>
                 @endif
             @endforelse
@@ -414,7 +436,7 @@
 
         {{-- Load More --}}
         @if(method_exists($history, 'hasMorePages') && $history->hasMorePages())
-            <div class="mt-12 text-center">
+            <div class="mt-8 text-center">
                 <button wire:click="loadMore"
                     class="px-8 py-3 rounded-xl bg-white/5 border border-white/10 text-sm text-white/60 hover:text-white hover:bg-white/10 transition-all font-medium disabled:opacity-50"
                     wire:loading.attr="disabled">
@@ -427,8 +449,9 @@
         @endif
     </div>
 
-    {{-- ========== FIXED PROMPT BAR (Exact Copy from Home) ========== --}}
-    <div class="fixed bottom-20 md:bottom-6 left-0 right-0 md:left-[72px] z-40 px-4 safe-area-bottom">
+    {{-- ========== FIXED PROMPT BAR ========== --}}
+    <div
+        class="fixed bottom-[calc(5rem+env(safe-area-inset-bottom,0px))] md:bottom-6 left-0 right-0 md:left-[72px] z-40 px-3 sm:px-4">
         <div class="max-w-3xl mx-auto group/form">
             <div class="relative">
                 {{-- Glow effect --}}
@@ -515,9 +538,10 @@
                                     </template>
                                 </button>
 
-                                {{-- Clear all button --}}
+                                {{-- Clear all button - larger touch target --}}
                                 <button x-show="selectedImages.length > 0" @click.stop="clearAll()"
-                                    class="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-red-500 text-white text-[10px] flex items-center justify-center hover:bg-red-600 transition-colors">
+                                    class="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-red-500 text-white text-xs flex items-center justify-center hover:bg-red-600 active:scale-90 transition-all shadow-lg"
+                                    aria-label="Xóa tất cả ảnh mẫu">
                                     <i class="fa-solid fa-xmark"></i>
                                 </button>
                             </div>
@@ -617,10 +641,14 @@
                             <div class="shrink-0 flex items-center gap-2">
                                 {{-- Estimated time --}}
                                 <span class="text-white/40 text-xs hidden sm:block">~{{ $estimatedTime }}s</span>
-                                {{-- Cancel button --}}
+                                {{-- Cancel button with loading --}}
                                 <button type="button" wire:click="cancelGeneration"
-                                    class="flex items-center gap-2 px-4 sm:px-5 py-2.5 rounded-xl bg-red-500/20 hover:bg-red-500/30 border border-red-500/30 text-red-400 font-semibold text-sm transition-all">
-                                    <i class="fa-solid fa-xmark text-sm"></i>
+                                    class="flex items-center gap-2 px-4 sm:px-5 py-2.5 rounded-xl bg-red-500/20 hover:bg-red-500/30 border border-red-500/30 text-red-400 font-semibold text-sm transition-all focus:outline-none focus:ring-2 focus:ring-red-500/50"
+                                    aria-label="Hủy tạo ảnh" wire:loading.attr="disabled" wire:loading.class="opacity-60">
+                                    <i class="fa-solid fa-xmark text-sm" wire:loading.remove wire:target="cancelGeneration"
+                                        aria-hidden="true"></i>
+                                    <i class="fa-solid fa-spinner fa-spin text-sm" wire:loading
+                                        wire:target="cancelGeneration" aria-hidden="true"></i>
                                     <span class="hidden sm:inline">Hủy</span>
                                 </button>
                             </div>
@@ -647,7 +675,7 @@
                     document.documentElement.style.removeProperty('overflow');
                     document.body.style.removeProperty('overflow');
                 }
-            })" class="hidden sm:flex fixed inset-0 z-[100] items-center justify-center backdrop-blur-sm"
+            })" class="hidden sm:flex fixed inset-0 z-[100] items-center justify-center bg-black/60 backdrop-blur-sm"
             x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0"
             x-transition:enter-end="opacity-100" x-transition:leave="transition ease-in duration-200"
             x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
@@ -679,23 +707,23 @@
                     </button>
                 </div>
 
-                {{-- Tabs --}}
+                {{-- Tabs with hover states --}}
                 <div class="flex border-b border-white/5 px-5 shrink-0">
                     <button type="button" @click="activeTab = 'upload'"
-                        class="py-3 px-4 text-sm font-medium transition-colors relative"
-                        :class="activeTab === 'upload' ? 'text-purple-400' : 'text-white/50 hover:text-white/70'">
-                        <i class="fa-solid fa-upload mr-2"></i> Upload
+                        class="py-3 px-4 text-sm font-medium transition-all duration-200 relative rounded-t-lg"
+                        :class="activeTab === 'upload' ? 'text-purple-400 bg-purple-500/10' : 'text-white/50 hover:text-white/70 hover:bg-white/5'">
+                        <i class="fa-solid fa-upload mr-2" aria-hidden="true"></i>Upload
                         <div x-show="activeTab === 'upload'"
                             class="absolute bottom-0 left-0 right-0 h-0.5 bg-purple-500"></div>
                     </button>
                     <button type="button" @click="activeTab = 'url'"
-                        class="py-3 px-4 text-sm font-medium transition-colors relative"
-                        :class="activeTab === 'url' ? 'text-purple-400' : 'text-white/50 hover:text-white/70'">
-                        <i class="fa-solid fa-link mr-2"></i> Dán URL
+                        class="py-3 px-4 text-sm font-medium transition-all duration-200 relative rounded-t-lg"
+                        :class="activeTab === 'url' ? 'text-purple-400 bg-purple-500/10' : 'text-white/50 hover:text-white/70 hover:bg-white/5'">
+                        <i class="fa-solid fa-link mr-2" aria-hidden="true"></i>Dán URL
                         <div x-show="activeTab === 'url'" class="absolute bottom-0 left-0 right-0 h-0.5 bg-purple-500">
                         </div>
                     </button>
-                    <button type="button" @click="activeTab = 'recent'"
+                    <button type="button" @click="activeTab = 'recent'; loadRecentImages()"
                         class="py-3 px-4 text-sm font-medium transition-colors relative"
                         :class="activeTab === 'recent' ? 'text-purple-400' : 'text-white/50 hover:text-white/70'">
                         <i class="fa-solid fa-clock-rotate-left mr-2"></i> Thư viện
@@ -889,24 +917,24 @@
                     </button>
                 </div>
 
-                {{-- Mobile Tabs with Icons --}}
+                {{-- Mobile Tabs with Icons and background --}}
                 <div class="flex border-b border-white/5 shrink-0">
                     <button type="button" @click="activeTab = 'upload'"
-                        class="flex-1 py-3 text-sm font-medium transition-colors flex items-center justify-center gap-1.5"
-                        :class="activeTab === 'upload' ? 'text-purple-400 border-b-2 border-purple-500' : 'text-white/50'">
-                        <i class="fa-solid fa-upload text-xs"></i>
+                        class="flex-1 py-3 text-sm font-medium transition-all duration-200 flex items-center justify-center gap-1.5"
+                        :class="activeTab === 'upload' ? 'text-purple-400 bg-purple-500/10 border-b-2 border-purple-500' : 'text-white/50 active:bg-white/5'">
+                        <i class="fa-solid fa-upload text-xs" aria-hidden="true"></i>
                         Upload
                     </button>
                     <button type="button" @click="activeTab = 'url'"
-                        class="flex-1 py-3 text-sm font-medium transition-colors flex items-center justify-center gap-1.5"
-                        :class="activeTab === 'url' ? 'text-purple-400 border-b-2 border-purple-500' : 'text-white/50'">
-                        <i class="fa-solid fa-link text-xs"></i>
+                        class="flex-1 py-3 text-sm font-medium transition-all duration-200 flex items-center justify-center gap-1.5"
+                        :class="activeTab === 'url' ? 'text-purple-400 bg-purple-500/10 border-b-2 border-purple-500' : 'text-white/50 active:bg-white/5'">
+                        <i class="fa-solid fa-link text-xs" aria-hidden="true"></i>
                         URL
                     </button>
                     <button type="button" @click="activeTab = 'recent'; loadRecentImages()"
-                        class="flex-1 py-3 text-sm font-medium transition-colors flex items-center justify-center gap-1.5"
-                        :class="activeTab === 'recent' ? 'text-purple-400 border-b-2 border-purple-500' : 'text-white/50'">
-                        <i class="fa-solid fa-clock-rotate-left text-xs"></i>
+                        class="flex-1 py-3 text-sm font-medium transition-all duration-200 flex items-center justify-center gap-1.5"
+                        :class="activeTab === 'recent' ? 'text-purple-400 bg-purple-500/10 border-b-2 border-purple-500' : 'text-white/50 active:bg-white/5'">
+                        <i class="fa-solid fa-clock-rotate-left text-xs" aria-hidden="true"></i>
                         Gần đây
                     </button>
                 </div>
@@ -975,18 +1003,25 @@
                         </template>
                     </div>
 
-                    {{-- Selected Preview Mobile --}}
+                    {{-- Selected Preview Mobile - Larger size --}}
                     <template x-if="selectedImages.length > 0">
                         <div class="mt-4 pt-4 border-t border-white/5">
-                            <div class="text-white/40 text-xs font-medium mb-2">Đã chọn:</div>
+                            <div class="text-white/50 text-xs font-medium mb-2 flex items-center gap-2">
+                                <i class="fa-solid fa-check-circle text-green-400" aria-hidden="true"></i>
+                                Đã chọn <span class="text-white" x-text="selectedImages.length"></span>/<span
+                                    x-text="maxImages"></span>
+                            </div>
                             <div class="flex flex-wrap gap-2">
-                                <template x-for="img in selectedImages" :key="img.id">
-                                    <div class="relative">
+                                <template x-for="(img, idx) in selectedImages" :key="img.id">
+                                    <div class="relative group">
                                         <img :src="img.url"
-                                            class="w-14 h-14 rounded-lg object-cover border border-white/20">
+                                            class="w-16 h-16 sm:w-20 sm:h-20 rounded-xl object-cover border-2 border-purple-500/30">
+                                        <div class="absolute top-1 left-1 w-5 h-5 rounded-full bg-purple-500 text-white text-[10px] font-bold flex items-center justify-center"
+                                            x-text="idx + 1"></div>
                                         <button type="button" @click="removeImage(img.id)"
-                                            class="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-red-500 text-white text-xs flex items-center justify-center">
-                                            <i class="fa-solid fa-xmark"></i>
+                                            class="absolute -top-1.5 -right-1.5 w-6 h-6 rounded-full bg-red-500 text-white text-xs flex items-center justify-center shadow-lg active:scale-90 transition-transform"
+                                            aria-label="Xóa ảnh này">
+                                            <i class="fa-solid fa-xmark" aria-hidden="true"></i>
                                         </button>
                                     </div>
                                 </template>
@@ -995,14 +1030,25 @@
                     </template>
                 </div>
 
-                {{-- Footer Mobile --}}
+                {{-- Footer Mobile with better feedback --}}
                 <div class="p-4 border-t border-white/5 bg-[#1a1b20] safe-area-bottom shrink-0">
                     <button type="button" @click="confirmSelection()"
-                        class="w-full py-3.5 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold text-center active:scale-[0.98] transition-transform"
-                        :disabled="selectedImages.length === 0"
-                        :class="selectedImages.length === 0 ? 'opacity-50' : ''">
-                        Xác nhận <span
-                            x-text="selectedImages.length > 0 ? '(' + selectedImages.length + ' ảnh)' : ''"></span>
+                        class="w-full py-3.5 rounded-xl text-white font-bold text-center active:scale-[0.98] transition-all"
+                        :disabled="selectedImages.length === 0" :class="selectedImages.length === 0 
+                            ? 'bg-white/10 text-white/40 cursor-not-allowed' 
+                            : 'bg-gradient-to-r from-purple-600 to-pink-600 shadow-lg shadow-purple-500/20'">
+                        <template x-if="selectedImages.length === 0">
+                            <span class="flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-image" aria-hidden="true"></i>
+                                Chọn ít nhất 1 ảnh
+                            </span>
+                        </template>
+                        <template x-if="selectedImages.length > 0">
+                            <span class="flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-check" aria-hidden="true"></i>
+                                Xác nhận (<span x-text="selectedImages.length"></span> ảnh)
+                            </span>
+                        </template>
                     </button>
                 </div>
             </div>
@@ -1047,7 +1093,7 @@
     <template x-teleport="body">
         {{-- Desktop Modal --}}
         <div x-show="showPreview" x-cloak
-            class="hidden sm:flex fixed inset-0 z-[200] items-center justify-center bg-black/90 backdrop-blur-md"
+            class="hidden sm:flex fixed inset-0 z-[200] items-center justify-center bg-black/95 backdrop-blur-md"
             x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0"
             x-transition:enter-end="opacity-100" x-transition:leave="transition ease-in duration-200"
             x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" @click.self="closePreview()"
@@ -1063,14 +1109,16 @@
                     <i class="fa-solid fa-xmark text-xl"></i>
                 </button>
 
-                {{-- Navigation Arrows --}}
+                {{-- Navigation Arrows - Inside modal for visibility --}}
                 <button x-show="previewIndex > 0" @click="prevImage()"
-                    class="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-14 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white/70 hover:text-white flex items-center justify-center transition-all">
-                    <i class="fa-solid fa-chevron-left"></i>
+                    class="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-black/60 hover:bg-black/80 text-white/80 hover:text-white flex items-center justify-center transition-all z-10 backdrop-blur-sm"
+                    aria-label="Ảnh trước">
+                    <i class="fa-solid fa-chevron-left text-lg" aria-hidden="true"></i>
                 </button>
                 <button x-show="previewIndex < historyData.length - 1" @click="nextImage()"
-                    class="absolute right-0 top-1/2 -translate-y-1/2 translate-x-14 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white/70 hover:text-white flex items-center justify-center transition-all">
-                    <i class="fa-solid fa-chevron-right"></i>
+                    class="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-black/60 hover:bg-black/80 text-white/80 hover:text-white flex items-center justify-center transition-all z-10 backdrop-blur-sm"
+                    aria-label="Ảnh sau">
+                    <i class="fa-solid fa-chevron-right text-lg" aria-hidden="true"></i>
                 </button>
 
                 {{-- Image --}}
@@ -1079,26 +1127,39 @@
 
                     {{-- Info & Actions --}}
                     <div class="p-5 border-t border-white/5">
-                        {{-- Prompt --}}
-                        <p class="text-white/70 text-sm italic mb-3 line-clamp-2"
-                            x-text="'\"' + (previewImage?.prompt || '') + ' \"'"></p>
+                        {{-- Expandable Prompt --}}
+                        <div x-data="{ expanded: false }" class="mb-3">
+                            <div class="flex items-start gap-2">
+                                <i class="fa-solid fa-quote-left text-purple-400/50 text-sm mt-0.5 shrink-0" aria-hidden="true"></i>
+                                <p class="text-white/70 text-sm italic flex-1"
+                                    :class="expanded ? '' : 'line-clamp-2'"
+                                    x-text="previewImage?.prompt || ''"></p>
+                            </div>
+                            <button x-show="(previewImage?.prompt || '').length > 150"
+                                @click="expanded = !expanded"
+                                class="mt-2 text-purple-400 text-xs font-medium hover:text-purple-300 transition-colors flex items-center gap-1">
+                                <span x-text="expanded ? 'Thu gọn' : 'Xem thêm'"></span>
+                                <i class="fa-solid fa-chevron-down text-[10px] transition-transform" 
+                                    :class="expanded && 'rotate-180'" aria-hidden="true"></i>
+                            </button>
+                        </div>
 
                         {{-- Metadata --}}
                         <div class="flex flex-wrap items-center gap-3 mb-4 text-xs text-white/40">
                             <span x-show="previewImage?.model" class="flex items-center gap-1">
-                                <i class="fa-solid fa-microchip"></i>
+                                <i class="fa-solid fa-microchip" aria-hidden="true"></i>
                                 <span x-text="previewImage?.model"></span>
                             </span>
                             <span x-show="previewImage?.ratio" class="flex items-center gap-1">
-                                <i class="fa-solid fa-crop"></i>
+                                <i class="fa-solid fa-crop" aria-hidden="true"></i>
                                 <span x-text="previewImage?.ratio"></span>
                             </span>
                             <span x-show="previewImage?.created_at" class="flex items-center gap-1">
-                                <i class="fa-regular fa-clock"></i>
+                                <i class="fa-regular fa-clock" aria-hidden="true"></i>
                                 <span x-text="previewImage?.created_at"></span>
                             </span>
                             <span class="flex items-center gap-1">
-                                <i class="fa-solid fa-image"></i>
+                                <i class="fa-solid fa-image" aria-hidden="true"></i>
                                 <span x-text="(previewIndex + 1) + '/' + historyData.length"></span>
                             </span>
                         </div>
@@ -1106,23 +1167,27 @@
                         {{-- Action Buttons --}}
                         <div class="flex flex-wrap gap-3">
                             <a :href="previewImage?.url" download
-                                class="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white/70 hover:text-white text-sm font-medium transition-all">
-                                <i class="fa-solid fa-download"></i>
+                                class="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white/70 hover:text-white text-sm font-medium transition-all focus:outline-none focus:ring-2 focus:ring-white/30"
+                                aria-label="Tải ảnh xuống">
+                                <i class="fa-solid fa-download" aria-hidden="true"></i>
                                 Tải xuống
                             </a>
                             <button @click="shareImage()"
-                                class="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white/70 hover:text-white text-sm font-medium transition-all">
-                                <i class="fa-solid fa-share-nodes"></i>
+                                class="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white/70 hover:text-white text-sm font-medium transition-all focus:outline-none focus:ring-2 focus:ring-white/30"
+                                aria-label="Chia sẻ ảnh">
+                                <i class="fa-solid fa-share-nodes" aria-hidden="true"></i>
                                 Chia sẻ
                             </button>
                             <button @click="useAsReference()"
-                                class="flex items-center gap-2 px-4 py-2 rounded-xl bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 hover:text-purple-200 text-sm font-medium transition-all">
-                                <i class="fa-solid fa-images"></i>
+                                class="flex items-center gap-2 px-4 py-2 rounded-xl bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 hover:text-purple-200 text-sm font-medium transition-all focus:outline-none focus:ring-2 focus:ring-purple-500/50"
+                                aria-label="Dùng ảnh này làm mẫu">
+                                <i class="fa-solid fa-images" aria-hidden="true"></i>
                                 Dùng làm mẫu
                             </button>
                             <button @click="copyPrompt()"
-                                class="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white/70 hover:text-white text-sm font-medium transition-all">
-                                <i class="fa-solid fa-copy"></i>
+                                class="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white/70 hover:text-white text-sm font-medium transition-all focus:outline-none focus:ring-2 focus:ring-white/30"
+                                aria-label="Sao chép prompt">
+                                <i class="fa-solid fa-copy" aria-hidden="true"></i>
                                 Copy prompt
                             </button>
                         </div>
@@ -1151,24 +1216,50 @@
             </div>
 
             {{-- Image Container with Swipe --}}
-            <div class="flex-1 flex items-center justify-center p-4 overflow-hidden relative"
+            <div class="flex-1 flex flex-col items-center justify-center p-4 overflow-hidden relative"
                 @touchstart="handleTouchStart($event)" @touchend="handleTouchEnd($event)">
-                {{-- Navigation Indicators --}}
+                {{-- Navigation Buttons --}}
                 <button x-show="previewIndex > 0" @click="prevImage()"
-                    class="absolute left-2 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/50 text-white/70 flex items-center justify-center active:scale-95 z-10">
-                    <i class="fa-solid fa-chevron-left"></i>
+                    class="absolute left-2 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/60 text-white/80 flex items-center justify-center active:scale-95 z-10 backdrop-blur-sm"
+                    aria-label="Ảnh trước">
+                    <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
                 </button>
                 <img :src="previewImage?.url" alt="Preview" class="max-w-full max-h-full object-contain rounded-xl">
                 <button x-show="previewIndex < historyData.length - 1" @click="nextImage()"
-                    class="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/50 text-white/70 flex items-center justify-center active:scale-95 z-10">
-                    <i class="fa-solid fa-chevron-right"></i>
+                    class="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/60 text-white/80 flex items-center justify-center active:scale-95 z-10 backdrop-blur-sm"
+                    aria-label="Ảnh sau">
+                    <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
                 </button>
+
+                {{-- Swipe Dot Indicators --}}
+                <div class="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1.5 px-2 py-1 rounded-full bg-black/40 backdrop-blur-sm"
+                    x-show="historyData.length > 1 && historyData.length <= 10">
+                    <template x-for="(_, i) in historyData.slice(0, 10)" :key="i">
+                        <button @click="goToImage(i)" class="w-2 h-2 rounded-full transition-all"
+                            :class="previewIndex === i ? 'bg-white scale-125' : 'bg-white/40'"
+                            :aria-label="'Chuyển đến ảnh ' + (i + 1)"></button>
+                    </template>
+                </div>
+                {{-- Counter for many images --}}
+                <div class="absolute bottom-2 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-black/40 backdrop-blur-sm text-white/70 text-xs"
+                    x-show="historyData.length > 10" x-text="(previewIndex + 1) + ' / ' + historyData.length">
+                </div>
             </div>
 
-            {{-- Prompt --}}
-            <div class="px-4 py-3 bg-white/5">
-                <p class="text-white/60 text-xs italic line-clamp-2" x-text="'\"' + (previewImage?.prompt || '') + '
-                    \"'"></p>
+            {{-- Expandable Prompt --}}
+            <div class="px-4 py-3 bg-white/5" x-data="{ expanded: false }">
+                <div class="flex items-start gap-2">
+                    <i class="fa-solid fa-quote-left text-purple-400/50 text-[10px] mt-1 shrink-0"
+                        aria-hidden="true"></i>
+                    <p class="text-white/60 text-xs italic flex-1" :class="expanded ? '' : 'line-clamp-2'"
+                        x-text="previewImage?.prompt || ''"></p>
+                </div>
+                <button x-show="(previewImage?.prompt || '').length > 100" @click="expanded = !expanded"
+                    class="mt-1 text-purple-400 text-[10px] font-medium hover:text-purple-300 transition-colors flex items-center gap-1">
+                    <span x-text="expanded ? 'Thu gọn' : 'Xem thêm'"></span>
+                    <i class="fa-solid fa-chevron-down text-[8px] transition-transform"
+                        :class="expanded && 'rotate-180'" aria-hidden="true"></i>
+                </button>
             </div>
 
             {{-- Action Buttons --}}
