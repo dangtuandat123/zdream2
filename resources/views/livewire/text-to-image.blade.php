@@ -22,6 +22,7 @@
     
     // Toast notification
     toastMessage: '',
+    toastType: 'success',
     showToast: false,
     
     // Loading messages
@@ -33,10 +34,17 @@
     touchStartX: 0,
     touchStartY: 0,
     
-    showNotification(msg) {
+    showNotification(msg, type = 'success') {
         this.toastMessage = msg;
+        this.toastType = type;
         this.showToast = true;
-        setTimeout(() => { this.showToast = false; }, 2000);
+        setTimeout(() => { this.showToast = false; }, 2500);
+    },
+    showError(msg) {
+        this.showNotification(msg, 'error');
+    },
+    showWarning(msg) {
+        this.showNotification(msg, 'warning');
     },
     
     startLoadingMessages() {
@@ -148,12 +156,15 @@
     },
     processFile(file) {
         if (this.selectedImages.length >= this.maxImages) {
-            alert('Tối đa ' + this.maxImages + ' ảnh');
+            this.showWarning('Tối đa ' + this.maxImages + ' ảnh');
             return;
         }
-        if (!file.type.startsWith('image/')) return;
+        if (!file.type.startsWith('image/')) {
+            this.showError('Chỉ chấp nhận file ảnh');
+            return;
+        }
         if (file.size > 10 * 1024 * 1024) {
-            alert('Ảnh quá lớn (tối đa 10MB)');
+            this.showError('Ảnh quá lớn (tối đa 10MB)');
             return;
         }
         const url = URL.createObjectURL(file);
@@ -162,22 +173,27 @@
     addFromUrl() {
         if (!this.urlInput.trim()) return;
         if (this.selectedImages.length >= this.maxImages) {
-            alert('Tối đa ' + this.maxImages + ' ảnh');
+            this.showWarning('Tối đa ' + this.maxImages + ' ảnh');
             return;
         }
-        if (!this.urlInput.match(/^https?:\/\/.+/)) {
-            alert('URL không hợp lệ');
+        if (!this.urlInput.match(/^https?:\/\/.+\.(jpg|jpeg|png|gif|webp|svg)(\?.*)?$/i)) {
+            this.showError('URL ảnh không hợp lệ');
             return;
         }
         this.selectedImages.push({ type: 'url', url: this.urlInput.trim(), id: Date.now() });
         this.urlInput = '';
+        this.showNotification('Đã thêm ảnh từ URL');
     },
     selectFromRecent(imageUrl) {
         if (this.selectedImages.length >= this.maxImages) {
-            alert('Tối đa ' + this.maxImages + ' ảnh');
+            this.showWarning('Đã chọn tối đa ' + this.maxImages + ' ảnh');
             return;
         }
-        if (this.selectedImages.find(img => img.url === imageUrl)) return;
+        if (this.selectedImages.find(img => img.url === imageUrl)) {
+            // Toggle off - remove if already selected
+            this.selectedImages = this.selectedImages.filter(img => img.url !== imageUrl);
+            return;
+        }
         this.selectedImages.push({ type: 'url', url: imageUrl, id: Date.now() });
     },
     isSelected(imageUrl) {
@@ -202,35 +218,65 @@
         else if (e.key === 'Escape') this.closePreview();
     }
 }" @keydown.window="handleKeydown($event)" x-init="
-       // Listen for historyUpdated event to sync historyData
-       $wire.on('historyUpdated', () => {
-           setTimeout(() => { this.historyData = @js($historyData); }, 100);
-       });
-       $wire.on('imageGenerated', () => {
-           setTimeout(() => { this.historyData = @js($historyData); }, 100);
-       });
+       // Refresh historyData from server on events
+       const refreshHistory = async () => {
+           const data = await $wire.getHistoryData();
+           if (data) this.historyData = data;
+       };
+       $wire.on('historyUpdated', refreshHistory);
+       $wire.on('imageGenerated', refreshHistory);
+       Livewire.hook('morph.updated', refreshHistory);
    " @if($isGenerating) wire:poll.3s="pollImageStatus" @endif>
 
     {{-- Toast Notification --}}
-    <div x-show="showToast" x-cloak x-transition
-        class="fixed top-20 left-1/2 -translate-x-1/2 z-[300] px-4 py-2.5 rounded-xl bg-green-500/90 text-white text-sm font-medium shadow-lg">
-        <i class="fa-solid fa-check mr-1.5"></i><span x-text="toastMessage"></span>
+    <div x-show="showToast" x-cloak x-transition:enter="transition ease-out duration-300"
+        x-transition:enter-start="opacity-0 -translate-y-4" x-transition:enter-end="opacity-100 translate-y-0"
+        x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100 translate-y-0"
+        x-transition:leave-end="opacity-0 -translate-y-4"
+        class="fixed top-24 left-1/2 -translate-x-1/2 z-[300] px-5 py-3 rounded-xl text-white text-sm font-medium shadow-2xl flex items-center gap-2"
+        :class="{
+            'bg-green-500/95 shadow-green-500/20': toastType === 'success',
+            'bg-red-500/95 shadow-red-500/20': toastType === 'error',
+            'bg-yellow-500/95 shadow-yellow-500/20 text-black': toastType === 'warning'
+        }">
+        <i class="text-base" :class="{
+            'fa-solid fa-check-circle': toastType === 'success',
+            'fa-solid fa-exclamation-circle': toastType === 'error',
+            'fa-solid fa-exclamation-triangle': toastType === 'warning'
+        }"></i>
+        <span x-text="toastMessage"></span>
     </div>
 
     {{-- Gallery / Main Area --}}
     <div class="max-w-6xl mx-auto px-4 pt-4 sm:pt-6">
-        {{-- Credits Info --}}
-        @auth
-            <div class="flex items-center justify-between mb-4 px-3 py-2 rounded-xl bg-white/5 border border-white/10">
-                <div class="flex items-center gap-2">
-                    <i class="fa-solid fa-coins text-purple-400 text-sm"></i>
-                    <span
-                        class="text-white font-medium text-sm">{{ number_format(auth()->user()->credits ?? 0, 0, ',', '.') }}</span>
-                    <span class="text-white/40 text-xs">credits</span>
-                </div>
-                <span class="text-purple-400/70 text-xs">{{ number_format($creditCost, 0, ',', '.') }} credits/ảnh</span>
+        {{-- Page Header --}}
+        <div class="flex items-center justify-between mb-6">
+            <div>
+                <h1 class="text-xl sm:text-2xl font-bold text-white flex items-center gap-2">
+                    <i class="fa-solid fa-wand-magic-sparkles text-purple-400"></i>
+                    Text to Image
+                </h1>
+                <p class="text-white/50 text-sm mt-1 hidden sm:block">Biến ý tưởng thành hình ảnh với AI</p>
             </div>
-        @endauth
+            @auth
+                <div
+                    class="flex items-center gap-3 px-4 py-2.5 rounded-xl bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/20">
+                    <div class="flex items-center gap-2">
+                        <div class="w-8 h-8 rounded-full bg-purple-500/20 flex items-center justify-center">
+                            <i class="fa-solid fa-coins text-purple-400 text-sm"></i>
+                        </div>
+                        <div>
+                            <div class="text-white font-bold text-sm">
+                                {{ number_format(auth()->user()->credits ?? 0, 0, ',', '.') }}
+                            </div>
+                            <div class="text-white/40 text-[10px] leading-none">credits</div>
+                        </div>
+                    </div>
+                    <div class="h-6 w-px bg-white/10"></div>
+                    <div class="text-purple-300 text-xs font-medium">-{{ number_format($creditCost, 0) }}/ảnh</div>
+                </div>
+            @endauth
+        </div>
 
         {{-- Status / Error --}}
         @if($errorMessage)
@@ -306,14 +352,16 @@
 
                     {{-- Desktop Hover Overlay --}}
                     <div
-                        class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-all duration-300 hidden sm:flex items-center justify-center gap-3">
+                        class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300 hidden sm:flex items-center justify-center gap-3">
                         <button @click.stop="openPreview(historyData[{{ $index }}], {{ $index }})"
-                            class="w-10 h-10 rounded-xl bg-white/10 hover:bg-white text-white hover:text-black flex items-center justify-center transition-all">
-                            <i class="fa-solid fa-eye"></i>
+                            class="w-11 h-11 rounded-xl bg-white/20 backdrop-blur-sm hover:bg-white text-white hover:text-black flex items-center justify-center transition-all hover:scale-110"
+                            aria-label="Xem ảnh">
+                            <i class="fa-solid fa-eye text-lg"></i>
                         </button>
                         <a href="{{ $image->image_url }}" download @click.stop
-                            class="w-10 h-10 rounded-xl bg-white/10 hover:bg-white text-white hover:text-black flex items-center justify-center transition-all">
-                            <i class="fa-solid fa-download"></i>
+                            class="w-11 h-11 rounded-xl bg-white/20 backdrop-blur-sm hover:bg-white text-white hover:text-black flex items-center justify-center transition-all hover:scale-110"
+                            aria-label="Tải xuống">
+                            <i class="fa-solid fa-download text-lg"></i>
                         </a>
                     </div>
 
@@ -350,11 +398,12 @@
                             ý:</p>
 
                         {{-- Sample Prompts --}}
-                        <div class="flex flex-wrap justify-center gap-2 max-w-md mx-auto">
+                        <div class="flex flex-wrap justify-center gap-2 max-w-lg mx-auto">
                             <template x-for="(prompt, i) in prompts" :key="i">
                                 <button @click="$wire.set('prompt', prompt)"
-                                    class="px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-white/50 text-xs hover:text-white hover:bg-purple-500/20 hover:border-purple-500/30 transition-all">
-                                    <span x-text="prompt.substring(0, 30) + '...'"></span>
+                                    class="group px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white/60 text-xs hover:text-white hover:bg-purple-500/20 hover:border-purple-500/30 transition-all hover:scale-105">
+                                    <i class="fa-solid fa-quote-left text-purple-400/50 mr-1 text-[10px]"></i>
+                                    <span x-text="prompt.length > 35 ? prompt.substring(0, 35) + '...' : prompt"></span>
                                 </button>
                             </template>
                         </div>
@@ -392,13 +441,14 @@
                     class="relative flex flex-col gap-3 p-3 sm:p-4 rounded-2xl bg-black/50 backdrop-blur-2xl border border-white/15 shadow-2xl">
 
                     {{-- Textarea with character counter --}}
-                    <div class="relative" x-data="{ charCount: $wire.prompt?.length || 0 }">
-                        <textarea wire:model.live="prompt" rows="3" placeholder="Mô tả ý tưởng của bạn..."
+                    <div class="relative" x-data="{ charCount: 0 }"
+                        x-init="charCount = parseInt('{{ strlen($prompt) }}') || 0">
+                        <textarea wire:model.live="prompt" rows="3"
+                            placeholder="Mô tả ý tưởng của bạn... (Ctrl+Enter để tạo ảnh)" aria-label="Prompt input"
                             class="w-full min-h-[80px] max-h-32 bg-transparent border-none outline-none ring-0 focus:ring-0 focus:outline-none text-white placeholder-white/40 text-sm sm:text-base resize-y focus:placeholder-white/60 transition-all overflow-y-auto pr-16"
                             @keydown.ctrl.enter.prevent="$wire.generate()"
                             @keydown.meta.enter.prevent="$wire.generate()"
-                            @input="charCount = $event.target.value.length" x-init="charCount = '{{ strlen($prompt) }}'"
-                            {{ $isGenerating ? 'disabled' : '' }}></textarea>
+                            @input="charCount = $event.target.value.length" {{ $isGenerating ? 'disabled' : '' }}></textarea>
                         {{-- Character counter --}}
                         <div class="absolute bottom-1 right-1 text-[10px] font-medium transition-colors"
                             :class="charCount > 1800 ? 'text-red-400' : charCount > 1500 ? 'text-yellow-400' : 'text-white/30'">
@@ -614,13 +664,17 @@
 
                 {{-- Header --}}
                 <div class="flex items-center justify-between p-5 border-b border-white/5 shrink-0">
-                    <div>
-                        <h3 class="text-white font-semibold text-lg">📸 Chọn ảnh mẫu</h3>
-                        <p class="text-white/50 text-sm mt-0.5">Chọn tối đa <span x-text="maxImages"></span> ảnh làm
-                            tham chiếu</p>
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-purple-500/20 flex items-center justify-center">
+                            <i class="fa-solid fa-images text-purple-400"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-white font-semibold text-lg">Chọn ảnh mẫu</h3>
+                            <p class="text-white/50 text-sm">Tối đa <span x-text="maxImages"></span> ảnh tham chiếu</p>
+                        </div>
                     </div>
                     <button type="button" @click="showImagePicker = false"
-                        class="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 text-white/60 hover:bg-white/10 transition-colors">
+                        class="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 text-white/60 hover:bg-white/10 hover:text-white transition-colors">
                         <i class="fa-solid fa-xmark text-lg"></i>
                     </button>
                 </div>
@@ -800,7 +854,10 @@
     {{-- ========== IMAGE PICKER MODAL (Mobile Bottom Sheet) ========== --}}
     <template x-teleport="body">
         <div x-show="showImagePicker" x-cloak
-            class="sm:hidden fixed inset-0 z-[100] flex items-end justify-center backdrop-blur-sm"
+            class="sm:hidden fixed inset-0 z-[100] flex items-end justify-center bg-black/60 backdrop-blur-sm"
+            x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0"
+            x-transition:enter-end="opacity-100" x-transition:leave="transition ease-in duration-150"
+            x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
             @click.self="showImagePicker = false">
             <div x-show="showImagePicker" x-transition:enter="transition ease-out duration-300"
                 x-transition:enter-start="translate-y-full" x-transition:enter-end="translate-y-0"
@@ -809,34 +866,47 @@
                 class="w-full max-w-lg bg-[#1a1b20] border-t border-white/10 rounded-t-3xl flex flex-col max-h-[85vh]"
                 @click.stop>
 
+                {{-- Handle bar --}}
+                <div class="flex justify-center pt-3 pb-1">
+                    <div class="w-10 h-1 rounded-full bg-white/20"></div>
+                </div>
+
                 {{-- Header --}}
-                <div class="flex items-center justify-between p-4 border-b border-white/5 shrink-0">
-                    <div>
-                        <span class="text-white font-semibold text-base">📸 Chọn ảnh mẫu</span>
-                        <span class="text-white/40 text-xs ml-2"
-                            x-text="selectedImages.length + '/' + maxImages"></span>
+                <div class="flex items-center justify-between px-4 pb-3 border-b border-white/5 shrink-0">
+                    <div class="flex items-center gap-2">
+                        <div class="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center">
+                            <i class="fa-solid fa-images text-purple-400 text-sm"></i>
+                        </div>
+                        <div>
+                            <span class="text-white font-semibold text-base">Chọn ảnh mẫu</span>
+                            <span class="text-white/40 text-xs ml-1"
+                                x-text="'(' + selectedImages.length + '/' + maxImages + ')'"></span>
+                        </div>
                     </div>
                     <button type="button" @click="showImagePicker = false"
-                        class="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 text-white/60">
+                        class="w-8 h-8 flex items-center justify-center rounded-full bg-white/10 text-white/60 active:scale-95">
                         <i class="fa-solid fa-xmark"></i>
                     </button>
                 </div>
 
-                {{-- Mobile Tabs --}}
+                {{-- Mobile Tabs with Icons --}}
                 <div class="flex border-b border-white/5 shrink-0">
                     <button type="button" @click="activeTab = 'upload'"
-                        class="flex-1 py-3 text-sm font-medium transition-colors"
+                        class="flex-1 py-3 text-sm font-medium transition-colors flex items-center justify-center gap-1.5"
                         :class="activeTab === 'upload' ? 'text-purple-400 border-b-2 border-purple-500' : 'text-white/50'">
+                        <i class="fa-solid fa-upload text-xs"></i>
                         Upload
                     </button>
                     <button type="button" @click="activeTab = 'url'"
-                        class="flex-1 py-3 text-sm font-medium transition-colors"
+                        class="flex-1 py-3 text-sm font-medium transition-colors flex items-center justify-center gap-1.5"
                         :class="activeTab === 'url' ? 'text-purple-400 border-b-2 border-purple-500' : 'text-white/50'">
+                        <i class="fa-solid fa-link text-xs"></i>
                         URL
                     </button>
-                    <button type="button" @click="activeTab = 'recent'"
-                        class="flex-1 py-3 text-sm font-medium transition-colors"
+                    <button type="button" @click="activeTab = 'recent'; loadRecentImages()"
+                        class="flex-1 py-3 text-sm font-medium transition-colors flex items-center justify-center gap-1.5"
                         :class="activeTab === 'recent' ? 'text-purple-400 border-b-2 border-purple-500' : 'text-white/50'">
+                        <i class="fa-solid fa-clock-rotate-left text-xs"></i>
                         Gần đây
                     </button>
                 </div>
@@ -875,12 +945,19 @@
 
                     {{-- Recent Tab Mobile --}}
                     <div x-show="activeTab === 'recent'">
-                        <template x-if="recentImages.length > 0">
+                        {{-- Loading Spinner --}}
+                        <template x-if="isLoadingPicker">
+                            <div class="flex flex-col items-center justify-center py-10 gap-3">
+                                <i class="fa-solid fa-spinner fa-spin text-purple-400 text-2xl"></i>
+                                <span class="text-white/40 text-sm">Đang tải ảnh...</span>
+                            </div>
+                        </template>
+                        <template x-if="!isLoadingPicker && recentImages.length > 0">
                             <div class="grid grid-cols-3 gap-2">
                                 <template x-for="img in recentImages" :key="img.id">
                                     <button type="button" @click="selectFromRecent(img.image_url || img.url)"
-                                        class="aspect-square rounded-xl overflow-hidden border-2 transition-all relative"
-                                        :class="isSelected(img.image_url || img.url) ? 'border-purple-500' : 'border-transparent'">
+                                        class="aspect-square rounded-xl overflow-hidden border-2 transition-all relative active:scale-95"
+                                        :class="isSelected(img.image_url || img.url) ? 'border-purple-500 ring-2 ring-purple-500/30' : 'border-transparent'">
                                         <img :src="img.image_url || img.url" class="w-full h-full object-cover">
                                         <div x-show="isSelected(img.image_url || img.url)"
                                             class="absolute inset-0 bg-purple-500/40 flex items-center justify-center">
@@ -890,10 +967,10 @@
                                 </template>
                             </div>
                         </template>
-                        <template x-if="recentImages.length === 0 && !isLoadingPicker">
-                            <div class="text-center py-8 text-white/40">
-                                <i class="fa-regular fa-image text-3xl mb-2"></i>
-                                <p>Chưa có ảnh nào</p>
+                        <template x-if="!isLoadingPicker && recentImages.length === 0">
+                            <div class="text-center py-10 text-white/40">
+                                <i class="fa-regular fa-image text-4xl mb-3 block"></i>
+                                <p class="text-sm">Chưa có ảnh nào trong thư viện</p>
                             </div>
                         </template>
                     </div>
