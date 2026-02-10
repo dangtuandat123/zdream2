@@ -273,12 +273,11 @@
                 </h1>
             </div>
             @auth
-                <a href="{{ route('credits.index') }}"
-                    class="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors group">
+                <div class="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/5 border border-white/10">
                     <i class="fa-solid fa-coins text-yellow-400 text-sm"></i>
                     <span class="text-white font-bold text-sm">{{ number_format(auth()->user()->credits ?? 0, 0, ',', '.') }}</span>
-                    <i class="fa-solid fa-plus text-white/30 text-[10px] group-hover:text-purple-400 transition-colors"></i>
-                </a>
+                    <span class="text-white/40 text-xs">cr</span>
+                </div>
             @endauth
         </div>
 
