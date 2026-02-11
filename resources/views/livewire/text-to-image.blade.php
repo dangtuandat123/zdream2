@@ -274,7 +274,7 @@
     {{-- SCROLLABLE GALLERY AREA --}}
     {{-- ============================================================ --}}
     <div id="gallery-scroll">
-        <div class="max-w-5xl mx-auto px-4 pt-14 md:pt-12 pb-48">
+        <div class="max-w-5xl mx-auto px-4 pt-16 pb-48">
 
             {{-- Error --}}
             @if($errorMessage)
