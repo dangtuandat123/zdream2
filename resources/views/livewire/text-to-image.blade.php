@@ -4,7 +4,7 @@
     aspectRatios: @js($aspectRatios),
     models: @js($availableModels),
     // History data sync
-    historyData: @js($flatHistoryForJs ?? []),
+    historyData: @js($historyData ?? []),
 
     // Image picker
     showImagePicker: false,

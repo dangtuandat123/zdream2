@@ -512,11 +512,11 @@ class TextToImage extends Component
     }
 
     /**
-     * Get history data for Alpine.js sync
+     * Get history data for Alpine.js sync (reversed to match gallery display: oldest first, newest last)
      */
     public function getHistoryData(): array
     {
-        return $this->history->map(fn($img) => [
+        return $this->history->reverse()->map(fn($img) => [
             'id' => $img->id,
             'url' => $img->image_url,
             'prompt' => $img->final_prompt,
