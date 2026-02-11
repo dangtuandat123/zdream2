@@ -3,381 +3,6 @@
     selectedModel: @entangle('modelId'),
     aspectRatios: @js($aspectRatios),
     models: @js($availableModels),
-    historyData: @js($historyData),
-
-    // Image picker
-    showImagePicker: false,
-    selectedImages: [],
-    maxImages: 4,
-    recentImages: [],
-    isLoadingPicker: false,
-    urlInput: '',
-    activeTab: 'upload',
-    isDragging: false,
-
-    // Preview
-    showPreview: false,
-    previewImage: null,
-    previewIndex: 0,
-
-    // Toast
-    toastMessage: '',
-    toastType: 'success',
-    showToast: false,
-
-    // Loading
-    loadingMessages: ['Đang sáng tạo...', 'Chút nữa thôi...', 'Sắp xong rồi...', 'AI đang vẽ...'],
-    currentLoadingMessage: 0,
-    loadingInterval: null,
-
-    // Touch
-    touchStartX: 0,
-    touchStartY: 0,
-
-    // Methods
-    notify(msg, type = 'success') {
-        this.toastMessage = msg; this.toastType = type; this.showToast = true;
-        setTimeout(() => this.showToast = false, 2500);
-    },
-    getModelName() {
-        const m = Object.values(this.models).find(m => m.id === '{{ $modelId }}');
-        return m ? m.name : 'Model';
-    },
-    startLoading() {
-        this.currentLoadingMessage = 0;
-        this.loadingInterval = setInterval(() => {
-            this.currentLoadingMessage = (this.currentLoadingMessage + 1) % this.loadingMessages.length;
-        }, 2000);
-    },
-    stopLoading() {
-        if (this.loadingInterval) { clearInterval(this.loadingInterval); this.loadingInterval = null; }
-    },
-
-    // Preview
-    openPreview(image, index) {
-        this.previewImage = image; this.previewIndex = index; this.showPreview = true;
-        document.body.style.overflow = 'hidden';
-    },
-    closePreview() {
-        this.showPreview = false; this.previewImage = null; document.body.style.overflow = '';
-    },
-    nextImage() {
-        if (this.previewIndex < this.historyData.length - 1) {
-            this.previewIndex++; this.previewImage = this.historyData[this.previewIndex];
-        }
-    },
-    prevImage() {
-        if (this.previewIndex > 0) {
-            this.previewIndex--; this.previewImage = this.historyData[this.previewIndex];
-        }
-    },
-    goToImage(i) {
-        if (i >= 0 && i < this.historyData.length) {
-            this.previewIndex = i; this.previewImage = this.historyData[i];
-        }
-    },
-    handleTouchStart(e) { this.touchStartX = e.touches[0].clientX; this.touchStartY = e.touches[0].clientY; },
-    handleTouchEnd(e) {
-        const dx = e.changedTouches[0].clientX - this.touchStartX;
-        const dy = e.changedTouches[0].clientY - this.touchStartY;
-        if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 50) { dx > 0 ? this.prevImage() : this.nextImage(); }
-        else if (dy > 100) { this.closePreview(); }
-    },
-    useAsReference() {
-        if (this.previewImage && this.selectedImages.length < this.maxImages) {
-            if (!this.selectedImages.find(img => img.url === this.previewImage.url)) {
-                this.selectedImages.push({ type: 'url', url: this.previewImage.url, id: Date.now() });
-            }
-            this.notify('Đã thêm vào ảnh mẫu'); this.closePreview();
-        }
-    },
-    copyPrompt() {
-        if (this.previewImage?.prompt) {
-            $wire.set('prompt', this.previewImage.prompt);
-            this.notify('Đã copy prompt'); this.closePreview();
-        }
-    },
-    async shareImage() {
-        if (navigator.share && this.previewImage) {
-            try { await navigator.share({ title: 'ZDream AI', url: this.previewImage.url }); } catch(e) {}
-        } else if (this.previewImage) {
-            await navigator.clipboard.writeText(this.previewImage.url);
-            this.notify('Đã copy link ảnh');
-        }
-    },
-
-    // Image picker
-    async loadRecentImages() {
-        if (this.recentImages.length > 0) return;
-        this.isLoadingPicker = true;
-        try {
-            const res = await fetch('/api/user/recent-images');
-            if (res.ok) { const d = await res.json(); this.recentImages = d.images || []; }
-        } catch(e) {}
-        this.isLoadingPicker = false;
-    },
-    removeImage(id) { this.selectedImages = this.selectedImages.filter(i => i.id !== id); },
-    handleFileSelect(e) { Array.from(e.target.files).forEach(f => this.processFile(f)); e.target.value = ''; },
-    handleDrop(e) { this.isDragging = false; Array.from(e.dataTransfer.files).forEach(f => this.processFile(f)); },
-    processFile(file) {
-        if (this.selectedImages.length >= this.maxImages) { this.notify('Tối đa ' + this.maxImages + ' ảnh', 'warning'); return; }
-        if (!file.type.startsWith('image/')) { this.notify('Chỉ chấp nhận ảnh', 'error'); return; }
-        if (file.size > 10*1024*1024) { this.notify('Ảnh quá lớn (max 10MB)', 'error'); return; }
-        this.selectedImages.push({ type: 'file', file, url: URL.createObjectURL(file), id: Date.now()+Math.random() });
-    },
-    addFromUrl() {
-        if (!this.urlInput.trim()) return;
-        if (this.selectedImages.length >= this.maxImages) { this.notify('Tối đa ' + this.maxImages + ' ảnh', 'warning'); return; }
-        if (!this.urlInput.match(/^https?:\/\/.+\.(jpg|jpeg|png|gif|webp|svg)(\?.*)?$/i)) { this.notify('URL không hợp lệ', 'error'); return; }
-        this.selectedImages.push({ type: 'url', url: this.urlInput.trim(), id: Date.now() });
-        this.urlInput = ''; this.notify('Đã thêm ảnh');
-    },
-    selectFromRecent(url) {
-        if (this.selectedImages.find(i => i.url === url)) { this.selectedImages = this.selectedImages.filter(i => i.url !== url); return; }
-        if (this.selectedImages.length >= this.maxImages) { this.notify('Đã chọn tối đa', 'warning'); return; }
-        this.selectedImages.push({ type: 'url', url, id: Date.now() });
-    },
-    isSelected(url) { return !!this.selectedImages.find(i => i.url === url); },
-    clearAll() { this.selectedImages = []; },
-    confirmSelection() {
-        $wire.setReferenceImages(this.selectedImages.map(i => i.url));
-        this.showImagePicker = false;
-        this.notify('Đã chọn ' + this.selectedImages.length + ' ảnh mẫu');
-    },
-    handleKeydown(e) {
-        if (!this.showPreview) return;
-        if (e.key === 'ArrowLeft') this.prevImage();
-        else if (e.key === 'ArrowRight') this.nextImage();
-        else if (e.key === 'Escape') this.closePreview();
-    },
-    init() {
-        const refresh = async () => { const d = await $wire.getHistoryData(); if (d) this.historyData = d; };
-        $wire.on('historyUpdated', refresh);
-        $wire.on('imageGenerated', refresh);
-        Livewire.hook('morph.updated', refresh);
-    }
-}" @keydown.window="handleKeydown($event)" @if($isGenerating) wire:poll.3s="pollImageStatus" @endif>
-
-    {{-- Toast --}}
-    <div x-show="showToast" x-cloak x-transition:enter="transition ease-out duration-300"
-        x-transition:enter-start="opacity-0 -translate-y-4" x-transition:enter-end="opacity-100 translate-y-0"
-        x-transition:leave="transition ease-in duration-200" x-transition:leave-end="opacity-0 -translate-y-4"
-        class="fixed top-4 left-1/2 -translate-x-1/2 z-[300] px-5 py-3 rounded-xl text-white text-sm font-medium shadow-2xl flex items-center gap-2"
-        :class="{ 'bg-green-500/95': toastType==='success', 'bg-red-500/95': toastType==='error', 'bg-yellow-500/95 text-black': toastType==='warning' }">
-        <i
-            :class="{ 'fa-solid fa-check-circle': toastType==='success', 'fa-solid fa-exclamation-circle': toastType==='error', 'fa-solid fa-triangle-exclamation': toastType==='warning' }"></i>
-        <span x-text="toastMessage"></span>
-    </div>
-
-    {{-- ============================================================ --}}
-    {{-- SECTION 1: SCROLLABLE GALLERY AREA --}}
-    {{-- ============================================================ --}}
-    <div id="gallery-scroll">
-        <div class="max-w-5xl mx-auto px-4 pt-4 sm:pt-6 pb-6">
-
-            {{-- Header --}}
-            <div class="flex items-center justify-between mb-5 sm:mb-6">
-                <div class="flex items-center gap-2.5">
-                    <div
-                        class="w-9 h-9 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shrink-0 shadow-lg shadow-purple-500/20">
-                        <i class="fa-solid fa-wand-magic-sparkles text-white text-sm"></i>
-                    </div>
-                    <div>
-                        <h1 class="text-lg sm:text-xl font-bold text-white leading-tight">Tạo ảnh AI</h1>
-                        <p class="text-white/30 text-[11px] sm:text-xs">Text to Image</p>
-                    </div>
-                </div>
-                @auth
-                    <div
-                        class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/[0.06] border border-white/[0.08]">
-                        <i class="fa-solid fa-coins text-yellow-400 text-xs"></i>
-                        <span
-                            class="text-white font-bold text-sm">{{ number_format(auth()->user()->credits ?? 0, 0, ',', '.') }}</span>
-                        <span class="text-white/30 text-[10px]">cr</span>
-                    </div>
-                @endauth
-            </div>
-
-            {{-- Error --}}
-            @if($errorMessage)
-                <div x-data="{ show: true }" x-show="show" x-cloak
-                    class="mb-4 p-3.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm flex items-center gap-3"
-                    role="alert">
-                    <i class="fa-solid fa-circle-exclamation shrink-0"></i>
-                    <span class="flex-1">{{ $errorMessage }}</span>
-                    @if($lastPrompt)
-                        <button wire:click="retry"
-                            class="shrink-0 px-3 py-1 rounded-lg bg-white/10 hover:bg-white/15 text-xs font-medium transition-colors">
-                            <i class="fa-solid fa-redo mr-1"></i>Thử lại
-                        </button>
-                    @endif
-                    <button @click="show = false"
-                        class="shrink-0 px-3 py-1 rounded-lg bg-white/10 hover:bg-white/15 text-xs font-medium transition-colors">
-                        <i class="fa-solid fa-xmark mr-1"></i>Đóng
-                    </button>
-                </div>
-            @endif
-
-            {{-- Gallery Feed --}}
-            <div class="space-y-8 pb-32" id="gallery-feed">
-
-                {{-- Loading Skeleton --}}
-                @if($isGenerating && !$generatedImageUrl)
-                    <div x-init="startLoading(); $nextTick(() => document.getElementById('gallery-scroll')?.scrollTo({top:0,behavior:'smooth'}))"
-                        x-effect="if (!@js($isGenerating)) stopLoading()"
-                        class="bg-[#131419] rounded-2xl border border-white/5 overflow-hidden animate-pulse">
-                        <div class="p-4 border-b border-white/5 space-y-3">
-                            <div class="h-4 bg-white/10 rounded w-3/4"></div>
-                            <div class="flex gap-2">
-                                <div class="h-6 w-20 bg-white/5 rounded"></div>
-                                <div class="h-6 w-20 bg-white/5 rounded"></div>
-                            </div>
-                        </div>
-                        <div class="aspect-square bg-white/5 relative flex items-center justify-center">
-                            <div class="text-center">
-                                <div class="inline-block w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full animate-spin mb-2"></div>
-                                <p class="text-white/40 text-xs" x-text="loadingMessages[currentLoadingMessage]"></p>
-                            </div>
-                        </div>
-                    </div>
-                @endif
-
-                {{-- Gallery Items --}}
-                @forelse($history as $index => $image)
-                    <div class="group relative bg-[#131419] rounded-2xl border border-white/5 overflow-hidden hover:border-white/10 transition-colors">
-                        {{-- 1. Header: Prompt + Meta --}}
-                        <div class="p-4 border-b border-white/5 bg-[#16171c]/50">
-                            <div class="flex items-start justify-between gap-4">
-                                <div>
-                                    <p class="text-white text-sm sm:text-base leading-relaxed break-words font-medium text-white/90">
-                                        {{ $image->final_prompt }}
-                                    </p>
-                                    <div class="flex flex-wrap items-center gap-2 mt-3">
-                                        {{-- Model Badge --}}
-                                        @php
-                                            $modelId = $image->generation_params['model_id'] ?? null;
-                                            $modelName = $modelId;
-                                            if ($modelId) {
-                                                $model = collect($availableModels)->firstWhere('id', $modelId);
-                                                $modelName = $model['name'] ?? $modelId;
-                                            }
-                                        @endphp
-                                        <span class="inline-flex items-center gap-1.5 px-2 py-1 rounded-md bg-white/5 text-[10px] sm:text-xs text-white/50 border border-white/5 font-medium">
-                                            <i class="fa-solid fa-microchip text-[9px]"></i>
-                                            {{ $modelName }}
-                                        </span>
-                                        
-                                        {{-- Ratio Badge --}}
-                                        @if(isset($image->generation_params['aspect_ratio']))
-                                            <span class="inline-flex items-center gap-1.5 px-2 py-1 rounded-md bg-white/5 text-[10px] sm:text-xs text-white/50 border border-white/5 font-medium">
-                                                <i class="fa-solid fa-crop text-[9px]"></i>
-                                                {{ $image->generation_params['aspect_ratio'] }}
-                                            </span>
-                                        @endif
-
-                                        {{-- Time --}}
-                                        <span class="text-[10px] text-white/30 ml-auto flex items-center gap-1">
-                                            <i class="fa-regular fa-clock"></i>
-                                            {{ $image->created_at->diffForHumans() }}
-                                        </span>
-                                    </div>
-                                </div>
-                                
-                                {{-- Simple Actions Dropdown --}}
-                                <div class="relative shrink-0" x-data="{ open: false }">
-                                    <button @click="open = !open" @click.away="open = false" 
-                                        class="w-8 h-8 rounded-lg hover:bg-white/10 flex items-center justify-center text-white/40 hover:text-white transition-colors">
-                                        <i class="fa-solid fa-ellipsis"></i>
-                                    </button>
-                                    <div x-show="open" x-cloak 
-                                        x-transition:enter="transition ease-out duration-100"
-                                        x-transition:enter-start="opacity-0 scale-95"
-                                        x-transition:enter-end="opacity-100 scale-100"
-                                        class="absolute right-0 top-full mt-1 w-48 bg-[#1a1b20] border border-white/10 rounded-xl shadow-xl z-10 py-1">
-                                        <button wire:click="deleteImage({{ $image->id }})" 
-                                            class="w-full text-left px-4 py-2.5 text-xs text-red-400 hover:bg-white/5 flex items-center gap-2">
-                                            <i class="fa-solid fa-trash"></i> Xóa ảnh
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {{-- 2. Image Area --}}
-                        <div class="relative bg-black/40 min-h-[200px] flex items-center justify-center p-0.5 sm:p-2">
-                            <div class="relative group/image max-w-full overflow-hidden rounded-lg cursor-zoom-in"
-                                @click="openPreview(historyData[{{ $index }}], {{ $index }})">
-                                <img src="{{ $image->image_url }}" 
-                                    alt="{{ Str::limit($image->final_prompt, 50) }}"
-                                    class="max-w-full max-h-[600px] object-contain shadow-lg"
-                                    loading="lazy">
-                                    
-                                {{-- Hover Actions Overlay --}}
-                                <div class="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover/image:opacity-100 transition-opacity flex justify-end gap-2">
-                                    <a href="{{ $image->image_url }}" download @click.stop 
-                                        class="w-9 h-9 rounded-lg bg-white/10 backdrop-blur hover:bg-white/20 text-white flex items-center justify-center transition-all border border-white/10"
-                                        title="Tải về">
-                                        <i class="fa-solid fa-download text-xs"></i>
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-
-                        {{-- 3. Footer Action Bar --}}
-                        <div class="px-4 py-3 bg-[#16171c]/50 border-t border-white/5 flex items-center gap-2 sm:gap-3 overflow-x-auto no-scrollbar">
-                            <button wire:click="copyPrompt({{ $image->id }})"
-                                class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/5 hover:border-white/10 text-xs text-white/70 transition-all whitespace-nowrap">
-                                <i class="fa-regular fa-copy"></i>
-                                <span>Copy Prompt</span>
-                            </button>
-                            
-                            <button wire:click="reusePrompt({{ $image->id }})"
-                                class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/5 hover:border-white/10 text-xs text-white/70 transition-all whitespace-nowrap">
-                                <i class="fa-solid fa-sliders"></i>
-                                <span>Dùng lại Settings</span>
-                            </button>
-                        </div>
-                    </div>
-                @empty
-                    @if(!$isGenerating)
-                        <div class="col-span-full py-16 sm:py-24 text-center"
-                            x-data="{ prompts: ['Một chú mèo dễ thương ngủ trên mây', 'Phong cảnh núi tuyết hoàng hôn', 'Logo công nghệ gradient xanh'] }">
-                            <div class="w-16 h-16 mx-auto rounded-2xl bg-white/5 flex items-center justify-center mb-4">
-                                <i class="fa-solid fa-image text-3xl text-white/20"></i>
-                            </div>
-                            <h3 class="text-white font-medium text-lg mb-2">Chưa có hình ảnh nào</h3>
-                            <p class="text-white/40 text-sm max-w-sm mx-auto mb-6">
-                                Hãy thử tạo một hình ảnh mới bằng cách nhập mô tả vào khung chat bên dưới.
-                            </p>
-                            <div class="flex flex-wrap justify-center gap-2">
-                                <template x-for="p in prompts">
-                                    <button @click="$wire.set('prompt', p)" 
-                                        class="px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-xs text-white/60 hover:text-white transition-all border border-white/5 hover:border-white/10">
-                                        <span x-text="p"></span>
-                                    </button>
-                                </template>
-                            </div>
-                        </div>
-                    @endif
-                @endforelse
-                
-                {{-- Pagination --}}
-                @if($history->hasMorePages())
-                    <div class="pt-4 text-center">
-                         <button wire:click="loadMore" class="text-xs text-white/40 hover:text-white transition-colors">
-                             Xem thêm cũ hơn
-                         </button>
-                    </div>
-                @endif
-            </div>
-        </div>
-    </div>
-
-<div class="relative min-h-screen pb-48 md:pb-32" x-data="{
-    selectedRatio: @entangle('aspectRatio'),
-    selectedModel: @entangle('modelId'),
-    aspectRatios: @js($aspectRatios),
-    models: @js($availableModels),
     // History data sync
     historyData: @js($flatHistoryForJs ?? []),
 
@@ -432,7 +57,7 @@
     // Preview
     openPreview(image, index) {
         this.previewIndex = index;
-        this.previewImage = this.historyData[index]; // Use mapped data from historyData
+        this.previewImage = this.historyData[index];
         this.showPreview = true;
         document.body.style.overflow = 'hidden';
     },
@@ -474,12 +99,28 @@
             this.notify('Đã copy prompt');
         }
     },
-    
-    // Initial Load
+
+    // Handlers
+    handleKeydown(e) {
+        if (!this.showPreview) return;
+        if (e.key === 'ArrowLeft') this.prevImage();
+        else if (e.key === 'ArrowRight') this.nextImage();
+        else if (e.key === 'Escape') this.closePreview();
+    },
     init() {
-        // ...
+        // Init logic if needed
     }
-}">
+}" @keydown.window="handleKeydown($event)" @if($isGenerating) wire:poll.3s="pollImageStatus" @endif>
+
+    {{-- Toast --}}
+    <div x-show="showToast" x-cloak x-transition:enter="transition ease-out duration-300"
+        x-transition:enter-start="opacity-0 -translate-y-4" x-transition:enter-end="opacity-100 translate-y-0"
+        x-transition:leave="transition ease-in duration-200" x-transition:leave-end="opacity-0 -translate-y-4"
+        class="fixed top-4 left-1/2 -translate-x-1/2 z-[300] px-5 py-3 rounded-xl text-white text-sm font-medium shadow-2xl flex items-center gap-2"
+        :class="{ 'bg-green-500/95': toastType==='success', 'bg-red-500/95': toastType==='error', 'bg-yellow-500/95 text-black': toastType==='warning' }">
+        <i :class="{ 'fa-solid fa-check-circle': toastType==='success', 'fa-solid fa-exclamation-circle': toastType==='error', 'fa-solid fa-triangle-exclamation': toastType==='warning' }"></i>
+        <span x-text="toastMessage"></span>
+    </div>
 
     @php
         // 1. Grouping Logic
@@ -489,7 +130,7 @@
                    ($item->generation_params['aspect_ratio'] ?? '');
         });
 
-        // 2. Flatten for JS (Alpine Sync) - MUST match visual loop order
+        // 2. Flatten for JS
         $flatHistoryForJs = $groupedHistory->flatten(1)->map(fn($img) => [
             'id' => $img->id,
             'url' => $img->image_url,
@@ -509,8 +150,7 @@
             {{-- Header --}}
             <div class="flex items-center justify-between mb-5 sm:mb-6">
                 <div class="flex items-center gap-2.5">
-                    <div
-                        class="w-9 h-9 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shrink-0 shadow-lg shadow-purple-500/20">
+                    <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shrink-0 shadow-lg shadow-purple-500/20">
                         <i class="fa-solid fa-wand-magic-sparkles text-white text-sm"></i>
                     </div>
                     <div>
@@ -519,11 +159,9 @@
                     </div>
                 </div>
                 @auth
-                    <div
-                        class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/[0.06] border border-white/[0.08]">
+                    <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/[0.06] border border-white/[0.08]">
                         <i class="fa-solid fa-coins text-yellow-400 text-xs"></i>
-                        <span
-                            class="text-white font-bold text-sm">{{ number_format(auth()->user()->credits ?? 0, 0, ',', '.') }}</span>
+                        <span class="text-white font-bold text-sm">{{ number_format(auth()->user()->credits ?? 0, 0, ',', '.') }}</span>
                         <span class="text-white/30 text-[10px]">cr</span>
                     </div>
                 @endauth
@@ -552,28 +190,30 @@
             {{-- Gallery Feed --}}
             <div class="space-y-8 pb-32" id="gallery-feed">
 
-                {{-- Loading Skeleton --}}
+                {{-- Loading Skeleton (Batch Style) --}}
                 @if($isGenerating && !$generatedImageUrl)
                     <div x-init="startLoading(); $nextTick(() => document.getElementById('gallery-scroll')?.scrollTo({top:0,behavior:'smooth'}))"
                         x-effect="if (!@js($isGenerating)) stopLoading()"
-                        class="bg-[#131419] rounded-2xl border border-white/5 overflow-hidden animate-pulse">
-                        <div class="p-4 border-b border-white/5 space-y-3">
-                            <div class="h-4 bg-white/10 rounded w-3/4"></div>
-                            <div class="flex gap-2">
-                                <div class="h-6 w-20 bg-white/5 rounded"></div>
-                                <div class="h-6 w-20 bg-white/5 rounded"></div>
-                            </div>
+                        class="group/batch animate-pulse">
+                        {{-- Header --}}
+                        <div class="flex items-center gap-2 mb-3 px-1">
+                            <div class="bg-white/10 h-4 w-40 rounded"></div>
+                            <div class="bg-white/5 h-3 w-16 rounded"></div>
                         </div>
-                        <div class="aspect-square bg-white/5 relative flex items-center justify-center">
-                            <div class="text-center">
-                                <div class="inline-block w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full animate-spin mb-2"></div>
-                                <p class="text-white/40 text-xs" x-text="loadingMessages[currentLoadingMessage]"></p>
-                            </div>
+                        {{-- Grid --}}
+                        <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-2 sm:gap-3">
+                             <div class="aspect-square rounded-lg bg-white/5 border border-white/5 flex items-center justify-center">
+                                 <div class="w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
+                             </div>
+                             <div class="aspect-square rounded-lg bg-white/5 border border-white/5 hidden sm:block"></div>
+                             <div class="aspect-square rounded-lg bg-white/5 border border-white/5 hidden sm:block"></div>
+                             <div class="aspect-square rounded-lg bg-white/5 border border-white/5 hidden sm:block"></div>
                         </div>
+                        <p class="text-white/40 text-xs mt-2 text-center" x-text="loadingMessages[currentLoadingMessage]"></p>
                     </div>
                 @endif
                 
-                {{-- Global Counter for Absolute Index (for Modal) --}}
+                {{-- Global Counter --}}
                 @php $absoluteIndex = 0; @endphp
 
                 {{-- Grouped Loop --}}
@@ -581,13 +221,18 @@
                     @php
                         $firstItem = $groupItems->first();
                         $modelId = $firstItem->generation_params['model_id'] ?? null;
-                        $ratio = $firstItem->generation_params['aspect_ratio'] ?? 'Auto ratio';
+                        $ratio = $firstItem->generation_params['aspect_ratio'] ?? '1:1';
                         
-                        // Get Model Name
                         $modelName = $modelId;
                         if ($modelId && isset($availableModels)) {
                             $model = collect($availableModels)->firstWhere('id', $modelId);
                             $modelName = $model['name'] ?? $modelId;
+                        }
+
+                        // Calculate aspect ratio for style
+                        $ratioValue = '1/1';
+                        if ($ratio !== 'Auto' && strpos($ratio, ':') !== false) {
+                            $ratioValue = str_replace(':', '/', $ratio);
                         }
                     @endphp
                     
@@ -604,11 +249,11 @@
                                 <span class="shrink-0 hidden sm:inline">{{ $ratio }}</span>
                             </div>
                             
-                            {{-- Batch Actions (Visible on hover of batch or always?) --}}
+                            {{-- Actions --}}
                             <div class="flex items-center gap-2 ml-auto opacity-100 sm:opacity-0 sm:group-hover/batch:opacity-100 transition-opacity">
                                 <button wire:click="copyPrompt({{ $firstItem->id }})" 
                                     class="px-2 py-1 rounded bg-white/5 hover:bg-white/10 text-[10px] text-white/60 hover:text-white transition-colors border border-white/5">
-                                    Copy Prompt
+                                    Copy
                                 </button>
                                 <button wire:click="reusePrompt({{ $firstItem->id }})" 
                                     class="px-2 py-1 rounded bg-white/5 hover:bg-white/10 text-[10px] text-white/60 hover:text-white transition-colors border border-white/5">
@@ -617,17 +262,15 @@
                             </div>
                         </div>
 
-                        {{-- Image Grid --}}
+                        {{-- Grid --}}
                         <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-2 sm:gap-3">
                             @foreach($groupItems as $image)
-                                <div class="relative group aspect-square rounded-lg overflow-hidden bg-[#1a1b20] border border-white/5 hover:border-white/20 transition-all cursor-zoom-in"
+                                <div class="relative group rounded-lg overflow-hidden bg-[#1a1b20] border border-white/5 hover:border-white/20 transition-all cursor-zoom-in"
+                                     style="aspect-ratio: {{ $ratioValue }};"
                                      @click="openPreview(null, {{ $absoluteIndex }})">
-                                    
-                                    <img src="{{ $image->image_url }}" alt="Generated Image" 
+                                    <img src="{{ $image->image_url }}" alt="Image" 
                                          class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                                          loading="lazy">
-                                         
-                                    {{-- Hover Overlay --}}
                                     <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                                         <a href="{{ $image->image_url }}" download @click.stop 
                                             class="w-8 h-8 rounded-full bg-black/50 hover:bg-white/20 text-white flex items-center justify-center backdrop-blur-sm transition-colors border border-white/10">
