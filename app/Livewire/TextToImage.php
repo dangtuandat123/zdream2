@@ -49,6 +49,11 @@ class TextToImage extends Component
     public int $perPage = 12;
     public bool $loadingMore = false;
 
+    // Filters
+    public string $filterDate = 'all';
+    public string $filterModel = 'all';
+    public string $filterRatio = 'all';
+
     // Credit cost
     public float $creditCost = 5.0;
 
@@ -68,12 +73,58 @@ class TextToImage extends Component
         if (!Auth::check())
             return collect();
 
-        return GeneratedImage::where('user_id', Auth::id())
+        $query = GeneratedImage::where('user_id', Auth::id())
             ->whereHas('style', function ($q) {
                 $q->where('is_system', true)->where('slug', Style::SYSTEM_T2I_SLUG);
-            })
-            ->latest()
-            ->paginate($this->perPage);
+            });
+
+        // Date filter
+        if ($this->filterDate !== 'all') {
+            $date = match ($this->filterDate) {
+                'week' => now()->subWeek(),
+                'month' => now()->subMonth(),
+                '3months' => now()->subMonths(3),
+                default => null,
+            };
+            if ($date) {
+                $query->where('created_at', '>=', $date);
+            }
+        }
+
+        // Model filter
+        if ($this->filterModel !== 'all') {
+            $query->whereJsonContains('generation_params->model_id', $this->filterModel);
+        }
+
+        // Ratio filter
+        if ($this->filterRatio !== 'all') {
+            $query->whereJsonContains('generation_params->aspect_ratio', $this->filterRatio);
+        }
+
+        return $query->latest()->paginate($this->perPage);
+    }
+
+    public function updatedFilterDate(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedFilterModel(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedFilterRatio(): void
+    {
+        $this->resetPage();
+    }
+
+    public function resetFilters(): void
+    {
+        $this->filterDate = 'all';
+        $this->filterModel = 'all';
+        $this->filterRatio = 'all';
+        $this->resetPage();
     }
 
     public function mount(?string $initialPrompt = null): void
