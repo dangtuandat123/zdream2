@@ -149,25 +149,7 @@
     <div id="gallery-scroll">
         <div class="max-w-5xl mx-auto px-4 pt-4 sm:pt-6 pb-6">
 
-            {{-- Header --}}
-            <div class="flex items-center justify-between mb-5 sm:mb-6">
-                <div class="flex items-center gap-2.5">
-                    <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shrink-0 shadow-lg shadow-purple-500/20">
-                        <i class="fa-solid fa-wand-magic-sparkles text-white text-sm"></i>
-                    </div>
-                    <div>
-                        <h1 class="text-lg sm:text-xl font-bold text-white leading-tight">Tạo ảnh AI</h1>
-                        <p class="text-white/30 text-[11px] sm:text-xs">Leonardo Style</p>
-                    </div>
-                </div>
-                @auth
-                    <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/[0.06] border border-white/[0.08]">
-                        <i class="fa-solid fa-coins text-yellow-400 text-xs"></i>
-                        <span class="text-white font-bold text-sm">{{ number_format(auth()->user()->credits ?? 0, 0, ',', '.') }}</span>
-                        <span class="text-white/30 text-[10px]">cr</span>
-                    </div>
-                @endauth
-            </div>
+
 
             {{-- Error --}}
             @if($errorMessage)
@@ -189,8 +171,8 @@
                 </div>
             @endif
 
-            {{-- Filter Bar --}}
-            <div class="mb-4 sm:mb-5" x-data="{ openFilter: null }">
+            {{-- Filter Bar (Sticky) --}}
+            <div class="sticky top-0 z-20 -mx-4 px-4 py-3 bg-[#0e0f13]/90 backdrop-blur-xl border-b border-white/5" x-data="{ openFilter: null }">
                 <div class="flex items-center gap-2 flex-wrap">
                     {{-- Date Filter --}}
                     <div class="relative">
