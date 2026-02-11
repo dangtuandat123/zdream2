@@ -357,10 +357,18 @@
                             @foreach($groupItems as $image)
                                 <div class="relative group rounded-lg overflow-hidden bg-[#0f0f18] border border-white/[0.05] hover:border-white/[0.15] transition-all duration-200 cursor-zoom-in"
                                      style="aspect-ratio: {{ $ratioValue }};"
+                                     x-data="{ loaded: false }"
                                      @click="openPreview(null, {{ $absoluteIndex }})">
+                                    {{-- Shimmer Skeleton --}}
+                                    <div x-show="!loaded" class="absolute inset-0 bg-white/[0.04]">
+                                        <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.06] to-transparent animate-shimmer"></div>
+                                    </div>
+                                    {{-- Image --}}
                                     <img src="{{ $image->image_url }}" alt="Generated"
-                                         class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                                         loading="lazy">
+                                         class="w-full h-full object-cover transition-all duration-500 group-hover:scale-105"
+                                         :class="loaded ? 'opacity-100' : 'opacity-0'"
+                                         loading="lazy"
+                                         @load="loaded = true">
                                     {{-- Hover Overlay --}}
                                     <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-end justify-center pb-2.5 gap-2">
                                         <a href="{{ $image->image_url }}" download @click.stop
