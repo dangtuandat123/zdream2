@@ -112,7 +112,9 @@
         if (this._initialLoad) {
             this._initialLoad = false;
             this.$nextTick(() => {
-                document.documentElement.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' });
+                setTimeout(() => {
+                    document.documentElement.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'instant' });
+                }, 100);
             });
         }
     }
@@ -299,28 +301,6 @@
             {{-- Gallery Feed --}}
             <div class="space-y-5" id="gallery-feed">
 
-                {{-- Loading Skeleton --}}
-                @if($isGenerating && !$generatedImageUrl)
-                    <div x-init="startLoading(); $nextTick(() => document.documentElement.scrollTo({ top: 0, behavior: 'smooth' }))"
-                        x-effect="if (!@js($isGenerating)) stopLoading()">
-                        <div class="bg-white/[0.03] backdrop-blur-[12px] border border-white/[0.08] rounded-xl p-4 animate-pulse shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]">
-                            <div class="flex items-center gap-2 mb-3">
-                                <div class="bg-white/[0.08] h-4 w-40 rounded-md"></div>
-                                <div class="bg-white/[0.05] h-3 w-16 rounded-md"></div>
-                            </div>
-                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-                                <div class="aspect-square rounded-lg bg-white/[0.05] border border-white/[0.05] flex items-center justify-center">
-                                    <div class="w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
-                                </div>
-                                <div class="aspect-square rounded-lg bg-white/[0.05] border border-white/[0.05] hidden sm:block"></div>
-                                <div class="aspect-square rounded-lg bg-white/[0.05] border border-white/[0.05] hidden sm:block"></div>
-                                <div class="aspect-square rounded-lg bg-white/[0.05] border border-white/[0.05] hidden sm:block"></div>
-                            </div>
-                            <p class="text-white/50 text-xs mt-3 text-center" x-text="loadingMessages[currentLoadingMessage]"></p>
-                        </div>
-                    </div>
-                @endif
-
                 @php $absoluteIndex = 0; @endphp
 
                 {{-- Grouped Batches --}}
@@ -421,13 +401,25 @@
                     @endif
                 @endforelse
 
-                {{-- Load More --}}
-                @if($history instanceof \Illuminate\Pagination\LengthAwarePaginator && $history->hasMorePages())
-                    <div class="py-4 text-center">
-                        <button wire:click="loadMore"
-                            class="h-10 px-6 rounded-lg bg-white/[0.05] hover:bg-white/[0.08] border border-white/[0.08] text-sm text-white/70 hover:text-white font-medium transition-all active:scale-[0.98]">
-                            <i class="fa-solid fa-angles-down mr-1.5 text-xs"></i>Xem thêm
-                        </button>
+                {{-- Loading Skeleton (bottom, like chatbot) --}}
+                @if($isGenerating && !$generatedImageUrl)
+                    <div x-init="startLoading(); $nextTick(() => setTimeout(() => document.documentElement.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' }), 50))"
+                        x-effect="if (!@js($isGenerating)) stopLoading()">
+                        <div class="bg-white/[0.03] backdrop-blur-[12px] border border-white/[0.08] rounded-xl p-4 animate-pulse shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]">
+                            <div class="flex items-center gap-2 mb-3">
+                                <div class="bg-white/[0.08] h-4 w-40 rounded-md"></div>
+                                <div class="bg-white/[0.05] h-3 w-16 rounded-md"></div>
+                            </div>
+                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                                <div class="aspect-square rounded-lg bg-white/[0.05] border border-white/[0.05] flex items-center justify-center">
+                                    <div class="w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
+                                </div>
+                                <div class="aspect-square rounded-lg bg-white/[0.05] border border-white/[0.05] hidden sm:block"></div>
+                                <div class="aspect-square rounded-lg bg-white/[0.05] border border-white/[0.05] hidden sm:block"></div>
+                                <div class="aspect-square rounded-lg bg-white/[0.05] border border-white/[0.05] hidden sm:block"></div>
+                            </div>
+                            <p class="text-white/50 text-xs mt-3 text-center" x-text="loadingMessages[currentLoadingMessage]"></p>
+                        </div>
                     </div>
                 @endif
             </div>

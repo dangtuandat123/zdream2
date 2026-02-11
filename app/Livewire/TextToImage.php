@@ -101,7 +101,7 @@ class TextToImage extends Component
             $query->whereJsonContains('generation_params->aspect_ratio', $this->filterRatio);
         }
 
-        return $query->latest()->paginate($this->perPage);
+        return $query->oldest()->paginate($this->perPage);
     }
 
     public function updatedFilterDate(): void
