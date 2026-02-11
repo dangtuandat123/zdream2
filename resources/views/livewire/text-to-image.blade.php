@@ -139,9 +139,9 @@
             return $item->final_prompt . '|' . 
                    ($item->generation_params['model_id'] ?? '') . '|' . 
                    ($item->generation_params['aspect_ratio'] ?? '');
-        });
+        })->reverse(); // Reverse so newest (from latest() query) display at bottom
 
-        // 2. Flatten for JS
+        // 2. Flatten for JS (keep reversed order)
         $flatHistoryForJs = $groupedHistory->flatten(1)->map(fn($img) => [
             'id' => $img->id,
             'url' => $img->image_url,
@@ -300,6 +300,16 @@
 
             {{-- Gallery Feed --}}
             <div class="space-y-5" id="gallery-feed">
+
+                {{-- Load More (at top, loads older items) --}}
+                @if($history instanceof \Illuminate\Pagination\LengthAwarePaginator && $history->hasMorePages())
+                    <div class="text-center py-2">
+                        <button wire:click="loadMore"
+                            class="h-8 px-4 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.06] text-xs text-white/50 hover:text-white/80 font-medium transition-all active:scale-[0.98]">
+                            <i class="fa-solid fa-angles-up mr-1.5 text-[10px]"></i>Tải thêm ảnh cũ hơn
+                        </button>
+                    </div>
+                @endif
 
                 @php $absoluteIndex = 0; @endphp
 
