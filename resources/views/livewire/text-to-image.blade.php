@@ -373,8 +373,311 @@
         </div>
     </div>
 
+<div class="relative min-h-screen pb-48 md:pb-32" x-data="{
+    selectedRatio: @entangle('aspectRatio'),
+    selectedModel: @entangle('modelId'),
+    aspectRatios: @js($aspectRatios),
+    models: @js($availableModels),
+    // History data sync
+    historyData: @js($flatHistoryForJs ?? []),
+
+    // Image picker
+    showImagePicker: false,
+    selectedImages: [],
+    maxImages: 4,
+    recentImages: [],
+    isLoadingPicker: false,
+    urlInput: '',
+    activeTab: 'upload',
+    isDragging: false,
+
+    // Preview
+    showPreview: false,
+    previewImage: null,
+    previewIndex: 0,
+
+    // Toast
+    toastMessage: '',
+    toastType: 'success',
+    showToast: false,
+
+    // Loading
+    loadingMessages: ['Đang sáng tạo...', 'Chút nữa thôi...', 'Sắp xong rồi...', 'AI đang vẽ...'],
+    currentLoadingMessage: 0,
+    loadingInterval: null,
+
+    // Touch
+    touchStartX: 0,
+    touchStartY: 0,
+
+    // Methods
+    notify(msg, type = 'success') {
+        this.toastMessage = msg; this.toastType = type; this.showToast = true;
+        setTimeout(() => this.showToast = false, 2500);
+    },
+    getModelName() {
+        const m = Object.values(this.models).find(m => m.id === '{{ $modelId }}');
+        return m ? m.name : 'Model';
+    },
+    startLoading() {
+        this.currentLoadingMessage = 0;
+        this.loadingInterval = setInterval(() => {
+            this.currentLoadingMessage = (this.currentLoadingMessage + 1) % this.loadingMessages.length;
+        }, 2000);
+    },
+    stopLoading() {
+        if (this.loadingInterval) { clearInterval(this.loadingInterval); this.loadingInterval = null; }
+    },
+
+    // Preview
+    openPreview(image, index) {
+        this.previewIndex = index;
+        this.previewImage = this.historyData[index]; // Use mapped data from historyData
+        this.showPreview = true;
+        document.body.style.overflow = 'hidden';
+    },
+    closePreview() {
+        this.showPreview = false; document.body.style.overflow = '';
+        setTimeout(() => this.previewImage = null, 300);
+    },
+    nextImage() {
+        if (this.previewIndex < this.historyData.length - 1) {
+            this.previewIndex++; this.previewImage = this.historyData[this.previewIndex];
+        }
+    },
+    prevImage() {
+        if (this.previewIndex > 0) {
+            this.previewIndex--; this.previewImage = this.historyData[this.previewIndex];
+        }
+    },
+    goToImage(index) {
+        this.previewIndex = index; this.previewImage = this.historyData[index];
+    },
+    shareImage() {
+        if (navigator.share && this.previewImage) {
+            navigator.share({ title: 'AI Generated Image', text: this.previewImage.prompt, url: this.previewImage.url });
+        } else {
+            this.notify('Trình duyệt không hỗ trợ chia sẻ', 'error');
+        }
+    },
+    useAsReference() {
+        if(this.previewImage) {
+            this.selectedImages = [{ id: this.previewImage.id, url: this.previewImage.url }];
+            this.closePreview();
+            this.showImagePicker = false;
+        }
+    },
+    copyPrompt(text = null) {
+        const prompt = text || (this.previewImage ? this.previewImage.prompt : '');
+        if(prompt) {
+            navigator.clipboard.writeText(prompt);
+            this.notify('Đã copy prompt');
+        }
+    },
+    
+    // Initial Load
+    init() {
+        // ...
+    }
+}">
+
+    @php
+        // 1. Grouping Logic
+        $groupedHistory = $history->getCollection()->groupBy(function($item) {
+            return $item->final_prompt . '|' . 
+                   ($item->generation_params['model_id'] ?? '') . '|' . 
+                   ($item->generation_params['aspect_ratio'] ?? '');
+        });
+
+        // 2. Flatten for JS (Alpine Sync) - MUST match visual loop order
+        $flatHistoryForJs = $groupedHistory->flatten(1)->map(fn($img) => [
+            'id' => $img->id,
+            'url' => $img->image_url,
+            'prompt' => $img->final_prompt,
+            'model' => $img->generation_params['model_id'] ?? null,
+            'ratio' => $img->generation_params['aspect_ratio'] ?? null,
+            'created_at' => $img->created_at->diffForHumans(),
+        ])->values()->toArray();
+    @endphp
+
     {{-- ============================================================ --}}
-    {{-- SECTION 2: FIXED BOTTOM PROMPT BAR (Home page style) --}}
+    {{-- SECTION 1: SCROLLABLE GALLERY AREA --}}
+    {{-- ============================================================ --}}
+    <div id="gallery-scroll">
+        <div class="max-w-5xl mx-auto px-4 pt-4 sm:pt-6 pb-6">
+
+            {{-- Header --}}
+            <div class="flex items-center justify-between mb-5 sm:mb-6">
+                <div class="flex items-center gap-2.5">
+                    <div
+                        class="w-9 h-9 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shrink-0 shadow-lg shadow-purple-500/20">
+                        <i class="fa-solid fa-wand-magic-sparkles text-white text-sm"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-lg sm:text-xl font-bold text-white leading-tight">Tạo ảnh AI</h1>
+                        <p class="text-white/30 text-[11px] sm:text-xs">Leonardo Style</p>
+                    </div>
+                </div>
+                @auth
+                    <div
+                        class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/[0.06] border border-white/[0.08]">
+                        <i class="fa-solid fa-coins text-yellow-400 text-xs"></i>
+                        <span
+                            class="text-white font-bold text-sm">{{ number_format(auth()->user()->credits ?? 0, 0, ',', '.') }}</span>
+                        <span class="text-white/30 text-[10px]">cr</span>
+                    </div>
+                @endauth
+            </div>
+
+            {{-- Error --}}
+            @if($errorMessage)
+                <div x-data="{ show: true }" x-show="show" x-cloak
+                    class="mb-4 p-3.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm flex items-center gap-3"
+                    role="alert">
+                    <i class="fa-solid fa-circle-exclamation shrink-0"></i>
+                    <span class="flex-1">{{ $errorMessage }}</span>
+                    @if($lastPrompt)
+                        <button wire:click="retry"
+                            class="shrink-0 px-3 py-1 rounded-lg bg-white/10 hover:bg-white/15 text-xs font-medium transition-colors">
+                            <i class="fa-solid fa-redo mr-1"></i>Thử lại
+                        </button>
+                    @endif
+                    <button @click="show = false"
+                        class="shrink-0 px-3 py-1 rounded-lg bg-white/10 hover:bg-white/15 text-xs font-medium transition-colors">
+                        <i class="fa-solid fa-xmark mr-1"></i>Đóng
+                    </button>
+                </div>
+            @endif
+
+            {{-- Gallery Feed --}}
+            <div class="space-y-8 pb-32" id="gallery-feed">
+
+                {{-- Loading Skeleton --}}
+                @if($isGenerating && !$generatedImageUrl)
+                    <div x-init="startLoading(); $nextTick(() => document.getElementById('gallery-scroll')?.scrollTo({top:0,behavior:'smooth'}))"
+                        x-effect="if (!@js($isGenerating)) stopLoading()"
+                        class="bg-[#131419] rounded-2xl border border-white/5 overflow-hidden animate-pulse">
+                        <div class="p-4 border-b border-white/5 space-y-3">
+                            <div class="h-4 bg-white/10 rounded w-3/4"></div>
+                            <div class="flex gap-2">
+                                <div class="h-6 w-20 bg-white/5 rounded"></div>
+                                <div class="h-6 w-20 bg-white/5 rounded"></div>
+                            </div>
+                        </div>
+                        <div class="aspect-square bg-white/5 relative flex items-center justify-center">
+                            <div class="text-center">
+                                <div class="inline-block w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full animate-spin mb-2"></div>
+                                <p class="text-white/40 text-xs" x-text="loadingMessages[currentLoadingMessage]"></p>
+                            </div>
+                        </div>
+                    </div>
+                @endif
+                
+                {{-- Global Counter for Absolute Index (for Modal) --}}
+                @php $absoluteIndex = 0; @endphp
+
+                {{-- Grouped Loop --}}
+                @forelse($groupedHistory as $groupKey => $groupItems)
+                    @php
+                        $firstItem = $groupItems->first();
+                        $modelId = $firstItem->generation_params['model_id'] ?? null;
+                        $ratio = $firstItem->generation_params['aspect_ratio'] ?? 'Auto ratio';
+                        
+                        // Get Model Name
+                        $modelName = $modelId;
+                        if ($modelId && isset($availableModels)) {
+                            $model = collect($availableModels)->firstWhere('id', $modelId);
+                            $modelName = $model['name'] ?? $modelId;
+                        }
+                    @endphp
+                    
+                    <div class="group/batch">
+                        {{-- Batch Header --}}
+                        <div class="flex flex-col sm:flex-row sm:items-center gap-2 mb-3 px-1">
+                            <div class="flex items-center gap-2 text-white/50 text-xs sm:text-sm font-medium overflow-hidden">
+                                <span class="text-white/90 truncate max-w-[200px] sm:max-w-md" title="{{ $firstItem->final_prompt }}">
+                                    {{ $firstItem->final_prompt }}
+                                </span>
+                                <span class="shrink-0 text-white/30 hidden sm:inline">|</span>
+                                <span class="shrink-0 text-purple-300 hidden sm:inline">{{ $modelName }}</span>
+                                <span class="shrink-0 text-white/30 hidden sm:inline">|</span>
+                                <span class="shrink-0 hidden sm:inline">{{ $ratio }}</span>
+                            </div>
+                            
+                            {{-- Batch Actions (Visible on hover of batch or always?) --}}
+                            <div class="flex items-center gap-2 ml-auto opacity-100 sm:opacity-0 sm:group-hover/batch:opacity-100 transition-opacity">
+                                <button wire:click="copyPrompt({{ $firstItem->id }})" 
+                                    class="px-2 py-1 rounded bg-white/5 hover:bg-white/10 text-[10px] text-white/60 hover:text-white transition-colors border border-white/5">
+                                    Copy Prompt
+                                </button>
+                                <button wire:click="reusePrompt({{ $firstItem->id }})" 
+                                    class="px-2 py-1 rounded bg-white/5 hover:bg-white/10 text-[10px] text-white/60 hover:text-white transition-colors border border-white/5">
+                                    <i class="fa-solid fa-sliders mr-1"></i> Reuse
+                                </button>
+                            </div>
+                        </div>
+
+                        {{-- Image Grid --}}
+                        <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-2 sm:gap-3">
+                            @foreach($groupItems as $image)
+                                <div class="relative group aspect-square rounded-lg overflow-hidden bg-[#1a1b20] border border-white/5 hover:border-white/20 transition-all cursor-zoom-in"
+                                     @click="openPreview(null, {{ $absoluteIndex }})">
+                                    
+                                    <img src="{{ $image->image_url }}" alt="Generated Image" 
+                                         class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                                         loading="lazy">
+                                         
+                                    {{-- Hover Overlay --}}
+                                    <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                                        <a href="{{ $image->image_url }}" download @click.stop 
+                                            class="w-8 h-8 rounded-full bg-black/50 hover:bg-white/20 text-white flex items-center justify-center backdrop-blur-sm transition-colors border border-white/10">
+                                            <i class="fa-solid fa-download text-xs"></i>
+                                        </a>
+                                        <button wire:click="deleteImage({{ $image->id }})" @click.stop 
+                                            class="w-8 h-8 rounded-full bg-black/50 hover:bg-red-500/80 text-white flex items-center justify-center backdrop-blur-sm transition-colors border border-white/10">
+                                            <i class="fa-solid fa-trash text-xs"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                @php $absoluteIndex++; @endphp
+                            @endforeach
+                        </div>
+                    </div>
+
+                @empty
+                    @if(!$isGenerating)
+                        <div class="col-span-full py-16 sm:py-24 text-center"
+                            x-data="{ prompts: ['Một chú mèo dễ thương ngủ trên mây', 'Phong cảnh núi tuyết hoàng hôn', 'Logo công nghệ gradient xanh'] }">
+                            <div class="w-16 h-16 mx-auto rounded-2xl bg-white/5 flex items-center justify-center mb-4">
+                                <i class="fa-solid fa-image text-3xl text-white/20"></i>
+                            </div>
+                            <h3 class="text-white font-medium text-lg mb-2">Chưa có hình ảnh nào</h3>
+                            <p class="text-white/40 text-sm max-w-sm mx-auto mb-6">
+                                Hãy thử tạo một hình ảnh mới bằng cách nhập mô tả vào khung chat bên dưới.
+                            </p>
+                            <div class="flex flex-wrap justify-center gap-2">
+                                <template x-for="p in prompts">
+                                    <button @click="$wire.set('prompt', p)" 
+                                        class="px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-xs text-white/60 hover:text-white transition-all border border-white/5 hover:border-white/10">
+                                        <span x-text="p"></span>
+                                    </button>
+                                </template>
+                            </div>
+                        </div>
+                    @endif
+                @endforelse
+                
+                {{-- Pagination --}}
+                @if($history->hasMorePages())
+                    <div class="pt-4 text-center">
+                         <button wire:click="loadMore" class="text-xs text-white/40 hover:text-white transition-colors">
+                             Xem thêm cũ hơn
+                         </button>
+                    </div>
+                @endif
+            </div>
+        </div>
+    </div>
     {{-- ============================================================ --}}
     <div class="fixed bottom-[60px] md:bottom-0 left-0 right-0 md:left-[72px] z-[60]"
         x-data="{
