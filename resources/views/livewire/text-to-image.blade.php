@@ -323,39 +323,13 @@
                     @endphp
 
                     {{-- Batch Glass Card --}}
-                    <div class="bg-white/[0.03] backdrop-blur-[12px] border border-white/[0.08] rounded-xl p-4 hover:border-white/[0.12] transition-all duration-200 group/batch shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]">
-
-                        {{-- Header --}}
-                        <div class="flex items-start sm:items-center justify-between gap-3 mb-3">
-                            <div class="flex-1 min-w-0">
-                                <p class="text-white/95 text-sm font-medium truncate" title="{{ $firstItem->final_prompt }}">
-                                    {{ $firstItem->final_prompt }}
-                                </p>
-                                <div class="flex items-center gap-2 mt-1 text-xs">
-                                    <span class="text-purple-300/80">{{ $modelName }}</span>
-                                    <span class="text-white/30">•</span>
-                                    <span class="text-white/50">{{ $ratio }}</span>
-                                    <span class="text-white/30">•</span>
-                                    <span class="text-white/50">{{ $groupItems->count() }} ảnh</span>
-                                    <span class="text-white/30">•</span>
-                                    <span class="text-white/50">{{ $firstItem->created_at->diffForHumans() }}</span>
-                                </div>
-                            </div>
-
-                            {{-- Actions --}}
-                            <div class="flex items-center gap-1.5 shrink-0 opacity-100 sm:opacity-0 sm:group-hover/batch:opacity-100 transition-opacity duration-200">
-                                <button wire:click="reusePrompt({{ $firstItem->id }})"
-                                    class="h-8 px-2.5 rounded-lg bg-white/[0.05] hover:bg-white/[0.08] border border-white/[0.08] text-xs text-white/70 hover:text-white transition-all active:scale-[0.98]"
-                                    title="Tái sử dụng">
-                                    <i class="fa-solid fa-arrow-rotate-left mr-1"></i><span class="hidden sm:inline">Reuse</span>
-                                </button>
-                            </div>
-                        </div>
+                    <div class="bg-white/[0.03] backdrop-blur-[12px] border border-white/[0.08] rounded-xl overflow-hidden hover:border-white/[0.12] transition-all duration-200 group/batch shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]"
+                        x-data="{ expanded: false }">
 
                         {{-- Image Grid --}}
-                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-px bg-white/[0.04]">
                             @foreach($groupItems as $image)
-                                <div class="relative group rounded-lg overflow-hidden bg-[#0f0f18] border border-white/[0.05] hover:border-white/[0.15] transition-all duration-200 cursor-zoom-in"
+                                <div class="relative group overflow-hidden bg-[#0f0f18] cursor-zoom-in"
                                      style="aspect-ratio: {{ $ratioValue }};"
                                      x-data="{ loaded: false }"
                                      @click="openPreview(null, {{ $absoluteIndex }})">
@@ -370,19 +344,64 @@
                                          loading="lazy"
                                          @load="loaded = true">
                                     {{-- Hover Overlay --}}
-                                    <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-end justify-center pb-2.5 gap-2">
-                                        <a href="{{ $image->image_url }}" download @click.stop
-                                            class="h-9 w-9 rounded-lg bg-black/40 hover:bg-white/20 backdrop-blur-sm text-white flex items-center justify-center transition-all border border-white/[0.1] active:scale-[0.95]">
-                                            <i class="fa-solid fa-download text-xs"></i>
-                                        </a>
-                                        <button wire:click="deleteImage({{ $image->id }})" @click.stop
-                                            class="h-9 w-9 rounded-lg bg-black/40 hover:bg-red-500/80 backdrop-blur-sm text-white flex items-center justify-center transition-all border border-white/[0.1] active:scale-[0.95]">
-                                            <i class="fa-solid fa-trash text-xs"></i>
-                                        </button>
+                                    <div class="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                        <div class="absolute bottom-2 right-2 flex gap-1.5">
+                                            <a href="{{ $image->image_url }}" download @click.stop
+                                                class="h-8 w-8 rounded-lg bg-black/50 hover:bg-white/20 backdrop-blur-sm text-white flex items-center justify-center transition-all border border-white/[0.1] active:scale-[0.95]"
+                                                title="Tải xuống">
+                                                <i class="fa-solid fa-download text-[11px]"></i>
+                                            </a>
+                                            <button wire:click="deleteImage({{ $image->id }})" @click.stop
+                                                wire:confirm="Bạn có chắc muốn xóa ảnh này?"
+                                                class="h-8 w-8 rounded-lg bg-black/50 hover:bg-red-500/80 backdrop-blur-sm text-white flex items-center justify-center transition-all border border-white/[0.1] active:scale-[0.95]"
+                                                title="Xóa">
+                                                <i class="fa-solid fa-trash text-[11px]"></i>
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                                 @php $absoluteIndex++; @endphp
                             @endforeach
+                        </div>
+
+                        {{-- Info + Actions Footer --}}
+                        <div class="px-3.5 py-2.5">
+                            {{-- Prompt --}}
+                            <p class="text-white/90 text-[13px] leading-relaxed cursor-pointer select-text"
+                                :class="expanded ? '' : 'line-clamp-1'"
+                                @click="expanded = !expanded"
+                                title="Nhấn để mở rộng">
+                                {{ $firstItem->final_prompt }}
+                            </p>
+                            
+                            {{-- Meta + Actions Row --}}
+                            <div class="flex items-center justify-between gap-3 mt-1.5">
+                                {{-- Metadata --}}
+                                <div class="flex items-center gap-1.5 text-[11px] text-white/40 min-w-0 overflow-hidden">
+                                    <span class="text-purple-300/70 shrink-0">{{ $modelName }}</span>
+                                    <span class="shrink-0">•</span>
+                                    <span class="shrink-0">{{ $ratio }}</span>
+                                    <span class="shrink-0">•</span>
+                                    <span class="shrink-0">{{ $groupItems->count() }} ảnh</span>
+                                    <span class="shrink-0 hidden sm:inline">•</span>
+                                    <span class="shrink-0 hidden sm:inline">{{ $firstItem->created_at->diffForHumans() }}</span>
+                                </div>
+
+                                {{-- Action Buttons --}}
+                                <div class="flex items-center gap-1 shrink-0">
+                                    <button @click="navigator.clipboard.writeText(@js($firstItem->final_prompt)); notify('Đã copy prompt')"
+                                        class="h-7 w-7 rounded-md bg-white/[0.04] hover:bg-white/[0.08] text-white/50 hover:text-white/90 flex items-center justify-center transition-all active:scale-[0.95]"
+                                        title="Copy prompt">
+                                        <i class="fa-regular fa-copy text-[11px]"></i>
+                                    </button>
+                                    <button wire:click="reusePrompt({{ $firstItem->id }})"
+                                        class="h-7 px-2 rounded-md bg-white/[0.04] hover:bg-purple-500/20 text-white/50 hover:text-purple-300 flex items-center gap-1 transition-all active:scale-[0.95] text-[11px]"
+                                        title="Dùng lại prompt + cài đặt">
+                                        <i class="fa-solid fa-arrow-rotate-left text-[10px]"></i>
+                                        <span class="hidden sm:inline">Reuse</span>
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
