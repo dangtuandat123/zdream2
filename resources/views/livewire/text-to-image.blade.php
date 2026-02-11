@@ -2,8 +2,6 @@
     aspectRatios: @js($aspectRatios),
     models: @js($availableModels),
     historyData: @js($historyData),
-    showRatioMenu: false,
-    showModelMenu: false,
 
     // Image picker
     showImagePicker: false,
@@ -335,166 +333,411 @@
     </div>
 
     {{-- ============================================================ --}}
-    {{-- SECTION 2: FIXED BOTTOM PROMPT BAR --}}
+    {{-- SECTION 2: FIXED BOTTOM PROMPT BAR (Home page style) --}}
     {{-- ============================================================ --}}
-    <div class="fixed bottom-[60px] md:bottom-0 left-0 right-0 md:left-[72px] z-[60] border-t border-white/[0.08] bg-[#0d0e12]/95 backdrop-blur-xl"
-        @click.away="showRatioMenu = false; showModelMenu = false" x-data="{
+    <div class="fixed bottom-[60px] md:bottom-0 left-0 right-0 md:left-[72px] z-[60]"
+        x-data="{
+            showRatioDropdown: false,
+            showModelDropdown: false,
             selectedRatio: '{{ $aspectRatio }}',
             selectedModel: '{{ $modelId }}',
+            customWidth: 1024,
+            customHeight: 1024,
+            linkDimensions: true,
             ratios: [
-                { id: 'auto', label: 'Tự động', icon: 'fa-expand' },
-                { id: '1:1', label: '1:1', w: 12, h: 12 },
-                { id: '16:9', label: '16:9', w: 16, h: 9 },
-                { id: '9:16', label: '9:16', w: 9, h: 16 },
-                { id: '4:3', label: '4:3', w: 14, h: 10 },
-                { id: '3:4', label: '3:4', w: 10, h: 14 },
-                { id: '3:2', label: '3:2', w: 15, h: 10 },
-                { id: '21:9', label: '21:9', w: 18, h: 8 }
+                { id: 'auto', label: 'Auto', icon: 'fa-expand' },
+                { id: '21:9', label: '21:9', icon: null },
+                { id: '16:9', label: '16:9', icon: null },
+                { id: '3:2', label: '3:2', icon: null },
+                { id: '4:3', label: '4:3', icon: null },
+                { id: '1:1', label: '1:1', icon: null },
+                { id: '3:4', label: '3:4', icon: null },
+                { id: '2:3', label: '2:3', icon: null },
+                { id: '9:16', label: '9:16', icon: null }
             ],
-            getRatioLabel() {
-                const r = this.ratios.find(r => r.id === this.selectedRatio);
-                return r ? r.label : this.selectedRatio;
+            models: [
+                { id: 'flux-2-max', name: 'FLUX.2 Max', desc: 'Cao cấp nhất', icon: '👑' },
+                { id: 'flux-2-pro', name: 'FLUX.2 Pro', desc: 'Chất lượng cao', icon: '⭐' },
+                { id: 'flux-pro-1.1-ultra', name: 'FLUX 1.1 Ultra', desc: 'Siêu nhanh', icon: '⚡' },
+                { id: 'flux-pro-1.1', name: 'FLUX 1.1 Pro', desc: 'Cân bằng', icon: '🎯' },
+                { id: 'flux-dev', name: 'FLUX Dev', desc: 'Thử nghiệm', icon: '🔬' }
+            ],
+            selectRatio(id) {
+                this.selectedRatio = id;
+                $wire.set('aspectRatio', id);
+                if (id !== 'auto') {
+                    const [w, h] = id.split(':').map(Number);
+                    const baseSize = 1024;
+                    this.customWidth = Math.round(baseSize * Math.sqrt(w / h) / 64) * 64;
+                    this.customHeight = Math.round(baseSize * Math.sqrt(h / w) / 64) * 64;
+                }
+                if (window.innerWidth >= 640) {
+                    this.showRatioDropdown = false;
+                }
             },
-            getModelShort() {
-                const m = Object.values(@js($availableModels)).find(m => m.id === this.selectedModel);
-                if (!m) return 'Model';
-                return m.name.length > 12 ? m.name.substring(0,11)+'…' : m.name;
+            selectModel(id) {
+                this.selectedModel = id;
+                $wire.set('modelId', id);
+                this.showModelDropdown = false;
             },
-            getModelFull() {
-                const m = Object.values(@js($availableModels)).find(m => m.id === this.selectedModel);
-                return m ? m.name : 'Model';
+            getSelectedModel() {
+                return this.models.find(m => m.id === this.selectedModel) || this.models[2];
+            },
+            updateWidth(newWidth) {
+                this.customWidth = newWidth;
+                if (this.linkDimensions && this.selectedRatio !== 'auto') {
+                    const [w, h] = this.selectedRatio.split(':').map(Number);
+                    this.customHeight = Math.round(newWidth * h / w / 64) * 64;
+                }
+            },
+            updateHeight(newHeight) {
+                this.customHeight = newHeight;
+                if (this.linkDimensions && this.selectedRatio !== 'auto') {
+                    const [w, h] = this.selectedRatio.split(':').map(Number);
+                    this.customWidth = Math.round(newHeight * w / h / 64) * 64;
+                }
             }
         }">
 
-        {{-- Prompt Row --}}
-        <div class="max-w-5xl mx-auto px-3 sm:px-4 pt-3 pb-2">
-            <div class="flex items-end gap-2">
-
-                {{-- Reference image button --}}
-                <button type="button"
-                    @click="showImagePicker = !showImagePicker; if(showImagePicker) loadRecentImages()"
-                    class="shrink-0 w-10 h-10 rounded-xl flex items-center justify-center transition-all mb-0.5"
-                    :class="selectedImages.length > 0 ? 'bg-purple-500/20 text-purple-400 border border-purple-500/30' : 'bg-white/[0.06] text-white/40 hover:text-white/60 hover:bg-white/[0.1] border border-white/[0.08]'">
-                    <template x-if="selectedImages.length > 0">
-                        <span class="relative">
-                            <i class="fa-solid fa-images text-sm"></i>
-                            <span
-                                class="absolute -top-1 -right-1.5 w-3.5 h-3.5 rounded-full bg-purple-500 text-white text-[8px] font-bold flex items-center justify-center"
-                                x-text="selectedImages.length"></span>
-                        </span>
-                    </template>
-                    <template x-if="selectedImages.length === 0">
-                        <i class="fa-solid fa-plus text-sm"></i>
-                    </template>
-                </button>
-
-                {{-- Textarea --}}
-                <div class="flex-1 relative">
-                    <textarea x-ref="promptInput" wire:model.live="prompt" rows="1"
-                        placeholder="Mô tả ảnh bạn muốn tạo..."
-                        class="w-full min-h-[42px] max-h-[120px] px-4 py-2.5 pr-12 bg-white/[0.06] border border-white/[0.1] rounded-xl text-white text-sm placeholder-white/25 resize-none outline-none focus:border-purple-500/40 transition-colors leading-relaxed"
-                        style="field-sizing: content;" @keydown.ctrl.enter.prevent="$wire.generate()"
-                        @keydown.meta.enter.prevent="$wire.generate()" {{ $isGenerating ? 'disabled' : '' }}></textarea>
-
-                    {{-- Send button --}}
-                    @if($isGenerating)
-                        <button type="button" wire:click="cancelGeneration"
-                            class="absolute right-1.5 bottom-1.5 w-8 h-8 rounded-lg bg-red-500/80 hover:bg-red-500 text-white flex items-center justify-center transition-all"
-                            title="Hủy tạo ảnh">
-                            <i class="fa-solid fa-stop text-xs"></i>
-                        </button>
-                    @else
-                        <button type="button" wire:click="generate"
-                            class="absolute right-1.5 bottom-1.5 w-8 h-8 rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 text-white flex items-center justify-center transition-all hover:shadow-lg hover:shadow-purple-500/30 active:scale-95 disabled:opacity-40"
-                            wire:loading.attr="disabled" wire:target="generate" title="Tạo ảnh (Ctrl+Enter)">
-                            <i class="fa-solid fa-arrow-up text-xs" wire:loading.remove wire:target="generate"></i>
-                            <i class="fa-solid fa-spinner fa-spin text-xs" wire:loading wire:target="generate"></i>
-                        </button>
-                    @endif
-                </div>
-            </div>
-        </div>
-
-        {{-- Options Row --}}
-        <div class="max-w-5xl mx-auto px-3 sm:px-4 pb-3 sm:pb-4">
-            <div class="flex items-center gap-1.5 sm:gap-2 flex-wrap">
-
-                {{-- Type badge --}}
+        <div class="max-w-3xl mx-auto px-3 sm:px-4 pb-3 sm:pb-4 pt-3">
+            <div class="relative">
+                {{-- Glow effect --}}
                 <div
-                    class="flex items-center gap-1.5 h-7 px-2.5 rounded-full bg-purple-500/15 text-purple-400 text-xs font-medium">
-                    <i class="fa-solid fa-image text-[10px]"></i>
-                    <span>Image</span>
+                    class="absolute -inset-0.5 sm:-inset-1 bg-gradient-to-r from-purple-600 via-pink-500 to-purple-600 rounded-2xl opacity-20 blur-md sm:blur-lg transition-opacity duration-500">
                 </div>
 
-                {{-- Model --}}
-                <div class="relative">
-                    <button type="button" @click="showModelMenu = !showModelMenu; showRatioMenu = false"
-                        class="flex items-center gap-1.5 h-7 px-2.5 rounded-full text-xs transition-all"
-                        :class="showModelMenu ? 'bg-white/15 text-white' : 'bg-white/[0.06] text-white/50 hover:text-white/70 hover:bg-white/[0.1]'">
-                        <i class="fa-solid fa-microchip text-[10px]"></i>
-                        <span class="sm:hidden" x-text="getModelShort()"></span>
-                        <span class="hidden sm:inline" x-text="getModelFull()"></span>
-                        <i class="fa-solid fa-chevron-down text-[7px] ml-0.5"></i>
-                    </button>
-                    <div x-show="showModelMenu" x-cloak @click.away="showModelMenu = false"
-                        x-transition:enter="transition ease-out duration-150"
-                        x-transition:enter-start="opacity-0 translate-y-1"
-                        x-transition:enter-end="opacity-100 translate-y-0"
-                        class="absolute bottom-full left-0 mb-2 p-1.5 rounded-xl bg-[#1a1b20] border border-white/10 shadow-2xl z-50 w-[calc(100vw-2rem)] sm:w-64">
-                        <template x-for="model in Object.values(@js($availableModels))" :key="model.id">
-                            <button type="button"
-                                @click="selectedModel = model.id; $wire.set('modelId', model.id); showModelMenu = false"
-                                class="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg transition-all text-left text-sm"
-                                :class="selectedModel === model.id ? 'bg-purple-500/20 text-white' : 'text-white/60 hover:bg-white/5 hover:text-white'">
-                                <i class="fa-solid fa-microchip text-purple-400/40 text-xs"></i>
-                                <span class="flex-1 truncate" x-text="model.name"></span>
-                                <i x-show="selectedModel === model.id"
-                                    class="fa-solid fa-check text-purple-400 text-[10px]"></i>
-                            </button>
-                        </template>
-                    </div>
-                </div>
+                {{-- Input container --}}
+                <div
+                    class="relative flex flex-col gap-3 p-3 sm:p-4 rounded-2xl bg-black/50 backdrop-blur-2xl border border-white/15 shadow-2xl">
 
-                {{-- Ratio --}}
-                <div class="relative">
-                    <button type="button" @click="showRatioMenu = !showRatioMenu; showModelMenu = false"
-                        class="flex items-center gap-1.5 h-7 px-2.5 rounded-full text-xs transition-all"
-                        :class="showRatioMenu ? 'bg-white/15 text-white' : 'bg-white/[0.06] text-white/50 hover:text-white/70 hover:bg-white/[0.1]'">
-                        <i class="fa-solid fa-crop text-[10px]"></i>
-                        <span x-text="getRatioLabel()"></span>
-                        <i class="fa-solid fa-chevron-down text-[7px] ml-0.5"></i>
-                    </button>
-                    <div x-show="showRatioMenu" x-cloak @click.away="showRatioMenu = false"
-                        x-transition:enter="transition ease-out duration-150"
-                        x-transition:enter-start="opacity-0 translate-y-1"
-                        x-transition:enter-end="opacity-100 translate-y-0"
-                        class="absolute bottom-full left-0 mb-2 p-2.5 rounded-xl bg-[#1a1b20] border border-white/10 shadow-2xl z-50 w-[calc(100vw-2rem)] sm:w-[240px]">
-                        <div class="grid grid-cols-4 gap-1">
-                            <template x-for="r in ratios" :key="r.id">
+                    {{-- Textarea --}}
+                    <textarea x-ref="promptInput" wire:model.live="prompt" rows="3"
+                        placeholder="Mô tả ý tưởng của bạn..."
+                        class="w-full h-20 bg-transparent border-none outline-none ring-0 focus:ring-0 focus:outline-none text-white placeholder-white/40 text-sm sm:text-base resize-none focus:placeholder-white/60 transition-all overflow-y-auto"
+                        @keydown.ctrl.enter.prevent="$wire.generate()"
+                        @keydown.meta.enter.prevent="$wire.generate()"
+                        {{ $isGenerating ? 'disabled' : '' }}></textarea>
+
+                    {{-- Bottom row: icons + button --}}
+                    <div class="flex items-center justify-between gap-2 sm:gap-3">
+                        <div class="flex items-center gap-2"
+                            @click.away="showRatioDropdown = false; showModelDropdown = false">
+
+                            {{-- Image Reference Picker --}}
+                            <div class="relative">
                                 <button type="button"
-                                    @click="selectedRatio = r.id; $wire.set('aspectRatio', r.id); showRatioMenu = false"
-                                    class="flex flex-col items-center gap-1 p-2 rounded-lg transition-all"
-                                    :class="selectedRatio === r.id ? 'bg-purple-500/25 ring-1 ring-purple-500/40' : 'hover:bg-white/5'">
-                                    <div class="w-5 h-5 flex items-center justify-center">
-                                        <template x-if="r.icon"><i :class="'fa-solid '+r.icon"
-                                                class="text-white/40 text-xs"></i></template>
-                                        <template x-if="!r.icon">
-                                            <div class="border border-white/30 rounded-[2px]"
-                                                :style="{width:r.w+'px',height:r.h+'px'}"></div>
+                                    @click="showImagePicker = !showImagePicker; if(showImagePicker) loadRecentImages()"
+                                    class="flex items-center gap-1.5 h-9 px-2.5 rounded-lg transition-all cursor-pointer"
+                                    :class="selectedImages.length > 0
+                                        ? 'bg-purple-500/30 border border-purple-500/50'
+                                        : 'bg-gradient-to-br from-purple-500/20 to-pink-500/20 hover:from-purple-500/30 hover:to-pink-500/30 border border-purple-500/30'">
+                                    <template x-if="selectedImages.length > 0">
+                                        <div class="flex items-center gap-1">
+                                            <div class="flex -space-x-1">
+                                                <template x-for="(img, idx) in selectedImages.slice(0, 3)"
+                                                    :key="img.id">
+                                                    <img :src="img.url"
+                                                        class="w-5 h-5 rounded border border-purple-500/50 object-cover">
+                                                </template>
+                                            </div>
+                                            <span class="text-purple-300 text-xs font-medium"
+                                                x-text="selectedImages.length"></span>
+                                        </div>
+                                    </template>
+                                    <template x-if="selectedImages.length === 0">
+                                        <i class="fa-solid fa-image text-purple-400 text-sm"></i>
+                                    </template>
+                                </button>
+                                <button x-show="selectedImages.length > 0" @click.stop="selectedImages = []"
+                                    class="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-red-500 text-white text-[10px] flex items-center justify-center hover:bg-red-600 transition-colors">
+                                    <i class="fa-solid fa-xmark"></i>
+                                </button>
+                            </div>
+
+                            {{-- Aspect Ratio Button --}}
+                            <div class="relative">
+                                <button type="button" @click="showRatioDropdown = !showRatioDropdown; showModelDropdown = false"
+                                    class="flex items-center gap-1.5 h-9 px-2 sm:px-2.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition-all cursor-pointer"
+                                    :class="{ 'bg-purple-500/20 border-purple-500/40': showRatioDropdown }">
+                                    <i class="fa-solid fa-crop text-white/50 text-sm"></i>
+                                    <span class="text-white/70 text-xs font-medium hidden sm:inline"
+                                        x-text="selectedRatio === 'auto' ? 'Tỉ lệ' : selectedRatio"></span>
+                                    <i class="fa-solid fa-chevron-down text-white/40 text-[10px] transition-transform hidden sm:inline"
+                                        :class="{ 'rotate-180': showRatioDropdown }"></i>
+                                </button>
+
+                                {{-- Ratio Dropdown - Desktop (opens upward) --}}
+                                <template x-teleport="body">
+                                    <div x-show="showRatioDropdown" x-cloak
+                                        x-transition:enter="transition ease-out duration-200"
+                                        x-transition:enter-start="opacity-0 translate-y-2"
+                                        x-transition:enter-end="opacity-100 translate-y-0"
+                                        x-transition:leave="transition ease-in duration-150"
+                                        x-transition:leave-start="opacity-100 translate-y-0"
+                                        x-transition:leave-end="opacity-0 translate-y-2"
+                                        class="hidden sm:block fixed w-80 p-3 rounded-xl bg-[#1a1b20] border border-white/10 shadow-2xl z-[9999]"
+                                        x-init="$watch('showRatioDropdown', value => {
+                                            if (value) {
+                                                const btn = $root.querySelector('button');
+                                                const rect = btn.getBoundingClientRect();
+                                                $el.style.bottom = (window.innerHeight - rect.top + 8) + 'px';
+                                                $el.style.left = rect.left + 'px';
+                                            }
+                                        })" @click.stop>
+                                        <div class="text-white/50 text-xs font-medium mb-2">Tỉ lệ khung hình</div>
+                                        <div class="grid grid-cols-5 gap-1.5">
+                                            <template x-for="ratio in ratios" :key="ratio.id">
+                                                <button type="button" @click="selectRatio(ratio.id)"
+                                                    class="flex flex-col items-center gap-1 p-2 rounded-lg transition-all"
+                                                    :class="selectedRatio === ratio.id ? 'bg-purple-500/30 border border-purple-500/50' : 'bg-white/5 hover:bg-white/10 border border-transparent'">
+                                                    <div class="w-6 h-6 flex items-center justify-center">
+                                                        <template x-if="ratio.icon">
+                                                            <i :class="'fa-solid ' + ratio.icon"
+                                                                class="text-white/60 text-sm"></i>
+                                                        </template>
+                                                        <template x-if="!ratio.icon">
+                                                            <div class="border border-white/40 rounded-sm" :style="{
+                                                                width: ratio.id.split(':')[0] > ratio.id.split(':')[1] ? '20px' : (ratio.id.split(':')[0] == ratio.id.split(':')[1] ? '16px' : '12px'),
+                                                                height: ratio.id.split(':')[1] > ratio.id.split(':')[0] ? '20px' : (ratio.id.split(':')[0] == ratio.id.split(':')[1] ? '16px' : '12px')
+                                                            }"></div>
+                                                        </template>
+                                                    </div>
+                                                    <span class="text-white/70 text-[10px] font-medium"
+                                                        x-text="ratio.label"></span>
+                                                </button>
+                                            </template>
+                                        </div>
+
+                                        {{-- Size Section --}}
+                                        <div class="mt-3 pt-3 border-t border-white/10">
+                                            <div class="text-white/50 text-xs font-medium mb-2">Kích thước</div>
+                                            <div class="flex items-center gap-2">
+                                                <div
+                                                    class="flex-1 flex items-center gap-1.5 px-2.5 py-2 rounded-lg bg-white/5 border border-white/10">
+                                                    <span class="text-white/40 text-xs font-medium">W</span>
+                                                    <input type="number" x-model="customWidth"
+                                                        @input="updateWidth($event.target.value)"
+                                                        class="w-full bg-transparent border-none outline-none ring-0 focus:ring-0 focus:outline-none text-white text-sm font-medium text-center"
+                                                        placeholder="1024" min="512" max="4096" step="64">
+                                                </div>
+                                                <button type="button" @click="linkDimensions = !linkDimensions"
+                                                    class="w-8 h-8 flex items-center justify-center rounded-lg transition-all"
+                                                    :class="linkDimensions ? 'bg-purple-500/30 text-purple-400' : 'bg-white/5 text-white/40 hover:bg-white/10'">
+                                                    <i class="fa-solid fa-link text-xs"></i>
+                                                </button>
+                                                <div
+                                                    class="flex-1 flex items-center gap-1.5 px-2.5 py-2 rounded-lg bg-white/5 border border-white/10">
+                                                    <span class="text-white/40 text-xs font-medium">H</span>
+                                                    <input type="number" x-model="customHeight"
+                                                        @input="updateHeight($event.target.value)"
+                                                        class="w-full bg-transparent border-none outline-none ring-0 focus:ring-0 focus:outline-none text-white text-sm font-medium text-center"
+                                                        placeholder="1024" min="512" max="4096" step="64">
+                                                </div>
+                                                <span class="text-white/40 text-xs font-medium">PX</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </template>
+
+                                {{-- Ratio Bottom Sheet - Mobile --}}
+                                <template x-teleport="body">
+                                    <div x-show="showRatioDropdown" x-cloak
+                                        class="sm:hidden fixed inset-0 z-[9999] flex items-end justify-center bg-black/80 backdrop-blur-md"
+                                        @click.self="showRatioDropdown = false" @click.stop>
+                                        <div x-show="showRatioDropdown"
+                                            x-transition:enter="transition ease-out duration-300"
+                                            x-transition:enter-start="translate-y-full"
+                                            x-transition:enter-end="translate-y-0"
+                                            x-transition:leave="transition ease-in duration-200"
+                                            x-transition:leave-start="translate-y-0"
+                                            x-transition:leave-end="translate-y-full"
+                                            class="w-full max-w-lg bg-[#1a1b20] border-t border-white/10 rounded-t-3xl flex flex-col max-h-[85vh] shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
+                                            <div class="flex items-center justify-between p-4 border-b border-white/5 shrink-0">
+                                                <span class="text-white font-semibold text-base">Tùy chỉnh khung hình</span>
+                                                <button type="button" @click="showRatioDropdown = false"
+                                                    class="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 text-white/60 active:scale-95 transition-transform">
+                                                    <i class="fa-solid fa-xmark"></i>
+                                                </button>
+                                            </div>
+                                            <div class="p-4 overflow-y-auto overscroll-contain">
+                                                <div class="text-white/50 text-sm font-medium mb-3">Tỉ lệ</div>
+                                                <div class="grid grid-cols-4 gap-2 mb-6">
+                                                    <template x-for="ratio in ratios" :key="ratio.id">
+                                                        <button type="button" @click="selectRatio(ratio.id)"
+                                                            class="flex flex-col items-center gap-1.5 p-3 rounded-xl transition-all"
+                                                            :class="selectedRatio === ratio.id ? 'bg-purple-500/30 border border-purple-500/50' : 'bg-white/5 active:bg-white/10 border border-transparent'">
+                                                            <div class="w-8 h-8 flex items-center justify-center">
+                                                                <template x-if="ratio.icon">
+                                                                    <i :class="'fa-solid ' + ratio.icon"
+                                                                        class="text-white/60 text-lg"></i>
+                                                                </template>
+                                                                <template x-if="!ratio.icon">
+                                                                    <div class="border-2 border-white/40 rounded-sm"
+                                                                        :style="{
+                                                                            width: ratio.id.split(':')[0] > ratio.id.split(':')[1] ? '28px' : (ratio.id.split(':')[0] == ratio.id.split(':')[1] ? '24px' : '16px'),
+                                                                            height: ratio.id.split(':')[1] > ratio.id.split(':')[0] ? '28px' : (ratio.id.split(':')[0] == ratio.id.split(':')[1] ? '24px' : '16px')
+                                                                        }"></div>
+                                                                </template>
+                                                            </div>
+                                                            <span class="text-white/70 text-xs font-medium"
+                                                                x-text="ratio.label"></span>
+                                                        </button>
+                                                    </template>
+                                                </div>
+                                                <div class="pt-4 border-t border-white/10">
+                                                    <div class="text-white/50 text-sm font-medium mb-3">Kích thước tùy chỉnh (PX)</div>
+                                                    <div class="flex items-center gap-3">
+                                                        <div class="flex-1 flex items-center gap-2 px-3 py-3 rounded-xl bg-white/5 border border-white/10 focus-within:border-purple-500/50 transition-colors">
+                                                            <span class="text-white/40 text-sm font-semibold">W</span>
+                                                            <input type="number" x-model="customWidth"
+                                                                @input="updateWidth($event.target.value)"
+                                                                class="w-full bg-transparent border-none outline-none ring-0 focus:ring-0 focus:outline-none text-white text-lg font-medium text-center"
+                                                                placeholder="1024" min="512" max="4096" step="64">
+                                                        </div>
+                                                        <button type="button" @click="linkDimensions = !linkDimensions"
+                                                            class="w-12 h-12 flex items-center justify-center rounded-xl transition-all shrink-0"
+                                                            :class="linkDimensions ? 'bg-purple-500/30 text-purple-400' : 'bg-white/5 text-white/40'">
+                                                            <i class="fa-solid fa-link text-lg"></i>
+                                                        </button>
+                                                        <div class="flex-1 flex items-center gap-2 px-3 py-3 rounded-xl bg-white/5 border border-white/10 focus-within:border-purple-500/50 transition-colors">
+                                                            <span class="text-white/40 text-sm font-semibold">H</span>
+                                                            <input type="number" x-model="customHeight"
+                                                                @input="updateHeight($event.target.value)"
+                                                                class="w-full bg-transparent border-none outline-none ring-0 focus:ring-0 focus:outline-none text-white text-lg font-medium text-center"
+                                                                placeholder="1024" min="512" max="4096" step="64">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="p-4 border-t border-white/5 bg-[#1a1b20] safe-area-bottom shrink-0">
+                                                <button type="button" @click="showRatioDropdown = false"
+                                                    class="w-full py-3.5 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold text-center active:scale-[0.98] transition-transform shadow-lg shadow-purple-900/20">
+                                                    Áp dụng & Đóng
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
+
+                            {{-- Model Selector --}}
+                            <div class="relative">
+                                <button type="button" @click="showModelDropdown = !showModelDropdown; showRatioDropdown = false"
+                                    class="flex items-center gap-1.5 h-9 px-2 sm:px-2.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition-all cursor-pointer"
+                                    :class="{ 'bg-purple-500/20 border-purple-500/40': showModelDropdown }">
+                                    <i class="fa-solid fa-microchip text-white/50 text-sm"></i>
+                                    <span class="text-white/70 text-xs font-medium hidden sm:inline"
+                                        x-text="getSelectedModel().name"></span>
+                                    <i class="fa-solid fa-chevron-down text-white/40 text-[10px] transition-transform hidden sm:inline"
+                                        :class="{ 'rotate-180': showModelDropdown }"></i>
+                                </button>
+
+                                {{-- Model Dropdown - Desktop (opens upward) --}}
+                                <template x-teleport="body">
+                                    <div x-show="showModelDropdown" x-cloak
+                                        x-transition:enter="transition ease-out duration-200"
+                                        x-transition:enter-start="opacity-0 translate-y-2"
+                                        x-transition:enter-end="opacity-100 translate-y-0"
+                                        x-transition:leave="transition ease-in duration-150"
+                                        x-transition:leave-start="opacity-100 translate-y-0"
+                                        x-transition:leave-end="opacity-0 translate-y-2"
+                                        class="hidden sm:block fixed w-64 p-2 rounded-xl bg-[#1a1b20] border border-white/10 shadow-2xl z-[9999]"
+                                        x-init="$watch('showModelDropdown', value => {
+                                            if (value) {
+                                                const btn = $root.querySelector('button');
+                                                const rect = btn.getBoundingClientRect();
+                                                $el.style.bottom = (window.innerHeight - rect.top + 8) + 'px';
+                                                $el.style.left = rect.left + 'px';
+                                            }
+                                        })" @click.stop>
+                                        <div class="text-white/50 text-xs font-medium mb-2 px-2">Chọn Model AI</div>
+                                        <template x-for="model in models" :key="model.id">
+                                            <button type="button"
+                                                @click="selectModel(model.id)"
+                                                class="w-full flex items-center gap-3 p-2.5 rounded-lg transition-all text-left"
+                                                :class="selectedModel === model.id ? 'bg-purple-500/30 border border-purple-500/50' : 'hover:bg-white/5 border border-transparent'">
+                                                <span class="text-lg" x-text="model.icon"></span>
+                                                <div class="flex-1 min-w-0">
+                                                    <div class="text-white text-sm font-medium" x-text="model.name"></div>
+                                                    <div class="text-white/40 text-xs" x-text="model.desc"></div>
+                                                </div>
+                                                <i x-show="selectedModel === model.id"
+                                                    class="fa-solid fa-check text-purple-400 text-sm"></i>
+                                            </button>
                                         </template>
                                     </div>
-                                    <span class="text-white/40 text-[9px]" x-text="r.label"></span>
-                                </button>
-                            </template>
-                        </div>
-                    </div>
-                </div>
+                                </template>
 
-                {{-- Credits cost --}}
-                <div
-                    class="flex items-center gap-1.5 h-7 px-2.5 rounded-full bg-white/[0.04] text-white/30 text-xs ml-auto">
-                    <i class="fa-solid fa-bolt text-yellow-400/60 text-[10px]"></i>
-                    <span>{{ number_format($creditCost, 0) }}</span>
+                                {{-- Model Bottom Sheet - Mobile --}}
+                                <template x-teleport="body">
+                                    <div x-show="showModelDropdown" x-cloak
+                                        class="sm:hidden fixed inset-0 z-[9999] flex items-end justify-center bg-black/80 backdrop-blur-md"
+                                        @click.self="showModelDropdown = false" @click.stop>
+                                        <div x-show="showModelDropdown"
+                                            x-transition:enter="transition ease-out duration-300"
+                                            x-transition:enter-start="translate-y-full"
+                                            x-transition:enter-end="translate-y-0"
+                                            x-transition:leave="transition ease-in duration-200"
+                                            x-transition:leave-start="translate-y-0"
+                                            x-transition:leave-end="translate-y-full"
+                                            class="w-full max-w-lg bg-[#1a1b20] border-t border-white/10 rounded-t-3xl flex flex-col max-h-[85vh] shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
+                                            <div class="flex items-center justify-between p-4 border-b border-white/5 shrink-0">
+                                                <span class="text-white font-semibold text-base">Chọn Model AI</span>
+                                                <button type="button" @click="showModelDropdown = false"
+                                                    class="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 text-white/60 active:scale-95 transition-transform">
+                                                    <i class="fa-solid fa-xmark"></i>
+                                                </button>
+                                            </div>
+                                            <div class="p-4 overflow-y-auto overscroll-contain">
+                                                <div class="text-white/50 text-sm font-medium mb-3">Danh sách Model</div>
+                                                <div class="space-y-1">
+                                                    <template x-for="model in models" :key="model.id">
+                                                        <button type="button" @click="selectModel(model.id)"
+                                                            class="w-full flex items-center gap-3 p-3 rounded-xl transition-all text-left"
+                                                            :class="selectedModel === model.id ? 'bg-purple-500/30 border border-purple-500/50' : 'bg-white/5 active:bg-white/10 border border-transparent'">
+                                                            <span class="text-2xl" x-text="model.icon"></span>
+                                                            <div class="flex-1 min-w-0">
+                                                                <div class="text-white font-semibold text-base" x-text="model.name"></div>
+                                                                <div class="text-white/50 text-sm mt-0.5" x-text="model.desc"></div>
+                                                            </div>
+                                                            <div class="w-6 h-6 rounded-full border-2 flex items-center justify-center"
+                                                                :class="selectedModel === model.id ? 'border-purple-500 bg-purple-500' : 'border-white/20'">
+                                                                <i x-show="selectedModel === model.id"
+                                                                    class="fa-solid fa-check text-white text-xs"></i>
+                                                            </div>
+                                                        </button>
+                                                    </template>
+                                                </div>
+                                            </div>
+                                            <div class="p-4 border-t border-white/5 bg-[#1a1b20] safe-area-bottom shrink-0">
+                                                <button type="button" @click="showModelDropdown = false"
+                                                    class="w-full py-3.5 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold text-center active:scale-[0.98] transition-transform shadow-lg shadow-purple-900/20">
+                                                    Xác nhận lựa chọn
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+
+                        {{-- Generate Button --}}
+                        @if($isGenerating)
+                            <button type="button" wire:click="cancelGeneration"
+                                class="shrink-0 flex items-center gap-2 px-4 sm:px-6 py-2.5 rounded-xl bg-red-500/80 hover:bg-red-500 text-white font-semibold text-sm active:scale-[0.98] transition-all duration-200">
+                                <i class="fa-solid fa-stop text-sm"></i>
+                                <span>Hủy</span>
+                            </button>
+                        @else
+                            <button type="button" wire:click="generate"
+                                class="shrink-0 flex items-center gap-2 px-4 sm:px-6 py-2.5 rounded-xl bg-gradient-to-r from-purple-500 via-fuchsia-500 to-pink-500 text-white font-semibold text-sm hover:scale-[1.02] hover:shadow-lg hover:shadow-purple-500/30 active:scale-[0.98] transition-all duration-200"
+                                wire:loading.attr="disabled" wire:target="generate">
+                                <i class="fa-solid fa-wand-magic-sparkles text-sm" wire:loading.remove wire:target="generate"></i>
+                                <i class="fa-solid fa-spinner fa-spin text-sm" wire:loading wire:target="generate"></i>
+                                <span>Tạo ảnh</span>
+                            </button>
+                        @endif
+                    </div>
                 </div>
             </div>
         </div>
