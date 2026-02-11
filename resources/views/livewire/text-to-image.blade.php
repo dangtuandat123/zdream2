@@ -151,59 +151,36 @@
     @endphp
 
     {{-- ============================================================ --}}
-    {{-- SECTION 1: SCROLLABLE GALLERY AREA --}}
+    {{-- FIXED FILTER BAR --}}
     {{-- ============================================================ --}}
-    <div id="gallery-scroll">
-        <div class="max-w-5xl mx-auto px-4 pt-4 sm:pt-6 pb-6">
-
-            {{-- Error --}}
-            @if($errorMessage)
-                <div x-data="{ show: true }" x-show="show" x-cloak
-                    class="mb-4 p-3.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm flex items-center gap-3"
-                    role="alert">
-                    <i class="fa-solid fa-circle-exclamation shrink-0"></i>
-                    <span class="flex-1">{{ $errorMessage }}</span>
-                    @if($lastPrompt)
-                        <button wire:click="retry"
-                            class="shrink-0 px-3 py-1 rounded-lg bg-white/10 hover:bg-white/15 text-xs font-medium transition-colors">
-                            <i class="fa-solid fa-redo mr-1"></i>Thử lại
-                        </button>
-                    @endif
-                    <button @click="show = false"
-                        class="shrink-0 px-3 py-1 rounded-lg bg-white/10 hover:bg-white/15 text-xs font-medium transition-colors">
-                        <i class="fa-solid fa-xmark mr-1"></i>Đóng
-                    </button>
-                </div>
-            @endif
-
-            {{-- Filter Bar (Sticky) --}}
-            <div class="sticky top-14 md:top-0 z-20 -mx-4 px-4 py-3 bg-[#0e0f13]/90 backdrop-blur-xl border-b border-white/5" x-data="{ openFilter: null }">
+    <div class="fixed top-14 md:top-0 left-0 right-0 md:left-[72px] z-[55]"
+        x-data="{ openFilter: null }">
+        <div class="bg-[#0a0a0f]/80 backdrop-blur-[20px] saturate-[180%] border-b border-white/[0.08]">
+            <div class="max-w-5xl mx-auto px-4 py-2.5">
                 <div class="flex items-center gap-2 flex-wrap">
                     {{-- Date Filter --}}
                     <div class="relative">
                         <button @click="openFilter = openFilter === 'date' ? null : 'date'"
-                            class="flex items-center gap-1.5 h-8 px-3 rounded-full text-xs font-medium transition-all border"
-                            :class="'{{ $filterDate }}' !== 'all' 
-                                ? 'bg-purple-500/20 border-purple-500/40 text-purple-300' 
-                                : 'bg-white/[0.06] border-white/10 text-white/60 hover:bg-white/10 hover:text-white/80'">
-                            <span>Theo ngày</span>
-                            <i class="fa-solid fa-chevron-down text-[9px] transition-transform" :class="openFilter === 'date' ? 'rotate-180' : ''"></i>
+                            class="inline-flex items-center gap-1.5 h-9 px-3.5 rounded-lg text-sm font-medium transition-all duration-200 active:scale-[0.98]
+                                {{ $filterDate !== 'all'
+                                    ? 'bg-purple-500/20 border border-purple-500/40 text-purple-300'
+                                    : 'bg-white/[0.05] border border-white/[0.08] text-white/70 hover:bg-white/[0.08] hover:text-white/90' }}">
+                            <i class="fa-regular fa-calendar text-xs"></i>
+                            <span>{{ $filterDate === 'all' ? 'Theo ngày' : ['week'=>'Tuần qua','month'=>'Tháng qua','3months'=>'3 tháng'][$filterDate] ?? 'Theo ngày' }}</span>
+                            <i class="fa-solid fa-chevron-down text-[9px] ml-0.5 transition-transform"
+                                :class="openFilter === 'date' ? 'rotate-180' : ''"></i>
                         </button>
                         <div x-show="openFilter === 'date'" x-cloak @click.away="openFilter = null"
                             x-transition:enter="transition ease-out duration-150"
-                            x-transition:enter-start="opacity-0 scale-95 -translate-y-1"
-                            x-transition:enter-end="opacity-100 scale-100 translate-y-0"
-                            class="absolute top-full left-0 mt-2 w-56 p-2 rounded-xl bg-[#1a1b20] border border-white/10 shadow-2xl z-30">
-                            @foreach([
-                                'all' => 'Tất cả',
-                                'week' => 'Tuần trước',
-                                'month' => 'Tháng trước',
-                                '3months' => '3 tháng trước',
-                            ] as $value => $label)
-                                <button wire:click="$set('filterDate', '{{ $value }}')" @click="openFilter = null"
-                                    class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm transition-colors {{ $filterDate === $value ? 'text-white bg-white/10' : 'text-white/60 hover:bg-white/5 hover:text-white' }}">
-                                    <span>{{ $label }}</span>
-                                    @if($filterDate === $value)
+                            x-transition:enter-start="opacity-0 -translate-y-1"
+                            x-transition:enter-end="opacity-100 translate-y-0"
+                            class="absolute top-full left-0 mt-2 w-52 p-1.5 rounded-xl bg-[#0f0f18]/95 backdrop-blur-[20px] saturate-[180%] border border-white/[0.1] shadow-2xl shadow-black/50 z-50">
+                            @foreach(['all' => 'Tất cả', 'week' => 'Tuần qua', 'month' => 'Tháng qua', '3months' => '3 tháng qua'] as $val => $lbl)
+                                <button wire:click="$set('filterDate', '{{ $val }}')" @click="openFilter = null"
+                                    class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm transition-colors duration-150
+                                        {{ $filterDate === $val ? 'text-white/95 bg-white/[0.06]' : 'text-white/70 hover:bg-white/[0.06] hover:text-white' }}">
+                                    <span>{{ $lbl }}</span>
+                                    @if($filterDate === $val)
                                         <i class="fa-solid fa-check text-purple-400 text-xs"></i>
                                     @endif
                                 </button>
@@ -214,20 +191,24 @@
                     {{-- Model Filter --}}
                     <div class="relative">
                         <button @click="openFilter = openFilter === 'model' ? null : 'model'"
-                            class="flex items-center gap-1.5 h-8 px-3 rounded-full text-xs font-medium transition-all border"
-                            :class="'{{ $filterModel }}' !== 'all' 
-                                ? 'bg-purple-500/20 border-purple-500/40 text-purple-300' 
-                                : 'bg-white/[0.06] border-white/10 text-white/60 hover:bg-white/10 hover:text-white/80'">
-                            <span>Theo model</span>
-                            <i class="fa-solid fa-chevron-down text-[9px] transition-transform" :class="openFilter === 'model' ? 'rotate-180' : ''"></i>
+                            class="inline-flex items-center gap-1.5 h-9 px-3.5 rounded-lg text-sm font-medium transition-all duration-200 active:scale-[0.98]
+                                {{ $filterModel !== 'all'
+                                    ? 'bg-purple-500/20 border border-purple-500/40 text-purple-300'
+                                    : 'bg-white/[0.05] border border-white/[0.08] text-white/70 hover:bg-white/[0.08] hover:text-white/90' }}">
+                            <i class="fa-solid fa-microchip text-xs"></i>
+                            <span class="hidden sm:inline">{{ $filterModel === 'all' ? 'Theo model' : (collect($availableModels)->firstWhere('id', $filterModel)['name'] ?? $filterModel) }}</span>
+                            <span class="sm:hidden">Model</span>
+                            <i class="fa-solid fa-chevron-down text-[9px] ml-0.5 transition-transform"
+                                :class="openFilter === 'model' ? 'rotate-180' : ''"></i>
                         </button>
                         <div x-show="openFilter === 'model'" x-cloak @click.away="openFilter = null"
                             x-transition:enter="transition ease-out duration-150"
-                            x-transition:enter-start="opacity-0 scale-95 -translate-y-1"
-                            x-transition:enter-end="opacity-100 scale-100 translate-y-0"
-                            class="absolute top-full left-0 mt-2 w-60 p-2 rounded-xl bg-[#1a1b20] border border-white/10 shadow-2xl z-30">
+                            x-transition:enter-start="opacity-0 -translate-y-1"
+                            x-transition:enter-end="opacity-100 translate-y-0"
+                            class="absolute top-full left-0 mt-2 w-56 p-1.5 rounded-xl bg-[#0f0f18]/95 backdrop-blur-[20px] saturate-[180%] border border-white/[0.1] shadow-2xl shadow-black/50 z-50">
                             <button wire:click="$set('filterModel', 'all')" @click="openFilter = null"
-                                class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm transition-colors {{ $filterModel === 'all' ? 'text-white bg-white/10' : 'text-white/60 hover:bg-white/5 hover:text-white' }}">
+                                class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm transition-colors duration-150
+                                    {{ $filterModel === 'all' ? 'text-white/95 bg-white/[0.06]' : 'text-white/70 hover:bg-white/[0.06] hover:text-white' }}">
                                 <span>Tất cả model</span>
                                 @if($filterModel === 'all')
                                     <i class="fa-solid fa-check text-purple-400 text-xs"></i>
@@ -235,7 +216,8 @@
                             </button>
                             @foreach($availableModels as $model)
                                 <button wire:click="$set('filterModel', '{{ $model['id'] }}')" @click="openFilter = null"
-                                    class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm transition-colors {{ $filterModel === $model['id'] ? 'text-white bg-white/10' : 'text-white/60 hover:bg-white/5 hover:text-white' }}">
+                                    class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm transition-colors duration-150
+                                        {{ $filterModel === $model['id'] ? 'text-white/95 bg-white/[0.06]' : 'text-white/70 hover:bg-white/[0.06] hover:text-white' }}">
                                     <span>{{ $model['name'] }}</span>
                                     @if($filterModel === $model['id'])
                                         <i class="fa-solid fa-check text-purple-400 text-xs"></i>
@@ -248,33 +230,26 @@
                     {{-- Ratio Filter --}}
                     <div class="relative">
                         <button @click="openFilter = openFilter === 'ratio' ? null : 'ratio'"
-                            class="flex items-center gap-1.5 h-8 px-3 rounded-full text-xs font-medium transition-all border"
-                            :class="'{{ $filterRatio }}' !== 'all' 
-                                ? 'bg-purple-500/20 border-purple-500/40 text-purple-300' 
-                                : 'bg-white/[0.06] border-white/10 text-white/60 hover:bg-white/10 hover:text-white/80'">
-                            <span>Theo tỉ lệ</span>
-                            <i class="fa-solid fa-chevron-down text-[9px] transition-transform" :class="openFilter === 'ratio' ? 'rotate-180' : ''"></i>
+                            class="inline-flex items-center gap-1.5 h-9 px-3.5 rounded-lg text-sm font-medium transition-all duration-200 active:scale-[0.98]
+                                {{ $filterRatio !== 'all'
+                                    ? 'bg-purple-500/20 border border-purple-500/40 text-purple-300'
+                                    : 'bg-white/[0.05] border border-white/[0.08] text-white/70 hover:bg-white/[0.08] hover:text-white/90' }}">
+                            <i class="fa-solid fa-crop text-xs"></i>
+                            <span>{{ $filterRatio === 'all' ? 'Tỉ lệ' : $filterRatio }}</span>
+                            <i class="fa-solid fa-chevron-down text-[9px] ml-0.5 transition-transform"
+                                :class="openFilter === 'ratio' ? 'rotate-180' : ''"></i>
                         </button>
                         <div x-show="openFilter === 'ratio'" x-cloak @click.away="openFilter = null"
                             x-transition:enter="transition ease-out duration-150"
-                            x-transition:enter-start="opacity-0 scale-95 -translate-y-1"
-                            x-transition:enter-end="opacity-100 scale-100 translate-y-0"
-                            class="absolute top-full left-0 mt-2 w-48 p-2 rounded-xl bg-[#1a1b20] border border-white/10 shadow-2xl z-30">
-                            @foreach([
-                                'all' => 'Tất cả',
-                                '1:1' => '1:1',
-                                '16:9' => '16:9',
-                                '9:16' => '9:16',
-                                '4:3' => '4:3',
-                                '3:4' => '3:4',
-                                '3:2' => '3:2',
-                                '2:3' => '2:3',
-                                '21:9' => '21:9',
-                            ] as $value => $label)
-                                <button wire:click="$set('filterRatio', '{{ $value }}')" @click="openFilter = null"
-                                    class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm transition-colors {{ $filterRatio === $value ? 'text-white bg-white/10' : 'text-white/60 hover:bg-white/5 hover:text-white' }}">
-                                    <span>{{ $label }}</span>
-                                    @if($filterRatio === $value)
+                            x-transition:enter-start="opacity-0 -translate-y-1"
+                            x-transition:enter-end="opacity-100 translate-y-0"
+                            class="absolute top-full left-0 mt-2 w-44 p-1.5 rounded-xl bg-[#0f0f18]/95 backdrop-blur-[20px] saturate-[180%] border border-white/[0.1] shadow-2xl shadow-black/50 z-50">
+                            @foreach(['all' => 'Tất cả', '1:1' => '1:1', '16:9' => '16:9', '9:16' => '9:16', '4:3' => '4:3', '3:4' => '3:4', '3:2' => '3:2', '2:3' => '2:3', '21:9' => '21:9'] as $val => $lbl)
+                                <button wire:click="$set('filterRatio', '{{ $val }}')" @click="openFilter = null"
+                                    class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm transition-colors duration-150
+                                        {{ $filterRatio === $val ? 'text-white/95 bg-white/[0.06]' : 'text-white/70 hover:bg-white/[0.06] hover:text-white' }}">
+                                    <span>{{ $lbl }}</span>
+                                    @if($filterRatio === $val)
                                         <i class="fa-solid fa-check text-purple-400 text-xs"></i>
                                     @endif
                                 </button>
@@ -282,108 +257,138 @@
                         </div>
                     </div>
 
-                    {{-- Reset Filters --}}
+                    {{-- Reset --}}
                     @if($filterDate !== 'all' || $filterModel !== 'all' || $filterRatio !== 'all')
                         <button wire:click="resetFilters"
-                            class="flex items-center gap-1 h-8 px-3 rounded-full text-xs font-medium bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 transition-all">
-                            <i class="fa-solid fa-xmark text-[10px]"></i>
-                            <span>Xóa bộ lọc</span>
+                            class="inline-flex items-center gap-1.5 h-9 px-3.5 rounded-lg text-sm font-medium bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 transition-all duration-200 active:scale-[0.98]">
+                            <i class="fa-solid fa-xmark text-xs"></i>
+                            <span>Xóa lọc</span>
                         </button>
                     @endif
                 </div>
             </div>
+        </div>
+    </div>
+
+    {{-- ============================================================ --}}
+    {{-- SCROLLABLE GALLERY AREA --}}
+    {{-- ============================================================ --}}
+    <div id="gallery-scroll">
+        <div class="max-w-5xl mx-auto px-4 pt-14 md:pt-12 pb-48">
+
+            {{-- Error --}}
+            @if($errorMessage)
+                <div x-data="{ show: true }" x-show="show" x-cloak
+                    class="mb-4 p-3.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm flex items-center gap-3"
+                    role="alert">
+                    <i class="fa-solid fa-circle-exclamation shrink-0"></i>
+                    <span class="flex-1">{{ $errorMessage }}</span>
+                    @if($lastPrompt)
+                        <button wire:click="retry"
+                            class="shrink-0 h-8 px-3 rounded-lg bg-white/[0.05] hover:bg-white/[0.08] border border-white/[0.08] text-xs font-medium text-white/80 transition-all active:scale-[0.98]">
+                            <i class="fa-solid fa-redo mr-1"></i>Thử lại
+                        </button>
+                    @endif
+                    <button @click="show = false"
+                        class="shrink-0 h-8 w-8 rounded-lg bg-white/[0.05] hover:bg-white/[0.08] border border-white/[0.08] text-white/80 flex items-center justify-center transition-all active:scale-[0.98]">
+                        <i class="fa-solid fa-xmark text-xs"></i>
+                    </button>
+                </div>
+            @endif
 
             {{-- Gallery Feed --}}
-            <div class="flex flex-col-reverse space-y-8 space-y-reverse pb-48" id="gallery-feed">
+            <div class="space-y-5" id="gallery-feed">
 
-                {{-- Loading Skeleton (Batch Style - Appears at Bottom) --}}
+                {{-- Loading Skeleton --}}
                 @if($isGenerating && !$generatedImageUrl)
-                    <div x-init="startLoading(); $nextTick(() => document.documentElement.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' }))"
-                        x-effect="if (!@js($isGenerating)) stopLoading()"
-                        class="group/batch animate-pulse">
-                        {{-- Header --}}
-                        <div class="flex items-center gap-2 mb-3 px-1">
-                            <div class="bg-white/10 h-4 w-40 rounded"></div>
-                            <div class="bg-white/5 h-3 w-16 rounded"></div>
+                    <div x-init="startLoading(); $nextTick(() => document.documentElement.scrollTo({ top: 0, behavior: 'smooth' }))"
+                        x-effect="if (!@js($isGenerating)) stopLoading()">
+                        <div class="bg-white/[0.03] backdrop-blur-[12px] border border-white/[0.08] rounded-xl p-4 animate-pulse shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]">
+                            <div class="flex items-center gap-2 mb-3">
+                                <div class="bg-white/[0.08] h-4 w-40 rounded-md"></div>
+                                <div class="bg-white/[0.05] h-3 w-16 rounded-md"></div>
+                            </div>
+                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                                <div class="aspect-square rounded-lg bg-white/[0.05] border border-white/[0.05] flex items-center justify-center">
+                                    <div class="w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
+                                </div>
+                                <div class="aspect-square rounded-lg bg-white/[0.05] border border-white/[0.05] hidden sm:block"></div>
+                                <div class="aspect-square rounded-lg bg-white/[0.05] border border-white/[0.05] hidden sm:block"></div>
+                                <div class="aspect-square rounded-lg bg-white/[0.05] border border-white/[0.05] hidden sm:block"></div>
+                            </div>
+                            <p class="text-white/50 text-xs mt-3 text-center" x-text="loadingMessages[currentLoadingMessage]"></p>
                         </div>
-                        {{-- Grid --}}
-                        <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-2 sm:gap-3">
-                             <div class="aspect-square rounded-lg bg-white/5 border border-white/5 flex items-center justify-center">
-                                 <div class="w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
-                             </div>
-                             <div class="aspect-square rounded-lg bg-white/5 border border-white/5 hidden sm:block"></div>
-                             <div class="aspect-square rounded-lg bg-white/5 border border-white/5 hidden sm:block"></div>
-                             <div class="aspect-square rounded-lg bg-white/5 border border-white/5 hidden sm:block"></div>
-                        </div>
-                        <p class="text-white/40 text-xs mt-2 text-center" x-text="loadingMessages[currentLoadingMessage]"></p>
                     </div>
                 @endif
-                
-                {{-- Global Counter --}}
+
                 @php $absoluteIndex = 0; @endphp
 
-                {{-- Grouped Loop --}}
+                {{-- Grouped Batches --}}
                 @forelse($groupedHistory as $groupKey => $groupItems)
                     @php
                         $firstItem = $groupItems->first();
                         $modelId = $firstItem->generation_params['model_id'] ?? null;
                         $ratio = $firstItem->generation_params['aspect_ratio'] ?? '1:1';
-                        
+
                         $modelName = $modelId;
                         if ($modelId && isset($availableModels)) {
-                            $model = collect($availableModels)->firstWhere('id', $modelId);
-                            $modelName = $model['name'] ?? $modelId;
+                            $found = collect($availableModels)->firstWhere('id', $modelId);
+                            $modelName = $found['name'] ?? $modelId;
                         }
 
-                        // Calculate aspect ratio for style
                         $ratioValue = '1/1';
                         if ($ratio !== 'Auto' && strpos($ratio, ':') !== false) {
                             $ratioValue = str_replace(':', '/', $ratio);
                         }
                     @endphp
-                    
-                    <div class="group/batch">
-                        {{-- Batch Header --}}
-                        <div class="flex flex-col sm:flex-row sm:items-center gap-2 mb-3 px-1">
-                            <div class="flex items-center gap-2 text-white/50 text-xs sm:text-sm font-medium overflow-hidden">
-                                <span class="text-white/90 truncate max-w-[200px] sm:max-w-md" title="{{ $firstItem->final_prompt }}">
+
+                    {{-- Batch Glass Card --}}
+                    <div class="bg-white/[0.03] backdrop-blur-[12px] border border-white/[0.08] rounded-xl p-4 hover:border-white/[0.12] transition-all duration-200 group/batch shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]">
+
+                        {{-- Header --}}
+                        <div class="flex items-start sm:items-center justify-between gap-3 mb-3">
+                            <div class="flex-1 min-w-0">
+                                <p class="text-white/95 text-sm font-medium truncate" title="{{ $firstItem->final_prompt }}">
                                     {{ $firstItem->final_prompt }}
-                                </span>
-                                <span class="shrink-0 text-white/30 hidden sm:inline">|</span>
-                                <span class="shrink-0 text-purple-300 hidden sm:inline">{{ $modelName }}</span>
-                                <span class="shrink-0 text-white/30 hidden sm:inline">|</span>
-                                <span class="shrink-0 hidden sm:inline">{{ $ratio }}</span>
+                                </p>
+                                <div class="flex items-center gap-2 mt-1 text-xs">
+                                    <span class="text-purple-300/80">{{ $modelName }}</span>
+                                    <span class="text-white/30">•</span>
+                                    <span class="text-white/50">{{ $ratio }}</span>
+                                    <span class="text-white/30">•</span>
+                                    <span class="text-white/50">{{ $groupItems->count() }} ảnh</span>
+                                    <span class="text-white/30">•</span>
+                                    <span class="text-white/50">{{ $firstItem->created_at->diffForHumans() }}</span>
+                                </div>
                             </div>
-                            
+
                             {{-- Actions --}}
-                            <div class="flex items-center gap-2 ml-auto opacity-100 sm:opacity-0 sm:group-hover/batch:opacity-100 transition-opacity">
-                                <button wire:click="copyPrompt({{ $firstItem->id }})" 
-                                    class="px-2 py-1 rounded bg-white/5 hover:bg-white/10 text-[10px] text-white/60 hover:text-white transition-colors border border-white/5">
-                                    Copy
-                                </button>
-                                <button wire:click="reusePrompt({{ $firstItem->id }})" 
-                                    class="px-2 py-1 rounded bg-white/5 hover:bg-white/10 text-[10px] text-white/60 hover:text-white transition-colors border border-white/5">
-                                    <i class="fa-solid fa-sliders mr-1"></i> Reuse
+                            <div class="flex items-center gap-1.5 shrink-0 opacity-100 sm:opacity-0 sm:group-hover/batch:opacity-100 transition-opacity duration-200">
+                                <button wire:click="reusePrompt({{ $firstItem->id }})"
+                                    class="h-8 px-2.5 rounded-lg bg-white/[0.05] hover:bg-white/[0.08] border border-white/[0.08] text-xs text-white/70 hover:text-white transition-all active:scale-[0.98]"
+                                    title="Tái sử dụng">
+                                    <i class="fa-solid fa-arrow-rotate-left mr-1"></i><span class="hidden sm:inline">Reuse</span>
                                 </button>
                             </div>
                         </div>
 
-                        {{-- Grid --}}
-                        <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-2 sm:gap-3">
+                        {{-- Image Grid --}}
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
                             @foreach($groupItems as $image)
-                                <div class="relative group rounded-lg overflow-hidden bg-[#1a1b20] border border-white/5 hover:border-white/20 transition-all cursor-zoom-in"
+                                <div class="relative group rounded-lg overflow-hidden bg-[#0f0f18] border border-white/[0.05] hover:border-white/[0.15] transition-all duration-200 cursor-zoom-in"
                                      style="aspect-ratio: {{ $ratioValue }};"
                                      @click="openPreview(null, {{ $absoluteIndex }})">
-                                    <img src="{{ $image->image_url }}" alt="Image" 
-                                         class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                                    <img src="{{ $image->image_url }}" alt="Generated"
+                                         class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                                          loading="lazy">
-                                    <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                                        <a href="{{ $image->image_url }}" download @click.stop 
-                                            class="w-8 h-8 rounded-full bg-black/50 hover:bg-white/20 text-white flex items-center justify-center backdrop-blur-sm transition-colors border border-white/10">
+                                    {{-- Hover Overlay --}}
+                                    <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-end justify-center pb-2.5 gap-2">
+                                        <a href="{{ $image->image_url }}" download @click.stop
+                                            class="h-9 w-9 rounded-lg bg-black/40 hover:bg-white/20 backdrop-blur-sm text-white flex items-center justify-center transition-all border border-white/[0.1] active:scale-[0.95]">
                                             <i class="fa-solid fa-download text-xs"></i>
                                         </a>
-                                        <button wire:click="deleteImage({{ $image->id }})" @click.stop 
-                                            class="w-8 h-8 rounded-full bg-black/50 hover:bg-red-500/80 text-white flex items-center justify-center backdrop-blur-sm transition-colors border border-white/10">
+                                        <button wire:click="deleteImage({{ $image->id }})" @click.stop
+                                            class="h-9 w-9 rounded-lg bg-black/40 hover:bg-red-500/80 backdrop-blur-sm text-white flex items-center justify-center transition-all border border-white/[0.1] active:scale-[0.95]">
                                             <i class="fa-solid fa-trash text-xs"></i>
                                         </button>
                                     </div>
@@ -395,19 +400,19 @@
 
                 @empty
                     @if(!$isGenerating)
-                        <div class="col-span-full py-16 sm:py-24 text-center"
+                        <div class="py-16 sm:py-24 text-center"
                             x-data="{ prompts: ['Một chú mèo dễ thương ngủ trên mây', 'Phong cảnh núi tuyết hoàng hôn', 'Logo công nghệ gradient xanh'] }">
-                            <div class="w-16 h-16 mx-auto rounded-2xl bg-white/5 flex items-center justify-center mb-4">
+                            <div class="w-16 h-16 mx-auto rounded-2xl bg-white/[0.05] border border-white/[0.08] flex items-center justify-center mb-4 shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]">
                                 <i class="fa-solid fa-image text-3xl text-white/20"></i>
                             </div>
-                            <h3 class="text-white font-medium text-lg mb-2">Chưa có hình ảnh nào</h3>
-                            <p class="text-white/40 text-sm max-w-sm mx-auto mb-6">
+                            <h3 class="text-white/95 font-medium text-lg mb-2">Chưa có hình ảnh nào</h3>
+                            <p class="text-white/50 text-sm max-w-sm mx-auto mb-6">
                                 Hãy thử tạo một hình ảnh mới bằng cách nhập mô tả vào khung chat bên dưới.
                             </p>
                             <div class="flex flex-wrap justify-center gap-2">
                                 <template x-for="p in prompts">
-                                    <button @click="$wire.set('prompt', p)" 
-                                        class="px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-xs text-white/60 hover:text-white transition-all border border-white/5 hover:border-white/10">
+                                    <button @click="$wire.set('prompt', p)"
+                                        class="h-9 px-4 rounded-lg bg-white/[0.05] hover:bg-white/[0.08] border border-white/[0.08] text-xs text-white/70 hover:text-white transition-all active:scale-[0.98]">
                                         <span x-text="p"></span>
                                     </button>
                                 </template>
@@ -415,18 +420,20 @@
                         </div>
                     @endif
                 @endforelse
-                
-                {{-- Pagination --}}
-                @if($history->hasMorePages())
-                    <div class="pt-4 text-center">
-                         <button wire:click="loadMore" class="text-xs text-white/40 hover:text-white transition-colors">
-                             Xem thêm cũ hơn
-                         </button>
+
+                {{-- Load More --}}
+                @if($history instanceof \Illuminate\Pagination\LengthAwarePaginator && $history->hasMorePages())
+                    <div class="py-4 text-center">
+                        <button wire:click="loadMore"
+                            class="h-10 px-6 rounded-lg bg-white/[0.05] hover:bg-white/[0.08] border border-white/[0.08] text-sm text-white/70 hover:text-white font-medium transition-all active:scale-[0.98]">
+                            <i class="fa-solid fa-angles-down mr-1.5 text-xs"></i>Xem thêm
+                        </button>
                     </div>
                 @endif
             </div>
         </div>
     </div>
+
     {{-- ============================================================ --}}
     <div class="fixed bottom-[60px] md:bottom-0 left-0 right-0 md:left-[72px] z-[60]"
         x-data="{
