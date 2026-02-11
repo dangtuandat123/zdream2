@@ -107,10 +107,14 @@
         else if (e.key === 'ArrowRight') this.nextImage();
         else if (e.key === 'Escape') this.closePreview();
     },
+    _initialLoad: true,
     init() {
-        this.$nextTick(() => {
-            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
-        });
+        if (this._initialLoad) {
+            this._initialLoad = false;
+            this.$nextTick(() => {
+                document.documentElement.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' });
+            });
+        }
     }
 }" @keydown.window="handleKeydown($event)" @if($isGenerating) wire:poll.3s="pollImageStatus" @endif>
 
@@ -126,7 +130,10 @@
 
     @php
         // 1. Grouping Logic
-        $groupedHistory = $history->getCollection()->groupBy(function($item) {
+        $historyCollection = ($history instanceof \Illuminate\Pagination\LengthAwarePaginator)
+            ? $history->getCollection()
+            : collect($history);
+        $groupedHistory = $historyCollection->groupBy(function($item) {
             return $item->final_prompt . '|' . 
                    ($item->generation_params['model_id'] ?? '') . '|' . 
                    ($item->generation_params['aspect_ratio'] ?? '');
@@ -149,8 +156,6 @@
     <div id="gallery-scroll">
         <div class="max-w-5xl mx-auto px-4 pt-4 sm:pt-6 pb-6">
 
-
-
             {{-- Error --}}
             @if($errorMessage)
                 <div x-data="{ show: true }" x-show="show" x-cloak
@@ -172,7 +177,7 @@
             @endif
 
             {{-- Filter Bar (Sticky) --}}
-            <div class="sticky top-0 z-20 -mx-4 px-4 py-3 bg-[#0e0f13]/90 backdrop-blur-xl border-b border-white/5" x-data="{ openFilter: null }">
+            <div class="sticky top-14 md:top-0 z-20 -mx-4 px-4 py-3 bg-[#0e0f13]/90 backdrop-blur-xl border-b border-white/5" x-data="{ openFilter: null }">
                 <div class="flex items-center gap-2 flex-wrap">
                     {{-- Date Filter --}}
                     <div class="relative">
@@ -289,11 +294,11 @@
             </div>
 
             {{-- Gallery Feed --}}
-            <div class="flex flex-col-reverse space-y-8 space-y-reverse pb-32" id="gallery-feed">
+            <div class="flex flex-col-reverse space-y-8 space-y-reverse pb-48" id="gallery-feed">
 
                 {{-- Loading Skeleton (Batch Style - Appears at Bottom) --}}
                 @if($isGenerating && !$generatedImageUrl)
-                    <div x-init="startLoading(); $nextTick(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }))"
+                    <div x-init="startLoading(); $nextTick(() => document.documentElement.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' }))"
                         x-effect="if (!@js($isGenerating)) stopLoading()"
                         class="group/batch animate-pulse">
                         {{-- Header --}}

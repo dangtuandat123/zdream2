@@ -106,17 +106,17 @@ class TextToImage extends Component
 
     public function updatedFilterDate(): void
     {
-        $this->resetPage();
+        $this->perPage = 12;
     }
 
     public function updatedFilterModel(): void
     {
-        $this->resetPage();
+        $this->perPage = 12;
     }
 
     public function updatedFilterRatio(): void
     {
-        $this->resetPage();
+        $this->perPage = 12;
     }
 
     public function resetFilters(): void
@@ -124,7 +124,7 @@ class TextToImage extends Component
         $this->filterDate = 'all';
         $this->filterModel = 'all';
         $this->filterRatio = 'all';
-        $this->resetPage();
+        $this->perPage = 12;
     }
 
     public function mount(?string $initialPrompt = null): void
