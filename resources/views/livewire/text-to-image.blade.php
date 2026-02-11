@@ -1,99 +1,4 @@
-<div class="relative min-h-screen pb-48 md:pb-32" @if($isGenerating) wire:poll.2s="pollImageStatus" @endif x-data='{
-    selectedRatio: @entangle('aspectRatio'),
-    selectedModel: @entangle('modelId'),
-    aspectRatios: @js($aspectRatios),
-    models: @js($availableModels),
-    // History data sync
-    historyData: @js($historyData ?? []),
-
-    // Image picker
-    showImagePicker: false,
-    selectedImages: [],
-    maxImages: 4,
-    recentImages: [],
-    isLoadingPicker: false,
-    urlInput: '',
-    activeTab: ' upload', isDragging: false, // Preview showPreview: false, previewImage: null, previewIndex: 0, //
-    Toast toastMessage: '' , toastType: 'success' , showToast: false, // Loading loadingMessages: ['Đang sáng
-    tạo...', 'Chút nữa thôi...' , 'Sắp xong rồi...' , 'AI đang vẽ...' ], currentLoadingMessage: 0, loadingInterval:
-    null, // Touch touchStartX: 0, touchStartY: 0, // Methods notify(msg, type='success' ) { this.toastMessage=msg;
-    this.toastType=type; this.showToast=true; setTimeout(()=> this.showToast = false, 2500);
-    },
-    getModelName() {
-    const m = Object.values(this.models).find(m => m.id === '{{ $modelId }}');
-    return m ? m.name : 'Model';
-    },
-    startLoading() {
-    this.currentLoadingMessage = 0;
-    this.loadingInterval = setInterval(() => {
-    this.currentLoadingMessage = (this.currentLoadingMessage + 1) % this.loadingMessages.length;
-    }, 2000);
-    },
-    stopLoading() {
-    if (this.loadingInterval) { clearInterval(this.loadingInterval); this.loadingInterval = null; }
-    },
-
-    // Preview
-    openPreview(image, index) {
-    this.previewIndex = index;
-    this.previewImage = this.historyData[index];
-    this.showPreview = true;
-    document.body.style.overflow = 'hidden';
-    },
-    closePreview() {
-    this.showPreview = false; document.body.style.overflow = '';
-    setTimeout(() => this.previewImage = null, 300);
-    },
-    nextImage() {
-    if (this.previewIndex < this.historyData.length - 1) { this.previewIndex++;
-        this.previewImage=this.historyData[this.previewIndex]; } }, prevImage() { if (this.previewIndex> 0) {
-        this.previewIndex--; this.previewImage = this.historyData[this.previewIndex];
-        }
-        },
-        goToImage(index) {
-        this.previewIndex = index; this.previewImage = this.historyData[index];
-        },
-        shareImage() {
-        if (navigator.share && this.previewImage) {
-        navigator.share({ title: 'AI Generated Image', text: this.previewImage.prompt, url: this.previewImage.url });
-        } else {
-        this.notify('Trình duyệt không hỗ trợ chia sẻ', 'error');
-        }
-        },
-        useAsReference() {
-        if(this.previewImage) {
-        this.selectedImages = [{ id: this.previewImage.id, url: this.previewImage.url }];
-        this.closePreview();
-        this.showImagePicker = false;
-        }
-        },
-        copyPrompt(text = null) {
-        const prompt = text || (this.previewImage ? this.previewImage.prompt : '');
-        if(prompt) {
-        navigator.clipboard.writeText(prompt);
-        this.notify('Đã copy prompt');
-        }
-        },
-
-        // Handlers
-        handleKeydown(e) {
-        if (!this.showPreview) return;
-        if (e.key === 'ArrowLeft') this.prevImage();
-        else if (e.key === 'ArrowRight') this.nextImage();
-        else if (e.key === 'Escape') this.closePreview();
-        },
-        _initialLoad: true,
-        init() {
-        if (this._initialLoad) {
-        this._initialLoad = false;
-        this.$nextTick(() => {
-        setTimeout(() => {
-        document.documentElement.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'instant' });
-        }, 100);
-        });
-        }
-        }
-        }' @keydown.window="handleKeydown($event)">
+<div class="relative min-h-screen pb-48 md:pb-32" @if($isGenerating) wire:poll.2s="pollImageStatus" @endif x-data="textToImage" @keydown.window="handleKeydown($event)">
 
         {{-- Toast --}}
         <div x-show="showToast" x-cloak x-transition:enter="transition ease-out duration-300"
@@ -137,8 +42,7 @@
                     <div class="flex items-center gap-2 flex-wrap">
                         {{-- Date Filter --}}
                         <div class="relative">
-                            <button @click="openFilter = openFilter === 'date' ? null : 'date'"
-                                class="inline-flex items-center gap-1.5 h-9 px-3.5 rounded-lg text-sm font-medium transition-all duration-200 active:scale-[0.98]
+                            <button @click="openFilter = openFilter === 'date' ? null : 'date'" class="inline-flex items-center gap-1.5 h-9 px-3.5 rounded-lg text-sm font-medium transition-all duration-200 active:scale-[0.98]
                                 {{ $filterDate !== 'all'
     ? 'bg-purple-500/20 border border-purple-500/40 text-purple-300'
     : 'bg-white/[0.05] border border-white/[0.08] text-white/70 hover:bg-white/[0.08] hover:text-white/90' }}">
@@ -155,7 +59,7 @@
                                 @foreach(['all' => 'Tất cả', 'week' => 'Tuần qua', 'month' => 'Tháng qua', '3months' => '3 tháng qua'] as $val => $lbl)
                                     <button wire:click="$set('filterDate', '{{ $val }}')" @click="openFilter = null"
                                         class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm transition-colors duration-150
-                                            {{ $filterDate === $val ? 'text-white/95 bg-white/[0.06]' : 'text-white/70 hover:bg-white/[0.06] hover:text-white' }}">
+                                                {{ $filterDate === $val ? 'text-white/95 bg-white/[0.06]' : 'text-white/70 hover:bg-white/[0.06] hover:text-white' }}">
                                         <span>{{ $lbl }}</span>
                                         @if($filterDate === $val)
                                             <i class="fa-solid fa-check text-purple-400 text-xs"></i>
@@ -167,8 +71,7 @@
 
                         {{-- Model Filter --}}
                         <div class="relative">
-                            <button @click="openFilter = openFilter === 'model' ? null : 'model'"
-                                class="inline-flex items-center gap-1.5 h-9 px-3.5 rounded-lg text-sm font-medium transition-all duration-200 active:scale-[0.98]
+                            <button @click="openFilter = openFilter === 'model' ? null : 'model'" class="inline-flex items-center gap-1.5 h-9 px-3.5 rounded-lg text-sm font-medium transition-all duration-200 active:scale-[0.98]
                                 {{ $filterModel !== 'all'
     ? 'bg-purple-500/20 border border-purple-500/40 text-purple-300'
     : 'bg-white/[0.05] border border-white/[0.08] text-white/70 hover:bg-white/[0.08] hover:text-white/90' }}">
@@ -196,7 +99,7 @@
                                     <button wire:click="$set('filterModel', '{{ $model['id'] }}')"
                                         @click="openFilter = null"
                                         class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm transition-colors duration-150
-                                            {{ $filterModel === $model['id'] ? 'text-white/95 bg-white/[0.06]' : 'text-white/70 hover:bg-white/[0.06] hover:text-white' }}">
+                                                {{ $filterModel === $model['id'] ? 'text-white/95 bg-white/[0.06]' : 'text-white/70 hover:bg-white/[0.06] hover:text-white' }}">
                                         <span>{{ $model['name'] }}</span>
                                         @if($filterModel === $model['id'])
                                             <i class="fa-solid fa-check text-purple-400 text-xs"></i>
@@ -208,8 +111,7 @@
 
                         {{-- Ratio Filter --}}
                         <div class="relative">
-                            <button @click="openFilter = openFilter === 'ratio' ? null : 'ratio'"
-                                class="inline-flex items-center gap-1.5 h-9 px-3.5 rounded-lg text-sm font-medium transition-all duration-200 active:scale-[0.98]
+                            <button @click="openFilter = openFilter === 'ratio' ? null : 'ratio'" class="inline-flex items-center gap-1.5 h-9 px-3.5 rounded-lg text-sm font-medium transition-all duration-200 active:scale-[0.98]
                                 {{ $filterRatio !== 'all'
     ? 'bg-purple-500/20 border border-purple-500/40 text-purple-300'
     : 'bg-white/[0.05] border border-white/[0.08] text-white/70 hover:bg-white/[0.08] hover:text-white/90' }}">
@@ -226,7 +128,7 @@
                                 @foreach(['all' => 'Tất cả', '1:1' => '1:1', '16:9' => '16:9', '9:16' => '9:16', '4:3' => '4:3', '3:4' => '3:4', '3:2' => '3:2', '2:3' => '2:3', '21:9' => '21:9'] as $val => $lbl)
                                     <button wire:click="$set('filterRatio', '{{ $val }}')" @click="openFilter = null"
                                         class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm transition-colors duration-150
-                                            {{ $filterRatio === $val ? 'text-white/95 bg-white/[0.06]' : 'text-white/70 hover:bg-white/[0.06] hover:text-white' }}">
+                                                {{ $filterRatio === $val ? 'text-white/95 bg-white/[0.06]' : 'text-white/70 hover:bg-white/[0.06] hover:text-white' }}">
                                         <span>{{ $lbl }}</span>
                                         @if($filterRatio === $val)
                                             <i class="fa-solid fa-check text-purple-400 text-xs"></i>
@@ -421,10 +323,10 @@
                     {{-- Loading Skeleton (bottom, like chatbot) --}}
                     @if($isGenerating && !$generatedImageUrl)
                         <div x-data="{ elapsed: 0, timer: null }" x-init="
-                                startLoading();
-                                timer = setInterval(() => elapsed++, 1000);
-                                $nextTick(() => setTimeout(() => document.documentElement.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' }), 100));
-                             " x-effect="if (!@js($isGenerating)) { stopLoading(); clearInterval(timer); }"
+                                    startLoading();
+                                    timer = setInterval(() => elapsed++, 1000);
+                                    $nextTick(() => setTimeout(() => document.documentElement.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' }), 100));
+                                 " x-effect="if (!@js($isGenerating)) { stopLoading(); clearInterval(timer); }"
                             x-on:remove="clearInterval(timer)">
                             <div
                                 class="bg-white/[0.03] backdrop-blur-[12px] border border-white/[0.08] rounded-xl overflow-hidden shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]">
