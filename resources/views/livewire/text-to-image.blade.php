@@ -108,7 +108,9 @@
         else if (e.key === 'Escape') this.closePreview();
     },
     init() {
-        // Init logic if needed
+        this.$nextTick(() => {
+            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+        });
     }
 }" @keydown.window="handleKeydown($event)" @if($isGenerating) wire:poll.3s="pollImageStatus" @endif>
 
@@ -188,11 +190,11 @@
             @endif
 
             {{-- Gallery Feed --}}
-            <div class="space-y-8 pb-32" id="gallery-feed">
+            <div class="flex flex-col-reverse space-y-8 space-y-reverse pb-32" id="gallery-feed">
 
-                {{-- Loading Skeleton (Batch Style) --}}
+                {{-- Loading Skeleton (Batch Style - Appears at Bottom) --}}
                 @if($isGenerating && !$generatedImageUrl)
-                    <div x-init="startLoading(); $nextTick(() => document.getElementById('gallery-scroll')?.scrollTo({top:0,behavior:'smooth'}))"
+                    <div x-init="startLoading(); $nextTick(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }))"
                         x-effect="if (!@js($isGenerating)) stopLoading()"
                         class="group/batch animate-pulse">
                         {{-- Header --}}
