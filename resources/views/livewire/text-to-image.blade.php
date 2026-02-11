@@ -1,4 +1,6 @@
 <div class="relative min-h-screen pb-48 md:pb-32" x-data="{
+    selectedRatio: @entangle('aspectRatio'),
+    selectedModel: @entangle('modelId'),
     aspectRatios: @js($aspectRatios),
     models: @js($availableModels),
     historyData: @js($historyData),
@@ -210,41 +212,31 @@
                         </button>
                     @endif
                     <button @click="show = false"
-                        class="shrink-0 w-7 h-7 rounded-lg hover:bg-white/10 flex items-center justify-center"><i
-                            class="fa-solid fa-xmark text-xs"></i></button>
+                        class="shrink-0 px-3 py-1 rounded-lg bg-white/10 hover:bg-white/15 text-xs font-medium transition-colors">
+                        <i class="fa-solid fa-xmark mr-1"></i>Đóng
+                    </button>
                 </div>
             @endif
 
-            {{-- Gallery --}}
-            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-3" id="gallery-grid">
+            {{-- Gallery Feed --}}
+            <div class="space-y-8 pb-32" id="gallery-feed">
 
                 {{-- Loading Skeleton --}}
                 @if($isGenerating && !$generatedImageUrl)
                     <div x-init="startLoading(); $nextTick(() => document.getElementById('gallery-scroll')?.scrollTo({top:0,behavior:'smooth'}))"
                         x-effect="if (!@js($isGenerating)) stopLoading()"
-                        class="col-span-2 sm:col-span-1 aspect-[4/5] rounded-xl bg-[#16171c] border border-purple-500/30 overflow-hidden relative">
-                        <div
-                            class="absolute inset-0 bg-gradient-to-r from-transparent via-purple-500/10 to-transparent animate-shimmer">
-                        </div>
-                        <div
-                            class="absolute inset-0 bg-gradient-to-br from-purple-600/15 via-transparent to-pink-600/15 animate-pulse">
-                        </div>
-                        <div class="absolute inset-0 flex flex-col items-center justify-center gap-3">
-                            <div class="relative">
-                                <div class="w-12 h-12 rounded-full border-[3px] border-purple-500/20"></div>
-                                <div
-                                    class="absolute inset-0 w-12 h-12 rounded-full border-[3px] border-transparent border-t-purple-500 border-r-pink-500 animate-spin">
-                                </div>
+                        class="bg-[#131419] rounded-2xl border border-white/5 overflow-hidden animate-pulse">
+                        <div class="p-4 border-b border-white/5 space-y-3">
+                            <div class="h-4 bg-white/10 rounded w-3/4"></div>
+                            <div class="flex gap-2">
+                                <div class="h-6 w-20 bg-white/5 rounded"></div>
+                                <div class="h-6 w-20 bg-white/5 rounded"></div>
                             </div>
-                            <span class="text-sm text-white/60 font-medium"
-                                x-text="loadingMessages[currentLoadingMessage]"></span>
-                            <div class="flex gap-1">
-                                <span class="w-1.5 h-1.5 rounded-full bg-purple-500 animate-bounce"
-                                    style="animation-delay:0ms"></span>
-                                <span class="w-1.5 h-1.5 rounded-full bg-purple-400 animate-bounce"
-                                    style="animation-delay:150ms"></span>
-                                <span class="w-1.5 h-1.5 rounded-full bg-pink-500 animate-bounce"
-                                    style="animation-delay:300ms"></span>
+                        </div>
+                        <div class="aspect-square bg-white/5 relative flex items-center justify-center">
+                            <div class="text-center">
+                                <div class="inline-block w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full animate-spin mb-2"></div>
+                                <p class="text-white/40 text-xs" x-text="loadingMessages[currentLoadingMessage]"></p>
                             </div>
                         </div>
                     </div>
@@ -252,62 +244,115 @@
 
                 {{-- Gallery Items --}}
                 @forelse($history as $index => $image)
-                    <div @click="openPreview(historyData[{{ $index }}], {{ $index }})"
-                        class="group relative aspect-[4/5] rounded-xl bg-[#16171c] border border-white/[0.06] overflow-hidden cursor-pointer transition-all duration-300 hover:border-white/15 hover:shadow-lg hover:shadow-black/30 active:scale-[0.98]">
-                        <img src="{{ $image->image_url }}" alt="{{ Str::limit($image->final_prompt ?? 'AI Image', 50) }}"
-                            class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
-                            loading="lazy">
+                    <div class="group relative bg-[#131419] rounded-2xl border border-white/5 overflow-hidden hover:border-white/10 transition-colors">
+                        {{-- 1. Header: Prompt + Meta --}}
+                        <div class="p-4 border-b border-white/5 bg-[#16171c]/50">
+                            <div class="flex items-start justify-between gap-4">
+                                <div>
+                                    <p class="text-white text-sm sm:text-base leading-relaxed break-words font-medium text-white/90">
+                                        {{ $image->final_prompt }}
+                                    </p>
+                                    <div class="flex flex-wrap items-center gap-2 mt-3">
+                                        {{-- Model Badge --}}
+                                        @php
+                                            $modelId = $image->generation_params['model_id'] ?? null;
+                                            $modelName = $modelId;
+                                            if ($modelId) {
+                                                $model = collect($availableModels)->firstWhere('id', $modelId);
+                                                $modelName = $model['name'] ?? $modelId;
+                                            }
+                                        @endphp
+                                        <span class="inline-flex items-center gap-1.5 px-2 py-1 rounded-md bg-white/5 text-[10px] sm:text-xs text-white/50 border border-white/5 font-medium">
+                                            <i class="fa-solid fa-microchip text-[9px]"></i>
+                                            {{ $modelName }}
+                                        </span>
+                                        
+                                        {{-- Ratio Badge --}}
+                                        @if(isset($image->generation_params['aspect_ratio']))
+                                            <span class="inline-flex items-center gap-1.5 px-2 py-1 rounded-md bg-white/5 text-[10px] sm:text-xs text-white/50 border border-white/5 font-medium">
+                                                <i class="fa-solid fa-crop text-[9px]"></i>
+                                                {{ $image->generation_params['aspect_ratio'] }}
+                                            </span>
+                                        @endif
 
-                        {{-- Hover overlay desktop --}}
-                        <div
-                            class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300 hidden sm:flex flex-col justify-end p-3">
-                            <p class="text-[10px] text-white/70 line-clamp-2 italic mb-2">
-                                "{{ Str::limit($image->final_prompt, 80) }}"</p>
-                            <div class="flex items-center gap-1.5">
-                                <button @click.stop="openPreview(historyData[{{ $index }}], {{ $index }})"
-                                    class="w-8 h-8 rounded-lg bg-white/20 backdrop-blur-sm hover:bg-white/40 text-white flex items-center justify-center transition-all text-xs"><i
-                                        class="fa-solid fa-expand"></i></button>
-                                <a href="{{ $image->image_url }}" download @click.stop
-                                    class="w-8 h-8 rounded-lg bg-white/20 backdrop-blur-sm hover:bg-white/40 text-white flex items-center justify-center transition-all text-xs"><i
-                                        class="fa-solid fa-download"></i></a>
-                                <button
-                                    @click.stop="if(!selectedImages.find(i=>i.url==='{{ $image->image_url }}')){ selectedImages.push({type:'url',url:'{{ $image->image_url }}',id:Date.now()}); notify('Đã thêm mẫu'); }"
-                                    class="w-8 h-8 rounded-lg bg-white/20 backdrop-blur-sm hover:bg-white/40 text-white flex items-center justify-center transition-all text-xs"><i
-                                        class="fa-solid fa-images"></i></button>
+                                        {{-- Time --}}
+                                        <span class="text-[10px] text-white/30 ml-auto flex items-center gap-1">
+                                            <i class="fa-regular fa-clock"></i>
+                                            {{ $image->created_at->diffForHumans() }}
+                                        </span>
+                                    </div>
+                                </div>
+                                
+                                {{-- Simple Actions Dropdown --}}
+                                <div class="relative shrink-0" x-data="{ open: false }">
+                                    <button @click="open = !open" @click.away="open = false" 
+                                        class="w-8 h-8 rounded-lg hover:bg-white/10 flex items-center justify-center text-white/40 hover:text-white transition-colors">
+                                        <i class="fa-solid fa-ellipsis"></i>
+                                    </button>
+                                    <div x-show="open" x-cloak 
+                                        x-transition:enter="transition ease-out duration-100"
+                                        x-transition:enter-start="opacity-0 scale-95"
+                                        x-transition:enter-end="opacity-100 scale-100"
+                                        class="absolute right-0 top-full mt-1 w-48 bg-[#1a1b20] border border-white/10 rounded-xl shadow-xl z-10 py-1">
+                                        <button wire:click="deleteImage({{ $image->id }})" 
+                                            class="w-full text-left px-4 py-2.5 text-xs text-red-400 hover:bg-white/5 flex items-center gap-2">
+                                            <i class="fa-solid fa-trash"></i> Xóa ảnh
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
-                        {{-- Mobile tap hint --}}
-                        <div
-                            class="absolute top-2 right-2 w-6 h-6 rounded-full bg-black/30 backdrop-blur-sm flex items-center justify-center sm:hidden">
-                            <i class="fa-solid fa-expand text-white/50 text-[9px]"></i>
+                        {{-- 2. Image Area --}}
+                        <div class="relative bg-black/40 min-h-[200px] flex items-center justify-center p-0.5 sm:p-2">
+                            <div class="relative group/image max-w-full overflow-hidden rounded-lg cursor-zoom-in"
+                                @click="openPreview(historyData[{{ $index }}], {{ $index }})">
+                                <img src="{{ $image->image_url }}" 
+                                    alt="{{ Str::limit($image->final_prompt, 50) }}"
+                                    class="max-w-full max-h-[600px] object-contain shadow-lg"
+                                    loading="lazy">
+                                    
+                                {{-- Hover Actions Overlay --}}
+                                <div class="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover/image:opacity-100 transition-opacity flex justify-end gap-2">
+                                    <a href="{{ $image->image_url }}" download @click.stop 
+                                        class="w-9 h-9 rounded-lg bg-white/10 backdrop-blur hover:bg-white/20 text-white flex items-center justify-center transition-all border border-white/10"
+                                        title="Tải về">
+                                        <i class="fa-solid fa-download text-xs"></i>
+                                    </a>
+                                </div>
+                            </div>
                         </div>
 
-                        {{-- Metadata badge --}}
-                        <div class="absolute bottom-0 inset-x-0 p-2 sm:group-hover:opacity-0 transition-opacity">
-                            <div class="flex items-center gap-1 text-[9px] text-white/40">
-                                @if(isset($image->generation_params['model_id']))
-                                    <span
-                                        class="px-1.5 py-0.5 rounded bg-black/40 backdrop-blur-sm">{{ Str::limit($image->generation_params['model_id'], 15) }}</span>
-                                @endif
-                            </div>
+                        {{-- 3. Footer Action Bar --}}
+                        <div class="px-4 py-3 bg-[#16171c]/50 border-t border-white/5 flex items-center gap-2 sm:gap-3 overflow-x-auto no-scrollbar">
+                            <button wire:click="copyPrompt({{ $image->id }})"
+                                class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/5 hover:border-white/10 text-xs text-white/70 transition-all whitespace-nowrap">
+                                <i class="fa-regular fa-copy"></i>
+                                <span>Copy Prompt</span>
+                            </button>
+                            
+                            <button wire:click="reusePrompt({{ $image->id }})"
+                                class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/5 hover:border-white/10 text-xs text-white/70 transition-all whitespace-nowrap">
+                                <i class="fa-solid fa-sliders"></i>
+                                <span>Dùng lại Settings</span>
+                            </button>
                         </div>
                     </div>
                 @empty
                     @if(!$isGenerating)
                         <div class="col-span-full py-16 sm:py-24 text-center"
                             x-data="{ prompts: ['Một chú mèo dễ thương ngủ trên mây', 'Phong cảnh núi tuyết hoàng hôn', 'Logo công nghệ gradient xanh'] }">
-                            <div
-                                class="w-16 h-16 mx-auto mb-5 rounded-2xl bg-gradient-to-br from-purple-500/10 to-pink-500/10 border border-white/[0.06] flex items-center justify-center">
-                                <i class="fa-solid fa-wand-magic-sparkles text-purple-400/50 text-xl"></i>
+                            <div class="w-16 h-16 mx-auto rounded-2xl bg-white/5 flex items-center justify-center mb-4">
+                                <i class="fa-solid fa-image text-3xl text-white/20"></i>
                             </div>
-                            <h3 class="text-white/70 font-semibold text-base mb-1.5">Bắt đầu sáng tạo</h3>
-                            <p class="text-white/25 text-sm mb-6 max-w-xs mx-auto">Nhập mô tả ở ô phía dưới và nhấn nút gửi</p>
-                            <div class="flex flex-wrap justify-center gap-2 max-w-md mx-auto">
-                                <template x-for="(p, i) in prompts" :key="i">
-                                    <button @click="$wire.set('prompt', p); $nextTick(() => $refs.promptInput?.focus())"
-                                        class="px-3 py-1.5 rounded-lg bg-white/[0.04] border border-white/[0.06] text-white/35 text-xs hover:text-white/70 hover:bg-purple-500/10 hover:border-purple-500/20 transition-all active:scale-95">
-                                        <i class="fa-solid fa-sparkles text-purple-400/30 mr-1 text-[9px]"></i>
+                            <h3 class="text-white font-medium text-lg mb-2">Chưa có hình ảnh nào</h3>
+                            <p class="text-white/40 text-sm max-w-sm mx-auto mb-6">
+                                Hãy thử tạo một hình ảnh mới bằng cách nhập mô tả vào khung chat bên dưới.
+                            </p>
+                            <div class="flex flex-wrap justify-center gap-2">
+                                <template x-for="p in prompts">
+                                    <button @click="$wire.set('prompt', p)" 
+                                        class="px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-xs text-white/60 hover:text-white transition-all border border-white/5 hover:border-white/10">
                                         <span x-text="p"></span>
                                     </button>
                                 </template>
@@ -315,20 +360,16 @@
                         </div>
                     @endif
                 @endforelse
+                
+                {{-- Pagination --}}
+                @if($history->hasMorePages())
+                    <div class="pt-4 text-center">
+                         <button wire:click="loadMore" class="text-xs text-white/40 hover:text-white transition-colors">
+                             Xem thêm cũ hơn
+                         </button>
+                    </div>
+                @endif
             </div>
-
-            {{-- Load More --}}
-            @if(method_exists($history, 'hasMorePages') && $history->hasMorePages())
-                <div class="mt-6 text-center">
-                    <button wire:click="loadMore"
-                        class="px-6 py-2.5 rounded-xl bg-white/[0.04] border border-white/[0.08] text-sm text-white/40 hover:text-white/70 hover:bg-white/[0.08] transition-all font-medium disabled:opacity-50"
-                        wire:loading.attr="disabled">
-                        <span wire:loading.remove wire:target="loadMore">Tải thêm</span>
-                        <span wire:loading wire:target="loadMore"><i class="fa-solid fa-spinner fa-spin mr-1"></i>Đang
-                            tải...</span>
-                    </button>
-                </div>
-            @endif
         </div>
     </div>
 
@@ -339,32 +380,30 @@
         x-data="{
             showRatioDropdown: false,
             showModelDropdown: false,
-            selectedRatio: '{{ $aspectRatio }}',
-            selectedModel: '{{ $modelId }}',
+            selectedRatio: @entangle('aspectRatio'),
+            selectedModel: @entangle('modelId'),
             customWidth: 1024,
             customHeight: 1024,
             linkDimensions: true,
             ratios: [
                 { id: 'auto', label: 'Auto', icon: 'fa-expand' },
-                { id: '21:9', label: '21:9', icon: null },
-                { id: '16:9', label: '16:9', icon: null },
-                { id: '3:2', label: '3:2', icon: null },
-                { id: '4:3', label: '4:3', icon: null },
                 { id: '1:1', label: '1:1', icon: null },
+                { id: '16:9', label: '16:9', icon: null },
+                { id: '9:16', label: '9:16', icon: null },
+                { id: '4:3', label: '4:3', icon: null },
                 { id: '3:4', label: '3:4', icon: null },
+                { id: '3:2', label: '3:2', icon: null },
                 { id: '2:3', label: '2:3', icon: null },
-                { id: '9:16', label: '9:16', icon: null }
+                { id: '21:9', label: '21:9', icon: null }
             ],
             models: [
-                { id: 'flux-2-max', name: 'FLUX.2 Max', desc: 'Cao cấp nhất', icon: '👑' },
-                { id: 'flux-2-pro', name: 'FLUX.2 Pro', desc: 'Chất lượng cao', icon: '⭐' },
-                { id: 'flux-pro-1.1-ultra', name: 'FLUX 1.1 Ultra', desc: 'Siêu nhanh', icon: '⚡' },
-                { id: 'flux-pro-1.1', name: 'FLUX 1.1 Pro', desc: 'Cân bằng', icon: '🎯' },
-                { id: 'flux-dev', name: 'FLUX Dev', desc: 'Thử nghiệm', icon: '🔬' }
+                { id: 'flux-pro-1.1-ultra', name: 'FLUX 1.1 Ultra', desc: 'Siêu nhanh & Chân thực', icon: '⚡' },
+                { id: 'flux-pro-1.1', name: 'FLUX 1.1 Pro', desc: 'Chất lượng cao', icon: '💎' },
+                { id: 'flux-dev', name: 'FLUX Dev', desc: 'Dành cho Developer', icon: '🛠️' },
+                { id: 'flux-schnell', name: 'FLUX Schnell', desc: 'Tốc độ cao', icon: '🚀' }
             ],
             selectRatio(id) {
                 this.selectedRatio = id;
-                $wire.set('aspectRatio', id);
                 if (id !== 'auto') {
                     const [w, h] = id.split(':').map(Number);
                     const baseSize = 1024;
@@ -377,11 +416,10 @@
             },
             selectModel(id) {
                 this.selectedModel = id;
-                $wire.set('modelId', id);
                 this.showModelDropdown = false;
             },
             getSelectedModel() {
-                return this.models.find(m => m.id === this.selectedModel) || this.models[2];
+                return this.models.find(m => m.id === this.selectedModel) || this.models[0];
             },
             updateWidth(newWidth) {
                 this.customWidth = newWidth;
@@ -423,7 +461,7 @@
                         <div class="flex items-center gap-2"
                             @click.away="showRatioDropdown = false; showModelDropdown = false">
 
-                            {{-- Image Reference Picker --}}
+                            {{-- Image Picker Trigger --}}
                             <div class="relative">
                                 <button type="button"
                                     @click="showImagePicker = !showImagePicker; if(showImagePicker) loadRecentImages()"
@@ -466,7 +504,7 @@
                                         :class="{ 'rotate-180': showRatioDropdown }"></i>
                                 </button>
 
-                                {{-- Ratio Dropdown - Desktop (opens upward) --}}
+                                {{-- Ratio Dropdown - Desktop --}}
                                 <template x-teleport="body">
                                     <div x-show="showRatioDropdown" x-cloak
                                         x-transition:enter="transition ease-out duration-200"
@@ -507,35 +545,6 @@
                                                 </button>
                                             </template>
                                         </div>
-
-                                        {{-- Size Section --}}
-                                        <div class="mt-3 pt-3 border-t border-white/10">
-                                            <div class="text-white/50 text-xs font-medium mb-2">Kích thước</div>
-                                            <div class="flex items-center gap-2">
-                                                <div
-                                                    class="flex-1 flex items-center gap-1.5 px-2.5 py-2 rounded-lg bg-white/5 border border-white/10">
-                                                    <span class="text-white/40 text-xs font-medium">W</span>
-                                                    <input type="number" x-model="customWidth"
-                                                        @input="updateWidth($event.target.value)"
-                                                        class="w-full bg-transparent border-none outline-none ring-0 focus:ring-0 focus:outline-none text-white text-sm font-medium text-center"
-                                                        placeholder="1024" min="512" max="4096" step="64">
-                                                </div>
-                                                <button type="button" @click="linkDimensions = !linkDimensions"
-                                                    class="w-8 h-8 flex items-center justify-center rounded-lg transition-all"
-                                                    :class="linkDimensions ? 'bg-purple-500/30 text-purple-400' : 'bg-white/5 text-white/40 hover:bg-white/10'">
-                                                    <i class="fa-solid fa-link text-xs"></i>
-                                                </button>
-                                                <div
-                                                    class="flex-1 flex items-center gap-1.5 px-2.5 py-2 rounded-lg bg-white/5 border border-white/10">
-                                                    <span class="text-white/40 text-xs font-medium">H</span>
-                                                    <input type="number" x-model="customHeight"
-                                                        @input="updateHeight($event.target.value)"
-                                                        class="w-full bg-transparent border-none outline-none ring-0 focus:ring-0 focus:outline-none text-white text-sm font-medium text-center"
-                                                        placeholder="1024" min="512" max="4096" step="64">
-                                                </div>
-                                                <span class="text-white/40 text-xs font-medium">PX</span>
-                                            </div>
-                                        </div>
                                     </div>
                                 </template>
 
@@ -548,9 +557,6 @@
                                             x-transition:enter="transition ease-out duration-300"
                                             x-transition:enter-start="translate-y-full"
                                             x-transition:enter-end="translate-y-0"
-                                            x-transition:leave="transition ease-in duration-200"
-                                            x-transition:leave-start="translate-y-0"
-                                            x-transition:leave-end="translate-y-full"
                                             class="w-full max-w-lg bg-[#1a1b20] border-t border-white/10 rounded-t-3xl flex flex-col max-h-[85vh] shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
                                             <div class="flex items-center justify-between p-4 border-b border-white/5 shrink-0">
                                                 <span class="text-white font-semibold text-base">Tùy chỉnh khung hình</span>
@@ -559,8 +565,7 @@
                                                     <i class="fa-solid fa-xmark"></i>
                                                 </button>
                                             </div>
-                                            <div class="p-4 overflow-y-auto overscroll-contain">
-                                                <div class="text-white/50 text-sm font-medium mb-3">Tỉ lệ</div>
+                                            <div class="p-4 overflow-y-auto">
                                                 <div class="grid grid-cols-4 gap-2 mb-6">
                                                     <template x-for="ratio in ratios" :key="ratio.id">
                                                         <button type="button" @click="selectRatio(ratio.id)"
@@ -568,8 +573,7 @@
                                                             :class="selectedRatio === ratio.id ? 'bg-purple-500/30 border border-purple-500/50' : 'bg-white/5 active:bg-white/10 border border-transparent'">
                                                             <div class="w-8 h-8 flex items-center justify-center">
                                                                 <template x-if="ratio.icon">
-                                                                    <i :class="'fa-solid ' + ratio.icon"
-                                                                        class="text-white/60 text-lg"></i>
+                                                                    <i :class="'fa-solid ' + ratio.icon" class="text-white/60 text-lg"></i>
                                                                 </template>
                                                                 <template x-if="!ratio.icon">
                                                                     <div class="border-2 border-white/40 rounded-sm"
@@ -579,41 +583,10 @@
                                                                         }"></div>
                                                                 </template>
                                                             </div>
-                                                            <span class="text-white/70 text-xs font-medium"
-                                                                x-text="ratio.label"></span>
+                                                            <span class="text-white/70 text-xs font-medium" x-text="ratio.label"></span>
                                                         </button>
                                                     </template>
                                                 </div>
-                                                <div class="pt-4 border-t border-white/10">
-                                                    <div class="text-white/50 text-sm font-medium mb-3">Kích thước tùy chỉnh (PX)</div>
-                                                    <div class="flex items-center gap-3">
-                                                        <div class="flex-1 flex items-center gap-2 px-3 py-3 rounded-xl bg-white/5 border border-white/10 focus-within:border-purple-500/50 transition-colors">
-                                                            <span class="text-white/40 text-sm font-semibold">W</span>
-                                                            <input type="number" x-model="customWidth"
-                                                                @input="updateWidth($event.target.value)"
-                                                                class="w-full bg-transparent border-none outline-none ring-0 focus:ring-0 focus:outline-none text-white text-lg font-medium text-center"
-                                                                placeholder="1024" min="512" max="4096" step="64">
-                                                        </div>
-                                                        <button type="button" @click="linkDimensions = !linkDimensions"
-                                                            class="w-12 h-12 flex items-center justify-center rounded-xl transition-all shrink-0"
-                                                            :class="linkDimensions ? 'bg-purple-500/30 text-purple-400' : 'bg-white/5 text-white/40'">
-                                                            <i class="fa-solid fa-link text-lg"></i>
-                                                        </button>
-                                                        <div class="flex-1 flex items-center gap-2 px-3 py-3 rounded-xl bg-white/5 border border-white/10 focus-within:border-purple-500/50 transition-colors">
-                                                            <span class="text-white/40 text-sm font-semibold">H</span>
-                                                            <input type="number" x-model="customHeight"
-                                                                @input="updateHeight($event.target.value)"
-                                                                class="w-full bg-transparent border-none outline-none ring-0 focus:ring-0 focus:outline-none text-white text-lg font-medium text-center"
-                                                                placeholder="1024" min="512" max="4096" step="64">
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="p-4 border-t border-white/5 bg-[#1a1b20] safe-area-bottom shrink-0">
-                                                <button type="button" @click="showRatioDropdown = false"
-                                                    class="w-full py-3.5 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold text-center active:scale-[0.98] transition-transform shadow-lg shadow-purple-900/20">
-                                                    Áp dụng & Đóng
-                                                </button>
                                             </div>
                                         </div>
                                     </div>
@@ -632,7 +605,7 @@
                                         :class="{ 'rotate-180': showModelDropdown }"></i>
                                 </button>
 
-                                {{-- Model Dropdown - Desktop (opens upward) --}}
+                                {{-- Model Dropdown - Desktop --}}
                                 <template x-teleport="body">
                                     <div x-show="showModelDropdown" x-cloak
                                         x-transition:enter="transition ease-out duration-200"
@@ -677,9 +650,6 @@
                                             x-transition:enter="transition ease-out duration-300"
                                             x-transition:enter-start="translate-y-full"
                                             x-transition:enter-end="translate-y-0"
-                                            x-transition:leave="transition ease-in duration-200"
-                                            x-transition:leave-start="translate-y-0"
-                                            x-transition:leave-end="translate-y-full"
                                             class="w-full max-w-lg bg-[#1a1b20] border-t border-white/10 rounded-t-3xl flex flex-col max-h-[85vh] shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
                                             <div class="flex items-center justify-between p-4 border-b border-white/5 shrink-0">
                                                 <span class="text-white font-semibold text-base">Chọn Model AI</span>
@@ -688,8 +658,7 @@
                                                     <i class="fa-solid fa-xmark"></i>
                                                 </button>
                                             </div>
-                                            <div class="p-4 overflow-y-auto overscroll-contain">
-                                                <div class="text-white/50 text-sm font-medium mb-3">Danh sách Model</div>
+                                            <div class="p-4 overflow-y-auto">
                                                 <div class="space-y-1">
                                                     <template x-for="model in models" :key="model.id">
                                                         <button type="button" @click="selectModel(model.id)"
@@ -709,12 +678,6 @@
                                                     </template>
                                                 </div>
                                             </div>
-                                            <div class="p-4 border-t border-white/5 bg-[#1a1b20] safe-area-bottom shrink-0">
-                                                <button type="button" @click="showModelDropdown = false"
-                                                    class="w-full py-3.5 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold text-center active:scale-[0.98] transition-transform shadow-lg shadow-purple-900/20">
-                                                    Xác nhận lựa chọn
-                                                </button>
-                                            </div>
                                         </div>
                                     </div>
                                 </template>
@@ -732,8 +695,8 @@
                             <button type="button" wire:click="generate"
                                 class="shrink-0 flex items-center gap-2 px-4 sm:px-6 py-2.5 rounded-xl bg-gradient-to-r from-purple-500 via-fuchsia-500 to-pink-500 text-white font-semibold text-sm hover:scale-[1.02] hover:shadow-lg hover:shadow-purple-500/30 active:scale-[0.98] transition-all duration-200"
                                 wire:loading.attr="disabled" wire:target="generate">
-                                <i class="fa-solid fa-wand-magic-sparkles text-sm" wire:loading.remove wire:target="generate"></i>
-                                <i class="fa-solid fa-spinner fa-spin text-sm" wire:loading wire:target="generate"></i>
+                                <span wire:loading.remove wire:target="generate"><i class="fa-solid fa-wand-magic-sparkles text-sm"></i></span>
+                                <span wire:loading wire:target="generate"><i class="fa-solid fa-spinner fa-spin text-sm"></i></span>
                                 <span>Tạo ảnh</span>
                             </button>
                         @endif

@@ -434,6 +434,32 @@ class TextToImage extends Component
         $this->referenceImages = array_slice($images, 0, 4); // Max 4 images
     }
 
+    public function copyPrompt(int $id): void
+    {
+        $image = GeneratedImage::find($id);
+        if ($image && $image->user_id === Auth::id()) {
+            $this->prompt = $image->final_prompt;
+        }
+    }
+
+    public function reusePrompt(int $id): void
+    {
+        $image = GeneratedImage::find($id);
+        if ($image && $image->user_id === Auth::id()) {
+            $this->prompt = $image->final_prompt;
+            $this->modelId = $image->generation_params['model_id'] ?? $this->modelId;
+            $this->aspectRatio = $image->generation_params['aspect_ratio'] ?? $this->aspectRatio;
+        }
+    }
+
+    public function deleteImage(int $id): void
+    {
+        $image = GeneratedImage::find($id);
+        if ($image && $image->user_id === Auth::id()) {
+            $image->delete();
+        }
+    }
+
     /**
      * Get history data for Alpine.js sync
      */
