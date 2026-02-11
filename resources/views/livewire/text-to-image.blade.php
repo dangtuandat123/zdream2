@@ -1,4 +1,4 @@
-<div class="relative min-h-screen pb-48 md:pb-32" x-data="{
+<div class="relative min-h-screen pb-48 md:pb-32" @if($isGenerating) wire:poll.2s="pollImageStatus" @endif x-data="{
     selectedRatio: @entangle('aspectRatio'),
     selectedModel: @entangle('modelId'),
     aspectRatios: @js($aspectRatios),
@@ -430,22 +430,44 @@
 
                 {{-- Loading Skeleton (bottom, like chatbot) --}}
                 @if($isGenerating && !$generatedImageUrl)
-                    <div x-init="startLoading(); $nextTick(() => setTimeout(() => document.documentElement.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' }), 50))"
-                        x-effect="if (!@js($isGenerating)) stopLoading()">
-                        <div class="bg-white/[0.03] backdrop-blur-[12px] border border-white/[0.08] rounded-xl p-4 animate-pulse shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]">
-                            <div class="flex items-center gap-2 mb-3">
-                                <div class="bg-white/[0.08] h-4 w-40 rounded-md"></div>
-                                <div class="bg-white/[0.05] h-3 w-16 rounded-md"></div>
+                    <div x-data="{ elapsed: 0, timer: null }"
+                         x-init="
+                            startLoading();
+                            timer = setInterval(() => elapsed++, 1000);
+                            $nextTick(() => setTimeout(() => document.documentElement.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' }), 100));
+                         "
+                         x-effect="if (!@js($isGenerating)) { stopLoading(); clearInterval(timer); }"
+                         x-on:remove="clearInterval(timer)">
+                        <div class="bg-white/[0.03] backdrop-blur-[12px] border border-white/[0.08] rounded-xl overflow-hidden shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]">
+                            {{-- Progress bar --}}
+                            <div class="h-0.5 bg-white/[0.03] overflow-hidden">
+                                <div class="h-full bg-gradient-to-r from-purple-500 via-fuchsia-500 to-purple-500 animate-pulse" style="width: 100%; animation: progress-slide 2s ease-in-out infinite;"></div>
                             </div>
-                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-                                <div class="aspect-square rounded-lg bg-white/[0.05] border border-white/[0.05] flex items-center justify-center">
-                                    <div class="w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
+                            <div class="p-4">
+                                <div class="flex items-center gap-3 mb-3">
+                                    <div class="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center">
+                                        <div class="w-5 h-5 border-2 border-purple-400 border-t-transparent rounded-full animate-spin"></div>
+                                    </div>
+                                    <div class="flex-1">
+                                        <p class="text-white/90 text-sm font-medium" x-text="loadingMessages[currentLoadingMessage]">Đang tạo ảnh...</p>
+                                        <p class="text-white/40 text-xs mt-0.5">
+                                            <span x-text="Math.floor(elapsed / 60) > 0 ? Math.floor(elapsed / 60) + ' phút ' : ''"></span>
+                                            <span x-text="(elapsed % 60) + ' giây'"></span>
+                                        </p>
+                                    </div>
+                                    <button wire:click="cancelGeneration" class="h-8 px-3 rounded-lg bg-white/[0.05] hover:bg-red-500/20 border border-white/[0.08] text-xs text-white/50 hover:text-red-400 transition-all active:scale-[0.95]">
+                                        <i class="fa-solid fa-xmark mr-1"></i>Hủy
+                                    </button>
                                 </div>
-                                <div class="aspect-square rounded-lg bg-white/[0.05] border border-white/[0.05] hidden sm:block"></div>
-                                <div class="aspect-square rounded-lg bg-white/[0.05] border border-white/[0.05] hidden sm:block"></div>
-                                <div class="aspect-square rounded-lg bg-white/[0.05] border border-white/[0.05] hidden sm:block"></div>
+                                <div class="grid grid-cols-2 sm:grid-cols-4 gap-px bg-white/[0.04] rounded-lg overflow-hidden">
+                                    <div class="aspect-square bg-white/[0.03] flex items-center justify-center">
+                                        <div class="w-6 h-6 border-2 border-purple-500/40 border-t-transparent rounded-full animate-spin"></div>
+                                    </div>
+                                    <div class="aspect-square bg-white/[0.02] hidden sm:block"></div>
+                                    <div class="aspect-square bg-white/[0.02] hidden sm:block"></div>
+                                    <div class="aspect-square bg-white/[0.02] hidden sm:block"></div>
+                                </div>
                             </div>
-                            <p class="text-white/50 text-xs mt-3 text-center" x-text="loadingMessages[currentLoadingMessage]"></p>
                         </div>
                     </div>
                 @endif
@@ -815,6 +837,11 @@
 
         .animate-shimmer {
             animation: shimmer 2s infinite;
+        }
+
+        @keyframes progress-slide {
+            0%, 100% { opacity: 0.4; transform: translateX(-30%); }
+            50% { opacity: 1; transform: translateX(0%); }
         }
     </style>
 </div>
