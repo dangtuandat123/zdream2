@@ -183,15 +183,43 @@
                 @php $absoluteIndex = 0; @endphp
 
                 <div class="space-y-14">
-                    {{-- Load More (at TOP for chat-like scroll: loads older batches above) --}}
+                    {{-- Infinite Scroll Sentinel (auto-load older images on scroll up) --}}
                     @if($history instanceof \Illuminate\Pagination\LengthAwarePaginator && $history->hasMorePages())
-                        <div class="flex justify-center pb-2">
-                            <button wire:click="loadMore"
-                                @click="$nextTick(() => { const h = document.documentElement.scrollHeight; setTimeout(() => { document.documentElement.scrollTop += (document.documentElement.scrollHeight - h); }, 100); })"
-                                class="inline-flex items-center justify-center gap-2 h-10 px-5 rounded-lg bg-white/[0.05] backdrop-blur-[12px] hover:bg-white/[0.08] hover:border-white/[0.15] border border-white/[0.1] text-sm text-white/70 hover:text-white/95 font-medium shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] transition-all duration-200 active:scale-[0.98]">
-                                <i class="fa-solid fa-arrow-up text-xs"></i>
-                                <span>Tải thêm ảnh cũ</span>
-                            </button>
+                        <div id="load-more-sentinel" class="flex justify-center py-4"
+                            x-data="{
+                                observer: null,
+                                isLoading: false,
+                                init() {
+                                    this.observer = new IntersectionObserver((entries) => {
+                                        entries.forEach(entry => {
+                                            if (entry.isIntersecting && !this.isLoading) {
+                                                this.isLoading = true;
+                                                const scrollH = document.documentElement.scrollHeight;
+                                                $wire.loadMore().then(() => {
+                                                    this.$nextTick(() => {
+                                                        setTimeout(() => {
+                                                            const newScrollH = document.documentElement.scrollHeight;
+                                                            document.documentElement.scrollTop += (newScrollH - scrollH);
+                                                            this.isLoading = false;
+                                                        }, 150);
+                                                    });
+                                                }).catch(() => { this.isLoading = false; });
+                                            }
+                                        });
+                                    }, { rootMargin: '200px 0px 0px 0px' });
+                                    this.observer.observe(this.$el);
+                                },
+                                destroy() {
+                                    if (this.observer) this.observer.disconnect();
+                                }
+                            }">
+                            <div class="flex items-center gap-2 text-white/40 text-sm" wire:loading.flex wire:target="loadMore">
+                                <i class="fa-solid fa-spinner fa-spin text-purple-400"></i>
+                                <span>Đang tải thêm...</span>
+                            </div>
+                            <div class="text-white/20 text-xs" wire:loading.remove wire:target="loadMore">
+                                <i class="fa-solid fa-ellipsis"></i>
+                            </div>
                         </div>
                     @endif
 
@@ -438,45 +466,35 @@
                         <div class="flex items-center gap-2"
                             @click.away="showRatioDropdown = false; showModelDropdown = false">
 
-                            {{-- Image Picker & Upload --}}
-                            <div class="flex items-center gap-2">
-                                {{-- Hidden file input for direct upload --}}
+                            {{-- Reference Image Button (single) --}}
+                            <div class="flex items-center gap-1.5">
+                                {{-- Hidden file input --}}
                                 <input type="file" id="direct-upload" accept="image/*" multiple class="hidden"
                                     @change="handleDirectUpload($event)">
 
                                 {{-- Selected Images Preview --}}
                                 <template x-if="selectedImages.length > 0">
-                                    <div
-                                        class="relative flex items-center gap-1 mr-1 p-1 pr-2 rounded-lg bg-purple-500/10 border border-purple-500/20">
+                                    <div class="flex items-center gap-1 p-1 pr-2 rounded-lg bg-purple-500/10 border border-purple-500/20">
                                         <div class="flex -space-x-1">
                                             <template x-for="(img, idx) in selectedImages.slice(0, 3)" :key="img.id">
-                                                <img :src="img.url"
-                                                    class="w-6 h-6 rounded border border-purple-500/50 object-cover">
+                                                <img :src="img.url" class="w-6 h-6 rounded border border-purple-500/50 object-cover">
                                             </template>
                                         </div>
-                                        <span class="text-purple-300 text-xs font-medium ml-1"
-                                            x-text="selectedImages.length"></span>
-                                        <button @click="selectedImages = []"
-                                            class="ml-1 text-white/50 hover:text-white"><i
-                                                class="fa-solid fa-xmark text-xs"></i></button>
+                                        <span class="text-purple-300 text-xs font-medium ml-1" x-text="selectedImages.length"></span>
+                                        <button @click="selectedImages = []" class="ml-0.5 text-white/50 hover:text-white"><i class="fa-solid fa-xmark text-xs"></i></button>
                                     </div>
                                 </template>
 
-                                {{-- Upload Button --}}
+                                {{-- Single Upload/Ref Image Button --}}
                                 <label for="direct-upload"
-                                    class="flex items-center gap-1.5 h-9 px-2.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition-all cursor-pointer"
-                                    title="Upload ảnh từ máy">
-                                    <i class="fa-solid fa-cloud-arrow-up text-white/50 text-sm"></i>
-                                    <span class="text-white/70 text-xs font-medium hidden sm:inline">Upload</span>
+                                    class="flex items-center gap-1.5 h-9 px-2.5 rounded-lg transition-all cursor-pointer"
+                                    :class="selectedImages.length > 0
+                                        ? 'bg-purple-500/20 border border-purple-500/40'
+                                        : 'bg-white/5 hover:bg-white/10 border border-white/10'"
+                                    title="Thêm ảnh tham chiếu">
+                                    <i class="fa-solid fa-paperclip text-white/50 text-sm"></i>
+                                    <span class="text-white/70 text-xs font-medium hidden sm:inline">Ảnh</span>
                                 </label>
-
-                                {{-- Library Button --}}
-                                <button type="button"
-                                    @click="showImagePicker = !showImagePicker; if(showImagePicker) loadRecentImages()"
-                                    class="flex items-center justify-center h-9 w-9 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition-all"
-                                    title="Chọn từ thư viện">
-                                    <i class="fa-regular fa-images text-white/50 text-sm"></i>
-                                </button>
                             </div>
 
                             {{-- Aspect Ratio Button --}}
