@@ -680,87 +680,9 @@
                                 </template>
                             </div>
 
-                            {{-- Model Dropdown - Desktop --}}
-                            <template x-teleport="body">
-                                <div x-show="showModelDropdown" x-cloak
-                                    x-transition:enter="transition ease-out duration-200"
-                                    x-transition:enter-start="opacity-0 translate-y-2"
-                                    x-transition:enter-end="opacity-100 translate-y-0"
-                                    x-transition:leave="transition ease-in duration-150"
-                                    x-transition:leave-start="opacity-100 translate-y-0"
-                                    x-transition:leave-end="opacity-0 translate-y-2"
-                                    class="hidden sm:block fixed w-64 p-2 rounded-xl bg-[#1a1b20] border border-white/10 shadow-2xl z-[9999]"
-                                    x-init="$watch('showModelDropdown', value => {
-                                            if (value) {
-                                                const btn = $root.querySelector('button');
-                                                const rect = btn.getBoundingClientRect();
-                                                $el.style.bottom = (window.innerHeight - rect.top + 8) + 'px';
-                                                $el.style.left = rect.left + 'px';
-                                            }
-                                        })" @click.stop>
-                                    <div class="text-white/50 text-xs font-medium mb-2 px-2">Chọn Model AI</div>
-                                    <template x-for="model in models" :key="model.id">
-                                        <button type="button" @click="selectModel(model.id)"
-                                            class="w-full flex items-center gap-3 p-2.5 rounded-lg transition-all text-left"
-                                            :class="selectedModel === model.id ? 'bg-purple-500/30 border border-purple-500/50' : 'hover:bg-white/5 border border-transparent'">
-                                            <span class="text-lg" x-text="model.icon"></span>
-                                            <div class="flex-1 min-w-0">
-                                                <div class="text-white text-sm font-medium" x-text="model.name">
-                                                </div>
-                                                <div class="text-white/40 text-xs" x-text="model.desc"></div>
-                                            </div>
-                                            <i x-show="selectedModel === model.id"
-                                                class="fa-solid fa-check text-purple-400 text-sm"></i>
-                                        </button>
-                                    </template>
-                                </div>
-                            </template>
 
-                            {{-- Model Bottom Sheet - Mobile --}}
-                            <template x-teleport="body">
-                                <div x-show="showModelDropdown" x-cloak
-                                    class="sm:hidden fixed inset-0 z-[9999] flex items-end justify-center bg-black/80 backdrop-blur-md"
-                                    @click.self="showModelDropdown = false" @click.stop>
-                                    <div x-show="showModelDropdown"
-                                        x-transition:enter="transition ease-out duration-300"
-                                        x-transition:enter-start="translate-y-full"
-                                        x-transition:enter-end="translate-y-0"
-                                        class="w-full max-w-lg bg-[#1a1b20] border-t border-white/10 rounded-t-3xl flex flex-col max-h-[85vh] shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
-                                        <div
-                                            class="flex items-center justify-between p-4 border-b border-white/5 shrink-0">
-                                            <span class="text-white font-semibold text-base">Chọn Model
-                                                AI</span>
-                                            <button type="button" @click="showModelDropdown = false"
-                                                class="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 text-white/60 active:scale-95 transition-transform">
-                                                <i class="fa-solid fa-xmark"></i>
-                                            </button>
-                                        </div>
-                                        <div class="p-4 overflow-y-auto">
-                                            <div class="space-y-1">
-                                                <template x-for="model in models" :key="model.id">
-                                                    <button type="button" @click="selectModel(model.id)"
-                                                        class="w-full flex items-center gap-3 p-3 rounded-xl transition-all text-left"
-                                                        :class="selectedModel === model.id ? 'bg-purple-500/30 border border-purple-500/50' : 'bg-white/5 active:bg-white/10 border border-transparent'">
-                                                        <span class="text-2xl" x-text="model.icon"></span>
-                                                        <div class="flex-1 min-w-0">
-                                                            <div class="text-white font-semibold text-base"
-                                                                x-text="model.name"></div>
-                                                            <div class="text-white/50 text-sm mt-0.5"
-                                                                x-text="model.desc"></div>
-                                                        </div>
-                                                        <div class="w-6 h-6 rounded-full border-2 flex items-center justify-center"
-                                                            :class="selectedModel === model.id ? 'border-purple-500 bg-purple-500' : 'border-white/20'">
-                                                            <i x-show="selectedModel === model.id"
-                                                                class="fa-solid fa-check text-white text-xs"></i>
-                                                        </div>
-                                                    </button>
-                                                </template>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </template>
-                        </div>
+
+
                     </div>
 
                     {{-- Generate Button --}}
