@@ -262,6 +262,17 @@ class TextToImage extends Component
                 $creditsDeducted = true;
             }
 
+            // Prepare reference images for API
+            $inputImages = [];
+            if (!empty($this->referenceImages)) {
+                foreach ($this->referenceImages as $idx => $img) {
+                    $url = $img['url'] ?? $img;
+                    if (is_string($url) && !empty($url)) {
+                        $inputImages['image_' . $idx] = $url;
+                    }
+                }
+            }
+
             // Async mode: dispatch job
             if ($this->useAsyncMode) {
                 GenerateImageJob::dispatch(
@@ -270,7 +281,7 @@ class TextToImage extends Component
                     $prompt,
                     $this->aspectRatio,
                     '1K',
-                    [], // no input images
+                    $inputImages,
                     ['aspect_ratio' => $this->aspectRatio]
                 );
 
@@ -286,7 +297,7 @@ class TextToImage extends Component
                 $prompt,
                 $this->aspectRatio,
                 null,
-                [],
+                $inputImages,
                 ['aspect_ratio' => $this->aspectRatio]
             );
 

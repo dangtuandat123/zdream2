@@ -60,7 +60,7 @@
                             @foreach(['all' => 'Tất cả', 'week' => 'Tuần qua', 'month' => 'Tháng qua', '3months' => '3 tháng qua'] as $val => $lbl)
                                 <button wire:click="$set('filterDate', '{{ $val }}')" @click="openFilter = null"
                                     class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm transition-colors duration-150
-                                                    {{ $filterDate === $val ? 'text-white/95 bg-white/[0.06]' : 'text-white/70 hover:bg-white/[0.06] hover:text-white' }}">
+                                                        {{ $filterDate === $val ? 'text-white/95 bg-white/[0.06]' : 'text-white/70 hover:bg-white/[0.06] hover:text-white' }}">
                                     <span>{{ $lbl }}</span>
                                     @if($filterDate === $val)
                                         <i class="fa-solid fa-check text-purple-400 text-xs"></i>
@@ -99,7 +99,7 @@
                             @foreach($availableModels as $model)
                                 <button wire:click="$set('filterModel', '{{ $model['id'] }}')" @click="openFilter = null"
                                     class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm transition-colors duration-150
-                                                    {{ $filterModel === $model['id'] ? 'text-white/95 bg-white/[0.06]' : 'text-white/70 hover:bg-white/[0.06] hover:text-white' }}">
+                                                        {{ $filterModel === $model['id'] ? 'text-white/95 bg-white/[0.06]' : 'text-white/70 hover:bg-white/[0.06] hover:text-white' }}">
                                     <span>{{ $model['name'] }}</span>
                                     @if($filterModel === $model['id'])
                                         <i class="fa-solid fa-check text-purple-400 text-xs"></i>
@@ -128,7 +128,7 @@
                             @foreach(['all' => 'Tất cả', '1:1' => '1:1', '16:9' => '16:9', '9:16' => '9:16', '4:3' => '4:3', '3:4' => '3:4', '3:2' => '3:2', '2:3' => '2:3', '21:9' => '21:9'] as $val => $lbl)
                                 <button wire:click="$set('filterRatio', '{{ $val }}')" @click="openFilter = null"
                                     class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm transition-colors duration-150
-                                                    {{ $filterRatio === $val ? 'text-white/95 bg-white/[0.06]' : 'text-white/70 hover:bg-white/[0.06] hover:text-white' }}">
+                                                        {{ $filterRatio === $val ? 'text-white/95 bg-white/[0.06]' : 'text-white/70 hover:bg-white/[0.06] hover:text-white' }}">
                                     <span>{{ $lbl }}</span>
                                     @if($filterRatio === $val)
                                         <i class="fa-solid fa-check text-purple-400 text-xs"></i>
@@ -240,8 +240,7 @@
                             </div>
 
                             {{-- Expanded Prompt Detail (Glass panel) --}}
-                            <div x-show="expanded" x-cloak
-                                x-transition:enter="transition ease-out duration-200"
+                            <div x-show="expanded" x-cloak x-transition:enter="transition ease-out duration-200"
                                 x-transition:enter-start="opacity-0 -translate-y-1"
                                 x-transition:enter-end="opacity-100 translate-y-0"
                                 x-transition:leave="transition ease-in duration-150"
@@ -269,7 +268,9 @@
                                                 x-data="{ loaded: false }">
                                                 {{-- Shimmer --}}
                                                 <div x-show="!loaded" class="absolute inset-0 bg-white/[0.04]">
-                                                    <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.06] to-transparent animate-shimmer"></div>
+                                                    <div
+                                                        class="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.06] to-transparent animate-shimmer">
+                                                    </div>
                                                 </div>
                                                 {{-- Image --}}
                                                 <img src="{{ $image->image_url }}" alt="Preview"
@@ -277,7 +278,8 @@
                                                     :class="loaded ? 'opacity-100' : 'opacity-0'" loading="lazy"
                                                     draggable="false" @load="loaded = true">
                                                 {{-- Hover Overlay + Actions --}}
-                                                <div class="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                                <div
+                                                    class="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                                                     <div class="absolute bottom-2 right-2 flex gap-1.5">
                                                         <a href="{{ $image->image_url }}" download @click.stop
                                                             class="h-8 w-8 rounded-lg bg-black/50 backdrop-blur-[8px] hover:bg-white/20 text-white flex items-center justify-center transition-all duration-200 border border-white/[0.1] active:scale-[0.95]"
@@ -339,10 +341,10 @@
                 {{-- Loading Skeleton (bottom, like chatbot) --}}
                 @if($isGenerating && !$generatedImageUrl)
                     <div x-data="{ elapsed: 0, timer: null }" x-init="
-                                        startLoading();
-                                        timer = setInterval(() => elapsed++, 1000);
-                                        $nextTick(() => setTimeout(() => document.documentElement.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' }), 100));
-                                     " x-effect="if (!@js($isGenerating)) { stopLoading(); clearInterval(timer); }"
+                                            startLoading();
+                                            timer = setInterval(() => elapsed++, 1000);
+                                            $nextTick(() => setTimeout(() => document.documentElement.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' }), 100));
+                                         " x-effect="if (!@js($isGenerating)) { stopLoading(); clearInterval(timer); }"
                         x-on:remove="clearInterval(timer)">
                         <div
                             class="bg-white/[0.03] backdrop-blur-[12px] border border-white/[0.08] rounded-xl overflow-hidden shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]">
@@ -372,16 +374,14 @@
                                         <i class="fa-solid fa-xmark mr-1"></i>Hủy
                                     </button>
                                 </div>
-                                <div
-                                    class="grid grid-cols-2 sm:grid-cols-4 gap-px bg-white/[0.04] rounded-lg overflow-hidden">
-                                    <div class="aspect-square bg-white/[0.03] flex items-center justify-center">
+                                {{-- Single image placeholder (we generate 1 image per request) --}}
+                                <div class="grid grid-cols-2 xl:grid-cols-4 gap-1 rounded-lg overflow-hidden">
+                                    <div class="bg-white/[0.03] flex items-center justify-center"
+                                        style="aspect-ratio: {{ $aspectRatio !== 'auto' && strpos($aspectRatio, ':') !== false ? str_replace(':', ' / ', $aspectRatio) : '1 / 1' }};">
                                         <div
                                             class="w-6 h-6 border-2 border-purple-500/40 border-t-transparent rounded-full animate-spin">
                                         </div>
                                     </div>
-                                    <div class="aspect-square bg-white/[0.02] hidden sm:block"></div>
-                                    <div class="aspect-square bg-white/[0.02] hidden sm:block"></div>
-                                    <div class="aspect-square bg-white/[0.02] hidden sm:block"></div>
                                 </div>
                             </div>
                         </div>
@@ -411,12 +411,17 @@
                 { id: '2:3', label: '2:3', icon: null },
                 { id: '21:9', label: '21:9', icon: null }
             ],
-            models: [
-                { id: 'flux-pro-1.1-ultra', name: 'FLUX 1.1 Ultra', desc: 'Siêu nhanh & Chân thực', icon: '⚡' },
-                { id: 'flux-pro-1.1', name: 'FLUX 1.1 Pro', desc: 'Chất lượng cao', icon: '💎' },
-                { id: 'flux-dev', name: 'FLUX Dev', desc: 'Dành cho Developer', icon: '🛠️' },
-                { id: 'flux-schnell', name: 'FLUX Schnell', desc: 'Tốc độ cao', icon: '🚀' }
-            ],
+            models: @js(collect($availableModels)->values()->map(fn($m) => [
+                'id' => $m['id'],
+                'name' => $m['name'],
+                'desc' => $m['description'] ?? '',
+                'icon' => match (true) {
+                    str_contains($m['id'], 'ultra') => '⚡',
+                    str_contains($m['id'], 'pro') => '💎',
+                    str_contains($m['id'], 'schnell') => '🚀',
+                    default => '🛠️'
+                },
+            ])),
             selectRatio(id) {
                 this.selectedRatio = id;
                 if (id !== 'auto') {
@@ -468,6 +473,19 @@
                         placeholder="Mô tả ý tưởng của bạn..."
                         class="w-full h-20 bg-transparent border-none outline-none ring-0 focus:ring-0 focus:outline-none text-white placeholder-white/40 text-sm sm:text-base resize-none focus:placeholder-white/60 transition-all overflow-y-auto"
                         @keydown.ctrl.enter.prevent="$wire.generate()" @keydown.meta.enter.prevent="$wire.generate()" {{ $isGenerating ? 'disabled' : '' }}></textarea>
+
+                    {{-- Character counter + keyboard hint --}}
+                    <div class="flex items-center justify-between -mt-1 mb-1">
+                        <span class="text-[11px] text-white/30"
+                            :class="{ 'text-amber-400/70': $wire.prompt?.length > 1800, 'text-red-400/70': $wire.prompt?.length > 2000 }"
+                            x-text="($wire.prompt?.length || 0) + ' / 2000'"></span>
+                        <span class="text-[11px] text-white/20 hidden sm:inline">
+                            <kbd class="px-1 py-0.5 rounded bg-white/5 border border-white/10 text-[10px]">Ctrl</kbd>
+                            +
+                            <kbd class="px-1 py-0.5 rounded bg-white/5 border border-white/10 text-[10px]">Enter</kbd>
+                            để tạo
+                        </span>
+                    </div>
 
                     {{-- Bottom row: icons + button --}}
                     <div class="flex items-center justify-between gap-2 sm:gap-3">
@@ -723,6 +741,7 @@
                                 <span wire:loading wire:target="generate"><i
                                         class="fa-solid fa-spinner fa-spin text-sm"></i></span>
                                 <span>Tạo ảnh</span>
+                                <span class="text-white/60 text-xs font-normal">· {{ $creditCost }} credits</span>
                             </button>
                         @endif
                     </div>
