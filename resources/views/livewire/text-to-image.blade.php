@@ -60,7 +60,7 @@
                             @foreach(['all' => 'Tất cả', 'week' => 'Tuần qua', 'month' => 'Tháng qua', '3months' => '3 tháng qua'] as $val => $lbl)
                                 <button wire:click="$set('filterDate', '{{ $val }}')" @click="openFilter = null"
                                     class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm transition-colors duration-150
-                                                        {{ $filterDate === $val ? 'text-white/95 bg-white/[0.06]' : 'text-white/70 hover:bg-white/[0.06] hover:text-white' }}">
+                                                                    {{ $filterDate === $val ? 'text-white/95 bg-white/[0.06]' : 'text-white/70 hover:bg-white/[0.06] hover:text-white' }}">
                                     <span>{{ $lbl }}</span>
                                     @if($filterDate === $val)
                                         <i class="fa-solid fa-check text-purple-400 text-xs"></i>
@@ -99,7 +99,7 @@
                             @foreach($availableModels as $model)
                                 <button wire:click="$set('filterModel', '{{ $model['id'] }}')" @click="openFilter = null"
                                     class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm transition-colors duration-150
-                                                        {{ $filterModel === $model['id'] ? 'text-white/95 bg-white/[0.06]' : 'text-white/70 hover:bg-white/[0.06] hover:text-white' }}">
+                                                                    {{ $filterModel === $model['id'] ? 'text-white/95 bg-white/[0.06]' : 'text-white/70 hover:bg-white/[0.06] hover:text-white' }}">
                                     <span>{{ $model['name'] }}</span>
                                     @if($filterModel === $model['id'])
                                         <i class="fa-solid fa-check text-purple-400 text-xs"></i>
@@ -128,7 +128,7 @@
                             @foreach(['all' => 'Tất cả', '1:1' => '1:1', '16:9' => '16:9', '9:16' => '9:16', '4:3' => '4:3', '3:4' => '3:4', '3:2' => '3:2', '2:3' => '2:3', '21:9' => '21:9'] as $val => $lbl)
                                 <button wire:click="$set('filterRatio', '{{ $val }}')" @click="openFilter = null"
                                     class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm transition-colors duration-150
-                                                        {{ $filterRatio === $val ? 'text-white/95 bg-white/[0.06]' : 'text-white/70 hover:bg-white/[0.06] hover:text-white' }}">
+                                                                    {{ $filterRatio === $val ? 'text-white/95 bg-white/[0.06]' : 'text-white/70 hover:bg-white/[0.06] hover:text-white' }}">
                                     <span>{{ $lbl }}</span>
                                     @if($filterRatio === $val)
                                         <i class="fa-solid fa-check text-purple-400 text-xs"></i>
@@ -183,6 +183,18 @@
                 @php $absoluteIndex = 0; @endphp
 
                 <div class="space-y-14">
+                    {{-- Load More (at TOP for chat-like scroll: loads older batches above) --}}
+                    @if($history instanceof \Illuminate\Pagination\LengthAwarePaginator && $history->hasMorePages())
+                        <div class="flex justify-center pb-2">
+                            <button wire:click="loadMore"
+                                @click="$nextTick(() => { const h = document.documentElement.scrollHeight; setTimeout(() => { document.documentElement.scrollTop += (document.documentElement.scrollHeight - h); }, 100); })"
+                                class="inline-flex items-center justify-center gap-2 h-10 px-5 rounded-lg bg-white/[0.05] backdrop-blur-[12px] hover:bg-white/[0.08] hover:border-white/[0.15] border border-white/[0.1] text-sm text-white/70 hover:text-white/95 font-medium shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] transition-all duration-200 active:scale-[0.98]">
+                                <i class="fa-solid fa-arrow-up text-xs"></i>
+                                <span>Tải thêm ảnh cũ</span>
+                            </button>
+                        </div>
+                    @endif
+
                     {{-- Grouped Batches --}}
                     @forelse($groupedHistory as $groupKey => $groupItems)
                         @php
@@ -327,135 +339,67 @@
                     @endforelse
                 </div>
 
-                {{-- Load More (at bottom, secondary glass button) --}}
-                @if($history instanceof \Illuminate\Pagination\LengthAwarePaginator && $history->hasMorePages())
-                    <div class="flex justify-center pt-6">
-                        <button wire:click="loadMore"
-                            class="inline-flex items-center justify-center gap-2 h-10 px-5 rounded-lg bg-white/[0.05] backdrop-blur-[12px] hover:bg-white/[0.08] hover:border-white/[0.15] border border-white/[0.1] text-sm text-white/70 hover:text-white/95 font-medium shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] transition-all duration-200 active:scale-[0.98]">
-                            <i class="fa-solid fa-arrow-down text-xs"></i>
-                            <span>Tải thêm</span>
-                        </button>
-                    </div>
-                @endif
+            </div>
 
-                {{-- Loading Skeleton (bottom, like chatbot) --}}
-                @if($isGenerating && !$generatedImageUrl)
-                    <div x-data="{ elapsed: 0, timer: null }" x-init="
-                                            startLoading();
-                                            timer = setInterval(() => elapsed++, 1000);
-                                            $nextTick(() => setTimeout(() => document.documentElement.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' }), 100));
-                                         " x-effect="if (!@js($isGenerating)) { stopLoading(); clearInterval(timer); }"
-                        x-on:remove="clearInterval(timer)">
-                        <div
-                            class="bg-white/[0.03] backdrop-blur-[12px] border border-white/[0.08] rounded-xl overflow-hidden shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]">
-                            {{-- Progress bar --}}
-                            <div class="h-0.5 bg-white/[0.03] overflow-hidden">
-                                <div class="h-full bg-gradient-to-r from-purple-500 via-fuchsia-500 to-purple-500 animate-pulse"
-                                    style="width: 100%; animation: progress-slide 2s ease-in-out infinite;"></div>
-                            </div>
-                            <div class="p-4">
-                                <div class="flex items-center gap-3 mb-3">
-                                    <div class="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center">
-                                        <div
-                                            class="w-5 h-5 border-2 border-purple-400 border-t-transparent rounded-full animate-spin">
-                                        </div>
+            {{-- Loading Skeleton (bottom, like chatbot) --}}
+            @if($isGenerating && !$generatedImageUrl)
+                <div x-data="{ elapsed: 0, timer: null }" x-init="
+                                                        startLoading();
+                                                        timer = setInterval(() => elapsed++, 1000);
+                                                        $nextTick(() => setTimeout(() => document.documentElement.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' }), 100));
+                                                     "
+                    x-effect="if (!@js($isGenerating)) { stopLoading(); clearInterval(timer); }"
+                    x-on:remove="clearInterval(timer)">
+                    <div
+                        class="bg-white/[0.03] backdrop-blur-[12px] border border-white/[0.08] rounded-xl overflow-hidden shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]">
+                        {{-- Progress bar --}}
+                        <div class="h-0.5 bg-white/[0.03] overflow-hidden">
+                            <div class="h-full bg-gradient-to-r from-purple-500 via-fuchsia-500 to-purple-500 animate-pulse"
+                                style="width: 100%; animation: progress-slide 2s ease-in-out infinite;"></div>
+                        </div>
+                        <div class="p-4">
+                            <div class="flex items-center gap-3 mb-3">
+                                <div class="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center">
+                                    <div
+                                        class="w-5 h-5 border-2 border-purple-400 border-t-transparent rounded-full animate-spin">
                                     </div>
-                                    <div class="flex-1">
-                                        <p class="text-white/90 text-sm font-medium"
-                                            x-text="loadingMessages[currentLoadingMessage]">Đang tạo ảnh...</p>
-                                        <p class="text-white/40 text-xs mt-0.5">
-                                            <span
-                                                x-text="Math.floor(elapsed / 60) > 0 ? Math.floor(elapsed / 60) + ' phút ' : ''"></span>
-                                            <span x-text="(elapsed % 60) + ' giây'"></span>
-                                        </p>
-                                    </div>
-                                    <button wire:click="cancelGeneration"
-                                        class="h-8 px-3 rounded-lg bg-white/[0.05] hover:bg-red-500/20 border border-white/[0.08] text-xs text-white/50 hover:text-red-400 transition-all active:scale-[0.95]">
-                                        <i class="fa-solid fa-xmark mr-1"></i>Hủy
-                                    </button>
                                 </div>
-                                {{-- Single image placeholder (we generate 1 image per request) --}}
-                                <div class="grid grid-cols-2 xl:grid-cols-4 gap-1 rounded-lg overflow-hidden">
-                                    <div class="bg-white/[0.03] flex items-center justify-center"
-                                        style="aspect-ratio: {{ $aspectRatio !== 'auto' && strpos($aspectRatio, ':') !== false ? str_replace(':', ' / ', $aspectRatio) : '1 / 1' }};">
-                                        <div
-                                            class="w-6 h-6 border-2 border-purple-500/40 border-t-transparent rounded-full animate-spin">
-                                        </div>
+                                <div class="flex-1">
+                                    <p class="text-white/90 text-sm font-medium"
+                                        x-text="loadingMessages[currentLoadingMessage]">Đang tạo ảnh...</p>
+                                    <p class="text-white/40 text-xs mt-0.5">
+                                        <span
+                                            x-text="Math.floor(elapsed / 60) > 0 ? Math.floor(elapsed / 60) + ' phút ' : ''"></span>
+                                        <span x-text="(elapsed % 60) + ' giây'"></span>
+                                    </p>
+                                </div>
+                                <button wire:click="cancelGeneration"
+                                    class="h-8 px-3 rounded-lg bg-white/[0.05] hover:bg-red-500/20 border border-white/[0.08] text-xs text-white/50 hover:text-red-400 transition-all active:scale-[0.95]">
+                                    <i class="fa-solid fa-xmark mr-1"></i>Hủy
+                                </button>
+                            </div>
+                            {{-- Single image placeholder (we generate 1 image per request) --}}
+                            <div class="grid grid-cols-2 xl:grid-cols-4 gap-1 rounded-lg overflow-hidden">
+                                <div class="bg-white/[0.03] flex items-center justify-center"
+                                    style="aspect-ratio: {{ $aspectRatio !== 'auto' && strpos($aspectRatio, ':') !== false ? str_replace(':', ' / ', $aspectRatio) : '1 / 1' }};">
+                                    <div
+                                        class="w-6 h-6 border-2 border-purple-500/40 border-t-transparent rounded-full animate-spin">
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                @endif
-            </div>
+                </div>
+            @endif
         </div>
     </div>
 
     {{-- ============================================================ --}}
-    <div class="fixed bottom-[60px] md:bottom-0 left-0 right-0 md:left-[72px] z-[60]" x-data="{
-            showRatioDropdown: false,
-            showModelDropdown: false,
-            selectedRatio: @entangle('aspectRatio'),
-            selectedModel: @entangle('modelId'),
-            customWidth: 1024,
-            customHeight: 1024,
-            linkDimensions: true,
-            ratios: [
-                { id: 'auto', label: 'Auto', icon: 'fa-expand' },
-                { id: '1:1', label: '1:1', icon: null },
-                { id: '16:9', label: '16:9', icon: null },
-                { id: '9:16', label: '9:16', icon: null },
-                { id: '4:3', label: '4:3', icon: null },
-                { id: '3:4', label: '3:4', icon: null },
-                { id: '3:2', label: '3:2', icon: null },
-                { id: '2:3', label: '2:3', icon: null },
-                { id: '21:9', label: '21:9', icon: null }
-            ],
-            models: @js(collect($availableModels)->values()->map(fn($m) => [
-                'id' => $m['id'],
-                'name' => $m['name'],
-                'desc' => $m['description'] ?? '',
-                'icon' => match (true) {
-                    str_contains($m['id'], 'ultra') => '⚡',
-                    str_contains($m['id'], 'pro') => '💎',
-                    str_contains($m['id'], 'schnell') => '🚀',
-                    default => '🛠️'
-                },
-            ])),
-            selectRatio(id) {
-                this.selectedRatio = id;
-                if (id !== 'auto') {
-                    const [w, h] = id.split(':').map(Number);
-                    const baseSize = 1024;
-                    this.customWidth = Math.round(baseSize * Math.sqrt(w / h) / 64) * 64;
-                    this.customHeight = Math.round(baseSize * Math.sqrt(h / w) / 64) * 64;
-                }
-                if (window.innerWidth >= 640) {
-                    this.showRatioDropdown = false;
-                }
-            },
-            selectModel(id) {
-                this.selectedModel = id;
-                this.showModelDropdown = false;
-            },
-            getSelectedModel() {
-                return this.models.find(m => m.id === this.selectedModel) || this.models[0];
-            },
-            updateWidth(newWidth) {
-                this.customWidth = newWidth;
-                if (this.linkDimensions && this.selectedRatio !== 'auto') {
-                    const [w, h] = this.selectedRatio.split(':').map(Number);
-                    this.customHeight = Math.round(newWidth * h / w / 64) * 64;
-                }
-            },
-            updateHeight(newHeight) {
-                this.customHeight = newHeight;
-                if (this.linkDimensions && this.selectedRatio !== 'auto') {
-                    const [w, h] = this.selectedRatio.split(':').map(Number);
-                    this.customWidth = Math.round(newHeight * w / h / 64) * 64;
-                }
-            }
-        }">
+    {{-- FIXED INPUT BAR (inside textToImage Alpine scope) --}}
+    {{-- ============================================================ --}}
+    <div class="fixed bottom-[60px] md:bottom-0 left-0 right-0 md:left-[72px] z-[60]"
+        @click.away="showRatioDropdown = false; showModelDropdown = false">
+
 
         <div class="max-w-3xl mx-auto px-3 sm:px-4 pb-3 sm:pb-4 pt-3">
             <div class="relative">
@@ -499,7 +443,8 @@
                                     class="flex items-center gap-1.5 h-9 px-2.5 rounded-lg transition-all cursor-pointer"
                                     :class="selectedImages.length > 0
                                         ? 'bg-purple-500/30 border border-purple-500/50'
-                                        : 'bg-gradient-to-br from-purple-500/20 to-pink-500/20 hover:from-purple-500/30 hover:to-pink-500/30 border border-purple-500/30'">
+                                        : 'bg-gradient-to-br from-purple-500/20 to-pink-500/20 hover:from-purple-500/30 hover:to-pink-500/30 border border-purple-500/30'"
+                                    title="Chọn ảnh tham chiếu">
                                     <template x-if="selectedImages.length > 0">
                                         <div class="flex items-center gap-1">
                                             <div class="flex -space-x-1">
@@ -521,6 +466,18 @@
                                     class="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-red-500 text-white text-[10px] flex items-center justify-center hover:bg-red-600 transition-colors">
                                     <i class="fa-solid fa-xmark"></i>
                                 </button>
+                            </div>
+
+                            {{-- Direct Upload Button --}}
+                            <div class="relative">
+                                <label
+                                    class="flex items-center gap-1.5 h-9 px-2.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition-all cursor-pointer"
+                                    title="Upload ảnh từ máy">
+                                    <i class="fa-solid fa-cloud-arrow-up text-white/50 text-sm"></i>
+                                    <span class="text-white/70 text-xs font-medium hidden sm:inline">Upload</span>
+                                    <input type="file" accept="image/*" multiple class="hidden"
+                                        @change="handleDirectUpload($event)">
+                                </label>
                             </div>
 
                             {{-- Aspect Ratio Button --}}
@@ -797,4 +754,319 @@
             }
         }
     </style>
+
+    <script>
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('textToImage', () => ({
+                // Toast
+                showToast: false,
+                toastMessage: '',
+                toastType: 'success',
+                toastTimer: null,
+
+                // Image picker
+                showImagePicker: false,
+                selectedImages: [],
+                recentImages: [],
+                isLoadingPicker: false,
+                maxImages: 4,
+                activeTab: 'upload',
+                isDragging: false,
+                urlInput: '',
+
+                // Preview
+                showPreview: false,
+                previewIndex: 0,
+                previewImage: null,
+                historyData: @js($historyData),
+
+                // Loading
+                loadingMessages: [
+                    'Đang tạo ảnh...',
+                    'AI đang sáng tạo...',
+                    'Đang xử lý prompt...',
+                    'Đang render chi tiết...',
+                    'Sắp xong rồi...'
+                ],
+                currentLoadingMessage: 0,
+                loadingInterval: null,
+
+                // Input Bar & Settings
+                showRatioDropdown: false,
+                showModelDropdown: false,
+                selectedRatio: @entangle('aspectRatio'),
+                selectedModel: @entangle('modelId'),
+                customWidth: 1024,
+                customHeight: 1024,
+                linkDimensions: true,
+                ratios: [
+                    { id: 'auto', label: 'Auto', icon: 'fa-expand' },
+                    { id: '1:1', label: '1:1', icon: null },
+                    { id: '16:9', label: '16:9', icon: null },
+                    { id: '9:16', label: '9:16', icon: null },
+                    { id: '4:3', label: '4:3', icon: null },
+                    { id: '3:4', label: '3:4', icon: null },
+                    { id: '3:2', label: '3:2', icon: null },
+                    { id: '2:3', label: '2:3', icon: null },
+                    { id: '21:9', label: '21:9', icon: null }
+                ],
+                models: @js(collect($availableModels)->values()->map(fn($m) => [
+                    'id' => $m['id'],
+                    'name' => $m['name'],
+                    'desc' => $m['description'] ?? '',
+                    'icon' => match (true) {
+                        str_contains($m['id'], 'ultra') => '⚡',
+                        str_contains($m['id'], 'pro') => '💎',
+                        str_contains($m['id'], 'schnell') => '🚀',
+                        default => '🛠️'
+                    },
+                ])),
+
+                init() {
+                    // Auto-scroll to bottom on mount (chat-like)
+                    this.$nextTick(() => {
+                        setTimeout(() => this.scrollToBottom(false), 200);
+                    });
+
+                    // Scroll to bottom when new image generated
+                    this.$wire.$on('imageGenerated', () => {
+                        this.$nextTick(() => {
+                            setTimeout(() => this.scrollToBottom(true), 300);
+                        });
+                    });
+
+                    // Update historyData after Livewire re-renders
+                    Livewire.hook('morph.updated', ({ el }) => {
+                        // historyData will be re-injected on re-render
+                    });
+                },
+
+                // ============================================================
+                // Input Settings Methods
+                // ============================================================
+                selectRatio(id) {
+                    this.selectedRatio = id;
+                    if (id !== 'auto') {
+                        const [w, h] = id.split(':').map(Number);
+                        const baseSize = 1024;
+                        this.customWidth = Math.round(baseSize * Math.sqrt(w / h) / 64) * 64;
+                        this.customHeight = Math.round(baseSize * Math.sqrt(h / w) / 64) * 64;
+                    }
+                    if (window.innerWidth >= 640) {
+                        this.showRatioDropdown = false;
+                    }
+                },
+                selectModel(id) {
+                    this.selectedModel = id;
+                    this.showModelDropdown = false;
+                },
+                getSelectedModel() {
+                    return this.models.find(m => m.id === this.selectedModel) || this.models[0];
+                },
+                updateWidth(newWidth) {
+                    this.customWidth = newWidth;
+                    if (this.linkDimensions && this.selectedRatio !== 'auto') {
+                        const [w, h] = this.selectedRatio.split(':').map(Number);
+                        this.customHeight = Math.round(newWidth * h / w / 64) * 64;
+                    }
+                },
+                updateHeight(newHeight) {
+                    this.customHeight = newHeight;
+                    if (this.linkDimensions && this.selectedRatio !== 'auto') {
+                        const [w, h] = this.selectedRatio.split(':').map(Number);
+                        this.customWidth = Math.round(newHeight * w / h / 64) * 64;
+                    }
+                },
+
+                // ============================================================
+                // Chat-like scroll
+                // ============================================================
+                scrollToBottom(smooth = true) {
+                    const el = document.documentElement;
+                    el.scrollTo({
+                        top: el.scrollHeight,
+                        behavior: smooth ? 'smooth' : 'instant'
+                    });
+                },
+
+                // ============================================================
+                // Toast notifications
+                // ============================================================
+                notify(msg, type = 'success') {
+                    this.toastMessage = msg;
+                    this.toastType = type;
+                    this.showToast = true;
+                    clearTimeout(this.toastTimer);
+                    this.toastTimer = setTimeout(() => this.showToast = false, 3000);
+                },
+
+                // ============================================================
+                // Loading animation
+                // ============================================================
+                startLoading() {
+                    this.currentLoadingMessage = 0;
+                    this.loadingInterval = setInterval(() => {
+                        this.currentLoadingMessage = (this.currentLoadingMessage + 1) % this.loadingMessages.length;
+                    }, 3000);
+                },
+                stopLoading() {
+                    clearInterval(this.loadingInterval);
+                },
+
+                // ============================================================
+                // Preview modal
+                // ============================================================
+                openPreview(url, index) {
+                    if (index !== null && index !== undefined && this.historyData[index]) {
+                        this.previewIndex = index;
+                        this.previewImage = this.historyData[index];
+                    } else if (url) {
+                        this.previewImage = { url: url, prompt: '' };
+                        this.previewIndex = 0;
+                    }
+                    this.showPreview = true;
+                    document.body.style.overflow = 'hidden';
+                },
+                closePreview() {
+                    this.showPreview = false;
+                    document.body.style.overflow = '';
+                },
+                nextImage() {
+                    if (this.previewIndex < this.historyData.length - 1) {
+                        this.previewIndex++;
+                        this.previewImage = this.historyData[this.previewIndex];
+                    }
+                },
+                prevImage() {
+                    if (this.previewIndex > 0) {
+                        this.previewIndex--;
+                        this.previewImage = this.historyData[this.previewIndex];
+                    }
+                },
+
+                // ============================================================
+                // Keyboard
+                // ============================================================
+                handleKeydown(e) {
+                    if (this.showPreview) {
+                        if (e.key === 'ArrowLeft') this.prevImage();
+                        if (e.key === 'ArrowRight') this.nextImage();
+                        if (e.key === 'Escape') this.closePreview();
+                    }
+                },
+
+                // ============================================================
+                // Image picker
+                // ============================================================
+                async loadRecentImages() {
+                    if (this.recentImages.length > 0) return;
+                    this.isLoadingPicker = true;
+                    try {
+                        const res = await fetch('/api/user/recent-images');
+                        if (res.ok) this.recentImages = await res.json();
+                    } catch (e) { console.error(e); }
+                    this.isLoadingPicker = false;
+                },
+
+                handleFileSelect(e) {
+                    const files = Array.from(e.target.files);
+                    this.processFiles(files);
+                    e.target.value = '';
+                },
+
+                handleDrop(e) {
+                    this.isDragging = false;
+                    const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
+                    this.processFiles(files);
+                },
+
+                // Direct upload from prompt bar
+                handleDirectUpload(e) {
+                    const files = Array.from(e.target.files);
+                    this.processFiles(files);
+                    e.target.value = '';
+                    this.notify(files.length + ' ảnh đã thêm làm tham chiếu');
+                },
+
+                processFiles(files) {
+                    const remaining = this.maxImages - this.selectedImages.length;
+                    const toProcess = files.slice(0, remaining);
+                    toProcess.forEach(file => {
+                        if (file.size > 10 * 1024 * 1024) {
+                            this.notify('Ảnh quá lớn (tối đa 10MB)', 'error');
+                            return;
+                        }
+                        const reader = new FileReader();
+                        reader.onload = (ev) => {
+                            this.selectedImages.push({
+                                id: Date.now() + Math.random(),
+                                url: ev.target.result,
+                                file: file
+                            });
+                            this.$wire.setReferenceImages(
+                                this.selectedImages.map(img => ({ url: img.url }))
+                            );
+                        };
+                        reader.readAsDataURL(file);
+                    });
+                },
+
+                addFromUrl() {
+                    const url = this.urlInput.trim();
+                    if (!url) return;
+                    if (this.selectedImages.length >= this.maxImages) {
+                        this.notify('Tối đa ' + this.maxImages + ' ảnh', 'warning');
+                        return;
+                    }
+                    this.selectedImages.push({ id: Date.now(), url: url });
+                    this.$wire.setReferenceImages(
+                        this.selectedImages.map(img => ({ url: img.url }))
+                    );
+                    this.urlInput = '';
+                },
+
+                selectFromRecent(url) {
+                    const idx = this.selectedImages.findIndex(i => i.url === url);
+                    if (idx > -1) {
+                        this.selectedImages.splice(idx, 1);
+                    } else {
+                        if (this.selectedImages.length >= this.maxImages) {
+                            this.notify('Tối đa ' + this.maxImages + ' ảnh', 'warning');
+                            return;
+                        }
+                        this.selectedImages.push({ id: Date.now(), url: url });
+                    }
+                    this.$wire.setReferenceImages(
+                        this.selectedImages.map(img => ({ url: img.url }))
+                    );
+                },
+
+                isSelected(url) {
+                    return this.selectedImages.some(i => i.url === url);
+                },
+
+                removeImage(id) {
+                    this.selectedImages = this.selectedImages.filter(i => i.id !== id);
+                    this.$wire.setReferenceImages(
+                        this.selectedImages.map(img => ({ url: img.url }))
+                    );
+                },
+
+                clearAll() {
+                    this.selectedImages = [];
+                    this.$wire.setReferenceImages([]);
+                },
+
+                confirmSelection() {
+                    this.$wire.setReferenceImages(
+                        this.selectedImages.map(img => ({ url: img.url }))
+                    );
+                    this.showImagePicker = false;
+                    if (this.selectedImages.length > 0) {
+                        this.notify(this.selectedImages.length + ' ảnh tham chiếu đã chọn');
+                    }
+                },
+            }));
+        });
+    </script>
 </div>
