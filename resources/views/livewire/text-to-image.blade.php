@@ -205,30 +205,32 @@
                         @endphp
 
                         {{-- Batch Group --}}
-                        <div class="space-y-2" x-data="{ expanded: false }">
+                        <div class="space-y-2.5" x-data="{ expanded: false }">
 
                             {{-- Header Row: Mode > Prompt + Actions --}}
                             <div class="flex items-center gap-2">
                                 <div class="flex items-center justify-between gap-2 flex-1 text-sm min-w-0">
-                                    <div class="flex items-center gap-1 min-w-0">
-                                        <span class="text-white/60 text-xs font-medium shrink-0">Tạo ảnh</span>
+                                    <div class="flex items-center gap-1.5 min-w-0">
+                                        <span class="text-white/70 text-xs font-medium shrink-0">Tạo ảnh</span>
                                         <i class="fa-solid fa-chevron-right text-white/30 text-[9px] shrink-0"></i>
                                         <button
-                                            class="min-w-0 flex-1 text-sm text-left text-white/50 first-letter:capitalize hover:text-white/80 transition-colors cursor-pointer truncate overflow-hidden"
+                                            class="min-w-0 flex-1 text-sm text-left text-white/50 first-letter:capitalize hover:text-white/80 transition-colors duration-200 cursor-pointer truncate overflow-hidden"
                                             @click="expanded = !expanded" title="Nhấn để xem toàn bộ prompt">
                                             {{ $firstItem->final_prompt }}
                                         </button>
                                     </div>
-                                    <div class="flex items-center gap-1 shrink-0">
+                                    <div class="flex items-center gap-0.5 shrink-0">
+                                        {{-- Copy Prompt (ghost button) --}}
                                         <button
                                             @click="navigator.clipboard.writeText(@js($firstItem->final_prompt)); notify('Đã copy prompt')"
-                                            class="inline-flex items-center justify-center h-7 px-2 rounded-md hover:bg-white/[0.06] text-xs text-white/50 hover:text-white/80 transition-colors"
+                                            class="inline-flex items-center justify-center h-7 px-2 rounded-lg bg-transparent text-white/50 hover:bg-white/[0.05] hover:text-white/90 text-xs transition-all duration-200 active:scale-[0.98]"
                                             title="Copy prompt">
                                             <i class="fa-regular fa-copy text-[11px] mr-1"></i>
                                             <span class="hidden sm:inline">Copy</span>
                                         </button>
+                                        {{-- Reuse (ghost button) --}}
                                         <button wire:click="reusePrompt({{ $firstItem->id }})"
-                                            class="inline-flex items-center justify-center h-7 px-2 rounded-md hover:bg-white/[0.06] text-xs text-white/50 hover:text-white/80 transition-colors"
+                                            class="inline-flex items-center justify-center h-7 px-2 rounded-lg bg-transparent text-white/50 hover:bg-white/[0.05] hover:text-white/90 text-xs transition-all duration-200 active:scale-[0.98]"
                                             title="Dùng lại prompt + cài đặt">
                                             <i class="fa-solid fa-arrow-rotate-left text-[10px] mr-1"></i>
                                             <span class="hidden sm:inline">Reuse</span>
@@ -237,53 +239,56 @@
                                 </div>
                             </div>
 
-                            {{-- Expanded Prompt Detail --}}
-                            <div x-show="expanded" x-cloak x-transition
-                                class="px-2 py-2 rounded-lg bg-white/[0.03] border border-white/[0.06] text-sm text-white/70 leading-relaxed">
+                            {{-- Expanded Prompt Detail (Glass panel) --}}
+                            <div x-show="expanded" x-cloak
+                                x-transition:enter="transition ease-out duration-200"
+                                x-transition:enter-start="opacity-0 -translate-y-1"
+                                x-transition:enter-end="opacity-100 translate-y-0"
+                                x-transition:leave="transition ease-in duration-150"
+                                x-transition:leave-start="opacity-100 translate-y-0"
+                                x-transition:leave-end="opacity-0 -translate-y-1"
+                                class="px-3 py-2.5 rounded-xl bg-white/[0.03] backdrop-blur-[12px] border border-white/[0.08] shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] text-sm text-white/70 leading-relaxed">
                                 {{ $firstItem->final_prompt }}
                                 <div class="flex items-center gap-2 mt-2 text-[11px] text-white/40">
                                     <span class="text-purple-300/70">{{ $modelName }}</span>
-                                    <span>•</span>
+                                    <span class="text-white/20">•</span>
                                     <span>{{ $ratio }}</span>
-                                    <span>•</span>
+                                    <span class="text-white/20">•</span>
                                     <span>{{ $groupItems->count() }} ảnh</span>
-                                    <span>•</span>
+                                    <span class="text-white/20">•</span>
                                     <span>{{ $firstItem->created_at->diffForHumans() }}</span>
                                 </div>
                             </div>
 
                             {{-- Image Grid --}}
-                            <div class="grid grid-cols-2 xl:grid-cols-4 gap-1">
+                            <div class="grid grid-cols-2 xl:grid-cols-4 gap-1 rounded-lg overflow-hidden">
                                 @foreach($groupItems as $image)
                                     <div class="block group cursor-pointer" @click="openPreview(null, {{ $absoluteIndex }})">
-                                        <div class="h-full bg-white/[0.02] group">
+                                        <div class="h-full bg-white/[0.02]">
                                             <div class="relative overflow-hidden" style="aspect-ratio: {{ $aspectRatioCss }};"
                                                 x-data="{ loaded: false }">
                                                 {{-- Shimmer --}}
                                                 <div x-show="!loaded" class="absolute inset-0 bg-white/[0.04]">
-                                                    <div
-                                                        class="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.06] to-transparent animate-shimmer">
-                                                    </div>
+                                                    <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.06] to-transparent animate-shimmer"></div>
                                                 </div>
                                                 {{-- Image --}}
                                                 <img src="{{ $image->image_url }}" alt="Preview"
-                                                    class="w-full h-full object-cover transition-all duration-300 ease-out group-hover:scale-105"
+                                                    class="w-full h-full object-cover transition-all duration-300 ease-out group-hover:scale-[1.05]"
                                                     :class="loaded ? 'opacity-100' : 'opacity-0'" loading="lazy"
                                                     draggable="false" @load="loaded = true">
-                                                {{-- Hover Actions --}}
-                                                <div
-                                                    class="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                                {{-- Hover Overlay + Actions --}}
+                                                <div class="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                                                     <div class="absolute bottom-2 right-2 flex gap-1.5">
                                                         <a href="{{ $image->image_url }}" download @click.stop
-                                                            class="h-7 w-7 rounded-md bg-black/60 hover:bg-white/20 backdrop-blur-sm text-white flex items-center justify-center transition-all border border-white/[0.1] active:scale-[0.95]"
+                                                            class="h-8 w-8 rounded-lg bg-black/50 backdrop-blur-[8px] hover:bg-white/20 text-white flex items-center justify-center transition-all duration-200 border border-white/[0.1] active:scale-[0.95]"
                                                             title="Tải xuống">
-                                                            <i class="fa-solid fa-download text-[10px]"></i>
+                                                            <i class="fa-solid fa-download text-[11px]"></i>
                                                         </a>
                                                         <button wire:click="deleteImage({{ $image->id }})" @click.stop
                                                             wire:confirm="Bạn có chắc muốn xóa ảnh này?"
-                                                            class="h-7 w-7 rounded-md bg-black/60 hover:bg-red-500/80 backdrop-blur-sm text-white flex items-center justify-center transition-all border border-white/[0.1] active:scale-[0.95]"
+                                                            class="h-8 w-8 rounded-lg bg-black/50 backdrop-blur-[8px] hover:bg-red-500/80 text-white flex items-center justify-center transition-all duration-200 border border-white/[0.1] active:scale-[0.95]"
                                                             title="Xóa">
-                                                            <i class="fa-solid fa-trash text-[10px]"></i>
+                                                            <i class="fa-solid fa-trash text-[11px]"></i>
                                                         </button>
                                                     </div>
                                                 </div>
@@ -320,11 +325,11 @@
                     @endforelse
                 </div>
 
-                {{-- Load More (at bottom) --}}
+                {{-- Load More (at bottom, secondary glass button) --}}
                 @if($history instanceof \Illuminate\Pagination\LengthAwarePaginator && $history->hasMorePages())
-                    <div class="flex justify-center pt-4">
+                    <div class="flex justify-center pt-6">
                         <button wire:click="loadMore"
-                            class="inline-flex items-center justify-center gap-2 h-9 px-4 rounded-lg bg-white/[0.05] hover:bg-white/[0.08] border border-white/[0.08] text-sm text-white/60 hover:text-white/90 font-medium transition-all active:scale-[0.98]">
+                            class="inline-flex items-center justify-center gap-2 h-10 px-5 rounded-lg bg-white/[0.05] backdrop-blur-[12px] hover:bg-white/[0.08] hover:border-white/[0.15] border border-white/[0.1] text-sm text-white/70 hover:text-white/95 font-medium shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] transition-all duration-200 active:scale-[0.98]">
                             <i class="fa-solid fa-arrow-down text-xs"></i>
                             <span>Tải thêm</span>
                         </button>
