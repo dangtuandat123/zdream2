@@ -498,8 +498,8 @@
                             </div>
 
                             {{-- Aspect Ratio Button --}}
-                            <div class="relative">
-                                <button type="button"
+                            <div class="relative" x-ref="ratioWrap">
+                                <button type="button" x-ref="ratioBtn"
                                     @click="showRatioDropdown = !showRatioDropdown; showModelDropdown = false"
                                     class="flex items-center gap-1.5 h-9 px-2 sm:px-2.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition-all cursor-pointer"
                                     :class="{ 'bg-purple-500/20 border-purple-500/40': showRatioDropdown }">
@@ -522,10 +522,12 @@
                                         class="hidden sm:block fixed w-80 p-3 rounded-xl bg-[#1a1b20] border border-white/10 shadow-2xl z-[9999]"
                                         x-init="$watch('showRatioDropdown', value => {
                                             if (value) {
-                                                const btn = $root.querySelector('button');
-                                                const rect = btn.getBoundingClientRect();
-                                                $el.style.bottom = (window.innerHeight - rect.top + 8) + 'px';
-                                                $el.style.left = rect.left + 'px';
+                                                const btn = $refs.ratioBtn || document.querySelector('[x-ref=ratioBtn]');
+                                                if (btn) {
+                                                    const rect = btn.getBoundingClientRect();
+                                                    $el.style.bottom = (window.innerHeight - rect.top + 8) + 'px';
+                                                    $el.style.left = rect.left + 'px';
+                                                }
                                             }
                                         })" @click.stop>
                                         <div class="text-white/50 text-xs font-medium mb-2">Tỉ lệ khung hình</div>
@@ -604,8 +606,8 @@
                             </div>
 
                             {{-- Model Selector --}}
-                            <div class="relative">
-                                <button type="button"
+                            <div class="relative" x-ref="modelWrap">
+                                <button type="button" x-ref="modelBtn"
                                     @click="showModelDropdown = !showModelDropdown; showRatioDropdown = false"
                                     class="flex items-center gap-1.5 h-9 px-2 sm:px-2.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition-all cursor-pointer"
                                     :class="{ 'bg-purple-500/20 border-purple-500/40': showModelDropdown }">
@@ -628,10 +630,12 @@
                                         class="hidden sm:block fixed w-64 p-2 rounded-xl bg-[#1a1b20] border border-white/10 shadow-2xl z-[9999]"
                                         x-init="$watch('showModelDropdown', value => {
                                             if (value) {
-                                                const btn = $root.querySelector('button');
-                                                const rect = btn.getBoundingClientRect();
-                                                $el.style.bottom = (window.innerHeight - rect.top + 8) + 'px';
-                                                $el.style.left = rect.left + 'px';
+                                                const btn = $refs.modelBtn || document.querySelector('[x-ref=modelBtn]');
+                                                if (btn) {
+                                                    const rect = btn.getBoundingClientRect();
+                                                    $el.style.bottom = (window.innerHeight - rect.top + 8) + 'px';
+                                                    $el.style.left = rect.left + 'px';
+                                                }
                                             }
                                         })" @click.stop>
                                         <div class="space-y-1">
@@ -677,11 +681,14 @@
                                         x-init="$watch('showBatchDropdown', value => {
                                             if (value) {
                                                 const btn = $root.querySelector('button');
-                                                const rect = btn.getBoundingClientRect();
-                                                $el.style.bottom = (window.innerHeight - rect.top + 8) + 'px';
-                                                $el.style.left = rect.left + 'px';
+                                                if (btn) {
+                                                    const rect = btn.getBoundingClientRect();
+                                                    $el.style.bottom = (window.innerHeight - rect.top + 8) + 'px';
+                                                    $el.style.left = rect.left + 'px';
+                                                }
                                             }
                                          })">
+
                                         <div class="space-y-1">
                                             @foreach([1, 2, 3, 4] as $n)
                                                 <button type="button"
