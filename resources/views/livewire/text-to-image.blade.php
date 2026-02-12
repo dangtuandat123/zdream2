@@ -182,10 +182,11 @@
 
                 @php $absoluteIndex = 0; @endphp
 
-                <div class="space-y-14" x-data x-init="
+                <div class="space-y-14" style="visibility: hidden;" x-data x-init="
                     requestAnimationFrame(() => {
                         requestAnimationFrame(() => {
                             document.documentElement.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'instant' });
+                            $el.style.visibility = 'visible';
                         });
                     });
                 ">
@@ -206,11 +207,11 @@
                                                         const scrollH = document.documentElement.scrollHeight;
                                                         $wire.loadMore().then(() => {
                                                             this.$nextTick(() => {
-                                                                setTimeout(() => {
+                                                                requestAnimationFrame(() => {
                                                                     const newScrollH = document.documentElement.scrollHeight;
                                                                     document.documentElement.scrollTop += (newScrollH - scrollH);
                                                                     this.isLoading = false;
-                                                                }, 150);
+                                                                });
                                                             });
                                                         }).catch(() => { this.isLoading = false; });
                                                     }
