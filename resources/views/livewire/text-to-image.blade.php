@@ -466,40 +466,43 @@
                         <div class="flex items-center gap-2"
                             @click.away="showRatioDropdown = false; showModelDropdown = false">
 
-                            {{-- Reference Image Button (single) --}}
-                            <div class="flex items-center gap-1.5">
-                                {{-- Hidden file input --}}
-                                <input type="file" id="direct-upload" accept="image/*" multiple class="hidden"
-                                    @change="handleDirectUpload($event)">
-
-                                {{-- Selected Images Preview --}}
-                                <template x-if="selectedImages.length > 0">
-                                    <div class="flex items-center gap-1 p-1 pr-2 rounded-lg bg-purple-500/10 border border-purple-500/20">
-                                        <div class="flex -space-x-1">
-                                            <template x-for="(img, idx) in selectedImages.slice(0, 3)" :key="img.id">
-                                                <img :src="img.url" class="w-6 h-6 rounded border border-purple-500/50 object-cover">
-                                            </template>
-                                        </div>
-                                        <span class="text-purple-300 text-xs font-medium ml-1" x-text="selectedImages.length"></span>
-                                        <button @click="selectedImages = []" class="ml-0.5 text-white/50 hover:text-white"><i class="fa-solid fa-xmark text-xs"></i></button>
-                                    </div>
-                                </template>
-
-                                {{-- Single Upload/Ref Image Button --}}
-                                <label for="direct-upload"
+                            {{-- Image Reference Picker (same as /home) --}}
+                            <div class="relative">
+                                {{-- Image Button with Count Badge --}}
+                                <button type="button"
+                                    @click="showImagePicker = !showImagePicker; if(showImagePicker) loadRecentImages()"
                                     class="flex items-center gap-1.5 h-9 px-2.5 rounded-lg transition-all cursor-pointer"
-                                    :class="selectedImages.length > 0
-                                        ? 'bg-purple-500/20 border border-purple-500/40'
-                                        : 'bg-white/5 hover:bg-white/10 border border-white/10'"
-                                    title="Thêm ảnh tham chiếu">
-                                    <i class="fa-solid fa-paperclip text-white/50 text-sm"></i>
-                                    <span class="text-white/70 text-xs font-medium hidden sm:inline">Ảnh</span>
-                                </label>
+                                    :class="selectedImages.length > 0 
+                                        ? 'bg-purple-500/30 border border-purple-500/50' 
+                                        : 'bg-gradient-to-br from-purple-500/20 to-pink-500/20 hover:from-purple-500/30 hover:to-pink-500/30 border border-purple-500/30'">
+                                    {{-- Show thumbnails if images selected --}}
+                                    <template x-if="selectedImages.length > 0">
+                                        <div class="flex items-center gap-1">
+                                            <div class="flex -space-x-1">
+                                                <template x-for="(img, idx) in selectedImages.slice(0, 3)" :key="img.id">
+                                                    <img :src="img.url"
+                                                        class="w-5 h-5 rounded border border-purple-500/50 object-cover">
+                                                </template>
+                                            </div>
+                                            <span class="text-purple-300 text-xs font-medium"
+                                                x-text="selectedImages.length"></span>
+                                        </div>
+                                    </template>
+                                    <template x-if="selectedImages.length === 0">
+                                        <i class="fa-solid fa-image text-purple-400 text-sm"></i>
+                                    </template>
+                                </button>
+
+                                {{-- Clear all button --}}
+                                <button x-show="selectedImages.length > 0" @click.stop="clearAll()"
+                                    class="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-red-500 text-white text-[10px] flex items-center justify-center hover:bg-red-600 transition-colors">
+                                    <i class="fa-solid fa-xmark"></i>
+                                </button>
                             </div>
 
                             {{-- Aspect Ratio Button --}}
-                            <div class="relative" x-ref="ratioWrap">
-                                <button type="button" x-ref="ratioBtn"
+                            <div class="relative">
+                                <button type="button" data-dropdown-trigger="ratio"
                                     @click="showRatioDropdown = !showRatioDropdown; showModelDropdown = false"
                                     class="flex items-center gap-1.5 h-9 px-2 sm:px-2.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition-all cursor-pointer"
                                     :class="{ 'bg-purple-500/20 border-purple-500/40': showRatioDropdown }">
@@ -522,7 +525,7 @@
                                         class="hidden sm:block fixed w-80 p-3 rounded-xl bg-[#1a1b20] border border-white/10 shadow-2xl z-[9999]"
                                         x-init="$watch('showRatioDropdown', value => {
                                             if (value) {
-                                                const btn = $refs.ratioBtn || document.querySelector('[x-ref=ratioBtn]');
+                                                const btn = document.querySelector('[data-dropdown-trigger=ratio]');
                                                 if (btn) {
                                                     const rect = btn.getBoundingClientRect();
                                                     $el.style.bottom = (window.innerHeight - rect.top + 8) + 'px';
@@ -606,8 +609,8 @@
                             </div>
 
                             {{-- Model Selector --}}
-                            <div class="relative" x-ref="modelWrap">
-                                <button type="button" x-ref="modelBtn"
+                            <div class="relative">
+                                <button type="button" data-dropdown-trigger="model"
                                     @click="showModelDropdown = !showModelDropdown; showRatioDropdown = false"
                                     class="flex items-center gap-1.5 h-9 px-2 sm:px-2.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition-all cursor-pointer"
                                     :class="{ 'bg-purple-500/20 border-purple-500/40': showModelDropdown }">
@@ -630,7 +633,7 @@
                                         class="hidden sm:block fixed w-64 p-2 rounded-xl bg-[#1a1b20] border border-white/10 shadow-2xl z-[9999]"
                                         x-init="$watch('showModelDropdown', value => {
                                             if (value) {
-                                                const btn = $refs.modelBtn || document.querySelector('[x-ref=modelBtn]');
+                                                const btn = document.querySelector('[data-dropdown-trigger=model]');
                                                 if (btn) {
                                                     const rect = btn.getBoundingClientRect();
                                                     $el.style.bottom = (window.innerHeight - rect.top + 8) + 'px';
@@ -658,6 +661,46 @@
                                     </div>
                                 </template>
                             </div>
+
+                            {{-- Model Bottom Sheet - Mobile --}}
+                            <template x-teleport="body">
+                                <div x-show="showModelDropdown" x-cloak
+                                    class="sm:hidden fixed inset-0 z-[9999] flex items-end justify-center bg-black/80 backdrop-blur-md"
+                                    @click.self="showModelDropdown = false" @click.stop>
+                                    <div x-show="showModelDropdown"
+                                        x-transition:enter="transition ease-out duration-300"
+                                        x-transition:enter-start="translate-y-full"
+                                        x-transition:enter-end="translate-y-0"
+                                        class="w-full max-w-lg bg-[#1a1b20] border-t border-white/10 rounded-t-3xl flex flex-col max-h-[85vh] shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
+                                        <div class="flex items-center justify-between p-4 border-b border-white/5 shrink-0">
+                                            <span class="text-white font-semibold text-base">Chọn Model AI</span>
+                                            <button type="button" @click="showModelDropdown = false"
+                                                class="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 text-white/60 active:scale-95 transition-transform">
+                                                <i class="fa-solid fa-xmark"></i>
+                                            </button>
+                                        </div>
+                                        <div class="p-4 overflow-y-auto">
+                                            <div class="space-y-1">
+                                                <template x-for="model in models" :key="model.id">
+                                                    <button type="button" @click="selectModel(model.id)"
+                                                        class="w-full flex items-center gap-3 p-3 rounded-xl transition-all text-left"
+                                                        :class="selectedModel === model.id ? 'bg-purple-500/30 border border-purple-500/50' : 'bg-white/5 active:bg-white/10 border border-transparent'">
+                                                        <span class="text-2xl" x-text="model.icon"></span>
+                                                        <div class="flex-1 min-w-0">
+                                                            <div class="text-white font-semibold text-base" x-text="model.name"></div>
+                                                            <div class="text-white/50 text-sm mt-0.5" x-text="model.desc"></div>
+                                                        </div>
+                                                        <div class="w-6 h-6 rounded-full border-2 flex items-center justify-center"
+                                                            :class="selectedModel === model.id ? 'border-purple-500 bg-purple-500' : 'border-white/20'">
+                                                            <i x-show="selectedModel === model.id" class="fa-solid fa-check text-white text-xs"></i>
+                                                        </div>
+                                                    </button>
+                                                </template>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </template>
 
                             {{-- Batch Size Selector --}}
                             <div class="relative" x-data="{ showBatchDropdown: false }">
