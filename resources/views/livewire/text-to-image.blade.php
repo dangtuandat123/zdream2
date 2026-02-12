@@ -182,13 +182,13 @@
 
                 @php $absoluteIndex = 0; @endphp
 
-                <div class="space-y-14" x-data="{ galleryReady: false }" 
-                    x-init="$nextTick(() => { 
-                        document.documentElement.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'instant' }); 
-                        setTimeout(() => galleryReady = true, 50); 
-                    })"
-                    :class="galleryReady ? 'opacity-100' : 'opacity-0'"
-                    class="transition-opacity duration-300">
+                <div class="space-y-14" x-data x-init="
+                    requestAnimationFrame(() => {
+                        requestAnimationFrame(() => {
+                            document.documentElement.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'instant' });
+                        });
+                    });
+                ">
                     {{-- Infinite Scroll Sentinel (auto-load older images on scroll up) --}}
                     @if($history instanceof \Illuminate\Pagination\LengthAwarePaginator && $history->hasMorePages())
                         <div id="load-more-sentinel" class="flex justify-center py-4" x-data="{
@@ -326,7 +326,7 @@
                                                 {{-- Image --}}
                                                 <img src="{{ $image->image_url }}" alt="Preview"
                                                     class="w-full h-full object-cover transition-all duration-300 ease-out group-hover:scale-[1.05]"
-                                                    :class="loaded ? 'opacity-100' : 'opacity-0'" loading="lazy"
+                                                    :class="loaded ? 'opacity-100' : 'opacity-0'"
                                                     draggable="false" @load="loaded = true">
                                                 {{-- Hover Overlay + Actions --}}
                                                 <div
