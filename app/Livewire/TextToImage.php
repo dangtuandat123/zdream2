@@ -39,14 +39,14 @@ class TextToImage extends Component
     public bool $isGenerating = false;
     public ?string $generatedImageUrl = null;
     public ?string $errorMessage = null;
-    public ?int $lastImageId = null;
+    public array $generatingImageIds = []; // Track multiple images in batch
 
     // Async mode
     public bool $useAsyncMode = true;
     public int $pollingInterval = 2000;
 
     // History data
-    public int $perPage = 12;
+    public int $perPage = 3; // Load fewer items initially (chat style)
     public bool $loadingMore = false;
 
     // Filters
@@ -57,8 +57,8 @@ class TextToImage extends Component
     // Credit cost
     public float $creditCost = 5.0;
 
-    // Reference images from image picker
     public array $referenceImages = [];
+    public int $batchSize = 1; // 1-4 items
 
     // For retry functionality
     public ?string $lastPrompt = null;
@@ -184,9 +184,10 @@ class TextToImage extends Component
             return;
         }
 
-        // Check credits
-        if ($this->creditCost > 0 && !$user->hasEnoughCredits($this->creditCost)) {
-            $this->errorMessage = "Bạn không đủ credits. Cần: {$this->creditCost}, Hiện có: {$user->credits}";
+        // Check credits for TOTAL batch
+        $totalCost = $this->creditCost * $this->batchSize;
+        if ($totalCost > 0 && !$user->hasEnoughCredits($totalCost)) {
+            $this->errorMessage = "Bạn không đủ credits. Cần: {$totalCost}, Hiện có: {$user->credits}";
             return;
         }
 
@@ -200,154 +201,118 @@ class TextToImage extends Component
         ];
 
         $walletService = app(WalletService::class);
-        $creditsDeducted = false;
-        $generatedImage = null;
 
-        try {
-            // Get or create system style for text-to-image
-            $systemStyle = Style::where('slug', Style::SYSTEM_T2I_SLUG)->first();
+        // Loop for batch size
+        for ($i = 0; $i < $this->batchSize; $i++) {
+            $generatedImage = null;
+            $creditsDeducted = false;
 
-            if (!$systemStyle) {
-                // Create on-the-fly if not exists (fallback)
-                $systemStyle = Style::create([
-                    'name' => 'Text to Image',
-                    'slug' => Style::SYSTEM_T2I_SLUG,
-                    'description' => 'Tạo ảnh AI từ mô tả văn bản.',
-                    'price' => $this->creditCost,
-                    'bfl_model_id' => $this->modelId,
-                    'base_prompt' => '',
-                    'config_payload' => [
-                        'aspect_ratio' => $this->aspectRatio,
-                        'output_format' => 'jpeg',
-                    ],
-                    'is_active' => true,
-                    'is_system' => true,
-                    'allow_user_custom_prompt' => true,
+            try {
+                // Get or create system style
+                $systemStyle = Style::where('slug', Style::SYSTEM_T2I_SLUG)->first();
+
+                if (!$systemStyle) {
+                    $systemStyle = Style::create([
+                        'name' => 'Text to Image',
+                        'slug' => Style::SYSTEM_T2I_SLUG,
+                        'description' => 'Tạo ảnh AI từ mô tả văn bản.',
+                        'price' => $this->creditCost,
+                        'bfl_model_id' => $this->modelId,
+                        'is_active' => true,
+                        'is_system' => true,
+                        'allow_user_custom_prompt' => true,
+                    ]);
+                }
+
+                $generationParams = [
+                    'model_id' => $this->modelId,
+                    'aspect_ratio' => $this->aspectRatio,
+                    'batch_index' => $i,
+                ];
+
+                // Create GeneratedImage record
+                $generatedImage = GeneratedImage::create([
+                    'user_id' => $user->id,
+                    'style_id' => $systemStyle->id,
+                    'final_prompt' => $prompt,
+                    'status' => GeneratedImage::STATUS_PROCESSING,
+                    'credits_used' => $this->creditCost,
+                    'generation_params' => $generationParams,
                 ]);
-            }
 
-            // Update system style with current user selections
-            $systemStyle->bfl_model_id = $this->modelId;
-            $systemStyle->config_payload = array_merge(
-                $systemStyle->config_payload ?? [],
-                ['aspect_ratio' => $this->aspectRatio]
-            );
+                $this->generatingImageIds[] = $generatedImage->id;
 
-            $generationParams = [
-                'model_id' => $this->modelId,
-                'aspect_ratio' => $this->aspectRatio,
-            ];
+                // Deduct credits (per image)
+                if ($this->creditCost > 0) {
+                    $walletService->deductCredits(
+                        $user,
+                        $this->creditCost,
+                        "Tạo ảnh Text-to-Image (Batch " . ($i + 1) . ")",
+                        'generation',
+                        (string) $generatedImage->id
+                    );
+                    $creditsDeducted = true;
+                }
 
-            // Create GeneratedImage record
-            $generatedImage = GeneratedImage::create([
-                'user_id' => $user->id,
-                'style_id' => $systemStyle->id,
-                'final_prompt' => $prompt,
-                'selected_options' => [],
-                'user_custom_input' => $prompt,
-                'generation_params' => $generationParams,
-                'status' => GeneratedImage::STATUS_PROCESSING,
-                'credits_used' => $this->creditCost,
-            ]);
-
-            // Deduct credits
-            if ($this->creditCost > 0) {
-                $walletService->deductCredits(
-                    $user,
-                    $this->creditCost,
-                    "Tạo ảnh Text-to-Image",
-                    'generation',
-                    (string) $generatedImage->id
-                );
-                $creditsDeducted = true;
-            }
-
-            // Prepare reference images for API
-            $inputImages = [];
-            if (!empty($this->referenceImages)) {
-                foreach ($this->referenceImages as $idx => $img) {
-                    $url = $img['url'] ?? $img;
-                    if (is_string($url) && !empty($url)) {
-                        $inputImages['image_' . $idx] = $url;
+                // Prepare inputs
+                $inputImages = [];
+                if (!empty($this->referenceImages)) {
+                    foreach ($this->referenceImages as $idx => $img) {
+                        $url = $img['url'] ?? $img;
+                        if (is_string($url) && !empty($url)) {
+                            $inputImages['image_' . $idx] = $url;
+                        }
                     }
                 }
-            }
 
-            // Async mode: dispatch job
-            if ($this->useAsyncMode) {
-                GenerateImageJob::dispatch(
-                    $generatedImage,
-                    [], // no options
-                    $prompt,
-                    $this->aspectRatio,
-                    '1K',
-                    $inputImages,
-                    ['aspect_ratio' => $this->aspectRatio]
-                );
+                // Dispatch Job
+                if ($this->useAsyncMode) {
+                    GenerateImageJob::dispatch(
+                        $generatedImage,
+                        [],
+                        $prompt,
+                        $this->aspectRatio,
+                        '1K',
+                        $inputImages,
+                        ['aspect_ratio' => $this->aspectRatio]
+                    );
+                } else {
+                    // Sync fallback
+                    $bflService = app(BflService::class);
+                    $result = $bflService->generateImage(
+                        $systemStyle,
+                        [],
+                        $prompt,
+                        $this->aspectRatio,
+                        null,
+                        $inputImages,
+                        ['aspect_ratio' => $this->aspectRatio]
+                    );
 
-                $this->lastImageId = $generatedImage->id;
-                return;
-            }
+                    if ($result['success']) {
+                        $storageService = app(StorageService::class);
+                        $sRes = $storageService->saveBase64Image($result['image_base64'], $user->id);
+                        if ($sRes['success']) {
+                            $generatedImage->markAsCompleted($sRes['path'], $result['bfl_task_id'] ?? null);
+                        } else {
+                            $generatedImage->markAsFailed('Storage error');
+                        }
+                    } else {
+                        $generatedImage->markAsFailed($result['error'] ?? 'Error');
+                        if ($creditsDeducted) {
+                            $walletService->addCredits($user, $this->creditCost, 'refund', 'refund', (string) $generatedImage->id);
+                        }
+                    }
+                }
 
-            // Sync mode: generate directly
-            $bflService = app(BflService::class);
-            $result = $bflService->generateImage(
-                $systemStyle,
-                [],
-                $prompt,
-                $this->aspectRatio,
-                null,
-                $inputImages,
-                ['aspect_ratio' => $this->aspectRatio]
-            );
-
-            if (!$result['success']) {
-                $this->handleRefund($walletService, $user, $creditsDeducted, $result['error'] ?? 'Unknown error', $generatedImage);
-                $generatedImage->markAsFailed($result['error'] ?? 'BFL error');
-                $this->errorMessage = 'Có lỗi khi tạo ảnh. Credits đã được hoàn lại.';
-                return;
-            }
-
-            // Save image
-            $storageService = app(StorageService::class);
-            $storageResult = $storageService->saveBase64Image($result['image_base64'], $user->id);
-
-            if (!$storageResult['success']) {
-                $this->handleRefund($walletService, $user, $creditsDeducted, 'Storage error', $generatedImage);
-                $generatedImage->markAsFailed('Storage error');
-                $this->errorMessage = 'Có lỗi khi lưu ảnh. Credits đã được hoàn lại.';
-                return;
-            }
-
-            $generatedImage->markAsCompleted($storageResult['path'], $result['bfl_task_id'] ?? null);
-            $generatedImage->refresh();
-
-            $this->generatedImageUrl = $generatedImage->image_url;
-            $this->lastImageId = $generatedImage->id;
-            $this->dispatch('imageGenerated');
-
-        } catch (\Throwable $e) {
-            $this->handleRefund($walletService, $user, $creditsDeducted, $e->getMessage(), $generatedImage);
-
-            if ($generatedImage) {
-                $generatedImage->markAsFailed($e->getMessage());
-            }
-
-            Log::error('TextToImage generation failed', [
-                'error' => $e->getMessage(),
-                'user_id' => $user->id,
-            ]);
-
-            $this->errorMessage = config('app.debug')
-                ? 'Lỗi: ' . $e->getMessage()
-                : 'Có lỗi xảy ra. Credits đã được hoàn lại.';
-
-            if (!$this->lastImageId) {
-                $this->isGenerating = false;
-            }
-        } finally {
-            if (!$this->useAsyncMode) {
-                $this->isGenerating = false;
+            } catch (\Throwable $e) {
+                Log::error('Batch item error: ' . $e->getMessage());
+                if ($generatedImage) {
+                    $generatedImage->markAsFailed($e->getMessage());
+                }
+                if ($creditsDeducted && isset($walletService)) {
+                    $walletService->addCredits($user, $this->creditCost, 'refund', 'refund', $generatedImage ? (string) $generatedImage->id : null);
+                }
             }
         }
     }
@@ -361,38 +326,31 @@ class TextToImage extends Component
             session_write_close();
         }
 
-        if (!$this->lastImageId) {
+        if (empty($this->generatingImageIds)) {
             if ($this->isGenerating) {
                 $this->isGenerating = false;
-                $this->errorMessage = 'Không tìm thấy yêu cầu. Vui lòng thử lại.';
             }
             return;
         }
 
-        $image = GeneratedImage::find($this->lastImageId);
-        if (!$image) {
-            $this->isGenerating = false;
-            $this->errorMessage = 'Không tìm thấy ảnh.';
-            $this->lastImageId = null;
-            return;
-        }
+        // Count pending
+        $pendingCount = GeneratedImage::whereIn('id', $this->generatingImageIds)
+            ->where(function ($q) {
+                $q->where('status', GeneratedImage::STATUS_PENDING)
+                    ->orWhere('status', GeneratedImage::STATUS_PROCESSING);
+            })
+            ->count();
 
-        // Security check
-        if ($image->user_id !== Auth::id()) {
+        // If none pending
+        if ($pendingCount === 0) {
             $this->isGenerating = false;
-            $this->errorMessage = 'Không có quyền truy cập.';
-            $this->lastImageId = null;
-            return;
-        }
-
-        if ($image->status === GeneratedImage::STATUS_COMPLETED) {
-            $this->isGenerating = false;
-            $this->generatedImageUrl = $image->image_url;
+            $lastId = end($this->generatingImageIds);
+            if ($lastId) {
+                $img = GeneratedImage::find($lastId);
+                $this->generatedImageUrl = $img ? $img->image_url : null;
+            }
+            $this->generatingImageIds = [];
             $this->dispatch('imageGenerated');
-        } elseif ($image->status === GeneratedImage::STATUS_FAILED) {
-            $this->isGenerating = false;
-            $this->errorMessage = 'Tạo ảnh thất bại. Credits đã được hoàn lại.';
-            $this->lastImageId = null;
         }
     }
 
@@ -400,7 +358,7 @@ class TextToImage extends Component
     {
         $this->errorMessage = null;
         $this->generatedImageUrl = null;
-        $this->lastImageId = null;
+        $this->generatingImageIds = [];
     }
 
     protected function handleRefund(
