@@ -188,25 +188,30 @@
                         <div id="load-more-sentinel" class="flex justify-center py-4" x-data="{
                                     observer: null,
                                     isLoading: false,
+                                    ready: false,
                                     init() {
-                                        this.observer = new IntersectionObserver((entries) => {
-                                            entries.forEach(entry => {
-                                                if (entry.isIntersecting && !this.isLoading) {
-                                                    this.isLoading = true;
-                                                    const scrollH = document.documentElement.scrollHeight;
-                                                    $wire.loadMore().then(() => {
-                                                        this.$nextTick(() => {
-                                                            setTimeout(() => {
-                                                                const newScrollH = document.documentElement.scrollHeight;
-                                                                document.documentElement.scrollTop += (newScrollH - scrollH);
-                                                                this.isLoading = false;
-                                                            }, 150);
-                                                        });
-                                                    }).catch(() => { this.isLoading = false; });
-                                                }
-                                            });
-                                        }, { rootMargin: '200px 0px 0px 0px' });
-                                        this.observer.observe(this.$el);
+                                        // Wait 2s before activating to avoid triggering on initial page load
+                                        setTimeout(() => {
+                                            this.ready = true;
+                                            this.observer = new IntersectionObserver((entries) => {
+                                                entries.forEach(entry => {
+                                                    if (entry.isIntersecting && !this.isLoading && this.ready) {
+                                                        this.isLoading = true;
+                                                        const scrollH = document.documentElement.scrollHeight;
+                                                        $wire.loadMore().then(() => {
+                                                            this.$nextTick(() => {
+                                                                setTimeout(() => {
+                                                                    const newScrollH = document.documentElement.scrollHeight;
+                                                                    document.documentElement.scrollTop += (newScrollH - scrollH);
+                                                                    this.isLoading = false;
+                                                                }, 150);
+                                                            });
+                                                        }).catch(() => { this.isLoading = false; });
+                                                    }
+                                                });
+                                            }, { rootMargin: '100px 0px 0px 0px' });
+                                            this.observer.observe(this.$el);
+                                        }, 2000);
                                     },
                                     destroy() {
                                         if (this.observer) this.observer.disconnect();
