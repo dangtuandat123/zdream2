@@ -46,7 +46,7 @@ class TextToImage extends Component
     public int $pollingInterval = 2000;
 
     // History data
-    public int $perPage = 3; // Load fewer items initially (chat style)
+    public int $perPage = 5; // Load 5 items initially (chat style)
     public bool $loadingMore = false;
 
     // Filters
@@ -398,7 +398,7 @@ class TextToImage extends Component
     public function loadMore(): void
     {
         $this->loadingMore = true;
-        $this->perPage += 12;
+        $this->perPage += 5;
         $this->loadingMore = false;
         $this->dispatch('historyUpdated');
     }
