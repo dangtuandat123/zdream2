@@ -60,7 +60,7 @@
                             @foreach(['all' => 'Tất cả', 'week' => 'Tuần qua', 'month' => 'Tháng qua', '3months' => '3 tháng qua'] as $val => $lbl)
                                 <button wire:click="$set('filterDate', '{{ $val }}')" @click="openFilter = null"
                                     class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm transition-colors duration-150
-                                                                        {{ $filterDate === $val ? 'text-white/95 bg-white/[0.06]' : 'text-white/70 hover:bg-white/[0.06] hover:text-white' }}">
+                                                                            {{ $filterDate === $val ? 'text-white/95 bg-white/[0.06]' : 'text-white/70 hover:bg-white/[0.06] hover:text-white' }}">
                                     <span>{{ $lbl }}</span>
                                     @if($filterDate === $val)
                                         <i class="fa-solid fa-check text-purple-400 text-xs"></i>
@@ -99,7 +99,7 @@
                             @foreach($availableModels as $model)
                                 <button wire:click="$set('filterModel', '{{ $model['id'] }}')" @click="openFilter = null"
                                     class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm transition-colors duration-150
-                                                                        {{ $filterModel === $model['id'] ? 'text-white/95 bg-white/[0.06]' : 'text-white/70 hover:bg-white/[0.06] hover:text-white' }}">
+                                                                            {{ $filterModel === $model['id'] ? 'text-white/95 bg-white/[0.06]' : 'text-white/70 hover:bg-white/[0.06] hover:text-white' }}">
                                     <span>{{ $model['name'] }}</span>
                                     @if($filterModel === $model['id'])
                                         <i class="fa-solid fa-check text-purple-400 text-xs"></i>
@@ -128,7 +128,7 @@
                             @foreach(['all' => 'Tất cả', '1:1' => '1:1', '16:9' => '16:9', '9:16' => '9:16', '4:3' => '4:3', '3:4' => '3:4', '3:2' => '3:2', '2:3' => '2:3', '21:9' => '21:9'] as $val => $lbl)
                                 <button wire:click="$set('filterRatio', '{{ $val }}')" @click="openFilter = null"
                                     class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm transition-colors duration-150
-                                                                        {{ $filterRatio === $val ? 'text-white/95 bg-white/[0.06]' : 'text-white/70 hover:bg-white/[0.06] hover:text-white' }}">
+                                                                            {{ $filterRatio === $val ? 'text-white/95 bg-white/[0.06]' : 'text-white/70 hover:bg-white/[0.06] hover:text-white' }}">
                                     <span>{{ $lbl }}</span>
                                     @if($filterRatio === $val)
                                         <i class="fa-solid fa-check text-purple-400 text-xs"></i>
@@ -185,35 +185,35 @@
                 <div class="space-y-14">
                     {{-- Infinite Scroll Sentinel (auto-load older images on scroll up) --}}
                     @if($history instanceof \Illuminate\Pagination\LengthAwarePaginator && $history->hasMorePages())
-                        <div id="load-more-sentinel" class="flex justify-center py-4"
-                            x-data="{
-                                observer: null,
-                                isLoading: false,
-                                init() {
-                                    this.observer = new IntersectionObserver((entries) => {
-                                        entries.forEach(entry => {
-                                            if (entry.isIntersecting && !this.isLoading) {
-                                                this.isLoading = true;
-                                                const scrollH = document.documentElement.scrollHeight;
-                                                $wire.loadMore().then(() => {
-                                                    this.$nextTick(() => {
-                                                        setTimeout(() => {
-                                                            const newScrollH = document.documentElement.scrollHeight;
-                                                            document.documentElement.scrollTop += (newScrollH - scrollH);
-                                                            this.isLoading = false;
-                                                        }, 150);
-                                                    });
-                                                }).catch(() => { this.isLoading = false; });
-                                            }
-                                        });
-                                    }, { rootMargin: '200px 0px 0px 0px' });
-                                    this.observer.observe(this.$el);
-                                },
-                                destroy() {
-                                    if (this.observer) this.observer.disconnect();
-                                }
-                            }">
-                            <div class="flex items-center gap-2 text-white/40 text-sm" wire:loading.flex wire:target="loadMore">
+                        <div id="load-more-sentinel" class="flex justify-center py-4" x-data="{
+                                    observer: null,
+                                    isLoading: false,
+                                    init() {
+                                        this.observer = new IntersectionObserver((entries) => {
+                                            entries.forEach(entry => {
+                                                if (entry.isIntersecting && !this.isLoading) {
+                                                    this.isLoading = true;
+                                                    const scrollH = document.documentElement.scrollHeight;
+                                                    $wire.loadMore().then(() => {
+                                                        this.$nextTick(() => {
+                                                            setTimeout(() => {
+                                                                const newScrollH = document.documentElement.scrollHeight;
+                                                                document.documentElement.scrollTop += (newScrollH - scrollH);
+                                                                this.isLoading = false;
+                                                            }, 150);
+                                                        });
+                                                    }).catch(() => { this.isLoading = false; });
+                                                }
+                                            });
+                                        }, { rootMargin: '200px 0px 0px 0px' });
+                                        this.observer.observe(this.$el);
+                                    },
+                                    destroy() {
+                                        if (this.observer) this.observer.disconnect();
+                                    }
+                                }">
+                            <div class="flex items-center gap-2 text-white/40 text-sm" wire:loading.flex
+                                wire:target="loadMore">
                                 <i class="fa-solid fa-spinner fa-spin text-purple-400"></i>
                                 <span>Đang tải thêm...</span>
                             </div>
@@ -372,10 +372,10 @@
             {{-- Loading Skeleton (bottom, like chatbot) --}}
             @if($isGenerating && !$generatedImageUrl)
                 <div x-data="{ elapsed: 0, timer: null }" x-init="
-                                                            startLoading();
-                                                            timer = setInterval(() => elapsed++, 1000);
-                                                            $nextTick(() => setTimeout(() => document.documentElement.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' }), 100));
-                                                         "
+                                                                startLoading();
+                                                                timer = setInterval(() => elapsed++, 1000);
+                                                                $nextTick(() => setTimeout(() => document.documentElement.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' }), 100));
+                                                             "
                     x-effect="if (!@js($isGenerating)) { stopLoading(); clearInterval(timer); }"
                     x-on:remove="clearInterval(timer)">
                     <div
@@ -479,7 +479,8 @@
                                     <template x-if="selectedImages.length > 0">
                                         <div class="flex items-center gap-1">
                                             <div class="flex -space-x-1">
-                                                <template x-for="(img, idx) in selectedImages.slice(0, 3)" :key="img.id">
+                                                <template x-for="(img, idx) in selectedImages.slice(0, 3)"
+                                                    :key="img.id">
                                                     <img :src="img.url"
                                                         class="w-5 h-5 rounded border border-purple-500/50 object-cover">
                                                 </template>
@@ -504,7 +505,7 @@
                             <div class="relative">
                                 <button type="button" data-dropdown-trigger="ratio"
                                     @click="showRatioDropdown = !showRatioDropdown; showModelDropdown = false"
-                                    class="flex items-center gap-1.5 h-9 px-2 sm:px-2.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition-all cursor-pointer"
+                                    class="flex items-center gap-1.5 h-9 px-2 sm:px-2.5 rounded-lg bg-white/[0.05] hover:bg-white/[0.08] border border-white/[0.08] shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] transition-all duration-200 cursor-pointer"
                                     :class="{ 'bg-purple-500/20 border-purple-500/40': showRatioDropdown }">
                                     <i class="fa-solid fa-crop text-white/50 text-sm"></i>
                                     <span class="text-white/70 text-xs font-medium hidden sm:inline"
@@ -522,7 +523,7 @@
                                         x-transition:leave="transition ease-in duration-150"
                                         x-transition:leave-start="opacity-100 translate-y-0"
                                         x-transition:leave-end="opacity-0 translate-y-2"
-                                        class="hidden sm:block fixed w-80 p-3 rounded-xl bg-[#1a1b20] border border-white/10 shadow-2xl z-[9999]"
+                                        class="hidden sm:block fixed w-80 p-3 rounded-xl bg-[#0f0f18]/95 backdrop-blur-[20px] saturate-[180%] border border-white/[0.1] shadow-2xl shadow-black/50 z-[9999]"
                                         x-init="$watch('showRatioDropdown', value => {
                                             if (value) {
                                                 const btn = document.querySelector('[data-dropdown-trigger=ratio]');
@@ -538,7 +539,7 @@
                                             <template x-for="ratio in ratios" :key="ratio.id">
                                                 <button type="button" @click="selectRatio(ratio.id)"
                                                     class="flex flex-col items-center gap-1 p-2 rounded-lg transition-all"
-                                                    :class="selectedRatio === ratio.id ? 'bg-purple-500/30 border border-purple-500/50' : 'bg-white/5 hover:bg-white/10 border border-transparent'">
+                                                    :class="selectedRatio === ratio.id ? 'bg-purple-500/20 border border-purple-500/50' : 'bg-white/[0.03] hover:bg-white/[0.06] border border-transparent'">
                                                     <div class="w-6 h-6 flex items-center justify-center">
                                                         <template x-if="ratio.icon">
                                                             <i :class="'fa-solid ' + ratio.icon"
@@ -568,7 +569,7 @@
                                             x-transition:enter="transition ease-out duration-300"
                                             x-transition:enter-start="translate-y-full"
                                             x-transition:enter-end="translate-y-0"
-                                            class="w-full max-w-lg bg-[#1a1b20] border-t border-white/10 rounded-t-3xl flex flex-col max-h-[85vh] shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
+                                            class="w-full max-w-lg bg-[#0f0f18]/95 backdrop-blur-[24px] saturate-[180%] border-t border-white/[0.1] rounded-t-3xl flex flex-col max-h-[85vh] shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
                                             <div
                                                 class="flex items-center justify-between p-4 border-b border-white/5 shrink-0">
                                                 <span class="text-white font-semibold text-base">Tùy chỉnh khung
@@ -612,7 +613,7 @@
                             <div class="relative">
                                 <button type="button" data-dropdown-trigger="model"
                                     @click="showModelDropdown = !showModelDropdown; showRatioDropdown = false"
-                                    class="flex items-center gap-1.5 h-9 px-2 sm:px-2.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition-all cursor-pointer"
+                                    class="flex items-center gap-1.5 h-9 px-2 sm:px-2.5 rounded-lg bg-white/[0.05] hover:bg-white/[0.08] border border-white/[0.08] shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] transition-all duration-200 cursor-pointer"
                                     :class="{ 'bg-purple-500/20 border-purple-500/40': showModelDropdown }">
                                     <i class="fa-solid fa-microchip text-white/50 text-sm"></i>
                                     <span class="text-white/70 text-xs font-medium hidden sm:inline"
@@ -630,7 +631,7 @@
                                         x-transition:leave="transition ease-in duration-150"
                                         x-transition:leave-start="opacity-100 translate-y-0"
                                         x-transition:leave-end="opacity-0 translate-y-2"
-                                        class="hidden sm:block fixed w-64 p-2 rounded-xl bg-[#1a1b20] border border-white/10 shadow-2xl z-[9999]"
+                                        class="hidden sm:block fixed w-64 p-2 rounded-xl bg-[#0f0f18]/95 backdrop-blur-[20px] saturate-[180%] border border-white/[0.1] shadow-2xl shadow-black/50 z-[9999]"
                                         x-init="$watch('showModelDropdown', value => {
                                             if (value) {
                                                 const btn = document.querySelector('[data-dropdown-trigger=model]');
@@ -645,7 +646,7 @@
                                             <template x-for="model in models" :key="model.id">
                                                 <button type="button" @click="selectModel(model.id)"
                                                     class="w-full flex items-center gap-3 p-2 rounded-lg transition-all"
-                                                    :class="selectedModel === model.id ? 'bg-purple-500/20' : 'hover:bg-white/5'">
+                                                    :class="selectedModel === model.id ? 'bg-purple-500/20' : 'hover:bg-white/[0.06]'">
                                                     <span class="text-lg" x-text="model.icon"></span>
                                                     <div class="text-left">
                                                         <div class="text-white/90 text-sm font-medium"
@@ -671,8 +672,9 @@
                                         x-transition:enter="transition ease-out duration-300"
                                         x-transition:enter-start="translate-y-full"
                                         x-transition:enter-end="translate-y-0"
-                                        class="w-full max-w-lg bg-[#1a1b20] border-t border-white/10 rounded-t-3xl flex flex-col max-h-[85vh] shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
-                                        <div class="flex items-center justify-between p-4 border-b border-white/5 shrink-0">
+                                        class="w-full max-w-lg bg-[#0f0f18]/95 backdrop-blur-[24px] saturate-[180%] border-t border-white/[0.1] rounded-t-3xl flex flex-col max-h-[85vh] shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
+                                        <div
+                                            class="flex items-center justify-between p-4 border-b border-white/5 shrink-0">
                                             <span class="text-white font-semibold text-base">Chọn Model AI</span>
                                             <button type="button" @click="showModelDropdown = false"
                                                 class="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 text-white/60 active:scale-95 transition-transform">
@@ -687,12 +689,15 @@
                                                         :class="selectedModel === model.id ? 'bg-purple-500/30 border border-purple-500/50' : 'bg-white/5 active:bg-white/10 border border-transparent'">
                                                         <span class="text-2xl" x-text="model.icon"></span>
                                                         <div class="flex-1 min-w-0">
-                                                            <div class="text-white font-semibold text-base" x-text="model.name"></div>
-                                                            <div class="text-white/50 text-sm mt-0.5" x-text="model.desc"></div>
+                                                            <div class="text-white font-semibold text-base"
+                                                                x-text="model.name"></div>
+                                                            <div class="text-white/50 text-sm mt-0.5"
+                                                                x-text="model.desc"></div>
                                                         </div>
                                                         <div class="w-6 h-6 rounded-full border-2 flex items-center justify-center"
                                                             :class="selectedModel === model.id ? 'border-purple-500 bg-purple-500' : 'border-white/20'">
-                                                            <i x-show="selectedModel === model.id" class="fa-solid fa-check text-white text-xs"></i>
+                                                            <i x-show="selectedModel === model.id"
+                                                                class="fa-solid fa-check text-white text-xs"></i>
                                                         </div>
                                                     </button>
                                                 </template>
@@ -706,7 +711,7 @@
                             <div class="relative" x-data="{ showBatchDropdown: false }">
                                 <button type="button"
                                     @click="showBatchDropdown = !showBatchDropdown; showRatioDropdown = false; showModelDropdown = false"
-                                    class="flex items-center gap-1.5 h-9 px-2 sm:px-2.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition-all cursor-pointer"
+                                    class="flex items-center gap-1.5 h-9 px-2 sm:px-2.5 rounded-lg bg-white/[0.05] hover:bg-white/[0.08] border border-white/[0.08] shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] transition-all duration-200 cursor-pointer"
                                     :class="{ 'bg-purple-500/20 border-purple-500/40': showBatchDropdown }">
                                     <i class="fa-solid fa-layer-group text-white/50 text-sm"></i>
                                     <span class="text-white/70 text-xs font-medium hidden sm:inline"
@@ -720,7 +725,7 @@
                                         x-transition:enter="transition ease-out duration-200"
                                         x-transition:enter-start="opacity-0 translate-y-2"
                                         x-transition:enter-end="opacity-100 translate-y-0"
-                                        class="fixed w-32 p-1.5 rounded-xl bg-[#1a1b20] border border-white/10 shadow-2xl z-[9999]"
+                                        class="fixed w-32 p-1.5 rounded-xl bg-[#0f0f18]/95 backdrop-blur-[20px] saturate-[180%] border border-white/[0.1] shadow-2xl shadow-black/50 z-[9999]"
                                         x-init="$watch('showBatchDropdown', value => {
                                             if (value) {
                                                 const btn = $root.querySelector('button');
@@ -751,393 +756,393 @@
 
 
 
-                    </div>
+                        </div>
 
-                    {{-- Generate Button --}}
-                    @if($isGenerating)
-                        <button type="button" wire:click="cancelGeneration"
-                            class="shrink-0 flex items-center gap-2 px-4 sm:px-6 py-2.5 rounded-xl bg-red-500/80 hover:bg-red-500 text-white font-semibold text-sm active:scale-[0.98] transition-all duration-200">
-                            <i class="fa-solid fa-stop text-sm"></i>
-                            <span>Hủy</span>
-                        </button>
-                    @else
-                        <button type="button" wire:click="generate"
-                            class="shrink-0 flex items-center gap-2 px-4 sm:px-6 py-2.5 rounded-xl bg-gradient-to-r from-purple-500 via-fuchsia-500 to-pink-500 text-white font-semibold text-sm hover:scale-[1.02] hover:shadow-lg hover:shadow-purple-500/30 active:scale-[0.98] transition-all duration-200"
-                            wire:loading.attr="disabled" wire:target="generate">
-                            <span wire:loading.remove wire:target="generate"><i
-                                    class="fa-solid fa-wand-magic-sparkles text-sm"></i></span>
-                            <span wire:loading wire:target="generate"><i
-                                    class="fa-solid fa-spinner fa-spin text-sm"></i></span>
-                            <span>Tạo ảnh</span>
-                            <span class="text-white/60 text-xs font-normal">· {{ $creditCost }} credits</span>
-                        </button>
-                    @endif
+                        {{-- Generate Button --}}
+                        @if($isGenerating)
+                            <button type="button" wire:click="cancelGeneration"
+                                class="shrink-0 flex items-center gap-2 px-4 sm:px-6 py-2.5 rounded-xl bg-red-500/80 hover:bg-red-500 text-white font-semibold text-sm shadow-lg shadow-red-500/25 active:scale-[0.98] transition-all duration-200">
+                                <i class="fa-solid fa-stop text-sm"></i>
+                                <span>Hủy</span>
+                            </button>
+                        @else
+                            <button type="button" wire:click="generate"
+                                class="shrink-0 flex items-center gap-2 px-4 sm:px-6 py-2.5 rounded-xl bg-gradient-to-r from-purple-500 via-fuchsia-500 to-pink-500 text-white font-semibold text-sm shadow-lg shadow-purple-500/25 hover:scale-[1.02] hover:shadow-xl hover:shadow-purple-500/40 active:scale-[0.98] transition-all duration-200"
+                                wire:loading.attr="disabled" wire:target="generate">
+                                <span wire:loading.remove wire:target="generate"><i
+                                        class="fa-solid fa-wand-magic-sparkles text-sm"></i></span>
+                                <span wire:loading wire:target="generate"><i
+                                        class="fa-solid fa-spinner fa-spin text-sm"></i></span>
+                                <span>Tạo ảnh</span>
+                                <span class="text-white/60 text-xs font-normal">· {{ $creditCost }} credits</span>
+                            </button>
+                        @endif
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 
-{{-- ============================================================ --}}
-{{-- MODALS --}}
-{{-- ============================================================ --}}
-@include('livewire.partials.image-picker-modal')
-@include('livewire.partials.image-preview-modal')
+    {{-- ============================================================ --}}
+    {{-- MODALS --}}
+    {{-- ============================================================ --}}
+    @include('livewire.partials.image-picker-modal')
+    @include('livewire.partials.image-preview-modal')
 
-<style>
-    [x-cloak] {
-        display: none !important;
-    }
-
-    .safe-area-bottom {
-        padding-bottom: env(safe-area-inset-bottom, 0px);
-    }
-
-    .safe-area-top {
-        padding-top: env(safe-area-inset-top, 0px);
-    }
-
-    @keyframes shimmer {
-        0% {
-            transform: translateX(-100%);
+    <style>
+        [x-cloak] {
+            display: none !important;
         }
 
-        100% {
-            transform: translateX(100%);
-        }
-    }
-
-    .animate-shimmer {
-        animation: shimmer 2s infinite;
-    }
-
-    @keyframes progress-slide {
-
-        0%,
-        100% {
-            opacity: 0.4;
-            transform: translateX(-30%);
+        .safe-area-bottom {
+            padding-bottom: env(safe-area-inset-bottom, 0px);
         }
 
-        50% {
-            opacity: 1;
-            transform: translateX(0%);
+        .safe-area-top {
+            padding-top: env(safe-area-inset-top, 0px);
         }
-    }
-</style>
 
-<script>
-    document.addEventListener('alpine:init', () => {
-        Alpine.data('textToImage', () => ({
-            // Toast
-            showToast: false,
-            toastMessage: '',
-            toastType: 'success',
-            toastTimer: null,
+        @keyframes shimmer {
+            0% {
+                transform: translateX(-100%);
+            }
 
-            // Image picker
-            showImagePicker: false,
-            selectedImages: [],
-            recentImages: [],
-            isLoadingPicker: false,
-            maxImages: 4,
-            activeTab: 'upload',
-            isDragging: false,
-            urlInput: '',
+            100% {
+                transform: translateX(100%);
+            }
+        }
 
-            // Preview
-            showPreview: false,
-            previewIndex: 0,
-            previewImage: null,
-            historyData: @js($historyData),
+        .animate-shimmer {
+            animation: shimmer 2s infinite;
+        }
 
-            // Loading
-            loadingMessages: [
-                'Đang tạo ảnh...',
-                'AI đang sáng tạo...',
-                'Đang xử lý prompt...',
-                'Đang render chi tiết...',
-                'Sắp xong rồi...'
-            ],
-            currentLoadingMessage: 0,
-            loadingInterval: null,
+        @keyframes progress-slide {
 
-            // Input Bar & Settings
-            showRatioDropdown: false,
-            showModelDropdown: false,
-            selectedRatio: @entangle('aspectRatio'),
-            selectedModel: @entangle('modelId'),
-            customWidth: 1024,
-            customHeight: 1024,
-            linkDimensions: true,
-            ratios: [
-                { id: 'auto', label: 'Auto', icon: 'fa-expand' },
-                { id: '1:1', label: '1:1', icon: null },
-                { id: '16:9', label: '16:9', icon: null },
-                { id: '9:16', label: '9:16', icon: null },
-                { id: '4:3', label: '4:3', icon: null },
-                { id: '3:4', label: '3:4', icon: null },
-                { id: '3:2', label: '3:2', icon: null },
-                { id: '2:3', label: '2:3', icon: null },
-                { id: '21:9', label: '21:9', icon: null }
-            ],
-            models: @js(collect($availableModels)->values()->map(fn($m) => [
-                'id' => $m['id'],
-                'name' => $m['name'],
-                'desc' => $m['description'] ?? '',
-                'icon' => match (true) {
-                    str_contains($m['id'], 'ultra') => '⚡',
-                    str_contains($m['id'], 'pro') => '💎',
-                    str_contains($m['id'], 'schnell') => '🚀',
-                    default => '🛠️'
-                },
-            ])),
+            0%,
+            100% {
+                opacity: 0.4;
+                transform: translateX(-30%);
+            }
 
-            init() {
-                // Auto-scroll to bottom on mount (Removed as per user request)
-                // this.$nextTick(() => {
-                //     setTimeout(() => this.scrollToBottom(false), 200);
-                // });
+            50% {
+                opacity: 1;
+                transform: translateX(0%);
+            }
+        }
+    </style>
 
-                // Scroll to bottom when new image generated
-                this.$wire.$on('imageGenerated', () => {
-                    this.$nextTick(() => {
-                        setTimeout(() => this.scrollToBottom(true), 300);
-                    });
-                });
+    <script>
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('textToImage', () => ({
+                // Toast
+                showToast: false,
+                toastMessage: '',
+                toastType: 'success',
+                toastTimer: null,
 
-                // Update historyData after Livewire re-renders
-                Livewire.hook('morph.updated', ({ el }) => {
-                    // historyData will be re-injected on re-render
-                });
-            },
+                // Image picker
+                showImagePicker: false,
+                selectedImages: [],
+                recentImages: [],
+                isLoadingPicker: false,
+                maxImages: 4,
+                activeTab: 'upload',
+                isDragging: false,
+                urlInput: '',
 
-            // ============================================================
-            // Input Settings Methods
-            // ============================================================
-            selectRatio(id) {
-                this.selectedRatio = id;
-                if (id !== 'auto') {
-                    const [w, h] = id.split(':').map(Number);
-                    const baseSize = 1024;
-                    this.customWidth = Math.round(baseSize * Math.sqrt(w / h) / 64) * 64;
-                    this.customHeight = Math.round(baseSize * Math.sqrt(h / w) / 64) * 64;
-                }
-                if (window.innerWidth >= 640) {
-                    this.showRatioDropdown = false;
-                }
-            },
-            selectModel(id) {
-                this.selectedModel = id;
-                this.showModelDropdown = false;
-            },
-            getSelectedModel() {
-                return this.models.find(m => m.id === this.selectedModel) || this.models[0];
-            },
-            updateWidth(newWidth) {
-                this.customWidth = newWidth;
-                if (this.linkDimensions && this.selectedRatio !== 'auto') {
-                    const [w, h] = this.selectedRatio.split(':').map(Number);
-                    this.customHeight = Math.round(newWidth * h / w / 64) * 64;
-                }
-            },
-            updateHeight(newHeight) {
-                this.customHeight = newHeight;
-                if (this.linkDimensions && this.selectedRatio !== 'auto') {
-                    const [w, h] = this.selectedRatio.split(':').map(Number);
-                    this.customWidth = Math.round(newHeight * w / h / 64) * 64;
-                }
-            },
+                // Preview
+                showPreview: false,
+                previewIndex: 0,
+                previewImage: null,
+                historyData: @js($historyData),
 
-            // ============================================================
-            // Chat-like scroll
-            // ============================================================
-            scrollToBottom(smooth = true) {
-                const el = document.documentElement;
-                el.scrollTo({
-                    top: el.scrollHeight,
-                    behavior: smooth ? 'smooth' : 'instant'
-                });
-            },
+                // Loading
+                loadingMessages: [
+                    'Đang tạo ảnh...',
+                    'AI đang sáng tạo...',
+                    'Đang xử lý prompt...',
+                    'Đang render chi tiết...',
+                    'Sắp xong rồi...'
+                ],
+                currentLoadingMessage: 0,
+                loadingInterval: null,
 
-            // ============================================================
-            // Toast notifications
-            // ============================================================
-            notify(msg, type = 'success') {
-                this.toastMessage = msg;
-                this.toastType = type;
-                this.showToast = true;
-                clearTimeout(this.toastTimer);
-                this.toastTimer = setTimeout(() => this.showToast = false, 3000);
-            },
+                // Input Bar & Settings
+                showRatioDropdown: false,
+                showModelDropdown: false,
+                selectedRatio: @entangle('aspectRatio'),
+                selectedModel: @entangle('modelId'),
+                customWidth: 1024,
+                customHeight: 1024,
+                linkDimensions: true,
+                ratios: [
+                    { id: 'auto', label: 'Auto', icon: 'fa-expand' },
+                    { id: '1:1', label: '1:1', icon: null },
+                    { id: '16:9', label: '16:9', icon: null },
+                    { id: '9:16', label: '9:16', icon: null },
+                    { id: '4:3', label: '4:3', icon: null },
+                    { id: '3:4', label: '3:4', icon: null },
+                    { id: '3:2', label: '3:2', icon: null },
+                    { id: '2:3', label: '2:3', icon: null },
+                    { id: '21:9', label: '21:9', icon: null }
+                ],
+                models: @js(collect($availableModels)->values()->map(fn($m) => [
+                    'id' => $m['id'],
+                    'name' => $m['name'],
+                    'desc' => $m['description'] ?? '',
+                    'icon' => match (true) {
+                        str_contains($m['id'], 'ultra') => '⚡',
+                        str_contains($m['id'], 'pro') => '💎',
+                        str_contains($m['id'], 'schnell') => '🚀',
+                        default => '🛠️'
+                    },
+                ])),
 
-            // ============================================================
-            // Loading animation
-            // ============================================================
-            startLoading() {
-                this.currentLoadingMessage = 0;
-                this.loadingInterval = setInterval(() => {
-                    this.currentLoadingMessage = (this.currentLoadingMessage + 1) % this.loadingMessages.length;
-                }, 3000);
-            },
-            stopLoading() {
-                clearInterval(this.loadingInterval);
-            },
+                init() {
+                    // Auto-scroll to bottom on mount (Removed as per user request)
+                    // this.$nextTick(() => {
+                    //     setTimeout(() => this.scrollToBottom(false), 200);
+                    // });
 
-            // ============================================================
-            // Preview modal
-            // ============================================================
-            openPreview(url, index) {
-                if (index !== null && index !== undefined && this.historyData[index]) {
-                    this.previewIndex = index;
-                    this.previewImage = this.historyData[index];
-                } else if (url) {
-                    this.previewImage = { url: url, prompt: '' };
-                    this.previewIndex = 0;
-                }
-                this.showPreview = true;
-                document.body.style.overflow = 'hidden';
-            },
-            closePreview() {
-                this.showPreview = false;
-                document.body.style.overflow = '';
-            },
-            nextImage() {
-                if (this.previewIndex < this.historyData.length - 1) {
-                    this.previewIndex++;
-                    this.previewImage = this.historyData[this.previewIndex];
-                }
-            },
-            prevImage() {
-                if (this.previewIndex > 0) {
-                    this.previewIndex--;
-                    this.previewImage = this.historyData[this.previewIndex];
-                }
-            },
-
-            // ============================================================
-            // Keyboard
-            // ============================================================
-            handleKeydown(e) {
-                if (this.showPreview) {
-                    if (e.key === 'ArrowLeft') this.prevImage();
-                    if (e.key === 'ArrowRight') this.nextImage();
-                    if (e.key === 'Escape') this.closePreview();
-                }
-            },
-
-            // ============================================================
-            // Image picker
-            // ============================================================
-            async loadRecentImages() {
-                if (this.recentImages.length > 0) return;
-                this.isLoadingPicker = true;
-                try {
-                    const res = await fetch('/api/user/recent-images');
-                    if (res.ok) this.recentImages = await res.json();
-                } catch (e) { console.error(e); }
-                this.isLoadingPicker = false;
-            },
-
-            handleFileSelect(e) {
-                const files = Array.from(e.target.files);
-                this.processFiles(files);
-                e.target.value = '';
-            },
-
-            handleDrop(e) {
-                this.isDragging = false;
-                const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
-                this.processFiles(files);
-            },
-
-            // Direct upload from prompt bar
-            handleDirectUpload(e) {
-                const files = Array.from(e.target.files);
-                this.processFiles(files);
-                e.target.value = '';
-                this.notify(files.length + ' ảnh đã thêm làm tham chiếu');
-            },
-
-            processFiles(files) {
-                const remaining = this.maxImages - this.selectedImages.length;
-                const toProcess = files.slice(0, remaining);
-                toProcess.forEach(file => {
-                    if (file.size > 10 * 1024 * 1024) {
-                        this.notify('Ảnh quá lớn (tối đa 10MB)', 'error');
-                        return;
-                    }
-                    const reader = new FileReader();
-                    reader.onload = (ev) => {
-                        this.selectedImages.push({
-                            id: Date.now() + Math.random(),
-                            url: ev.target.result,
-                            file: file
+                    // Scroll to bottom when new image generated
+                    this.$wire.$on('imageGenerated', () => {
+                        this.$nextTick(() => {
+                            setTimeout(() => this.scrollToBottom(true), 300);
                         });
-                        this.$wire.setReferenceImages(
-                            this.selectedImages.map(img => ({ url: img.url }))
-                        );
-                    };
-                    reader.readAsDataURL(file);
-                });
-            },
+                    });
 
-            addFromUrl() {
-                const url = this.urlInput.trim();
-                if (!url) return;
-                if (this.selectedImages.length >= this.maxImages) {
-                    this.notify('Tối đa ' + this.maxImages + ' ảnh', 'warning');
-                    return;
-                }
-                this.selectedImages.push({ id: Date.now(), url: url });
-                this.$wire.setReferenceImages(
-                    this.selectedImages.map(img => ({ url: img.url }))
-                );
-                this.urlInput = '';
-            },
+                    // Update historyData after Livewire re-renders
+                    Livewire.hook('morph.updated', ({ el }) => {
+                        // historyData will be re-injected on re-render
+                    });
+                },
 
-            selectFromRecent(url) {
-                const idx = this.selectedImages.findIndex(i => i.url === url);
-                if (idx > -1) {
-                    this.selectedImages.splice(idx, 1);
-                } else {
+                // ============================================================
+                // Input Settings Methods
+                // ============================================================
+                selectRatio(id) {
+                    this.selectedRatio = id;
+                    if (id !== 'auto') {
+                        const [w, h] = id.split(':').map(Number);
+                        const baseSize = 1024;
+                        this.customWidth = Math.round(baseSize * Math.sqrt(w / h) / 64) * 64;
+                        this.customHeight = Math.round(baseSize * Math.sqrt(h / w) / 64) * 64;
+                    }
+                    if (window.innerWidth >= 640) {
+                        this.showRatioDropdown = false;
+                    }
+                },
+                selectModel(id) {
+                    this.selectedModel = id;
+                    this.showModelDropdown = false;
+                },
+                getSelectedModel() {
+                    return this.models.find(m => m.id === this.selectedModel) || this.models[0];
+                },
+                updateWidth(newWidth) {
+                    this.customWidth = newWidth;
+                    if (this.linkDimensions && this.selectedRatio !== 'auto') {
+                        const [w, h] = this.selectedRatio.split(':').map(Number);
+                        this.customHeight = Math.round(newWidth * h / w / 64) * 64;
+                    }
+                },
+                updateHeight(newHeight) {
+                    this.customHeight = newHeight;
+                    if (this.linkDimensions && this.selectedRatio !== 'auto') {
+                        const [w, h] = this.selectedRatio.split(':').map(Number);
+                        this.customWidth = Math.round(newHeight * w / h / 64) * 64;
+                    }
+                },
+
+                // ============================================================
+                // Chat-like scroll
+                // ============================================================
+                scrollToBottom(smooth = true) {
+                    const el = document.documentElement;
+                    el.scrollTo({
+                        top: el.scrollHeight,
+                        behavior: smooth ? 'smooth' : 'instant'
+                    });
+                },
+
+                // ============================================================
+                // Toast notifications
+                // ============================================================
+                notify(msg, type = 'success') {
+                    this.toastMessage = msg;
+                    this.toastType = type;
+                    this.showToast = true;
+                    clearTimeout(this.toastTimer);
+                    this.toastTimer = setTimeout(() => this.showToast = false, 3000);
+                },
+
+                // ============================================================
+                // Loading animation
+                // ============================================================
+                startLoading() {
+                    this.currentLoadingMessage = 0;
+                    this.loadingInterval = setInterval(() => {
+                        this.currentLoadingMessage = (this.currentLoadingMessage + 1) % this.loadingMessages.length;
+                    }, 3000);
+                },
+                stopLoading() {
+                    clearInterval(this.loadingInterval);
+                },
+
+                // ============================================================
+                // Preview modal
+                // ============================================================
+                openPreview(url, index) {
+                    if (index !== null && index !== undefined && this.historyData[index]) {
+                        this.previewIndex = index;
+                        this.previewImage = this.historyData[index];
+                    } else if (url) {
+                        this.previewImage = { url: url, prompt: '' };
+                        this.previewIndex = 0;
+                    }
+                    this.showPreview = true;
+                    document.body.style.overflow = 'hidden';
+                },
+                closePreview() {
+                    this.showPreview = false;
+                    document.body.style.overflow = '';
+                },
+                nextImage() {
+                    if (this.previewIndex < this.historyData.length - 1) {
+                        this.previewIndex++;
+                        this.previewImage = this.historyData[this.previewIndex];
+                    }
+                },
+                prevImage() {
+                    if (this.previewIndex > 0) {
+                        this.previewIndex--;
+                        this.previewImage = this.historyData[this.previewIndex];
+                    }
+                },
+
+                // ============================================================
+                // Keyboard
+                // ============================================================
+                handleKeydown(e) {
+                    if (this.showPreview) {
+                        if (e.key === 'ArrowLeft') this.prevImage();
+                        if (e.key === 'ArrowRight') this.nextImage();
+                        if (e.key === 'Escape') this.closePreview();
+                    }
+                },
+
+                // ============================================================
+                // Image picker
+                // ============================================================
+                async loadRecentImages() {
+                    if (this.recentImages.length > 0) return;
+                    this.isLoadingPicker = true;
+                    try {
+                        const res = await fetch('/api/user/recent-images');
+                        if (res.ok) this.recentImages = await res.json();
+                    } catch (e) { console.error(e); }
+                    this.isLoadingPicker = false;
+                },
+
+                handleFileSelect(e) {
+                    const files = Array.from(e.target.files);
+                    this.processFiles(files);
+                    e.target.value = '';
+                },
+
+                handleDrop(e) {
+                    this.isDragging = false;
+                    const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
+                    this.processFiles(files);
+                },
+
+                // Direct upload from prompt bar
+                handleDirectUpload(e) {
+                    const files = Array.from(e.target.files);
+                    this.processFiles(files);
+                    e.target.value = '';
+                    this.notify(files.length + ' ảnh đã thêm làm tham chiếu');
+                },
+
+                processFiles(files) {
+                    const remaining = this.maxImages - this.selectedImages.length;
+                    const toProcess = files.slice(0, remaining);
+                    toProcess.forEach(file => {
+                        if (file.size > 10 * 1024 * 1024) {
+                            this.notify('Ảnh quá lớn (tối đa 10MB)', 'error');
+                            return;
+                        }
+                        const reader = new FileReader();
+                        reader.onload = (ev) => {
+                            this.selectedImages.push({
+                                id: Date.now() + Math.random(),
+                                url: ev.target.result,
+                                file: file
+                            });
+                            this.$wire.setReferenceImages(
+                                this.selectedImages.map(img => ({ url: img.url }))
+                            );
+                        };
+                        reader.readAsDataURL(file);
+                    });
+                },
+
+                addFromUrl() {
+                    const url = this.urlInput.trim();
+                    if (!url) return;
                     if (this.selectedImages.length >= this.maxImages) {
                         this.notify('Tối đa ' + this.maxImages + ' ảnh', 'warning');
                         return;
                     }
                     this.selectedImages.push({ id: Date.now(), url: url });
-                }
-                this.$wire.setReferenceImages(
-                    this.selectedImages.map(img => ({ url: img.url }))
-                );
-            },
+                    this.$wire.setReferenceImages(
+                        this.selectedImages.map(img => ({ url: img.url }))
+                    );
+                    this.urlInput = '';
+                },
 
-            isSelected(url) {
-                return this.selectedImages.some(i => i.url === url);
-            },
+                selectFromRecent(url) {
+                    const idx = this.selectedImages.findIndex(i => i.url === url);
+                    if (idx > -1) {
+                        this.selectedImages.splice(idx, 1);
+                    } else {
+                        if (this.selectedImages.length >= this.maxImages) {
+                            this.notify('Tối đa ' + this.maxImages + ' ảnh', 'warning');
+                            return;
+                        }
+                        this.selectedImages.push({ id: Date.now(), url: url });
+                    }
+                    this.$wire.setReferenceImages(
+                        this.selectedImages.map(img => ({ url: img.url }))
+                    );
+                },
 
-            removeImage(id) {
-                this.selectedImages = this.selectedImages.filter(i => i.id !== id);
-                this.$wire.setReferenceImages(
-                    this.selectedImages.map(img => ({ url: img.url }))
-                );
-            },
+                isSelected(url) {
+                    return this.selectedImages.some(i => i.url === url);
+                },
 
-            clearAll() {
-                this.selectedImages = [];
-                this.$wire.setReferenceImages([]);
-            },
+                removeImage(id) {
+                    this.selectedImages = this.selectedImages.filter(i => i.id !== id);
+                    this.$wire.setReferenceImages(
+                        this.selectedImages.map(img => ({ url: img.url }))
+                    );
+                },
 
-            confirmSelection() {
-                this.$wire.setReferenceImages(
-                    this.selectedImages.map(img => ({ url: img.url }))
-                );
-                this.showImagePicker = false;
-                if (this.selectedImages.length > 0) {
-                    this.notify(this.selectedImages.length + ' ảnh tham chiếu đã chọn');
-                }
-            },
-        }));
-    });
-</script>
+                clearAll() {
+                    this.selectedImages = [];
+                    this.$wire.setReferenceImages([]);
+                },
+
+                confirmSelection() {
+                    this.$wire.setReferenceImages(
+                        this.selectedImages.map(img => ({ url: img.url }))
+                    );
+                    this.showImagePicker = false;
+                    if (this.selectedImages.length > 0) {
+                        this.notify(this.selectedImages.length + ' ảnh tham chiếu đã chọn');
+                    }
+                },
+            }));
+        });
+    </script>
 </div>
