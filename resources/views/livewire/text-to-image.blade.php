@@ -182,7 +182,13 @@
 
                 @php $absoluteIndex = 0; @endphp
 
-                <div class="space-y-14">
+                <div class="space-y-14" x-data="{ galleryReady: false }" 
+                    x-init="$nextTick(() => { 
+                        document.documentElement.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'instant' }); 
+                        setTimeout(() => galleryReady = true, 50); 
+                    })"
+                    :class="galleryReady ? 'opacity-100' : 'opacity-0'"
+                    class="transition-opacity duration-300">
                     {{-- Infinite Scroll Sentinel (auto-load older images on scroll up) --}}
                     @if($history instanceof \Illuminate\Pagination\LengthAwarePaginator && $history->hasMorePages())
                         <div id="load-more-sentinel" class="flex justify-center py-4" x-data="{
@@ -904,10 +910,7 @@
                 ])),
 
                 init() {
-                    // Auto-scroll to bottom on mount (Removed as per user request)
-                    // this.$nextTick(() => {
-                    //     setTimeout(() => this.scrollToBottom(false), 200);
-                    // });
+                    // Auto-scroll handled by gallery x-data init (instant + fade-in)
 
                     // Scroll to bottom when new image generated
                     this.$wire.$on('imageGenerated', () => {
