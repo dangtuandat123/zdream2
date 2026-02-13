@@ -35,11 +35,11 @@
                         x-transition:enter="transition ease-out duration-150"
                         x-transition:enter-start="opacity-0 -translate-y-1"
                         x-transition:enter-end="opacity-100 translate-y-0"
-                        class="absolute top-full left-0 mt-2 w-52 p-1.5 rounded-xl bg-[#0f0f18]/95 backdrop-blur-[20px] saturate-[180%] border border-white/[0.1] shadow-2xl shadow-black/50 z-50">
+                        class="absolute top-full left-0 mt-2 w-52 p-1.5 rounded-xl bg-[#0f0f18]/95 backdrop-blur-[20px] saturate-[180%] border border-white/[0.1] shadow-2xl shadow-black/50 z-50 max-h-60 overflow-y-auto">
                         @foreach(['all' => 'Tất cả', 'week' => 'Tuần qua', 'month' => 'Tháng qua', '3months' => '3 tháng qua'] as $val => $lbl)
                             <button wire:click="$set('filterDate', '{{ $val }}')" @click="openFilter = null"
                                 class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm transition-colors duration-150
-                                                    {{ $filterDate === $val ? 'text-white/95 bg-white/[0.06]' : 'text-white/70 hover:bg-white/[0.06] hover:text-white' }}">
+                                                        {{ $filterDate === $val ? 'text-white/95 bg-white/[0.06]' : 'text-white/70 hover:bg-white/[0.06] hover:text-white' }}">
                                 <span>{{ $lbl }}</span>
                                 @if($filterDate === $val)
                                     <i class="fa-solid fa-check text-purple-400 text-xs"></i>
@@ -66,7 +66,7 @@
                         x-transition:enter="transition ease-out duration-150"
                         x-transition:enter-start="opacity-0 -translate-y-1"
                         x-transition:enter-end="opacity-100 translate-y-0"
-                        class="absolute top-full left-0 mt-2 w-56 p-1.5 rounded-xl bg-[#0f0f18]/95 backdrop-blur-[20px] saturate-[180%] border border-white/[0.1] shadow-2xl shadow-black/50 z-50">
+                        class="absolute top-full left-0 mt-2 w-56 p-1.5 rounded-xl bg-[#0f0f18]/95 backdrop-blur-[20px] saturate-[180%] border border-white/[0.1] shadow-2xl shadow-black/50 z-50 max-h-60 overflow-y-auto">
                         <button wire:click="$set('filterModel', 'all')" @click="openFilter = null"
                             class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm transition-colors duration-150
                                 {{ $filterModel === 'all' ? 'text-white/95 bg-white/[0.06]' : 'text-white/70 hover:bg-white/[0.06] hover:text-white' }}">
@@ -78,7 +78,7 @@
                         @foreach($availableModels as $model)
                             <button wire:click="$set('filterModel', '{{ $model['id'] }}')" @click="openFilter = null"
                                 class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm transition-colors duration-150
-                                                    {{ $filterModel === $model['id'] ? 'text-white/95 bg-white/[0.06]' : 'text-white/70 hover:bg-white/[0.06] hover:text-white' }}">
+                                                        {{ $filterModel === $model['id'] ? 'text-white/95 bg-white/[0.06]' : 'text-white/70 hover:bg-white/[0.06] hover:text-white' }}">
                                 <span>{{ $model['name'] }}</span>
                                 @if($filterModel === $model['id'])
                                     <i class="fa-solid fa-check text-purple-400 text-xs"></i>
@@ -103,11 +103,11 @@
                         x-transition:enter="transition ease-out duration-150"
                         x-transition:enter-start="opacity-0 -translate-y-1"
                         x-transition:enter-end="opacity-100 translate-y-0"
-                        class="absolute top-full left-0 mt-2 w-44 p-1.5 rounded-xl bg-[#0f0f18]/95 backdrop-blur-[20px] saturate-[180%] border border-white/[0.1] shadow-2xl shadow-black/50 z-50">
+                        class="absolute top-full left-0 mt-2 w-44 p-1.5 rounded-xl bg-[#0f0f18]/95 backdrop-blur-[20px] saturate-[180%] border border-white/[0.1] shadow-2xl shadow-black/50 z-50 max-h-60 overflow-y-auto">
                         @foreach(['all' => 'Tất cả', 'auto' => 'Auto', '1:1' => '1:1', '16:9' => '16:9', '9:16' => '9:16', '4:3' => '4:3', '3:4' => '3:4', '3:2' => '3:2', '2:3' => '2:3', '5:4' => '5:4', '4:5' => '4:5', '21:9' => '21:9'] as $val => $lbl)
                             <button wire:click="$set('filterRatio', '{{ $val }}')" @click="openFilter = null"
                                 class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm transition-colors duration-150
-                                                    {{ $filterRatio === $val ? 'text-white/95 bg-white/[0.06]' : 'text-white/70 hover:bg-white/[0.06] hover:text-white' }}">
+                                                        {{ $filterRatio === $val ? 'text-white/95 bg-white/[0.06]' : 'text-white/70 hover:bg-white/[0.06] hover:text-white' }}">
                                 <span>{{ $lbl }}</span>
                                 @if($filterRatio === $val)
                                     <i class="fa-solid fa-check text-purple-400 text-xs"></i>

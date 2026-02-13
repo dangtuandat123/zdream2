@@ -1,9 +1,9 @@
 {{-- ============================================================ --}}
 {{-- IMAGE PREVIEW MODAL (no x-teleport — stays in Alpine scope) --}}
 {{-- ============================================================ --}}
-<div x-show="showPreview" x-cloak class="fixed inset-0 z-[200] flex items-center justify-center"
-    @keydown.escape.window="if (showPreview) closePreview()" @touchstart="handleTouchStart($event)"
-    @touchend="handleTouchEnd($event)">
+<div x-show="showPreview" x-cloak class="fixed inset-0 z-[200] flex items-center justify-center" role="dialog"
+    aria-modal="true" aria-label="Xem trước ảnh" @keydown.escape.window="if (showPreview) closePreview()"
+    @touchstart="handleTouchStart($event)" @touchend="handleTouchEnd($event)">
 
     {{-- Backdrop --}}
     <div class="absolute inset-0 bg-black/90 backdrop-blur-sm" @click="closePreview()" x-show="showPreview"
@@ -18,13 +18,13 @@
         x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95">
 
         {{-- Close button --}}
-        <button @click="closePreview()"
+        <button @click="closePreview()" aria-label="Đóng xem trước"
             class="absolute top-4 right-4 z-20 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-[8px] text-white flex items-center justify-center transition-all duration-200 border border-white/[0.1]">
             <i class="fa-solid fa-xmark text-xl"></i>
         </button>
 
         {{-- Prev Arrow --}}
-        <button @click="prevImage()" x-show="previewIndex > 0"
+        <button @click="prevImage()" x-show="previewIndex > 0" aria-label="Ảnh trước"
             class="shrink-0 w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-[8px] text-white flex items-center justify-center transition-all duration-200 border border-white/[0.1]">
             <i class="fa-solid fa-chevron-left text-lg"></i>
         </button>
@@ -113,7 +113,8 @@
                         size: (start + i === start || start + i === end - 1) && len > 7 ? 'small' : 'normal'
                     }));
                 })()" :key="dot.idx">
-                    <button @click="goToImage(dot.idx)" class="rounded-full transition-all duration-200" :class="{
+                    <button @click="goToImage(dot.idx)" :aria-label="'Ảnh ' + (dot.idx + 1)"
+                        class="rounded-full transition-all duration-200" :class="{
                             'w-2.5 h-2.5 bg-purple-400': dot.idx === previewIndex && dot.size === 'normal',
                             'w-2 h-2 bg-white/40 hover:bg-white/60': dot.idx !== previewIndex && dot.size === 'normal',
                             'w-1.5 h-1.5 bg-purple-400': dot.idx === previewIndex && dot.size === 'small',
@@ -124,7 +125,7 @@
         </div>
 
         {{-- Next Arrow --}}
-        <button @click="nextImage()" x-show="previewIndex < historyData.length - 1"
+        <button @click="nextImage()" x-show="previewIndex < historyData.length - 1" aria-label="Ảnh tiếp"
             class="shrink-0 w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-[8px] text-white flex items-center justify-center transition-all duration-200 border border-white/[0.1]">
             <i class="fa-solid fa-chevron-right text-lg"></i>
         </button>
@@ -139,7 +140,7 @@
         {{-- Top bar --}}
         <div class="flex items-center justify-between px-4 py-3 safe-area-top">
             <span class="text-white/60 text-sm" x-text="(previewIndex + 1) + ' / ' + historyData.length"></span>
-            <button @click="closePreview()"
+            <button @click="closePreview()" aria-label="Đóng xem trước"
                 class="w-9 h-9 rounded-full bg-white/10 text-white flex items-center justify-center">
                 <i class="fa-solid fa-xmark text-lg"></i>
             </button>

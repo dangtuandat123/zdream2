@@ -717,7 +717,7 @@ Rules:
             && $overrideWidth !== null
             && $overrideHeight !== null;
 
-        if ($this->supportsAspectRatio($modelId) && $ratio && !$hasCustomDimensions) {
+        if ($this->supportsAspectRatio($modelId) && $ratio && $ratio !== 'auto' && !$hasCustomDimensions) {
             $payload['aspect_ratio'] = $ratio;
         } else {
             if ($this->supportsWidthHeight($modelId)) {

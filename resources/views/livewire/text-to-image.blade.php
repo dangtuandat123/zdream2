@@ -380,10 +380,12 @@
                     }
                     this.showPreview = true;
                     document.body.style.overflow = 'hidden';
+                    document.documentElement.style.overflow = 'hidden';
                 },
                 closePreview() {
                     this.showPreview = false;
                     document.body.style.overflow = '';
+                    document.documentElement.style.overflow = '';
                 },
                 nextImage() {
                     if (this.previewIndex < this.historyData.length - 1) {
@@ -523,9 +525,19 @@
                 processFiles(files) {
                     const remaining = this.maxImages - this.selectedImages.length;
                     const toProcess = files.slice(0, remaining);
+                    const skipped = files.length - toProcess.length;
+                    let processed = 0;
+                    const total = toProcess.length;
+
+                    if (total === 0 && skipped > 0) {
+                        this.notify(`Đã đạt giới hạn ${this.maxImages} ảnh`, 'warning');
+                        return;
+                    }
+
                     toProcess.forEach(file => {
                         if (file.size > 10 * 1024 * 1024) {
                             this.notify('Ảnh quá lớn (tối đa 10MB)', 'error');
+                            processed++;
                             return;
                         }
                         const reader = new FileReader();
@@ -535,9 +547,16 @@
                                 url: ev.target.result,
                                 file: file
                             });
-                            this.$wire.setReferenceImages(
-                                this.selectedImages.map(img => ({ url: img.url }))
-                            );
+                            processed++;
+                            // Sync only after all files are read
+                            if (processed >= total) {
+                                this.$wire.setReferenceImages(
+                                    this.selectedImages.map(img => ({ url: img.url }))
+                                );
+                                if (skipped > 0) {
+                                    this.notify(`Đã thêm ${total} ảnh, bỏ ${skipped} (vượt giới hạn ${this.maxImages})`, 'warning');
+                                }
+                            }
                         };
                         reader.readAsDataURL(file);
                     });

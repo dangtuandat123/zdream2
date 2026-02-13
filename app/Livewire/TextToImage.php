@@ -146,7 +146,8 @@ class TextToImage extends Component
 
         // Set default model from settings or first available
         $defaultModel = Setting::get('default_t2i_model', 'flux-pro-1.1-ultra');
-        $this->modelId = $defaultModel;
+        $validIds = array_column($this->availableModels, 'id');
+        $this->modelId = in_array($defaultModel, $validIds) ? $defaultModel : ($validIds[0] ?? $defaultModel);
 
         // Credit cost from settings
         $this->creditCost = (float) Setting::get('t2i_credit_cost', 5.0);
@@ -260,9 +261,13 @@ class TextToImage extends Component
                     }
                 }
 
+                // Resolve auto ratio — store as-is in metadata, but resolve for API
+                $resolvedRatio = $this->aspectRatio === 'auto' ? null : $this->aspectRatio;
+
                 $generationParams = [
                     'model_id' => $this->modelId,
-                    'aspect_ratio' => $this->aspectRatio,
+                    'aspect_ratio' => $this->aspectRatio, // original user choice
+                    'resolved_ratio' => $resolvedRatio,   // what API actually receives
                     'batch_id' => $batchId,
                     'batch_index' => $i,
                 ];

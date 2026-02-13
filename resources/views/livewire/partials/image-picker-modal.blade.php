@@ -1,3 +1,6 @@
+{{-- ⚠️ DEPRECATED: This file is no longer included by any view. --}}
+{{-- The image picker is now inline in t2i-input-bar.blade.php. --}}
+{{-- Safe to delete in a future cleanup PR. --}}
 {{-- ========== IMAGE PICKER - DESKTOP ========== --}}
 <div x-show="showImagePicker" x-cloak x-init="$watch('showImagePicker', v => {
             if (v) { document.documentElement.style.setProperty('overflow','hidden','important'); document.body.style.setProperty('overflow','hidden','important'); }
