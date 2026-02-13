@@ -74,6 +74,7 @@ class TextToImage extends Component
             return collect();
 
         $query = GeneratedImage::where('user_id', Auth::id())
+            ->where('status', GeneratedImage::STATUS_COMPLETED)
             ->whereHas('style', function ($q) {
                 $q->where('is_system', true)->where('slug', Style::SYSTEM_T2I_SLUG);
             });
@@ -249,6 +250,12 @@ class TextToImage extends Component
                         'is_system' => true,
                         'allow_user_custom_prompt' => true,
                     ]);
+                } else {
+                    // Always sync model to user selection (Bug 3 fix)
+                    if ($systemStyle->bfl_model_id !== $this->modelId) {
+                        $systemStyle->bfl_model_id = $this->modelId;
+                        $systemStyle->save();
+                    }
                 }
 
                 $generationParams = [
@@ -371,13 +378,20 @@ class TextToImage extends Component
         // If none pending
         if ($pendingCount === 0) {
             $this->isGenerating = false;
+            $successCount = GeneratedImage::whereIn('id', $this->generatingImageIds)
+                ->where('status', GeneratedImage::STATUS_COMPLETED)->count();
+            $failedCount = count($this->generatingImageIds) - $successCount;
             $lastId = end($this->generatingImageIds);
             if ($lastId) {
                 $img = GeneratedImage::find($lastId);
                 $this->generatedImageUrl = $img ? $img->image_url : null;
             }
             $this->generatingImageIds = [];
-            $this->dispatch('imageGenerated');
+            if ($successCount > 0) {
+                $this->dispatch('imageGenerated', successCount: $successCount, failedCount: $failedCount);
+            } else {
+                $this->dispatch('imageGenerationFailed');
+            }
         }
     }
 
@@ -451,25 +465,25 @@ class TextToImage extends Component
      */
     public function cancelGeneration(): void
     {
-        if ($this->isGenerating && $this->lastImageId) {
-            $image = GeneratedImage::find($this->lastImageId);
-            if ($image && $image->user_id === Auth::id() && $image->status === GeneratedImage::STATUS_PROCESSING) {
-                // Mark as cancelled and refund
-                $image->markAsFailed('Đã hủy bởi user');
-
-                $walletService = app(WalletService::class);
-                $walletService->addCredits(
-                    Auth::user(),
-                    $this->creditCost,
-                    'Hoàn tiền: Hủy tạo ảnh',
-                    'refund',
-                    (string) $image->id
-                );
+        if ($this->isGenerating && !empty($this->generatingImageIds)) {
+            $walletService = app(WalletService::class);
+            foreach ($this->generatingImageIds as $imageId) {
+                $image = GeneratedImage::find($imageId);
+                if ($image && $image->user_id === Auth::id() && $image->status === GeneratedImage::STATUS_PROCESSING) {
+                    $image->markAsFailed('Đã hủy bởi user');
+                    $walletService->addCredits(
+                        Auth::user(),
+                        $this->creditCost,
+                        'Hoàn tiền: Hủy tạo ảnh',
+                        'refund',
+                        (string) $image->id
+                    );
+                }
             }
         }
 
         $this->isGenerating = false;
-        $this->lastImageId = null;
+        $this->generatingImageIds = [];
         $this->errorMessage = null;
     }
 

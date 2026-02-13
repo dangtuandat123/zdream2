@@ -140,11 +140,11 @@
                     <template x-if="!isLoadingPicker && recentImages.length > 0">
                         <div class="grid grid-cols-4 gap-2">
                             <template x-for="img in recentImages" :key="img.id">
-                                <button type="button" @click="selectFromRecent(img.image_url || img.url)"
+                                <button type="button" @click="selectFromRecent(img.url)"
                                     class="aspect-square rounded-xl overflow-hidden border-2 transition-all relative"
-                                    :class="isSelected(img.image_url || img.url) ? 'border-purple-500' : 'border-transparent hover:border-white/20'">
-                                    <img :src="img.image_url || img.url" class="w-full h-full object-cover">
-                                    <div x-show="isSelected(img.image_url || img.url)"
+                                    :class="isSelected(img.url) ? 'border-purple-500' : 'border-transparent hover:border-white/20'">
+                                    <img :src="img.url" class="w-full h-full object-cover">
+                                    <div x-show="isSelected(img.url)"
                                         class="absolute inset-0 bg-purple-500/40 flex items-center justify-center">
                                         <i class="fa-solid fa-check text-white text-xl"></i>
                                     </div>
@@ -274,11 +274,11 @@
                 <template x-if="!isLoadingPicker && recentImages.length > 0">
                     <div class="grid grid-cols-3 gap-2">
                         <template x-for="img in recentImages" :key="img.id">
-                            <button type="button" @click="selectFromRecent(img.image_url || img.url)"
+                            <button type="button" @click="selectFromRecent(img.url)"
                                 class="aspect-square rounded-xl overflow-hidden border-2 transition-all relative active:scale-95"
-                                :class="isSelected(img.image_url || img.url) ? 'border-purple-500 ring-2 ring-purple-500/30' : 'border-transparent'">
-                                <img :src="img.image_url || img.url" class="w-full h-full object-cover">
-                                <div x-show="isSelected(img.image_url || img.url)"
+                                :class="isSelected(img.url) ? 'border-purple-500 ring-2 ring-purple-500/30' : 'border-transparent'">
+                                <img :src="img.url" class="w-full h-full object-cover">
+                                <div x-show="isSelected(img.url)"
                                     class="absolute inset-0 bg-purple-500/40 flex items-center justify-center"><i
                                         class="fa-solid fa-check text-white text-xl"></i></div>
                             </button>

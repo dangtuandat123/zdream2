@@ -23,7 +23,8 @@
         $groupedHistory = $historyCollection->groupBy(function ($item) {
             return $item->final_prompt . '|' .
                 ($item->generation_params['model_id'] ?? '') . '|' .
-                ($item->generation_params['aspect_ratio'] ?? '');
+                ($item->generation_params['aspect_ratio'] ?? '') . '|' .
+                $item->created_at->format('Y-m-d H:i');
         })->reverse();
 
         // 2. Flatten for JS (keep reversed order)
@@ -156,7 +157,6 @@
                 selectedImages: [],
                 recentImages: [],
                 isLoadingPicker: false,
-                maxImages: 4,
                 activeTab: 'upload',
                 isDragging: false,
                 urlInput: '',
@@ -196,6 +196,8 @@
                     { id: '3:4', label: '3:4', icon: null },
                     { id: '3:2', label: '3:2', icon: null },
                     { id: '2:3', label: '2:3', icon: null },
+                    { id: '5:4', label: '5:4', icon: null },
+                    { id: '4:5', label: '4:5', icon: null },
                     { id: '21:9', label: '21:9', icon: null }
                 ],
                 models: @js(collect($availableModels)->values()->map(fn($m) => [
@@ -208,14 +210,22 @@
                         str_contains($m['id'], 'schnell') => '🚀',
                         default => '🛠️'
                     },
+                    'maxImages' => $m['max_input_images'] ?? 1,
                 ])),
+
+                // Dynamic max images based on selected model
+                get maxImages() {
+                    const model = this.models.find(m => m.id === this.selectedModel);
+                    return model?.maxImages || 1;
+                },
 
                 // ============================================================
                 // INIT
                 // ============================================================
                 init() {
-                    // Scroll + celebrate when new image generated
-                    this.$wire.$on('imageGenerated', () => {
+                    // Scroll + celebrate when new image generated (with counts)
+                    this.$wire.$on('imageGenerated', (params) => {
+                        const { successCount, failedCount } = Array.isArray(params) ? params[0] || {} : params || {};
                         this.$nextTick(() => {
                             setTimeout(() => {
                                 this.scrollToBottom(true);
@@ -226,13 +236,32 @@
                                     setTimeout(() => lastBatch.classList.remove('new-batch-glow'), 3000);
                                     setTimeout(() => lastBatch.classList.remove('new-batch-animate'), 600);
                                 }
-                                this.notify('🎨 Đã tạo xong ảnh!');
+                                if (failedCount > 0) {
+                                    this.notify(`🎨 ${successCount} ảnh thành công, ${failedCount} thất bại`, 'warning');
+                                } else {
+                                    this.notify(`🎨 Đã tạo xong ${successCount > 1 ? successCount + ' ảnh' : 'ảnh'}!`);
+                                }
                             }, 300);
                         });
                     });
 
+                    // Handle generation failure (all images in batch failed)
+                    this.$wire.$on('imageGenerationFailed', () => {
+                        this.notify('❌ Tạo ảnh thất bại. Vui lòng thử lại.', 'error');
+                    });
+
+                    // Auto-trim excess images when model changes
+                    this.$watch('selectedModel', () => {
+                        const max = this.maxImages;
+                        if (this.selectedImages.length > max) {
+                            this.selectedImages = this.selectedImages.slice(0, max);
+                            this.$wire.setReferenceImages(this.selectedImages.map(img => ({ url: img.url })));
+                            this.notify(`Model này hỗ trợ tối đa ${max} ảnh tham chiếu`, 'warning');
+                        }
+                    });
+
                     // Update historyData after Livewire re-renders
-                    this._morphHook = Livewire.hook('morph.updated', ({ el }) => {
+                    this._morphCleanup = Livewire.hook('morph.updated', ({ el }) => {
                         if (el.id === 'gallery-feed' || el.querySelector?.('#gallery-feed')) {
                             const dataEl = document.getElementById('gallery-feed');
                             if (dataEl?.dataset?.history) {
@@ -245,10 +274,22 @@
 
                     // Cleanup on SPA navigation
                     document.addEventListener('livewire:navigating', () => {
-                        if (this._morphHook) {
-                            this._morphHook = null;
-                        }
+                        this._cleanup();
                     }, { once: true });
+                },
+
+                // Centralized cleanup (P0#3)
+                _cleanup() {
+                    if (typeof this._morphCleanup === 'function') {
+                        this._morphCleanup();
+                    }
+                    this.stopLoading();
+                    document.body.style.overflow = '';
+                    document.documentElement.style.overflow = '';
+                },
+
+                destroy() {
+                    this._cleanup();
                 },
 
                 // ============================================================
@@ -271,7 +312,7 @@
                     this.showModelDropdown = false;
                 },
                 getSelectedModel() {
-                    return this.models.find(m => m.id === this.selectedModel) || this.models[0];
+                    return this.models.find(m => m.id === this.selectedModel) || this.models[0] || { name: 'Model', icon: '🛠️', desc: '' };
                 },
                 updateWidth(newWidth) {
                     this.customWidth = newWidth;
@@ -314,6 +355,7 @@
                 // Loading
                 // ============================================================
                 startLoading() {
+                    this.stopLoading(); // Clear any existing interval first
                     this.currentLoadingMessage = 0;
                     this.loadingInterval = setInterval(() => {
                         this.currentLoadingMessage = (this.currentLoadingMessage + 1) % this.loadingMessages.length;
@@ -534,7 +576,7 @@
                 },
 
                 clearAll() {
-                    this.selectedImages = [];
+          this.selectedImages = [];
                     this.$wire.setReferenceImages([]);
                 },
 

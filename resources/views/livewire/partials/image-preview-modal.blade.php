@@ -13,7 +13,7 @@
 
     {{-- ============ DESKTOP VIEW (sm+) ============ --}}
     <div class="hidden sm:flex relative z-10 w-full max-w-5xl mx-auto px-4 items-center gap-4" x-show="showPreview"
-        x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 scale-95"
+        x-cloak x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 scale-95"
         x-transition:enter-end="opacity-100 scale-100" x-transition:leave="transition ease-in duration-200"
         x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95">
 
@@ -82,13 +82,20 @@
                         <i class="fa-regular fa-copy text-[11px]"></i>
                         <span>Copy Prompt</span>
                     </button>
-                    {{-- NEW: Reuse Prompt button --}}
+                    {{-- Reuse Prompt --}}
                     <button
                         @click="$wire.reusePrompt(previewImage?.id); closePreview(); notify('Đã nạp prompt + cài đặt')"
                         x-show="previewImage?.id"
                         class="inline-flex items-center gap-1.5 h-9 px-3.5 rounded-lg bg-purple-500/20 hover:bg-purple-500/30 border border-purple-500/40 text-purple-300 hover:text-purple-200 text-xs font-medium transition-all active:scale-[0.98]">
                         <i class="fa-solid fa-arrow-rotate-left text-[11px]"></i>
                         <span>Reuse Prompt</span>
+                    </button>
+                    {{-- Delete --}}
+                    <button x-show="previewImage?.id"
+                        @click="if(confirm('Bạn có chắc muốn xóa ảnh này?')) { $wire.deleteImage(previewImage?.id); closePreview(); notify('Đã xóa ảnh'); }"
+                        class="inline-flex items-center gap-1.5 h-9 px-3.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 hover:text-red-300 text-xs font-medium transition-all active:scale-[0.98]">
+                        <i class="fa-solid fa-trash text-[11px]"></i>
+                        <span>Xóa</span>
                     </button>
                 </div>
             </div>
@@ -125,7 +132,7 @@
     </div>
 
     {{-- ============ MOBILE VIEW (sm:hidden) ============ --}}
-    <div class="sm:hidden relative z-10 flex flex-col w-full h-full" x-show="showPreview"
+    <div class="sm:hidden relative z-10 flex flex-col w-full h-full" x-show="showPreview" x-cloak
         x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4"
         x-transition:enter-end="opacity-100 translate-y-0">
 
@@ -179,33 +186,39 @@
                 </template>
             </div>
 
-            {{-- Action buttons --}}
-            <div class="grid grid-cols-5 gap-1.5">
+            {{-- Action buttons (auto-fit grid) --}}
+            <div class="flex flex-wrap justify-center gap-1.5">
                 <button @click="downloadImage(previewImage?.url)"
-                    class="flex flex-col items-center gap-1 py-3 rounded-xl bg-white/[0.05] border border-white/[0.08] text-white/70 active:scale-[0.95] transition-all">
+                    class="flex flex-col items-center gap-1 py-3 px-3 min-w-[60px] rounded-xl bg-white/[0.05] border border-white/[0.08] text-white/70 active:scale-[0.95] transition-all">
                     <i class="fa-solid fa-download text-sm"></i>
                     <span class="text-[10px]">Tải xuống</span>
                 </button>
                 <button @click="shareImage()"
-                    class="flex flex-col items-center gap-1 py-3 rounded-xl bg-white/[0.05] border border-white/[0.08] text-white/70 active:scale-[0.95] transition-all">
+                    class="flex flex-col items-center gap-1 py-3 px-3 min-w-[60px] rounded-xl bg-white/[0.05] border border-white/[0.08] text-white/70 active:scale-[0.95] transition-all">
                     <i class="fa-solid fa-share-nodes text-sm"></i>
                     <span class="text-[10px]">Chia sẻ</span>
                 </button>
                 <button @click="useAsReference()"
-                    class="flex flex-col items-center gap-1 py-3 rounded-xl bg-white/[0.05] border border-white/[0.08] text-white/70 active:scale-[0.95] transition-all">
+                    class="flex flex-col items-center gap-1 py-3 px-3 min-w-[60px] rounded-xl bg-white/[0.05] border border-white/[0.08] text-white/70 active:scale-[0.95] transition-all">
                     <i class="fa-solid fa-image text-sm"></i>
                     <span class="text-[10px]">Tham chiếu</span>
                 </button>
                 <button @click="copyPrompt()"
-                    class="flex flex-col items-center gap-1 py-3 rounded-xl bg-white/[0.05] border border-white/[0.08] text-white/70 active:scale-[0.95] transition-all">
+                    class="flex flex-col items-center gap-1 py-3 px-3 min-w-[60px] rounded-xl bg-white/[0.05] border border-white/[0.08] text-white/70 active:scale-[0.95] transition-all">
                     <i class="fa-regular fa-copy text-sm"></i>
                     <span class="text-[10px]">Copy</span>
                 </button>
                 <button @click="$wire.reusePrompt(previewImage?.id); closePreview(); notify('Đã nạp prompt')"
                     x-show="previewImage?.id"
-                    class="flex flex-col items-center gap-1 py-3 rounded-xl bg-purple-500/20 border border-purple-500/40 text-purple-300 active:scale-[0.95] transition-all">
+                    class="flex flex-col items-center gap-1 py-3 px-3 min-w-[60px] rounded-xl bg-purple-500/20 border border-purple-500/40 text-purple-300 active:scale-[0.95] transition-all">
                     <i class="fa-solid fa-arrow-rotate-left text-sm"></i>
                     <span class="text-[10px]">Reuse</span>
+                </button>
+                <button x-show="previewImage?.id"
+                    @click="if(confirm('Bạn có chắc muốn xóa ảnh này?')) { $wire.deleteImage(previewImage?.id); closePreview(); notify('Đã xóa ảnh'); }"
+                    class="flex flex-col items-center gap-1 py-3 px-3 min-w-[60px] rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 active:scale-[0.95] transition-all">
+                    <i class="fa-solid fa-trash text-sm"></i>
+                    <span class="text-[10px]">Xóa</span>
                 </button>
             </div>
         </div>

@@ -86,12 +86,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // API-like routes for AJAX calls
     Route::get('/api/user/recent-images', function () {
         $images = auth()->user()->generatedImages()
+            ->where('status', 'completed')
+            ->whereNotNull('storage_path')
             ->latest()
-            ->take(8)
+            ->take(20)
             ->get(['id', 'storage_path'])
-            ->map(fn($img) => ['id' => $img->id, 'url' => $img->image_url]);
+            ->map(fn($img) => ['id' => $img->id, 'url' => $img->image_url])
+            ->filter(fn($img) => !empty($img['url']))
+            ->values();
 
-        return response()->json(['images' => $images]);
+        return response()->json($images);
     })->name('api.recent-images');
 });
 

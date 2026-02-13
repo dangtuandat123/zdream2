@@ -112,8 +112,8 @@
                                                 </template>
                                                 <template x-if="!ratio.icon">
                                                     <div class="border border-white/40 rounded-sm" :style="{
-                                                        width: (ratio.id.split(':')[0] > ratio.id.split(':')[1] ? '20px' : (ratio.id.split(':')[0] == ratio.id.split(':')[1] ? '16px' : '12px')),
-                                                        height: (ratio.id.split(':')[1] > ratio.id.split(':')[0] ? '20px' : (ratio.id.split(':')[0] == ratio.id.split(':')[1] ? '16px' : '12px'))
+                                                        width: ratio.id.split(':')[0] > ratio.id.split(':')[1] ? '20px' : (ratio.id.split(':')[0] == ratio.id.split(':')[1] ? '16px' : '12px'),
+                                                        height: ratio.id.split(':')[1] > ratio.id.split(':')[0] ? '20px' : (ratio.id.split(':')[0] == ratio.id.split(':')[1] ? '16px' : '12px')
                                                     }"></div>
                                                 </template>
                                             </div>
@@ -156,8 +156,8 @@
                                                         <template x-if="!ratio.icon">
                                                             <div class="border-2 border-white/40 rounded-sm"
                                                                 :style="{
-                                                                    width: (ratio.id.split(':')[0] > ratio.id.split(':')[1] ? '28px' : (ratio.id.split(':')[0] == ratio.id.split(':')[1] ? '24px' : '16px')),
-                                                                    height: (ratio.id.split(':')[1] > ratio.id.split(':')[0] ? '28px' : (ratio.id.split(':')[0] == ratio.id.split(':')[1] ? '24px' : '16px'))
+                                                                    width: ratio.id.split(':')[0] > ratio.id.split(':')[1] ? '28px' : (ratio.id.split(':')[0] == ratio.id.split(':')[1] ? '24px' : '16px'),
+                                                                    height: ratio.id.split(':')[1] > ratio.id.split(':')[0] ? '28px' : (ratio.id.split(':')[0] == ratio.id.split(':')[1] ? '24px' : '16px')
                                                                 }"></div>
                                                         </template>
                                                     </div>
@@ -347,7 +347,7 @@
                             <span wire:loading wire:target="generate"><i
                                     class="fa-solid fa-spinner fa-spin text-sm"></i></span>
                             <span class="hidden sm:inline">Tạo ảnh</span>
-                            <span class="text-white/60 text-[11px] sm:text-xs font-normal">{{ $creditCost }} <span
+                            <span class="text-white/60 text-[11px] sm:text-xs font-normal"><span x-text="$wire.creditCost * $wire.batchSize"></span> <span
                                     class="hidden sm:inline">credits</span><span class="sm:hidden">cr</span></span>
                         </button>
                     @endif

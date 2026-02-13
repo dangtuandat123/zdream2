@@ -26,7 +26,7 @@
 
         {{-- Gallery Feed --}}
         <div class="space-y-6 px-1 md:px-2 pt-6" id="gallery-feed" data-history='@json($flatHistoryForJs)'
-            wire:key="gallery-feed-{{ $perPage }}">
+            wire:key="gallery-feed">
 
             @php $absoluteIndex = 0; @endphp
 
@@ -168,7 +168,7 @@
                         </div>
 
                         {{-- Image Grid --}}
-                        <div class="grid grid-cols-2 xl:grid-cols-4 gap-1 rounded-lg overflow-hidden">
+                        <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-1 rounded-lg overflow-hidden">
                             @foreach($groupItems as $image)
                                 <div class="block group cursor-pointer" @click="openPreview(null, {{ $absoluteIndex }})">
                                     <div class="h-full bg-white/[0.02]">
@@ -229,9 +229,10 @@
                                             'Phi hành gia lơ lửng trong không gian đầy sao',
                                             'Quán cà phê ấm cúng ngày mưa phong cách Ghibli'
                                         ],
-                                        get prompts() {
+                                        prompts: [],
+                                        init() {
                                             const shuffled = [...this.allPrompts].sort(() => Math.random() - 0.5);
-                                            return shuffled.slice(0, 3);
+                                            this.prompts = shuffled.slice(0, 3);
                                         }
                                     }">
                             <div
@@ -243,7 +244,7 @@
                                 Hãy thử tạo một hình ảnh mới bằng cách nhập mô tả vào khung chat bên dưới.
                             </p>
                             <div class="flex flex-wrap justify-center gap-2">
-                                <template x-for="p in prompts">
+                                <template x-for="p in prompts" :key="p">
                                     <button @click="$wire.set('prompt', p)"
                                         class="h-9 px-4 rounded-lg bg-white/[0.05] hover:bg-white/[0.08] border border-white/[0.08] text-xs text-white/70 hover:text-white transition-all active:scale-[0.98]">
                                         <span x-text="p"></span>
