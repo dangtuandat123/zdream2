@@ -11,6 +11,7 @@ use App\Services\StorageService;
 use App\Services\WalletService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
 
@@ -231,6 +232,7 @@ class TextToImage extends Component
         $walletService = app(WalletService::class);
 
         // Loop for batch size
+        $batchId = Str::uuid()->toString();
         for ($i = 0; $i < $this->batchSize; $i++) {
             $generatedImage = null;
             $creditsDeducted = false;
@@ -261,6 +263,7 @@ class TextToImage extends Component
                 $generationParams = [
                     'model_id' => $this->modelId,
                     'aspect_ratio' => $this->aspectRatio,
+                    'batch_id' => $batchId,
                     'batch_index' => $i,
                 ];
 
@@ -492,7 +495,11 @@ class TextToImage extends Component
      */
     public function setReferenceImages(array $images): void
     {
-        $this->referenceImages = array_slice($images, 0, 4); // Max 4 images
+        $modelConfig = collect(config('services_custom.bfl.models'))
+            ->firstWhere('id', $this->modelId);
+        $max = ($modelConfig['supports_image_input'] ?? false)
+            ? ($modelConfig['max_input_images'] ?? 1) : 0;
+        $this->referenceImages = array_slice($images, 0, max($max, 0));
     }
 
     public function copyPrompt(int $id): void

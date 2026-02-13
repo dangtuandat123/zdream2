@@ -88,9 +88,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
         $images = auth()->user()->generatedImages()
             ->where('status', 'completed')
             ->whereNotNull('storage_path')
+            ->whereHas('style', function ($q) {
+                $q->where('slug', \App\Models\Style::SYSTEM_T2I_SLUG);
+            })
             ->latest()
             ->take(20)
-            ->get(['id', 'storage_path'])
+            ->get(['id', 'storage_path', 'style_id'])
             ->map(fn($img) => ['id' => $img->id, 'url' => $img->image_url])
             ->filter(fn($img) => !empty($img['url']))
             ->values();

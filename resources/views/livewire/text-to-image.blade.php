@@ -1,8 +1,8 @@
 {{-- ============================================================ --}}
 {{-- TEXT-TO-IMAGE — Root Orchestrator --}}
 {{-- ============================================================ --}}
-<div class="relative min-h-screen pb-36 md:pb-28" @if($isGenerating) wire:poll.2s="pollImageStatus" @endif
-    x-data="textToImage" @keydown.window="handleKeydown($event)">
+<div class="relative min-h-screen" @if($isGenerating) wire:poll.2s="pollImageStatus" @endif x-data="textToImage"
+    @keydown.window="handleKeydown($event)">
 
     {{-- Toast --}}
     <div x-show="showToast" x-cloak x-transition:enter="transition ease-out duration-300"
@@ -21,6 +21,10 @@
             ? $history->getCollection()
             : collect($history);
         $groupedHistory = $historyCollection->groupBy(function ($item) {
+            // Prefer batch_id for precise grouping, fallback for old images
+            if (!empty($item->generation_params['batch_id'])) {
+                return $item->generation_params['batch_id'];
+            }
             return $item->final_prompt . '|' .
                 ($item->generation_params['model_id'] ?? '') . '|' .
                 ($item->generation_params['aspect_ratio'] ?? '') . '|' .
@@ -125,13 +129,6 @@
             }
         }
 
-        /* Responsive filter bar spacing */
-        @media (max-width: 640px) {
-            #gallery-scroll>div:first-child {
-                padding-top: 5.5rem;
-            }
-        }
-
         /* Fix input bar for md+ */
         @media (min-width: 768px) {
             .input-bar-fixed {
@@ -210,13 +207,14 @@
                         str_contains($m['id'], 'schnell') => '🚀',
                         default => '🛠️'
                     },
-                    'maxImages' => $m['max_input_images'] ?? 1,
+                    'maxImages' => ($m['supports_image_input'] ?? false) ? ($m['max_input_images'] ?? 1) : 0,
+                    'supportsImageInput' => $m['supports_image_input'] ?? false,
                 ])),
 
                 // Dynamic max images based on selected model
                 get maxImages() {
                     const model = this.models.find(m => m.id === this.selectedModel);
-                    return model?.maxImages || 1;
+                    return model?.maxImages ?? 0;
                 },
 
                 // ============================================================
@@ -250,10 +248,14 @@
                         this.notify('❌ Tạo ảnh thất bại. Vui lòng thử lại.', 'error');
                     });
 
-                    // Auto-trim excess images when model changes
+                    // Auto-trim/clear images when model changes
                     this.$watch('selectedModel', () => {
                         const max = this.maxImages;
-                        if (this.selectedImages.length > max) {
+                        if (max === 0 && this.selectedImages.length > 0) {
+                            this.selectedImages = [];
+                            this.$wire.setReferenceImages([]);
+                            this.notify('Model này không hỗ trợ ảnh tham chiếu', 'warning');
+                        } else if (this.selectedImages.length > max) {
                             this.selectedImages = this.selectedImages.slice(0, max);
                             this.$wire.setReferenceImages(this.selectedImages.map(img => ({ url: img.url })));
                             this.notify(`Model này hỗ trợ tối đa ${max} ảnh tham chiếu`, 'warning');
@@ -336,7 +338,7 @@
                     const el = document.documentElement;
                     el.scrollTo({
                         top: el.scrollHeight,
-                        behavior: smooth ? 'smooth' : 'instant'
+                        behavior: smooth ? 'smooth' : 'auto'
                     });
                 },
 
@@ -437,16 +439,23 @@
                 useAsReference() {
                     const url = this.previewImage?.url;
                     if (!url) return;
+                    if (this.maxImages === 0) {
+                        this.notify('Model này không hỗ trợ ảnh tham chiếu', 'warning');
+                        return;
+                    }
+                    if (this.selectedImages.some(i => i.url === url)) {
+                        this.notify('Ảnh đã có trong danh sách', 'warning');
+                        this.closePreview();
+                        return;
+                    }
                     if (this.selectedImages.length >= this.maxImages) {
                         this.notify('Tối đa ' + this.maxImages + ' ảnh', 'warning');
                         return;
                     }
-                    if (!this.selectedImages.some(i => i.url === url)) {
-                        this.selectedImages.push({ id: Date.now(), url: url });
-                        this.$wire.setReferenceImages(
-                            this.selectedImages.map(img => ({ url: img.url }))
-                        );
-                    }
+                    this.selectedImages.push({ id: Date.now(), url: url });
+                    this.$wire.setReferenceImages(
+                        this.selectedImages.map(img => ({ url: img.url }))
+                    );
                     this.closePreview();
                     this.notify('Đã thêm ảnh làm tham chiếu');
                 },
@@ -537,6 +546,14 @@
                 addFromUrl() {
                     const url = this.urlInput.trim();
                     if (!url) return;
+                    if (!/^https?:\/\//i.test(url)) {
+                        this.notify('URL phải bắt đầu bằng http:// hoặc https://', 'warning');
+                        return;
+                    }
+                    if (this.selectedImages.some(i => i.url === url)) {
+                        this.notify('Ảnh đã có trong danh sách', 'warning');
+                        return;
+                    }
                     if (this.selectedImages.length >= this.maxImages) {
                         this.notify('Tối đa ' + this.maxImages + ' ảnh', 'warning');
                         return;
@@ -576,7 +593,7 @@
                 },
 
                 clearAll() {
-          this.selectedImages = [];
+                    this.selectedImages = [];
                     this.$wire.setReferenceImages([]);
                 },
 

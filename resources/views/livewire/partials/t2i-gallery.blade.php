@@ -2,7 +2,7 @@
 {{-- SCROLLABLE GALLERY AREA --}}
 {{-- ============================================================ --}}
 <div id="gallery-scroll">
-    <div class="max-w-4xl mx-auto px-4 pt-20 pb-40">
+    <div class="max-w-4xl mx-auto px-4" style="padding-top: calc(var(--filter-bar-h, 3.5rem) + 1.5rem); padding-bottom: calc(var(--input-bar-h, 10rem) + 1rem);">
 
         {{-- Error --}}
         @if($errorMessage)
@@ -35,7 +35,7 @@
                     $el.style.visibility = 'hidden';
                     requestAnimationFrame(() => {
                         requestAnimationFrame(() => {
-                            document.documentElement.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'instant' });
+                            document.documentElement.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'auto' });
                             $el.style.visibility = 'visible';
                             initialLoad = false;
                         });

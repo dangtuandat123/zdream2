@@ -3,10 +3,11 @@
 {{-- ============================================================ --}}
 @if($isGenerating && !$generatedImageUrl)
     <div x-data="{ elapsed: 0, timer: null }" x-init="
-            startLoading();
-            timer = setInterval(() => elapsed++, 1000);
-            $nextTick(() => setTimeout(() => document.documentElement.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' }), 100));
-        " x-effect="if (!@js($isGenerating)) { stopLoading(); clearInterval(timer); }" x-on:remove="clearInterval(timer)">
+                startLoading();
+                timer = setInterval(() => elapsed++, 1000);
+                $nextTick(() => setTimeout(() => document.documentElement.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' }), 100));
+            " x-effect="if (!@js($isGenerating)) { stopLoading(); clearInterval(timer); timer = null; }"
+        x-on:remove="clearInterval(timer)" x-bind:x-destroy="() => { clearInterval(timer); stopLoading(); }">
         <div
             class="bg-white/[0.03] backdrop-blur-[12px] border border-white/[0.08] rounded-xl overflow-hidden shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]">
             {{-- Progress bar --}}

@@ -4,7 +4,16 @@
 <div class="fixed left-0 right-0 md:left-[72px] z-[60] safe-area-bottom input-bar-fixed"
     style="bottom: calc(60px + env(safe-area-inset-bottom, 0px));"
     @click.away="showRatioDropdown = false; showModelDropdown = false; showBatchDropdown = false"
-    @show-toast.window="notify($event.detail.message)">
+    @show-toast.window="notify($event.detail.message)"
+    x-ref="inputBar"
+    x-init="
+        const bar = $refs.inputBar;
+        const ro = new ResizeObserver(() => {
+            document.documentElement.style.setProperty('--input-bar-h', bar.offsetHeight + 'px');
+        });
+        ro.observe(bar);
+        $cleanup(() => ro.disconnect());
+    ">
 
     <div class="max-w-4xl mx-auto px-3 sm:px-4 pb-3 sm:pb-4 pt-3">
         <div class="relative">
@@ -46,7 +55,7 @@
                         @click.away="showRatioDropdown = false; showModelDropdown = false; showBatchDropdown = false">
 
                         {{-- Image Reference Picker --}}
-                        <div class="relative">
+                        <div class="relative" x-show="maxImages > 0" x-cloak>
                             <button type="button"
                                 @click="showImagePicker = !showImagePicker; if(showImagePicker) loadRecentImages()"
                                 class="flex items-center gap-1.5 h-9 px-2.5 rounded-lg transition-all duration-200 cursor-pointer"
