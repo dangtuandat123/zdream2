@@ -39,6 +39,11 @@
     @livewireStyles
 
     <style>
+        /* Global: hide Alpine x-cloak elements before init */
+        [x-cloak] {
+            display: none !important;
+        }
+
         html {
             overflow-x: hidden;
             overflow-y: scroll;

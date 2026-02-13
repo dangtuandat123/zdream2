@@ -1,3 +1,6 @@
+{{-- ============================================================ --}}
+{{-- TEXT-TO-IMAGE — Root Orchestrator --}}
+{{-- ============================================================ --}}
 <div class="relative min-h-screen pb-36 md:pb-28" @if($isGenerating) wire:poll.2s="pollImageStatus" @endif
     x-data="textToImage" @keydown.window="handleKeydown($event)">
 
@@ -21,7 +24,7 @@
             return $item->final_prompt . '|' .
                 ($item->generation_params['model_id'] ?? '') . '|' .
                 ($item->generation_params['aspect_ratio'] ?? '');
-        })->reverse(); // Reverse so newest (from latest() query) display at bottom
+        })->reverse();
 
         // 2. Flatten for JS (keep reversed order)
         $flatHistoryForJs = $groupedHistory->flatten(1)->map(fn($img) => [
@@ -34,861 +37,19 @@
         ])->values()->toArray();
     @endphp
 
-    {{-- ============================================================ --}}
-    {{-- FIXED FILTER BAR --}}
-    {{-- ============================================================ --}}
-    <div class="fixed top-14 md:top-0 left-0 right-0 md:left-[72px] z-[55]" x-data="{ openFilter: null }"
-        x-ref="filterBar">
-        <div class="bg-[#0a0a0f]/80 backdrop-blur-[20px] saturate-[180%] border-b border-white/[0.08]">
-            <div class="max-w-5xl mx-auto px-4 py-2.5">
-                <div class="flex items-center gap-2 flex-wrap">
-                    {{-- Total count --}}
-                    @php $totalImages = ($history instanceof \Illuminate\Pagination\LengthAwarePaginator) ? $history->total() : $historyCollection->count(); @endphp
-                    @if($totalImages > 0)
-                        <span class="text-white/30 text-xs font-medium shrink-0 mr-1"><i
-                                class="fa-solid fa-images mr-1"></i>{{ $totalImages }} ảnh</span>
-                    @endif
-                    {{-- Date Filter --}}
-                    <div class="relative">
-                        <button @click="openFilter = openFilter === 'date' ? null : 'date'" class="inline-flex items-center gap-1.5 h-9 px-3.5 rounded-lg text-sm font-medium transition-all duration-200 active:scale-[0.98]
-                                {{ $filterDate !== 'all'
-    ? 'bg-purple-500/20 border border-purple-500/40 text-purple-300'
-    : 'bg-white/[0.05] border border-white/[0.08] text-white/70 hover:bg-white/[0.08] hover:text-white/90' }}">
-                            <i class="fa-regular fa-calendar text-xs"></i>
-                            <span>{{ $filterDate === 'all' ? 'Theo ngày' : ['week' => 'Tuần qua', 'month' => 'Tháng qua', '3months' => '3 tháng'][$filterDate] ?? 'Theo ngày' }}</span>
-                            <i class="fa-solid fa-chevron-down text-[9px] ml-0.5 transition-transform"
-                                :class="openFilter === 'date' ? 'rotate-180' : ''"></i>
-                        </button>
-                        <div x-show="openFilter === 'date'" x-cloak @click.away="openFilter = null"
-                            x-transition:enter="transition ease-out duration-150"
-                            x-transition:enter-start="opacity-0 -translate-y-1"
-                            x-transition:enter-end="opacity-100 translate-y-0"
-                            class="absolute top-full left-0 mt-2 w-52 p-1.5 rounded-xl bg-[#0f0f18]/95 backdrop-blur-[20px] saturate-[180%] border border-white/[0.1] shadow-2xl shadow-black/50 z-50">
-                            @foreach(['all' => 'Tất cả', 'week' => 'Tuần qua', 'month' => 'Tháng qua', '3months' => '3 tháng qua'] as $val => $lbl)
-                                <button wire:click="$set('filterDate', '{{ $val }}')" @click="openFilter = null"
-                                    class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm transition-colors duration-150
-                                                                                        {{ $filterDate === $val ? 'text-white/95 bg-white/[0.06]' : 'text-white/70 hover:bg-white/[0.06] hover:text-white' }}">
-                                    <span>{{ $lbl }}</span>
-                                    @if($filterDate === $val)
-                                        <i class="fa-solid fa-check text-purple-400 text-xs"></i>
-                                    @endif
-                                </button>
-                            @endforeach
-                        </div>
-                    </div>
+    {{-- PARTIALS --}}
+    @include('livewire.partials.t2i-filter-bar')
+    @include('livewire.partials.t2i-gallery')
+    @include('livewire.partials.t2i-input-bar')
 
-                    {{-- Model Filter --}}
-                    <div class="relative">
-                        <button @click="openFilter = openFilter === 'model' ? null : 'model'" class="inline-flex items-center gap-1.5 h-9 px-3.5 rounded-lg text-sm font-medium transition-all duration-200 active:scale-[0.98]
-                                {{ $filterModel !== 'all'
-    ? 'bg-purple-500/20 border border-purple-500/40 text-purple-300'
-    : 'bg-white/[0.05] border border-white/[0.08] text-white/70 hover:bg-white/[0.08] hover:text-white/90' }}">
-                            <i class="fa-solid fa-microchip text-xs"></i>
-                            <span
-                                class="hidden sm:inline">{{ $filterModel === 'all' ? 'Theo model' : (collect($availableModels)->firstWhere('id', $filterModel)['name'] ?? $filterModel) }}</span>
-                            <span class="sm:hidden">Model</span>
-                            <i class="fa-solid fa-chevron-down text-[9px] ml-0.5 transition-transform"
-                                :class="openFilter === 'model' ? 'rotate-180' : ''"></i>
-                        </button>
-                        <div x-show="openFilter === 'model'" x-cloak @click.away="openFilter = null"
-                            x-transition:enter="transition ease-out duration-150"
-                            x-transition:enter-start="opacity-0 -translate-y-1"
-                            x-transition:enter-end="opacity-100 translate-y-0"
-                            class="absolute top-full left-0 mt-2 w-56 p-1.5 rounded-xl bg-[#0f0f18]/95 backdrop-blur-[20px] saturate-[180%] border border-white/[0.1] shadow-2xl shadow-black/50 z-50">
-                            <button wire:click="$set('filterModel', 'all')" @click="openFilter = null"
-                                class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm transition-colors duration-150
-                                    {{ $filterModel === 'all' ? 'text-white/95 bg-white/[0.06]' : 'text-white/70 hover:bg-white/[0.06] hover:text-white' }}">
-                                <span>Tất cả model</span>
-                                @if($filterModel === 'all')
-                                    <i class="fa-solid fa-check text-purple-400 text-xs"></i>
-                                @endif
-                            </button>
-                            @foreach($availableModels as $model)
-                                <button wire:click="$set('filterModel', '{{ $model['id'] }}')" @click="openFilter = null"
-                                    class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm transition-colors duration-150
-                                                                                        {{ $filterModel === $model['id'] ? 'text-white/95 bg-white/[0.06]' : 'text-white/70 hover:bg-white/[0.06] hover:text-white' }}">
-                                    <span>{{ $model['name'] }}</span>
-                                    @if($filterModel === $model['id'])
-                                        <i class="fa-solid fa-check text-purple-400 text-xs"></i>
-                                    @endif
-                                </button>
-                            @endforeach
-                        </div>
-                    </div>
-
-                    {{-- Ratio Filter --}}
-                    <div class="relative">
-                        <button @click="openFilter = openFilter === 'ratio' ? null : 'ratio'" class="inline-flex items-center gap-1.5 h-9 px-3.5 rounded-lg text-sm font-medium transition-all duration-200 active:scale-[0.98]
-                                {{ $filterRatio !== 'all'
-    ? 'bg-purple-500/20 border border-purple-500/40 text-purple-300'
-    : 'bg-white/[0.05] border border-white/[0.08] text-white/70 hover:bg-white/[0.08] hover:text-white/90' }}">
-                            <i class="fa-solid fa-crop text-xs"></i>
-                            <span>{{ $filterRatio === 'all' ? 'Tỉ lệ' : $filterRatio }}</span>
-                            <i class="fa-solid fa-chevron-down text-[9px] ml-0.5 transition-transform"
-                                :class="openFilter === 'ratio' ? 'rotate-180' : ''"></i>
-                        </button>
-                        <div x-show="openFilter === 'ratio'" x-cloak @click.away="openFilter = null"
-                            x-transition:enter="transition ease-out duration-150"
-                            x-transition:enter-start="opacity-0 -translate-y-1"
-                            x-transition:enter-end="opacity-100 translate-y-0"
-                            class="absolute top-full left-0 mt-2 w-44 p-1.5 rounded-xl bg-[#0f0f18]/95 backdrop-blur-[20px] saturate-[180%] border border-white/[0.1] shadow-2xl shadow-black/50 z-50">
-                            @foreach(['all' => 'Tất cả', '1:1' => '1:1', '16:9' => '16:9', '9:16' => '9:16', '4:3' => '4:3', '3:4' => '3:4', '3:2' => '3:2', '2:3' => '2:3', '21:9' => '21:9'] as $val => $lbl)
-                                <button wire:click="$set('filterRatio', '{{ $val }}')" @click="openFilter = null"
-                                    class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm transition-colors duration-150
-                                                                                        {{ $filterRatio === $val ? 'text-white/95 bg-white/[0.06]' : 'text-white/70 hover:bg-white/[0.06] hover:text-white' }}">
-                                    <span>{{ $lbl }}</span>
-                                    @if($filterRatio === $val)
-                                        <i class="fa-solid fa-check text-purple-400 text-xs"></i>
-                                    @endif
-                                </button>
-                            @endforeach
-                        </div>
-                    </div>
-
-                    {{-- Reset --}}
-                    @if($filterDate !== 'all' || $filterModel !== 'all' || $filterRatio !== 'all')
-                        <button wire:click="resetFilters"
-                            class="inline-flex items-center gap-1.5 h-9 px-3.5 rounded-lg text-sm font-medium bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 transition-all duration-200 active:scale-[0.98]">
-                            <i class="fa-solid fa-xmark text-xs"></i>
-                            <span>Xóa lọc</span>
-                        </button>
-                    @endif
-                </div>
-            </div>
-        </div>
-    </div>
-
-    {{-- ============================================================ --}}
-    {{-- SCROLLABLE GALLERY AREA --}}
-    {{-- ============================================================ --}}
-    <div id="gallery-scroll">
-        <div class="max-w-4xl mx-auto px-4 pt-20 pb-40">
-
-            {{-- Error --}}
-            @if($errorMessage)
-                <div x-data="{ show: true }" x-show="show" x-cloak
-                    class="mb-4 p-3.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm flex items-center gap-3"
-                    role="alert">
-                    <i class="fa-solid fa-circle-exclamation shrink-0"></i>
-                    <span class="flex-1">{{ $errorMessage }}</span>
-                    @if($lastPrompt)
-                        <button wire:click="retry"
-                            class="shrink-0 h-8 px-3 rounded-lg bg-white/[0.05] hover:bg-white/[0.08] border border-white/[0.08] text-xs font-medium text-white/80 transition-all active:scale-[0.98]">
-                            <i class="fa-solid fa-redo mr-1"></i>Thử lại
-                        </button>
-                    @endif
-                    <button @click="show = false"
-                        class="shrink-0 h-8 w-8 rounded-lg bg-white/[0.05] hover:bg-white/[0.08] border border-white/[0.08] text-white/80 flex items-center justify-center transition-all active:scale-[0.98]">
-                        <i class="fa-solid fa-xmark text-xs"></i>
-                    </button>
-                </div>
-            @endif
-
-            {{-- Gallery Feed --}}
-            <div class="space-y-6 px-1 md:px-2 pt-6" id="gallery-feed" data-history='@json($flatHistoryForJs)'
-                wire:key="gallery-feed-{{ $perPage }}">
-
-                @php $absoluteIndex = 0; @endphp
-
-                <div class="space-y-6 gallery-wrapper" x-data="{ initialLoad: true }" x-init="
-                    if (initialLoad) {
-                        $el.style.visibility = 'hidden';
-                        requestAnimationFrame(() => {
-                            requestAnimationFrame(() => {
-                                document.documentElement.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'instant' });
-                                $el.style.visibility = 'visible';
-                                initialLoad = false;
-                            });
-                        });
-                    }
-                ">
-                    {{-- Infinite Scroll Sentinel (auto-load older images on scroll up) --}}
-                    @if($history instanceof \Illuminate\Pagination\LengthAwarePaginator && $history->hasMorePages())
-                        <div id="load-more-sentinel" class="flex justify-center py-4" x-data="{
-                                                observer: null,
-                                                isLoading: false,
-                                                ready: false,
-                                                init() {
-                                                    // Wait 2s before activating to avoid triggering on initial page load
-                                                    setTimeout(() => {
-                                                        this.ready = true;
-                                                        this.observer = new IntersectionObserver((entries) => {
-                                                            entries.forEach(entry => {
-                                                                if (entry.isIntersecting && !this.isLoading && this.ready) {
-                                                                    this.isLoading = true;
-                                                                    const scrollH = document.documentElement.scrollHeight;
-                                                                    $wire.loadMore().then(() => {
-                                                                        this.$nextTick(() => {
-                                                                            requestAnimationFrame(() => {
-                                                                                const newScrollH = document.documentElement.scrollHeight;
-                                                                                document.documentElement.scrollTop += (newScrollH - scrollH);
-                                                                                this.isLoading = false;
-                                                                            });
-                                                                        });
-                                                                    }).catch(() => { this.isLoading = false; });
-                                                                }
-                                                            });
-                                                        }, { rootMargin: '100px 0px 0px 0px' });
-                                                        this.observer.observe(this.$el);
-                                                    }, 2000);
-                                                },
-                                                destroy() {
-                                                    if (this.observer) this.observer.disconnect();
-                                                }
-                                            }">
-                            <div class="flex items-center gap-2 text-white/40 text-sm" wire:loading.flex
-                                wire:target="loadMore">
-                                <i class="fa-solid fa-spinner fa-spin text-purple-400"></i>
-                                <span>Đang tải thêm...</span>
-                            </div>
-                            <div class="text-white/20 text-xs" wire:loading.remove wire:target="loadMore">
-                                <i class="fa-solid fa-ellipsis"></i>
-                            </div>
-                        </div>
-                    @endif
-
-                    {{-- Grouped Batches --}}
-                    @php $totalGroups = $groupedHistory->count();
-                    $groupIdx = 0; @endphp
-                    @forelse($groupedHistory as $groupKey => $groupItems)
-                        @php $wireKey = md5($groupKey); @endphp
-                        @php
-                            $firstItem = $groupItems->first();
-                            $modelId = $firstItem->generation_params['model_id'] ?? null;
-                            $ratio = $firstItem->generation_params['aspect_ratio'] ?? '1:1';
-
-                            $modelName = $modelId;
-                            if ($modelId && isset($availableModels)) {
-                                $found = collect($availableModels)->firstWhere('id', $modelId);
-                                $modelName = $found['name'] ?? $modelId;
-                            }
-
-                            // Calculate CSS aspect-ratio value (width / height)
-                            $aspectRatioCss = '1 / 1';
-                            if ($ratio !== 'Auto' && strpos($ratio, ':') !== false) {
-                                [$w, $h] = explode(':', $ratio);
-                                $aspectRatioCss = $w . ' / ' . $h;
-                            }
-                        @endphp
-
-                        {{-- Batch Group --}}
-                        <div class="space-y-2.5 group-batch" x-data="{ expanded: false }" wire:key="group-{{ $wireKey }}"
-                            style="content-visibility: auto;">
-
-                            {{-- Header Row: Mode > Prompt + Actions --}}
-                            <div class="flex items-center gap-2">
-                                <div class="flex items-center justify-between gap-2 flex-1 text-sm min-w-0">
-                                    <div class="flex items-center gap-1.5 min-w-0">
-                                        <span class="text-white/70 text-xs font-medium shrink-0">Tạo ảnh</span>
-                                        <i class="fa-solid fa-chevron-right text-white/30 text-[9px] shrink-0"></i>
-                                        <button
-                                            class="min-w-0 flex-1 text-sm text-left text-white/50 first-letter:capitalize hover:text-white/80 transition-colors duration-200 cursor-pointer truncate overflow-hidden"
-                                            @click="expanded = !expanded" title="Nhấn để xem toàn bộ prompt">
-                                            {{ $firstItem->final_prompt }}
-                                        </button>
-                                    </div>
-                                    <div class="flex items-center gap-0.5 shrink-0">
-                                        {{-- Copy Prompt (ghost button) --}}
-                                        <button x-data="{ copied: false }"
-                                            @click="navigator.clipboard.writeText(@js($firstItem->final_prompt)); copied = true; $dispatch('show-toast', { message: 'Đã copy prompt' }); setTimeout(() => copied = false, 2000)"
-                                            class="inline-flex items-center justify-center h-7 px-2 rounded-lg bg-transparent text-white/50 hover:bg-white/[0.05] hover:text-white/90 text-xs transition-all duration-200 active:scale-[0.98]"
-                                            title="Copy prompt">
-                                            <i :class="copied ? 'fa-solid fa-check text-green-400' : 'fa-regular fa-copy'"
-                                                class="text-[11px] mr-1"></i>
-                                            <span class="hidden sm:inline" x-text="copied ? 'Copied!' : 'Copy'"></span>
-                                        </button>
-                                        {{-- Reuse (ghost button) --}}
-                                        <button wire:click="reusePrompt({{ $firstItem->id }})"
-                                            class="inline-flex items-center justify-center h-7 px-2 rounded-lg bg-transparent text-white/50 hover:bg-white/[0.05] hover:text-white/90 text-xs transition-all duration-200 active:scale-[0.98]"
-                                            title="Dùng lại prompt + cài đặt">
-                                            <i class="fa-solid fa-arrow-rotate-left text-xs mr-1"></i>
-                                            <span class="hidden sm:inline">Reuse</span>
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {{-- Expanded Prompt Detail (Glass panel) --}}
-                            <div x-show="expanded" x-cloak x-transition:enter="transition ease-out duration-200"
-                                x-transition:enter-start="opacity-0 -translate-y-1"
-                                x-transition:enter-end="opacity-100 translate-y-0"
-                                x-transition:leave="transition ease-in duration-150"
-                                x-transition:leave-start="opacity-100 translate-y-0"
-                                x-transition:leave-end="opacity-0 -translate-y-1"
-                                class="px-3 py-2.5 rounded-xl bg-white/[0.03] backdrop-blur-[12px] border border-white/[0.08] shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] text-sm text-white/70 leading-relaxed">
-                                {{ $firstItem->final_prompt }}
-                                <div class="flex items-center gap-2 mt-2 text-[11px] text-white/40">
-                                    <span class="text-purple-300/70">{{ $modelName }}</span>
-                                    <span class="text-white/20">•</span>
-                                    <span>{{ $ratio }}</span>
-                                    <span class="text-white/20">•</span>
-                                    <span>{{ $groupItems->count() }} ảnh</span>
-                                    <span class="text-white/20">•</span>
-                                    <span>{{ $firstItem->created_at->diffForHumans() }}</span>
-                                </div>
-                            </div>
-
-                            {{-- Image Grid --}}
-                            <div class="grid grid-cols-2 xl:grid-cols-4 gap-1 rounded-lg overflow-hidden">
-                                @foreach($groupItems as $image)
-                                    <div class="block group cursor-pointer" @click="openPreview(null, {{ $absoluteIndex }})">
-                                        <div class="h-full bg-white/[0.02]">
-                                            <div class="relative overflow-hidden" style="aspect-ratio: {{ $aspectRatioCss }};">
-                                                {{-- Shimmer (CSS-only, hidden when img loads) --}}
-                                                <div class="img-shimmer absolute inset-0 bg-white/[0.04]">
-                                                    <div
-                                                        class="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.06] to-transparent animate-shimmer">
-                                                    </div>
-                                                </div>
-                                                {{-- Image (CSS-only fade-in, survives morph) --}}
-                                                <img src="{{ $image->image_url }}" alt="Preview"
-                                                    class="gallery-img w-full h-full object-cover transition-all duration-300 ease-out group-hover:scale-[1.05]"
-                                                    draggable="false"
-                                                    onload="this.classList.add('is-loaded');this.previousElementSibling.style.display='none'"
-                                                    onerror="this.classList.add('is-error');this.src='/images/placeholder-broken.svg'"
-                                                    {{ $groupIdx < $totalGroups - 2 ? 'loading=lazy decoding=async' : 'fetchpriority=high' }}>
-                                                {{-- Hover Overlay + Actions --}}
-                                                <div
-                                                    class="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                                                    <div class="absolute bottom-2 right-2 flex gap-1.5">
-                                                        <button @click.stop="downloadImage('{{ $image->image_url }}')"
-                                                            class="h-8 w-8 rounded-lg bg-black/50 backdrop-blur-[8px] hover:bg-white/20 text-white flex items-center justify-center transition-all duration-200 border border-white/[0.1] active:scale-[0.95]"
-                                                            title="Tải xuống">
-                                                            <i class="fa-solid fa-download text-[11px]"></i>
-                                                        </button>
-                                                        <button wire:click="deleteImage({{ $image->id }})" @click.stop
-                                                            wire:confirm="Bạn có chắc muốn xóa ảnh này?"
-                                                            class="h-8 w-8 rounded-lg bg-black/50 backdrop-blur-[8px] hover:bg-red-500/80 text-white flex items-center justify-center transition-all duration-200 border border-white/[0.1] active:scale-[0.95]"
-                                                            title="Xóa">
-                                                            <i class="fa-solid fa-trash text-[11px]"></i>
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    @php $absoluteIndex++; @endphp
-                                @endforeach
-                            </div>
-                        </div>
-                        @php $groupIdx++; @endphp
-
-                    @empty
-                        @if(!$isGenerating)
-                            <div class="py-16 sm:py-24 text-center" x-data="{
-                                            allPrompts: [
-                                                'Một chú mèo dễ thương ngủ trên mây',
-                                                'Phong cảnh núi tuyết hoàng hôn',
-                                                'Logo công nghệ gradient xanh',
-                                                'Cô gái anime với đôi cánh thiên thần',
-                                                'Thành phố cyberpunk dưới mưa neon',
-                                                'Rồng phương Đông bay trên biển mây',
-                                                'Chiếc xe cổ điển trên con đường hoa anh đào',
-                                                'Lâu đài fantasy trên ngọn núi tuyết',
-                                                'Robot dễ thương đang tưới hoa',
-                                                'Bình minh trên cánh đồng hoa lavender',
-                                                'Phi hành gia lơ lửng trong không gian đầy sao',
-                                                'Quán cà phê ấm cúng ngày mưa phong cách Ghibli'
-                                            ],
-                                            get prompts() {
-                                                const shuffled = [...this.allPrompts].sort(() => Math.random() - 0.5);
-                                                return shuffled.slice(0, 3);
-                                            }
-                                        }">
-                                <div
-                                    class="w-16 h-16 mx-auto rounded-2xl bg-white/[0.05] border border-white/[0.08] flex items-center justify-center mb-4 shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]">
-                                    <i class="fa-solid fa-image text-3xl text-white/20"></i>
-                                </div>
-                                <h3 class="text-white/95 font-medium text-lg mb-2">Chưa có hình ảnh nào</h3>
-                                <p class="text-white/50 text-sm max-w-sm mx-auto mb-6">
-                                    Hãy thử tạo một hình ảnh mới bằng cách nhập mô tả vào khung chat bên dưới.
-                                </p>
-                                <div class="flex flex-wrap justify-center gap-2">
-                                    <template x-for="p in prompts">
-                                        <button @click="$wire.set('prompt', p)"
-                                            class="h-9 px-4 rounded-lg bg-white/[0.05] hover:bg-white/[0.08] border border-white/[0.08] text-xs text-white/70 hover:text-white transition-all active:scale-[0.98]">
-                                            <span x-text="p"></span>
-                                        </button>
-                                    </template>
-                                </div>
-                            </div>
-                        @endif
-                    @endforelse
-                </div>
-
-            </div>
-
-            {{-- Loading Skeleton (bottom, like chatbot) --}}
-            @if($isGenerating && !$generatedImageUrl)
-                <div x-data="{ elapsed: 0, timer: null }" x-init="
-                                                                            startLoading();
-                                                                            timer = setInterval(() => elapsed++, 1000);
-                                                                            $nextTick(() => setTimeout(() => document.documentElement.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' }), 100));
-                                                                         "
-                    x-effect="if (!@js($isGenerating)) { stopLoading(); clearInterval(timer); }"
-                    x-on:remove="clearInterval(timer)">
-                    <div
-                        class="bg-white/[0.03] backdrop-blur-[12px] border border-white/[0.08] rounded-xl overflow-hidden shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]">
-                        {{-- Progress bar --}}
-                        <div class="h-0.5 bg-white/[0.03] overflow-hidden">
-                            <div class="h-full bg-gradient-to-r from-purple-500 via-fuchsia-500 to-purple-500 animate-pulse"
-                                style="width: 100%; animation: progress-slide 2s ease-in-out infinite;"></div>
-                        </div>
-                        <div class="p-4">
-                            <div class="flex items-center gap-3 mb-3">
-                                <div class="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center">
-                                    <div
-                                        class="w-5 h-5 border-2 border-purple-400 border-t-transparent rounded-full animate-spin">
-                                    </div>
-                                </div>
-                                <div class="flex-1">
-                                    <p class="text-white/90 text-sm font-medium"
-                                        x-text="loadingMessages[currentLoadingMessage]">Đang tạo ảnh...</p>
-                                    <p class="text-white/40 text-xs mt-0.5">
-                                        <span
-                                            x-text="Math.floor(elapsed / 60) > 0 ? Math.floor(elapsed / 60) + ' phút ' : ''"></span>
-                                        <span x-text="(elapsed % 60) + ' giây'"></span>
-                                    </p>
-                                </div>
-                                <button wire:click="cancelGeneration"
-                                    class="h-8 px-3 rounded-lg bg-white/[0.05] hover:bg-red-500/20 border border-white/[0.08] text-xs text-white/50 hover:text-red-400 transition-all active:scale-[0.95]">
-                                    <i class="fa-solid fa-xmark mr-1"></i>Hủy
-                                </button>
-                            </div>
-                            {{-- Loading placeholder per batch --}}
-                            <div class="grid grid-cols-2 gap-1 rounded-lg overflow-hidden">
-                                @for ($i = 0; $i < $batchSize; $i++)
-                                    <div class="bg-white/[0.03] flex items-center justify-center {{ $batchSize == 1 ? 'col-span-2 max-w-sm' : '' }}"
-                                        style="aspect-ratio: {{ $aspectRatio !== 'auto' && strpos($aspectRatio, ':') !== false ? str_replace(':', ' / ', $aspectRatio) : '1 / 1' }};">
-                                        <div
-                                            class="w-6 h-6 border-2 border-purple-500/40 border-t-transparent rounded-full animate-spin">
-                                        </div>
-                                    </div>
-                                @endfor
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            @endif
-        </div>
-    </div>
-
-    {{-- ============================================================ --}}
-    {{-- FIXED INPUT BAR (inside textToImage Alpine scope) --}}
-    {{-- ============================================================ --}}
-    <div class="fixed left-0 right-0 md:left-[72px] z-[60] safe-area-bottom"
-        style="bottom: calc(60px + env(safe-area-inset-bottom, 0px)); --md-bottom: 0px;"
-        x-bind:style="window.innerWidth >= 768 ? 'bottom: 0' : ''"
-        @click.away="showRatioDropdown = false; showModelDropdown = false; showBatchDropdown = false"
-        @show-toast.window="notify($event.detail.message)">
-
-
-        <div class="max-w-4xl mx-auto px-3 sm:px-4 pb-3 sm:pb-4 pt-3">
-            <div class="relative">
-                {{-- Glow effect --}}
-                <div
-                    class="absolute -inset-0.5 sm:-inset-1 bg-gradient-to-r from-purple-600 via-pink-500 to-purple-600 rounded-2xl opacity-20 blur-md sm:blur-lg transition-opacity duration-500">
-                </div>
-
-                {{-- Input container --}}
-                <div
-                    class="relative flex flex-col gap-3 p-3 sm:p-4 rounded-2xl bg-black/50 backdrop-blur-2xl border border-white/15 shadow-2xl">
-
-                    {{-- Textarea --}}
-                    <textarea x-ref="promptInput" wire:model.live.debounce.500ms="prompt" rows="2"
-                        placeholder="Mô tả ý tưởng của bạn..."
-                        class="w-full min-h-[48px] max-h-[160px] bg-transparent border-none outline-none ring-0 focus:ring-0 focus:outline-none text-white placeholder-white/40 text-sm sm:text-base resize-none focus:placeholder-white/60 transition-all overflow-y-auto"
-                        x-init="
-                            $watch('$wire.prompt', () => { $el.style.height = 'auto'; $el.style.height = Math.min($el.scrollHeight, 160) + 'px'; });
-                            if (window.innerWidth >= 768) { $nextTick(() => $el.focus()); }
-                        " @keydown.ctrl.enter.prevent="$wire.generate()" @keydown.meta.enter.prevent="$wire.generate()"
-                        {{ $isGenerating ? 'disabled' : '' }}></textarea>
-
-                    {{-- Character counter + keyboard hint --}}
-                    <div class="flex items-center justify-between -mt-1 mb-1" x-show="$wire.prompt?.length > 0">
-                        <span class="text-[11px] text-white/30"
-                            :class="{ 'text-amber-400/70': $wire.prompt?.length > 1800, 'text-red-400/70': $wire.prompt?.length > 2000 }"
-                            x-text="($wire.prompt?.length || 0) + ' / 2000'"></span>
-                        <span class="text-[11px] text-white/20 hidden sm:inline">
-                            <kbd class="px-1 py-0.5 rounded bg-white/5 border border-white/10 text-[10px]">Ctrl</kbd>
-                            +
-                            <kbd class="px-1 py-0.5 rounded bg-white/5 border border-white/10 text-[10px]">Enter</kbd>
-                            để tạo
-                        </span>
-                    </div>
-
-                    {{-- Bottom row: icons + button --}}
-                    <div class="flex items-center justify-between gap-2 sm:gap-3">
-                        <div class="flex items-center gap-2"
-                            @click.away="showRatioDropdown = false; showModelDropdown = false; showBatchDropdown = false">
-
-                            {{-- Image Reference Picker (same as /home) --}}
-                            <div class="relative">
-                                {{-- Image Button with Count Badge --}}
-                                <button type="button"
-                                    @click="showImagePicker = !showImagePicker; if(showImagePicker) loadRecentImages()"
-                                    class="flex items-center gap-1.5 h-9 px-2.5 rounded-lg transition-all duration-200 cursor-pointer"
-                                    :class="selectedImages.length > 0 
-                                        ? 'bg-purple-500/20 border border-purple-500/50' 
-                                        : 'bg-white/[0.05] hover:bg-white/[0.08] border border-white/[0.08] shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]'">
-                                    {{-- Show thumbnails if images selected --}}
-                                    <template x-if="selectedImages.length > 0">
-                                        <div class="flex items-center gap-1">
-                                            <div class="flex -space-x-1">
-                                                <template x-for="(img, idx) in selectedImages.slice(0, 3)"
-                                                    :key="img.id">
-                                                    <img :src="img.url"
-                                                        class="w-5 h-5 rounded border border-purple-500/50 object-cover">
-                                                </template>
-                                            </div>
-                                            <span class="text-purple-300 text-xs font-medium"
-                                                x-text="selectedImages.length"></span>
-                                        </div>
-                                    </template>
-                                    <template x-if="selectedImages.length === 0">
-                                        <i class="fa-solid fa-image text-purple-400 text-sm"></i>
-                                    </template>
-                                </button>
-
-                                {{-- Clear all button --}}
-                                <button x-show="selectedImages.length > 0" @click.stop="clearAll()"
-                                    class="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-red-500 text-white text-[10px] flex items-center justify-center hover:bg-red-600 transition-colors">
-                                    <i class="fa-solid fa-xmark"></i>
-                                </button>
-                            </div>
-
-                            {{-- Aspect Ratio Button --}}
-                            <div class="relative">
-                                <button type="button" data-dropdown-trigger="ratio"
-                                    @click="showRatioDropdown = !showRatioDropdown; showModelDropdown = false"
-                                    class="flex items-center gap-1.5 h-9 px-2 sm:px-2.5 rounded-lg bg-white/[0.05] hover:bg-white/[0.08] border border-white/[0.08] shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] transition-all duration-200 cursor-pointer"
-                                    :class="{ 'bg-purple-500/20 border-purple-500/40': showRatioDropdown }">
-                                    <i class="fa-solid fa-crop text-white/50 text-sm"></i>
-                                    <span class="text-white/70 text-xs font-medium hidden sm:inline"
-                                        x-text="selectedRatio === 'auto' ? 'Tỉ lệ' : selectedRatio"></span>
-                                    <i class="fa-solid fa-chevron-down text-white/40 text-[10px] transition-transform hidden sm:inline"
-                                        :class="{ 'rotate-180': showRatioDropdown }"></i>
-                                </button>
-
-                                {{-- Ratio Dropdown - Desktop --}}
-                                <template x-teleport="body">
-                                    <div x-show="showRatioDropdown" x-cloak
-                                        x-transition:enter="transition ease-out duration-200"
-                                        x-transition:enter-start="opacity-0 translate-y-2"
-                                        x-transition:enter-end="opacity-100 translate-y-0"
-                                        x-transition:leave="transition ease-in duration-150"
-                                        x-transition:leave-start="opacity-100 translate-y-0"
-                                        x-transition:leave-end="opacity-0 translate-y-2"
-                                        class="hidden sm:block fixed w-80 p-3 rounded-xl bg-[#0f0f18]/95 backdrop-blur-[20px] saturate-[180%] border border-white/[0.1] shadow-2xl shadow-black/50 z-[9999]"
-                                        x-init="$watch('showRatioDropdown', value => {
-                                            if (value) {
-                                                const btn = document.querySelector('[data-dropdown-trigger=ratio]');
-                                                if (btn) {
-                                                    const rect = btn.getBoundingClientRect();
-                                                    $el.style.bottom = (window.innerHeight - rect.top + 8) + 'px';
-                                                    $el.style.left = rect.left + 'px';
-                                                }
-                                            }
-                                        })" @click.stop>
-                                        <div class="text-white/50 text-xs font-medium mb-2">Tỉ lệ khung hình</div>
-                                        <div class="grid grid-cols-5 gap-1.5">
-                                            <template x-for="ratio in ratios" :key="ratio.id">
-                                                <button type="button" @click="selectRatio(ratio.id)"
-                                                    class="flex flex-col items-center gap-1 p-2 rounded-lg transition-all"
-                                                    :class="selectedRatio === ratio.id ? 'bg-purple-500/20 border border-purple-500/50' : 'bg-white/[0.03] hover:bg-white/[0.06] border border-transparent'">
-                                                    <div class="w-6 h-6 flex items-center justify-center">
-                                                        <template x-if="ratio.icon">
-                                                            <i :class="'fa-solid ' + ratio.icon"
-                                                                class="text-white/60 text-sm"></i>
-                                                        </template>
-                                                        <template x-if="!ratio.icon">
-                                                            <div class="border border-white/40 rounded-sm" :style="{
-                                                                width: ratio.id.split(':')[0] > ratio.id.split(':')[1] ? '20px' : (ratio.id.split(':')[0] == ratio.id.split(':')[1] ? '16px' : '12px'),
-                                                                height: ratio.id.split(':')[1] > ratio.id.split(':')[0] ? '20px' : (ratio.id.split(':')[0] == ratio.id.split(':')[1] ? '16px' : '12px')
-                                                            }"></div>
-                                                        </template>
-                                                    </div>
-                                                    <span class="text-white/70 text-[10px] font-medium"
-                                                        x-text="ratio.label"></span>
-                                                </button>
-                                            </template>
-                                        </div>
-                                    </div>
-                                </template>
-
-                                {{-- Ratio Bottom Sheet - Mobile --}}
-                                <template x-teleport="body">
-                                    <div x-show="showRatioDropdown" x-cloak
-                                        class="sm:hidden fixed inset-0 z-[9999] flex items-end justify-center bg-black/80 backdrop-blur-md"
-                                        @click.self="showRatioDropdown = false" @click.stop>
-                                        <div x-show="showRatioDropdown"
-                                            x-transition:enter="transition ease-out duration-300"
-                                            x-transition:enter-start="translate-y-full"
-                                            x-transition:enter-end="translate-y-0"
-                                            class="w-full max-w-lg bg-[#0f0f18]/95 backdrop-blur-[24px] saturate-[180%] border-t border-white/[0.1] rounded-t-3xl flex flex-col max-h-[85vh] shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
-                                            <div
-                                                class="flex items-center justify-between p-4 border-b border-white/5 shrink-0">
-                                                <span class="text-white font-semibold text-base">Tùy chỉnh khung
-                                                    hình</span>
-                                                <button type="button" @click="showRatioDropdown = false"
-                                                    class="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 text-white/60 active:scale-95 transition-transform">
-                                                    <i class="fa-solid fa-xmark"></i>
-                                                </button>
-                                            </div>
-                                            <div class="p-4 overflow-y-auto">
-                                                <div class="grid grid-cols-4 gap-2 mb-6">
-                                                    <template x-for="ratio in ratios" :key="ratio.id">
-                                                        <button type="button" @click="selectRatio(ratio.id)"
-                                                            class="flex flex-col items-center gap-1.5 p-3 rounded-xl transition-all"
-                                                            :class="selectedRatio === ratio.id ? 'bg-purple-500/30 border border-purple-500/50' : 'bg-white/5 active:bg-white/10 border border-transparent'">
-                                                            <div class="w-8 h-8 flex items-center justify-center">
-                                                                <template x-if="ratio.icon">
-                                                                    <i :class="'fa-solid ' + ratio.icon"
-                                                                        class="text-white/60 text-lg"></i>
-                                                                </template>
-                                                                <template x-if="!ratio.icon">
-                                                                    <div class="border-2 border-white/40 rounded-sm"
-                                                                        :style="{
-                                                                            width: ratio.id.split(':')[0] > ratio.id.split(':')[1] ? '28px' : (ratio.id.split(':')[0] == ratio.id.split(':')[1] ? '24px' : '16px'),
-                                                                            height: ratio.id.split(':')[1] > ratio.id.split(':')[0] ? '28px' : (ratio.id.split(':')[0] == ratio.id.split(':')[1] ? '24px' : '16px')
-                                                                        }"></div>
-                                                                </template>
-                                                            </div>
-                                                            <span class="text-white/70 text-xs font-medium"
-                                                                x-text="ratio.label"></span>
-                                                        </button>
-                                                    </template>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </template>
-                            </div>
-
-                            {{-- Model Selector --}}
-                            <div class="relative">
-                                <button type="button" data-dropdown-trigger="model"
-                                    @click="showModelDropdown = !showModelDropdown; showRatioDropdown = false"
-                                    class="flex items-center gap-1.5 h-9 px-2 sm:px-2.5 rounded-lg bg-white/[0.05] hover:bg-white/[0.08] border border-white/[0.08] shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] transition-all duration-200 cursor-pointer"
-                                    :class="{ 'bg-purple-500/20 border-purple-500/40': showModelDropdown }">
-                                    <i class="fa-solid fa-microchip text-white/50 text-sm"></i>
-                                    <span class="text-white/70 text-xs font-medium hidden sm:inline"
-                                        x-text="getSelectedModel().name"></span>
-                                    <i class="fa-solid fa-chevron-down text-white/40 text-[10px] transition-transform hidden sm:inline"
-                                        :class="{ 'rotate-180': showModelDropdown }"></i>
-                                </button>
-
-                                {{-- Model Dropdown --}}
-                                <template x-teleport="body">
-                                    <div x-show="showModelDropdown" x-cloak
-                                        x-transition:enter="transition ease-out duration-200"
-                                        x-transition:enter-start="opacity-0 translate-y-2"
-                                        x-transition:enter-end="opacity-100 translate-y-0"
-                                        x-transition:leave="transition ease-in duration-150"
-                                        x-transition:leave-start="opacity-100 translate-y-0"
-                                        x-transition:leave-end="opacity-0 translate-y-2"
-                                        class="hidden sm:block fixed w-64 p-2 rounded-xl bg-[#0f0f18]/95 backdrop-blur-[20px] saturate-[180%] border border-white/[0.1] shadow-2xl shadow-black/50 z-[9999]"
-                                        x-init="$watch('showModelDropdown', value => {
-                                            if (value) {
-                                                const btn = document.querySelector('[data-dropdown-trigger=model]');
-                                                if (btn) {
-                                                    const rect = btn.getBoundingClientRect();
-                                                    $el.style.bottom = (window.innerHeight - rect.top + 8) + 'px';
-                                                    $el.style.left = rect.left + 'px';
-                                                }
-                                            }
-                                        })" @click.stop>
-                                        <div class="space-y-1">
-                                            <template x-for="model in models" :key="model.id">
-                                                <button type="button" @click="selectModel(model.id)"
-                                                    class="w-full flex items-center gap-3 p-2 rounded-lg transition-all"
-                                                    :class="selectedModel === model.id ? 'bg-purple-500/20' : 'hover:bg-white/[0.06]'">
-                                                    <span class="text-lg" x-text="model.icon"></span>
-                                                    <div class="text-left">
-                                                        <div class="text-white/90 text-sm font-medium"
-                                                            x-text="model.name"></div>
-                                                        <div class="text-white/40 text-[10px]" x-text="model.desc">
-                                                        </div>
-                                                    </div>
-                                                    <i x-show="selectedModel === model.id"
-                                                        class="fa-solid fa-check text-purple-400 text-xs ml-auto"></i>
-                                                </button>
-                                            </template>
-                                        </div>
-                                    </div>
-                                </template>
-                            </div>
-
-                            {{-- Model Bottom Sheet - Mobile --}}
-                            <template x-teleport="body">
-                                <div x-show="showModelDropdown" x-cloak
-                                    class="sm:hidden fixed inset-0 z-[9999] flex items-end justify-center bg-black/80 backdrop-blur-md"
-                                    @click.self="showModelDropdown = false" @click.stop>
-                                    <div x-show="showModelDropdown"
-                                        x-transition:enter="transition ease-out duration-300"
-                                        x-transition:enter-start="translate-y-full"
-                                        x-transition:enter-end="translate-y-0"
-                                        class="w-full max-w-lg bg-[#0f0f18]/95 backdrop-blur-[24px] saturate-[180%] border-t border-white/[0.1] rounded-t-3xl flex flex-col max-h-[85vh] shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
-                                        <div
-                                            class="flex items-center justify-between p-4 border-b border-white/5 shrink-0">
-                                            <span class="text-white font-semibold text-base">Chọn Model AI</span>
-                                            <button type="button" @click="showModelDropdown = false"
-                                                class="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 text-white/60 active:scale-95 transition-transform">
-                                                <i class="fa-solid fa-xmark"></i>
-                                            </button>
-                                        </div>
-                                        <div class="p-4 overflow-y-auto">
-                                            <div class="space-y-1">
-                                                <template x-for="model in models" :key="model.id">
-                                                    <button type="button" @click="selectModel(model.id)"
-                                                        class="w-full flex items-center gap-3 p-3 rounded-xl transition-all text-left"
-                                                        :class="selectedModel === model.id ? 'bg-purple-500/30 border border-purple-500/50' : 'bg-white/5 active:bg-white/10 border border-transparent'">
-                                                        <span class="text-2xl" x-text="model.icon"></span>
-                                                        <div class="flex-1 min-w-0">
-                                                            <div class="text-white font-semibold text-base"
-                                                                x-text="model.name"></div>
-                                                            <div class="text-white/50 text-sm mt-0.5"
-                                                                x-text="model.desc"></div>
-                                                        </div>
-                                                        <div class="w-6 h-6 rounded-full border-2 flex items-center justify-center"
-                                                            :class="selectedModel === model.id ? 'border-purple-500 bg-purple-500' : 'border-white/20'">
-                                                            <i x-show="selectedModel === model.id"
-                                                                class="fa-solid fa-check text-white text-xs"></i>
-                                                        </div>
-                                                    </button>
-                                                </template>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </template>
-
-                            {{-- Batch Size Selector --}}
-                            <div class="relative">
-                                <button type="button" data-dropdown-trigger="batch"
-                                    @click="showBatchDropdown = !showBatchDropdown; showRatioDropdown = false; showModelDropdown = false"
-                                    class="flex items-center gap-1.5 h-9 px-2 sm:px-2.5 rounded-lg bg-white/[0.05] hover:bg-white/[0.08] border border-white/[0.08] shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] transition-all duration-200 cursor-pointer"
-                                    :class="{ 'bg-purple-500/20 border-purple-500/40': showBatchDropdown }">
-                                    <i class="fa-solid fa-layer-group text-white/50 text-sm"></i>
-                                    <span class="text-white/70 text-xs font-medium hidden sm:inline"
-                                        x-text="'Số lượng: ' + $wire.batchSize"></span>
-                                    <span class="text-white/70 text-xs font-medium sm:hidden"
-                                        x-text="'x' + $wire.batchSize"></span>
-                                </button>
-
-                                {{-- Batch Dropdown - Desktop --}}
-                                <template x-teleport="body">
-                                    <div x-show="showBatchDropdown" x-cloak @click.away="showBatchDropdown = false"
-                                        x-transition:enter="transition ease-out duration-200"
-                                        x-transition:enter-start="opacity-0 translate-y-2"
-                                        x-transition:enter-end="opacity-100 translate-y-0"
-                                        x-transition:leave="transition ease-in duration-150"
-                                        x-transition:leave-start="opacity-100 translate-y-0"
-                                        x-transition:leave-end="opacity-0 translate-y-2"
-                                        class="hidden sm:block fixed w-36 p-1.5 rounded-xl bg-[#0f0f18]/95 backdrop-blur-[20px] saturate-[180%] border border-white/[0.1] shadow-2xl shadow-black/50 z-[9999]"
-                                        x-init="$watch('showBatchDropdown', value => {
-                                            if (value) {
-                                                const btn = document.querySelector('[data-dropdown-trigger=batch]');
-                                                if (btn) {
-                                                    const rect = btn.getBoundingClientRect();
-                                                    $el.style.bottom = (window.innerHeight - rect.top + 8) + 'px';
-                                                    $el.style.left = rect.left + 'px';
-                                                }
-                                            }
-                                         })" @click.stop>
-                                        <div class="text-white/50 text-xs font-medium mb-1.5 px-2">Số lượng ảnh</div>
-                                        <div class="space-y-0.5">
-                                            @foreach([1, 2, 3, 4] as $n)
-                                                <button type="button"
-                                                    @click="$wire.$set('batchSize', {{ $n }}); showBatchDropdown = false"
-                                                    class="w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-colors"
-                                                    :class="$wire.batchSize === {{ $n }} ? 'bg-purple-500/20 text-white' : 'text-white/70 hover:bg-white/[0.06]'">
-                                                    <span>{{ $n }} ảnh</span>
-                                                    <i x-show="$wire.batchSize === {{ $n }}"
-                                                        class="fa-solid fa-check text-purple-400 text-xs"></i>
-                                                </button>
-                                            @endforeach
-                                        </div>
-                                    </div>
-                                </template>
-
-                                {{-- Batch Bottom Sheet - Mobile --}}
-                                <template x-teleport="body">
-                                    <div x-show="showBatchDropdown" x-cloak
-                                        class="sm:hidden fixed inset-0 z-[9999] flex items-end justify-center bg-black/80 backdrop-blur-md"
-                                        @click.self="showBatchDropdown = false" @click.stop>
-                                        <div x-show="showBatchDropdown"
-                                            x-transition:enter="transition ease-out duration-300"
-                                            x-transition:enter-start="translate-y-full"
-                                            x-transition:enter-end="translate-y-0"
-                                            class="w-full max-w-lg bg-[#0f0f18]/95 backdrop-blur-[24px] saturate-[180%] border-t border-white/[0.1] rounded-t-3xl flex flex-col max-h-[85vh] shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
-                                            <div
-                                                class="flex items-center justify-between p-4 border-b border-white/5 shrink-0">
-                                                <span class="text-white font-semibold text-base">Số lượng ảnh</span>
-                                                <button type="button" @click="showBatchDropdown = false"
-                                                    class="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 text-white/60 active:scale-95 transition-transform">
-                                                    <i class="fa-solid fa-xmark"></i>
-                                                </button>
-                                            </div>
-                                            <div class="p-4">
-                                                <div class="grid grid-cols-4 gap-2">
-                                                    @foreach([1, 2, 3, 4] as $n)
-                                                        <button type="button"
-                                                            @click="$wire.$set('batchSize', {{ $n }}); showBatchDropdown = false"
-                                                            class="flex flex-col items-center gap-1.5 p-4 rounded-xl transition-all"
-                                                            :class="$wire.batchSize === {{ $n }} ? 'bg-purple-500/30 border border-purple-500/50' : 'bg-white/5 active:bg-white/10 border border-transparent'">
-                                                            <span class="text-white text-2xl font-bold">{{ $n }}</span>
-                                                            <span class="text-white/60 text-xs">ảnh</span>
-                                                        </button>
-                                                    @endforeach
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </template>
-                            </div>
-
-
-                        </div>
-
-                        {{-- Generate Button --}}
-                        @if($isGenerating)
-                            <button type="button" wire:click="cancelGeneration"
-                                class="shrink-0 flex items-center gap-2 px-4 sm:px-6 py-2.5 rounded-xl bg-red-500/80 hover:bg-red-500 text-white font-semibold text-sm shadow-lg shadow-red-500/25 active:scale-[0.98] transition-all duration-200">
-                                <i class="fa-solid fa-stop text-sm"></i>
-                                <span>Hủy</span>
-                            </button>
-                        @else
-                            <button type="button" wire:click="generate"
-                                class="shrink-0 flex items-center gap-1.5 sm:gap-2 px-3 sm:px-6 py-2.5 rounded-xl bg-gradient-to-r from-purple-500 via-fuchsia-500 to-pink-500 text-white font-semibold text-sm shadow-lg shadow-purple-500/25 hover:scale-[1.02] hover:shadow-xl hover:shadow-purple-500/40 active:scale-[0.98] transition-all duration-200"
-                                wire:loading.attr="disabled" wire:loading.class="opacity-50 pointer-events-none"
-                                wire:target="generate">
-                                <span wire:loading.remove wire:target="generate"><i
-                                        class="fa-solid fa-wand-magic-sparkles text-sm"></i></span>
-                                <span wire:loading wire:target="generate"><i
-                                        class="fa-solid fa-spinner fa-spin text-sm"></i></span>
-                                <span class="hidden sm:inline">Tạo ảnh</span>
-                                <span class="text-white/60 text-[11px] sm:text-xs font-normal">{{ $creditCost }} <span
-                                        class="hidden sm:inline">credits</span><span class="sm:hidden">cr</span></span>
-                            </button>
-                        @endif
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    {{-- ============================================================ --}}
     {{-- MODALS --}}
-    {{-- ============================================================ --}}
     @include('livewire.partials.image-picker-modal')
     @include('livewire.partials.image-preview-modal')
 
+    {{-- ============================================================ --}}
+    {{-- STYLES --}}
+    {{-- ============================================================ --}}
     <style>
-        [x-cloak] {
-            display: none !important;
-        }
-
         .safe-area-bottom {
             padding-bottom: env(safe-area-inset-bottom, 0px);
         }
@@ -897,7 +58,7 @@
             padding-top: env(safe-area-inset-top, 0px);
         }
 
-        /* #1/#3: CSS-only image loading (survives Livewire morph) */
+        /* CSS-only image loading (survives Livewire morph) */
         .gallery-img {
             opacity: 0;
             transition: opacity 0.3s ease-out;
@@ -912,7 +73,7 @@
             object-fit: contain;
         }
 
-        /* #4/#16: New image entrance animation */
+        /* New image entrance animation */
         @keyframes image-entrance {
             from {
                 opacity: 0;
@@ -963,7 +124,7 @@
             }
         }
 
-        /* #8: Responsive filter bar spacing */
+        /* Responsive filter bar spacing */
         @media (max-width: 640px) {
             #gallery-scroll>div:first-child {
                 padding-top: 5.5rem;
@@ -978,6 +139,9 @@
         }
     </style>
 
+    {{-- ============================================================ --}}
+    {{-- ALPINE DATA --}}
+    {{-- ============================================================ --}}
     <script>
         document.addEventListener('alpine:init', () => {
             Alpine.data('textToImage', () => ({
@@ -1046,25 +210,21 @@
                     },
                 ])),
 
+                // ============================================================
+                // INIT
+                // ============================================================
                 init() {
-                    // #18: Auto-scroll handled by gallery x-data init (instant + fade-in)
-
-                    // #4/#16: Scroll + celebrate when new image generated
+                    // Scroll + celebrate when new image generated
                     this.$wire.$on('imageGenerated', () => {
                         this.$nextTick(() => {
                             setTimeout(() => {
                                 this.scrollToBottom(true);
-                                // Highlight the newest batch
                                 const batches = document.querySelectorAll('.group-batch');
                                 const lastBatch = batches[batches.length - 1];
                                 if (lastBatch) {
                                     lastBatch.classList.add('new-batch-animate', 'new-batch-glow');
-                                    setTimeout(() => {
-                                        lastBatch.classList.remove('new-batch-glow');
-                                    }, 3000);
-                                    setTimeout(() => {
-                                        lastBatch.classList.remove('new-batch-animate');
-                                    }, 600);
+                                    setTimeout(() => lastBatch.classList.remove('new-batch-glow'), 3000);
+                                    setTimeout(() => lastBatch.classList.remove('new-batch-animate'), 600);
                                 }
                                 this.notify('🎨 Đã tạo xong ảnh!');
                             }, 300);
@@ -1073,7 +233,6 @@
 
                     // Update historyData after Livewire re-renders
                     this._morphHook = Livewire.hook('morph.updated', ({ el }) => {
-                        // Only re-sync when gallery-feed was morphed
                         if (el.id === 'gallery-feed' || el.querySelector?.('#gallery-feed')) {
                             const dataEl = document.getElementById('gallery-feed');
                             if (dataEl?.dataset?.history) {
@@ -1084,20 +243,16 @@
                         }
                     });
 
-                    // #20: Listen for toast dispatches from nested scopes
-                    // (handled via @show-toast.window on input bar wrapper)
-
-                    // #22: Cleanup on SPA navigation
+                    // Cleanup on SPA navigation
                     document.addEventListener('livewire:navigating', () => {
                         if (this._morphHook) {
-                            // Livewire hooks are auto-cleaned, but let's be safe
                             this._morphHook = null;
                         }
                     }, { once: true });
                 },
 
                 // ============================================================
-                // Input Settings Methods
+                // Input Settings
                 // ============================================================
                 selectRatio(id) {
                     this.selectedRatio = id;
@@ -1134,7 +289,7 @@
                 },
 
                 // ============================================================
-                // Chat-like scroll
+                // Scroll
                 // ============================================================
                 scrollToBottom(smooth = true) {
                     const el = document.documentElement;
@@ -1145,7 +300,7 @@
                 },
 
                 // ============================================================
-                // Toast notifications
+                // Toast
                 // ============================================================
                 notify(msg, type = 'success') {
                     this.toastMessage = msg;
@@ -1156,7 +311,7 @@
                 },
 
                 // ============================================================
-                // Loading animation
+                // Loading
                 // ============================================================
                 startLoading() {
                     this.currentLoadingMessage = 0;
@@ -1169,7 +324,7 @@
                 },
 
                 // ============================================================
-                // Preview modal
+                // Preview
                 // ============================================================
                 openPreview(url, index) {
                     if (index !== null && index !== undefined && this.historyData[index]) {
@@ -1198,6 +353,12 @@
                         this.previewImage = this.historyData[this.previewIndex];
                     }
                 },
+                goToImage(index) {
+                    if (index >= 0 && index < this.historyData.length) {
+                        this.previewIndex = index;
+                        this.previewImage = this.historyData[index];
+                    }
+                },
 
                 // ============================================================
                 // Keyboard
@@ -1211,7 +372,7 @@
                 },
 
                 // ============================================================
-                // Preview modal actions
+                // Preview Actions
                 // ============================================================
                 copyPrompt() {
                     if (this.previewImage?.prompt) {
@@ -1247,12 +408,7 @@
                     this.closePreview();
                     this.notify('Đã thêm ảnh làm tham chiếu');
                 },
-                goToImage(index) {
-                    if (index >= 0 && index < this.historyData.length) {
-                        this.previewIndex = index;
-                        this.previewImage = this.historyData[index];
-                    }
-                },
+
                 // Touch swipe for mobile preview
                 touchStartX: 0,
                 handleTouchStart(e) {
@@ -1280,7 +436,7 @@
                 },
 
                 // ============================================================
-                // Image picker
+                // Image Picker
                 // ============================================================
                 async loadRecentImages() {
                     this.isLoadingPicker = true;
@@ -1306,7 +462,6 @@
                     this.processFiles(files);
                 },
 
-                // Direct upload from prompt bar
                 handleDirectUpload(e) {
                     const files = Array.from(e.target.files);
                     this.processFiles(files);
@@ -1395,4 +550,5 @@
             }));
         });
     </script>
+
 </div>
