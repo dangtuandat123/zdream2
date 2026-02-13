@@ -61,10 +61,10 @@
 
                     {{-- Actions --}}
                     <div class="flex flex-wrap gap-3">
-                        <a :href="previewImage?.url" download
+                        <button @click="downloadImage(previewImage?.url)"
                             class="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white/70 hover:text-white text-sm font-medium transition-all">
                             <i class="fa-solid fa-download"></i> Tải xuống
-                        </a>
+                        </button>
                         <button @click="shareImage()"
                             class="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white/70 hover:text-white text-sm font-medium transition-all">
                             <i class="fa-solid fa-share-nodes"></i> Chia sẻ
@@ -144,11 +144,11 @@
 
         {{-- Actions --}}
         <div class="shrink-0 grid grid-cols-4 gap-2 p-4 bg-[#0a0a0f] border-t border-white/5 safe-area-bottom">
-            <a :href="previewImage?.url" download
+            <button @click="downloadImage(previewImage?.url)"
                 class="flex flex-col items-center gap-1 py-2.5 rounded-xl bg-white/10 active:bg-white/20 transition-colors">
                 <i class="fa-solid fa-download text-white/70"></i><span
                     class="text-white/60 text-[10px] font-medium">Tải</span>
-            </a>
+            </button>
             <button @click="shareImage()"
                 class="flex flex-col items-center gap-1 py-2.5 rounded-xl bg-white/10 active:bg-white/20 transition-colors">
                 <i class="fa-solid fa-share-nodes text-white/70"></i><span

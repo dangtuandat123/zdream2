@@ -480,27 +480,13 @@ class TextToImage extends Component
         }
     }
 
-    /**
-     * Get history data for Alpine.js sync (reversed to match gallery display: oldest first, newest last)
-     */
-    public function getHistoryData(): array
-    {
-        return $this->history->reverse()->map(fn($img) => [
-            'id' => $img->id,
-            'url' => $img->image_url,
-            'prompt' => $img->final_prompt,
-            'model' => $img->generation_params['model_id'] ?? null,
-            'ratio' => $img->generation_params['aspect_ratio'] ?? null,
-            'created_at' => $img->created_at->diffForHumans(),
-        ])->values()->toArray();
-    }
+
 
     public function render()
     {
         $history = $this->history;
         return view('livewire.text-to-image', [
             'history' => $history,
-            'historyData' => $this->getHistoryData(),
         ]);
     }
 }

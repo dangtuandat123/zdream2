@@ -178,7 +178,7 @@
             @endif
 
             {{-- Gallery Feed --}}
-            <div class="space-y-6 px-1 md:px-2 pt-6" id="gallery-feed" data-history='@json($flatHistoryForJs)'>
+            <div class="space-y-6 px-1 md:px-2 pt-6" id="gallery-feed" data-history='@json($flatHistoryForJs)' wire:key="gallery-feed-{{ $perPage }}">
 
                 @php $absoluteIndex = 0; @endphp
 
@@ -236,7 +236,9 @@
                     @endif
 
                     {{-- Grouped Batches --}}
+                    @php $totalGroups = $groupedHistory->count(); $groupIdx = 0; @endphp
                     @forelse($groupedHistory as $groupKey => $groupItems)
+                        @php $wireKey = md5($groupKey); @endphp
                         @php
                             $firstItem = $groupItems->first();
                             $modelId = $firstItem->generation_params['model_id'] ?? null;
@@ -257,7 +259,7 @@
                         @endphp
 
                         {{-- Batch Group --}}
-                        <div class="space-y-2.5" x-data="{ expanded: false }">
+                        <div class="space-y-2.5" x-data="{ expanded: false }" wire:key="group-{{ $wireKey }}">
 
                             {{-- Header Row: Mode > Prompt + Actions --}}
                             <div class="flex items-center gap-2">
@@ -329,16 +331,17 @@
                                                 <img src="{{ $image->image_url }}" alt="Preview"
                                                     class="w-full h-full object-cover transition-all duration-300 ease-out group-hover:scale-[1.05]"
                                                     :class="loaded ? 'opacity-100' : 'opacity-0'" draggable="false"
-                                                    @load="loaded = true">
+                                                    @load="loaded = true"
+                                                    {{ $groupIdx < $totalGroups - 2 ? 'loading=lazy decoding=async' : 'fetchpriority=high' }}>
                                                 {{-- Hover Overlay + Actions --}}
                                                 <div
                                                     class="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                                                     <div class="absolute bottom-2 right-2 flex gap-1.5">
-                                                        <a href="{{ $image->image_url }}" download @click.stop
+                                                        <button @click.stop="downloadImage('{{ $image->image_url }}')"
                                                             class="h-8 w-8 rounded-lg bg-black/50 backdrop-blur-[8px] hover:bg-white/20 text-white flex items-center justify-center transition-all duration-200 border border-white/[0.1] active:scale-[0.95]"
                                                             title="Tải xuống">
                                                             <i class="fa-solid fa-download text-[11px]"></i>
-                                                        </a>
+                                                        </button>
                                                         <button wire:click="deleteImage({{ $image->id }})" @click.stop
                                                             wire:confirm="Bạn có chắc muốn xóa ảnh này?"
                                                             class="h-8 w-8 rounded-lg bg-black/50 backdrop-blur-[8px] hover:bg-red-500/80 text-white flex items-center justify-center transition-all duration-200 border border-white/[0.1] active:scale-[0.95]"
@@ -354,6 +357,7 @@
                                 @endforeach
                             </div>
                         </div>
+                        @php $groupIdx++; @endphp
 
                     @empty
                         @if(!$isGenerating)
@@ -456,15 +460,15 @@
                     class="relative flex flex-col gap-3 p-3 sm:p-4 rounded-2xl bg-black/50 backdrop-blur-2xl border border-white/15 shadow-2xl">
 
                     {{-- Textarea --}}
-                    <textarea x-ref="promptInput" wire:model.live="prompt" rows="2"
+                    <textarea x-ref="promptInput" wire:model.live.debounce.500ms="prompt" rows="2"
                         placeholder="Mô tả ý tưởng của bạn..."
                         class="w-full min-h-[48px] max-h-[160px] bg-transparent border-none outline-none ring-0 focus:ring-0 focus:outline-none text-white placeholder-white/40 text-sm sm:text-base resize-none focus:placeholder-white/60 transition-all overflow-y-auto"
                         x-init="$watch('$wire.prompt', () => { $el.style.height = 'auto'; $el.style.height = Math.min($el.scrollHeight, 160) + 'px'; })"
                         @keydown.ctrl.enter.prevent="$wire.generate()" @keydown.meta.enter.prevent="$wire.generate()" {{ $isGenerating ? 'disabled' : '' }}></textarea>
 
                     {{-- Character counter + keyboard hint --}}
-                    <div class="flex items-center justify-between -mt-1 mb-1">
-                        <span class="text-[11px] text-white/30" x-show="$wire.prompt?.length > 0"
+                    <div class="flex items-center justify-between -mt-1 mb-1" x-show="$wire.prompt?.length > 0">
+                        <span class="text-[11px] text-white/30"
                             :class="{ 'text-amber-400/70': $wire.prompt?.length > 1800, 'text-red-400/70': $wire.prompt?.length > 2000 }"
                             x-text="($wire.prompt?.length || 0) + ' / 2000'"></span>
                         <span class="text-[11px] text-white/20 hidden sm:inline">
@@ -819,7 +823,7 @@
                         @else
                             <button type="button" wire:click="generate"
                                 class="shrink-0 flex items-center gap-2 px-4 sm:px-6 py-2.5 rounded-xl bg-gradient-to-r from-purple-500 via-fuchsia-500 to-pink-500 text-white font-semibold text-sm shadow-lg shadow-purple-500/25 hover:scale-[1.02] hover:shadow-xl hover:shadow-purple-500/40 active:scale-[0.98] transition-all duration-200"
-                                wire:loading.attr="disabled" wire:target="generate">
+                                wire:loading.attr="disabled" wire:loading.class="opacity-50 pointer-events-none" wire:target="generate">
                                 <span wire:loading.remove wire:target="generate"><i
                                         class="fa-solid fa-wand-magic-sparkles text-sm"></i></span>
                                 <span wire:loading wire:target="generate"><i
@@ -905,7 +909,7 @@
                 showPreview: false,
                 previewIndex: 0,
                 previewImage: null,
-                historyData: @js($historyData),
+                historyData: @js($flatHistoryForJs),
 
                 // Loading
                 loadingMessages: [
@@ -962,12 +966,14 @@
 
                     // Update historyData after Livewire re-renders
                     Livewire.hook('morph.updated', ({ el }) => {
-                        // Re-sync historyData from DOM after re-render
-                        const dataEl = document.querySelector('[data-history]');
-                        if (dataEl) {
-                            try {
-                                this.historyData = JSON.parse(dataEl.dataset.history);
-                            } catch (e) { }
+                        // Only re-sync when gallery-feed was morphed
+                        if (el.id === 'gallery-feed' || el.querySelector?.('#gallery-feed')) {
+                            const dataEl = document.getElementById('gallery-feed');
+                            if (dataEl?.dataset?.history) {
+                                try {
+                                    this.historyData = JSON.parse(dataEl.dataset.history);
+                                } catch (e) { }
+                            }
                         }
                     });
                 },
@@ -1087,15 +1093,86 @@
                 },
 
                 // ============================================================
+                // Preview modal actions
+                // ============================================================
+                copyPrompt() {
+                    if (this.previewImage?.prompt) {
+                        navigator.clipboard.writeText(this.previewImage.prompt);
+                        this.notify('Đã copy prompt');
+                    }
+                },
+                async shareImage() {
+                    const url = this.previewImage?.url;
+                    if (!url) return;
+                    if (navigator.share) {
+                        try {
+                            await navigator.share({ title: 'AI Generated Image', url: url });
+                        } catch (e) { /* user cancelled */ }
+                    } else {
+                        navigator.clipboard.writeText(url);
+                        this.notify('Đã copy link ảnh');
+                    }
+                },
+                useAsReference() {
+                    const url = this.previewImage?.url;
+                    if (!url) return;
+                    if (this.selectedImages.length >= this.maxImages) {
+                        this.notify('Tối đa ' + this.maxImages + ' ảnh', 'warning');
+                        return;
+                    }
+                    if (!this.selectedImages.some(i => i.url === url)) {
+                        this.selectedImages.push({ id: Date.now(), url: url });
+                        this.$wire.setReferenceImages(
+                            this.selectedImages.map(img => ({ url: img.url }))
+                        );
+                    }
+                    this.closePreview();
+                    this.notify('Đã thêm ảnh làm tham chiếu');
+                },
+                goToImage(index) {
+                    if (index >= 0 && index < this.historyData.length) {
+                        this.previewIndex = index;
+                        this.previewImage = this.historyData[index];
+                    }
+                },
+                // Touch swipe for mobile preview
+                touchStartX: 0,
+                handleTouchStart(e) {
+                    this.touchStartX = e.touches[0].clientX;
+                },
+                handleTouchEnd(e) {
+                    const diff = e.changedTouches[0].clientX - this.touchStartX;
+                    if (Math.abs(diff) > 50) {
+                        if (diff > 0) this.prevImage();
+                        else this.nextImage();
+                    }
+                },
+                async downloadImage(url) {
+                    try {
+                        const res = await fetch(url);
+                        const blob = await res.blob();
+                        const a = document.createElement('a');
+                        a.href = URL.createObjectURL(blob);
+                        a.download = 'zdream-' + Date.now() + '.png';
+                        a.click();
+                        URL.revokeObjectURL(a.href);
+                    } catch (e) {
+                        window.open(url, '_blank');
+                    }
+                },
+
+                // ============================================================
                 // Image picker
                 // ============================================================
                 async loadRecentImages() {
-                    if (this.recentImages.length > 0) return;
                     this.isLoadingPicker = true;
                     try {
                         const res = await fetch('/api/user/recent-images');
                         if (res.ok) this.recentImages = await res.json();
-                    } catch (e) { console.error(e); }
+                    } catch (e) {
+                        console.error(e);
+                        this.notify('Không tải được ảnh gần đây', 'error');
+                    }
                     this.isLoadingPicker = false;
                 },
 
