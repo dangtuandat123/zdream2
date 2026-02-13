@@ -153,6 +153,33 @@ class TextToImage extends Component
         if (!empty($initialPrompt)) {
             $this->prompt = $initialPrompt;
         }
+
+        // Handle query parameters for seamless handoff (e.g. from Homepage)
+        if (request()->has('model')) {
+            $m = request('model');
+            // Check if model exists in available models
+            foreach ($this->availableModels as $model) {
+                if (($model['id'] ?? '') === $m) {
+                    $this->modelId = $m;
+                    break;
+                }
+            }
+        }
+
+        if (request()->has('ratio')) {
+            $r = request('ratio');
+            // Validate ratio format (e.g. 16:9) or from available list
+            if (array_key_exists($r, $this->aspectRatios) || $r === 'auto' || preg_match('/^\d+:\d+$/', $r)) {
+                $this->aspectRatio = $r;
+            }
+        }
+
+        if (request()->has('batch')) {
+            $b = (int) request('batch');
+            if ($b >= 1 && $b <= 4) {
+                $this->batchSize = $b;
+            }
+        }
     }
 
     /**

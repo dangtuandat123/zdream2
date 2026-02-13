@@ -262,857 +262,121 @@
                     </div>
 
                     <!-- Input container -->
-                    <div
-                        class="relative flex flex-col gap-3 p-3 sm:p-4 rounded-2xl bg-black/50 backdrop-blur-2xl border border-white/15 shadow-2xl">
+<!-- Input container (New Glassmorphism Form) -->
+<form action="{{ route('create') }}" method="GET"
+    class="relative flex flex-col gap-3 p-3 sm:p-4 rounded-2xl bg-black/50 backdrop-blur-2xl border border-white/15 shadow-2xl"
+    x-data="{
+                            prompt: '',
+                            showRatioDropdown: false,
+                            selectedRatio: 'auto',
+                            showModelDropdown: false,
+                            selectedModel: '{{ \App\Models\Setting::get('default_t2i_model', 'flux-pro-1.1-ultra') }}',
+                            showBatchDropdown: false,
+                            batchSize: 1,
+                            ratios: [
+                                { id: 'auto', label: 'Auto', icon: 'fa-expand' },
+                                { id: '16:9', label: '16:9', icon: null },
+                                { id: '3:2', label: '3:2', icon: null },
+                                { id: '4:3', label: '4:3', icon: null },
+                                { id: '1:1', label: '1:1', icon: null },
+                                { id: '3:4', label: '3:4', icon: null },
+                                { id: '2:3', label: '2:3', icon: null },
+                                { id: '9:16', label: '9:16', icon: null }
+                            ],
+                            submitForm() {
+                                if(!this.prompt.trim()) return;
+                                $el.submit();
+                            }
+                        }"
+    @click.away="showRatioDropdown = false; showModelDropdown = false; showBatchDropdown = false">
 
-                        <!-- Selected images are shown in the image button (thumbnails) and in the modal -->
+    <!-- Hidden Inputs for Handoff -->
+    <input type="hidden" name="ratio" :value="selectedRatio">
+    <input type="hidden" name="model" :value="selectedModel">
+    <input type="hidden" name="batch" :value="batchSize">
 
-                        <!-- Textarea - Fixed height with scroll -->
-                        <textarea name="prompt" rows="3" placeholder="Mô tả ý tưởng của bạn..."
-                            class="w-full h-20 bg-transparent border-none outline-none ring-0 focus:ring-0 focus:outline-none text-white placeholder-white/40 text-sm sm:text-base resize-none focus:placeholder-white/60 transition-all overflow-y-auto"></textarea>
+    <!-- Textarea -->
+    <textarea name="prompt" x-model="prompt" rows="3" placeholder="Mô tả ý tưởng của bạn..."
+        class="w-full h-20 bg-transparent border-none outline-none ring-0 focus:ring-0 focus:outline-none text-white placeholder-white/40 text-sm sm:text-base resize-none focus:placeholder-white/60 transition-all overflow-y-auto"
+        @keydown.ctrl.enter.prevent="submitForm()" @keydown.meta.enter.prevent="submitForm()"></textarea>
 
-                        <!-- Bottom row: icons + button -->
-                        <div class="flex items-center justify-between gap-2 sm:gap-3">
-                            <div class="flex items-center gap-2" x-data="{ 
-                                showRatioDropdown: false,
-                                selectedRatio: 'auto',
-                                customWidth: 1024,
-                                customHeight: 1024,
-                                linkDimensions: true,
-                                ratios: [
-                                    { id: 'auto', label: 'Auto', icon: 'fa-expand' },
-                                    { id: '21:9', label: '21:9', icon: null },
-                                    { id: '16:9', label: '16:9', icon: null },
-                                    { id: '3:2', label: '3:2', icon: null },
-                                    { id: '4:3', label: '4:3', icon: null },
-                                    { id: '1:1', label: '1:1', icon: null },
-                                    { id: '3:4', label: '3:4', icon: null },
-                                    { id: '2:3', label: '2:3', icon: null },
-                                    { id: '9:16', label: '9:16', icon: null }
-                                ],
-                                selectRatio(id) {
-                                    this.selectedRatio = id;
-                                    if (id !== 'auto') {
-                                        const [w, h] = id.split(':').map(Number);
-                                        const baseSize = 1024;
-                                        this.customWidth = Math.round(baseSize * Math.sqrt(w / h) / 64) * 64;
-                                        this.customHeight = Math.round(baseSize * Math.sqrt(h / w) / 64) * 64;
-                                    }
-                                    if (window.innerWidth >= 640) { // On desktop, close immediately
-                                        this.showRatioDropdown = false;
-                                    }
-                                },
-                                updateWidth(newWidth) {
-                                    this.customWidth = newWidth;
-                                    if (this.linkDimensions && this.selectedRatio !== 'auto') {
-                                        const [w, h] = this.selectedRatio.split(':').map(Number);
-                                        this.customHeight = Math.round(newWidth * h / w / 64) * 64;
-                                    }
-                                },
-                                updateHeight(newHeight) {
-                                    this.customHeight = newHeight;
-                                    if (this.linkDimensions && this.selectedRatio !== 'auto') {
-                                        const [w, h] = this.selectedRatio.split(':').map(Number);
-                                        this.customWidth = Math.round(newHeight * w / h / 64) * 64;
-                                    }
-                                }
-                            }" @click.away="showRatioDropdown = false">
-                                <!-- Image Reference Picker (Multi-Select + URL) -->
-                                <div class="relative">
-                                    <!-- Image Button with Count Badge -->
-                                    <button type="button"
-                                        @click="showImagePicker = !showImagePicker; if(showImagePicker) loadRecentImages()"
-                                        class="flex items-center gap-1.5 h-9 px-2.5 rounded-lg transition-all cursor-pointer"
-                                        :class="selectedImages.length > 0 
-                                            ? 'bg-purple-500/30 border border-purple-500/50' 
-                                            : 'bg-gradient-to-br from-purple-500/20 to-pink-500/20 hover:from-purple-500/30 hover:to-pink-500/30 border border-purple-500/30'">
-                                        <!-- Show thumbnails if images selected -->
-                                        <template x-if="selectedImages.length > 0">
-                                            <div class="flex items-center gap-1">
-                                                <div class="flex -space-x-1">
-                                                    <template x-for="(img, idx) in selectedImages.slice(0, 3)"
-                                                        :key="img.id">
-                                                        <img :src="img.url"
-                                                            class="w-5 h-5 rounded border border-purple-500/50 object-cover">
-                                                    </template>
-                                                </div>
-                                                <span class="text-purple-300 text-xs font-medium"
-                                                    x-text="selectedImages.length"></span>
-                                            </div>
-                                        </template>
-                                        <template x-if="selectedImages.length === 0">
-                                            <i class="fa-solid fa-image text-purple-400 text-sm"></i>
-                                        </template>
-                                    </button>
-
-                                    <!-- Clear all button -->
-                                    <button x-show="selectedImages.length > 0" @click.stop="clearAll()"
-                                        class="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-red-500 text-white text-[10px] flex items-center justify-center hover:bg-red-600 transition-colors">
-                                        <i class="fa-solid fa-xmark"></i>
-                                    </button>
-
-                                    <!-- Desktop Full Modal (teleported) -->
-                                    <template x-teleport="body">
-                                        <div x-show="showImagePicker" x-cloak x-init="$watch('showImagePicker', value => {
-                                                if (value) {
-                                                    document.documentElement.style.setProperty('overflow', 'hidden', 'important');
-                                                    document.body.style.setProperty('overflow', 'hidden', 'important');
-                                                } else {
-                                                    document.documentElement.style.removeProperty('overflow');
-                                                    document.body.style.removeProperty('overflow');
-                                                }
-                                            })"
-                                            class="hidden sm:flex fixed inset-0 z-[100] items-center justify-center backdrop-blur-sm"
-                                            x-transition:enter="transition ease-out duration-300"
-                                            x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
-                                            x-transition:leave="transition ease-in duration-200"
-                                            x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
-                                            @click.self="showImagePicker = false">
-
-                                            <div x-show="showImagePicker"
-                                                x-transition:enter="transition ease-out duration-300"
-                                                x-transition:enter-start="opacity-0 translate-y-8 scale-95"
-                                                x-transition:enter-end="opacity-100 translate-y-0 scale-100"
-                                                x-transition:leave="transition ease-in duration-200"
-                                                x-transition:leave-start="opacity-100 translate-y-0 scale-100"
-                                                x-transition:leave-end="opacity-0 translate-y-8 scale-95"
-                                                class="w-full max-w-4xl max-h-[90vh] mx-4 rounded-2xl bg-[#15161A] border border-white/10 shadow-2xl overflow-hidden flex flex-col"
-                                                @click.stop>
-
-                                                <!-- Header -->
-                                                <div
-                                                    class="flex items-center justify-between p-5 border-b border-white/5 shrink-0">
-                                                    <div>
-                                                        <h3 class="text-white font-semibold text-lg">📸 Chọn ảnh mẫu
-                                                        </h3>
-                                                        <p class="text-white/50 text-sm mt-0.5">Chọn tối đa <span
-                                                                x-text="maxImages"></span> ảnh làm tham chiếu</p>
-                                                    </div>
-                                                    <button type="button" @click="showImagePicker = false"
-                                                        class="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 text-white/60 hover:bg-white/10 transition-colors">
-                                                        <i class="fa-solid fa-xmark text-lg"></i>
-                                                    </button>
-                                                </div>
-
-                                                <!-- Tabs -->
-                                                <div class="flex border-b border-white/5 px-5 shrink-0">
-                                                    <button type="button" @click="activeTab = 'upload'"
-                                                        class="py-3 px-4 text-sm font-medium transition-colors relative"
-                                                        :class="activeTab === 'upload' ? 'text-purple-400' : 'text-white/50 hover:text-white/70'">
-                                                        <i class="fa-solid fa-upload mr-2"></i> Upload
-                                                        <div x-show="activeTab === 'upload'"
-                                                            class="absolute bottom-0 left-0 right-0 h-0.5 bg-purple-500">
-                                                        </div>
-                                                    </button>
-                                                    <button type="button" @click="activeTab = 'url'"
-                                                        class="py-3 px-4 text-sm font-medium transition-colors relative"
-                                                        :class="activeTab === 'url' ? 'text-purple-400' : 'text-white/50 hover:text-white/70'">
-                                                        <i class="fa-solid fa-link mr-2"></i> Dán URL
-                                                        <div x-show="activeTab === 'url'"
-                                                            class="absolute bottom-0 left-0 right-0 h-0.5 bg-purple-500">
-                                                        </div>
-                                                    </button>
-                                                    <button type="button" @click="activeTab = 'recent'"
-                                                        class="py-3 px-4 text-sm font-medium transition-colors relative"
-                                                        :class="activeTab === 'recent' ? 'text-purple-400' : 'text-white/50 hover:text-white/70'">
-                                                        <i class="fa-solid fa-clock-rotate-left mr-2"></i> Thư viện
-                                                        <div x-show="activeTab === 'recent'"
-                                                            class="absolute bottom-0 left-0 right-0 h-0.5 bg-purple-500">
-                                                        </div>
-                                                    </button>
-                                                </div>
-
-                                                <!-- Content Area -->
-                                                <div class="flex-1 flex flex-col overflow-hidden">
-
-                                                    <!-- Tab Content -->
-                                                    <div class="flex-1 p-4 overflow-y-auto">
-
-                                                        <!-- Upload Tab -->
-                                                        <div x-show="activeTab === 'upload'"
-                                                            class="h-full flex flex-col">
-                                                            <!-- Compact Upload Zone -->
-                                                            <label
-                                                                class="shrink-0 flex items-center gap-4 p-4 rounded-xl border border-dashed cursor-pointer transition-all group"
-                                                                :class="isDragging ? 'border-purple-500 bg-purple-500/10' : 'border-white/20 hover:border-purple-500/50 bg-white/[0.02]'"
-                                                                @dragover.prevent="isDragging = true"
-                                                                @dragleave.prevent="isDragging = false"
-                                                                @drop.prevent="handleDrop($event)">
-                                                                <input type="file" accept="image/*" multiple
-                                                                    class="hidden" @change="handleFileSelect($event)">
-                                                                <div
-                                                                    class="w-12 h-12 rounded-xl bg-purple-500/20 flex items-center justify-center shrink-0">
-                                                                    <i
-                                                                        class="fa-solid fa-cloud-arrow-up text-xl text-purple-400"></i>
-                                                                </div>
-                                                                <div class="flex-1 min-w-0">
-                                                                    <p class="text-white font-medium text-sm">Kéo thả
-                                                                        hoặc <span class="text-purple-400">chọn
-                                                                            ảnh</span></p>
-                                                                    <p class="text-white/40 text-xs">PNG, JPG, WebP •
-                                                                        Tối đa 10MB • Chọn tối đa <span
-                                                                            x-text="maxImages"></span> ảnh</p>
-                                                                </div>
-                                                            </label>
-
-                                                            <!-- Selected Images Grid (Dynamic) -->
-                                                            <div x-show="selectedImages.length > 0" class="mt-4 flex-1">
-                                                                <div class="flex items-center justify-between mb-3">
-                                                                    <span class="text-white/60 text-sm">
-                                                                        <i
-                                                                            class="fa-solid fa-images text-purple-400 mr-1.5"></i>
-                                                                        Đã chọn <span class="text-white font-medium"
-                                                                            x-text="selectedImages.length"></span>/<span
-                                                                            x-text="maxImages"></span>
-                                                                    </span>
-                                                                    <button type="button" @click="clearAll()"
-                                                                        class="text-red-400/60 text-xs hover:text-red-400 transition-colors">
-                                                                        Xóa tất cả
-                                                                    </button>
-                                                                </div>
-
-                                                                <!-- 4 images in 1 row -->
-                                                                <div class="grid grid-cols-4 gap-2">
-                                                                    <template x-for="(img, index) in selectedImages"
-                                                                        :key="img.id">
-                                                                        <div
-                                                                            class="relative group rounded-xl overflow-hidden bg-black/40 border border-white/10 aspect-square">
-                                                                            <img :src="img.url"
-                                                                                class="w-full h-full object-contain">
-                                                                            <!-- Hover Actions -->
-                                                                            <div
-                                                                                class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                                                                                <button type="button"
-                                                                                    @click="removeImage(img.id)"
-                                                                                    class="w-9 h-9 rounded-full bg-red-500/80 hover:bg-red-500 text-white flex items-center justify-center transition-colors">
-                                                                                    <i
-                                                                                        class="fa-solid fa-trash-can text-sm"></i>
-                                                                                </button>
-                                                                            </div>
-                                                                            <!-- Index -->
-                                                                            <div class="absolute top-2 left-2 w-5 h-5 rounded-full bg-purple-500 text-white text-[10px] font-bold flex items-center justify-center"
-                                                                                x-text="index + 1"></div>
-                                                                        </div>
-                                                                    </template>
-                                                                </div>
-                                                            </div>
-
-                                                            <!-- Empty State -->
-                                                            <div x-show="selectedImages.length === 0"
-                                                                class="flex-1 flex items-center justify-center">
-                                                                <div class="text-center py-8">
-                                                                    <div
-                                                                        class="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center mx-auto mb-3">
-                                                                        <i
-                                                                            class="fa-regular fa-images text-2xl text-white/20"></i>
-                                                                    </div>
-                                                                    <p class="text-white/40 text-sm">Chưa có ảnh nào
-                                                                        được chọn</p>
-                                                                    <p class="text-white/25 text-xs mt-1">Tải ảnh lên
-                                                                        hoặc chọn từ thư viện</p>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-
-                                                        <!-- URL Tab -->
-                                                        <div x-show="activeTab === 'url'" class="space-y-4">
-                                                            <div class="flex gap-2">
-                                                                <input type="text" x-model="urlInput"
-                                                                    placeholder="Dán URL ảnh vào đây..."
-                                                                    @keydown.enter.prevent="addFromUrl()"
-                                                                    class="flex-1 px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-white/30 focus:outline-none focus:border-purple-500/50 text-sm">
-                                                                <button type="button" @click="addFromUrl()"
-                                                                    class="px-5 py-3 rounded-xl bg-purple-500 text-white font-medium hover:bg-purple-600 transition-colors text-sm shrink-0">
-                                                                    <i class="fa-solid fa-plus mr-1"></i> Thêm
-                                                                </button>
-                                                            </div>
-
-                                                            <!-- Show selected images in URL tab too -->
-                                                            <div x-show="selectedImages.length > 0"
-                                                                class="grid grid-cols-4 gap-2 mt-4">
-                                                                <template x-for="(img, index) in selectedImages"
-                                                                    :key="img.id">
-                                                                    <div
-                                                                        class="relative group aspect-square rounded-lg overflow-hidden border border-white/10">
-                                                                        <img :src="img.url"
-                                                                            class="w-full h-full object-cover">
-                                                                        <button type="button"
-                                                                            @click="removeImage(img.id)"
-                                                                            class="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                                                            <i class="fa-solid fa-xmark text-white"></i>
-                                                                        </button>
-                                                                    </div>
-                                                                </template>
-                                                            </div>
-                                                        </div>
-
-                                                        <!-- Library Tab -->
-                                                        <div x-show="activeTab === 'recent'" class="h-full">
-                                                            <template x-if="recentImages.length > 0">
-                                                                <div class="grid grid-cols-4 gap-2">
-                                                                    <template x-for="img in recentImages" :key="img.id">
-                                                                        <button type="button"
-                                                                            @click="selectFromRecent(img.url)"
-                                                                            class="aspect-square rounded-lg overflow-hidden border-2 transition-all relative group"
-                                                                            :class="isSelected(img.url) ? 'border-purple-500 ring-2 ring-purple-500/30' : 'border-transparent hover:border-white/20'">
-                                                                            <img :src="img.url"
-                                                                                class="w-full h-full object-cover">
-                                                                            <div x-show="!isSelected(img.url)"
-                                                                                class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                                                                <i
-                                                                                    class="fa-solid fa-plus text-white"></i>
-                                                                            </div>
-                                                                            <div x-show="isSelected(img.url)"
-                                                                                class="absolute inset-0 bg-purple-500/30 flex items-center justify-center">
-                                                                                <div
-                                                                                    class="w-6 h-6 rounded-full bg-purple-500 flex items-center justify-center">
-                                                                                    <i
-                                                                                        class="fa-solid fa-check text-white text-xs"></i>
-                                                                                </div>
-                                                                            </div>
-                                                                        </button>
-                                                                    </template>
-                                                                </div>
-                                                            </template>
-                                                            <template x-if="recentImages.length === 0 && !isLoading">
-                                                                <div class="h-full flex items-center justify-center">
-                                                                    <div class="text-center py-8">
-                                                                        <i
-                                                                            class="fa-regular fa-image text-2xl text-white/20 mb-2"></i>
-                                                                        <p class="text-white/40 text-sm">Chưa có ảnh
-                                                                            trong thư viện</p>
-                                                                    </div>
-                                                                </div>
-                                                            </template>
-                                                            <template x-if="isLoading">
-                                                                <div class="h-full flex items-center justify-center">
-                                                                    <i
-                                                                        class="fa-solid fa-spinner fa-spin text-xl text-purple-400"></i>
-                                                                </div>
-                                                            </template>
-                                                        </div>
-                                                    </div>
-
-                                                    <!-- Footer (Always visible, not overlapping) -->
-                                                    <div
-                                                        class="shrink-0 p-4 border-t border-white/5 bg-black/30 flex items-center justify-between gap-4">
-                                                        <!-- Left: Selection info -->
-                                                        <div class="flex items-center gap-2 text-white/50 text-sm">
-                                                            <template x-if="selectedImages.length > 0">
-                                                                <span class="flex items-center gap-1.5">
-                                                                    <span
-                                                                        class="w-2 h-2 rounded-full bg-green-400"></span>
-                                                                    <span
-                                                                        x-text="selectedImages.length + ' ảnh đã chọn'"></span>
-                                                                </span>
-                                                            </template>
-                                                            <template x-if="selectedImages.length === 0">
-                                                                <span>Chưa chọn ảnh nào</span>
-                                                            </template>
-                                                        </div>
-
-                                                        <!-- Right: Actions -->
-                                                        <div class="flex items-center gap-2">
-                                                            <button type="button" @click="showImagePicker = false"
-                                                                class="px-4 py-2 rounded-lg text-white/60 font-medium hover:bg-white/5 transition-colors text-sm">
-                                                                Hủy
-                                                            </button>
-                                                            <button type="button" @click="confirmSelection()"
-                                                                class="px-5 py-2 rounded-lg bg-purple-500 hover:bg-purple-600 text-white font-medium transition-colors text-sm disabled:opacity-40 disabled:cursor-not-allowed"
-                                                                :disabled="selectedImages.length === 0">
-                                                                <i class="fa-solid fa-check mr-1.5"></i>Xác nhận
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                    </template>
-
-                                    <!-- Mobile Bottom Sheet (teleported) -->
-                                    <template x-teleport="body">
-                                        <div x-show="showImagePicker" x-cloak
-                                            class="sm:hidden fixed inset-0 z-[100] flex items-end justify-center backdrop-blur-sm"
-                                            @click.self="showImagePicker = false">
-                                            <div x-show="showImagePicker"
-                                                x-transition:enter="transition ease-out duration-300"
-                                                x-transition:enter-start="translate-y-full"
-                                                x-transition:enter-end="translate-y-0"
-                                                x-transition:leave="transition ease-in duration-200"
-                                                x-transition:leave-start="translate-y-0"
-                                                x-transition:leave-end="translate-y-full"
-                                                class="w-full max-w-lg bg-[#1a1b20] border-t border-white/10 rounded-t-3xl flex flex-col max-h-[85vh]"
-                                                @click.stop>
-
-                                                <!-- Header -->
-                                                <div
-                                                    class="flex items-center justify-between p-4 border-b border-white/5 shrink-0">
-                                                    <div>
-                                                        <span class="text-white font-semibold text-base">📸 Chọn ảnh
-                                                            mẫu</span>
-                                                        <span class="text-white/40 text-xs ml-2"
-                                                            x-text="selectedImages.length + '/' + maxImages"></span>
-                                                    </div>
-                                                    <button type="button" @click="showImagePicker = false"
-                                                        class="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 text-white/60">
-                                                        <i class="fa-solid fa-xmark"></i>
-                                                    </button>
-                                                </div>
-
-                                                <!-- Mobile Tabs -->
-                                                <div class="flex border-b border-white/5 shrink-0">
-                                                    <button type="button" @click="activeTab = 'upload'"
-                                                        class="flex-1 py-3 text-sm font-medium transition-colors"
-                                                        :class="activeTab === 'upload' ? 'text-purple-400 border-b-2 border-purple-500' : 'text-white/50'">
-                                                        Upload
-                                                    </button>
-                                                    <button type="button" @click="activeTab = 'url'"
-                                                        class="flex-1 py-3 text-sm font-medium transition-colors"
-                                                        :class="activeTab === 'url' ? 'text-purple-400 border-b-2 border-purple-500' : 'text-white/50'">
-                                                        URL
-                                                    </button>
-                                                    <button type="button" @click="activeTab = 'recent'"
-                                                        class="flex-1 py-3 text-sm font-medium transition-colors"
-                                                        :class="activeTab === 'recent' ? 'text-purple-400 border-b-2 border-purple-500' : 'text-white/50'">
-                                                        Gần đây
-                                                    </button>
-                                                </div>
-
-                                                <!-- Content -->
-                                                <div class="p-4 overflow-y-auto flex-1">
-                                                    <!-- Upload Tab Mobile -->
-                                                    <div x-show="activeTab === 'upload'" class="grid grid-cols-2 gap-3">
-                                                        <label
-                                                            class="flex flex-col items-center gap-2 p-6 rounded-xl bg-white/5 border border-white/10 cursor-pointer active:scale-95 transition-transform">
-                                                            <input type="file" accept="image/*" multiple class="hidden"
-                                                                @change="handleFileSelect($event)">
-                                                            <i class="fa-solid fa-images text-3xl text-purple-400"></i>
-                                                            <span class="text-white/70 text-sm font-medium">Thư
-                                                                viện</span>
-                                                        </label>
-                                                        <label
-                                                            class="flex flex-col items-center gap-2 p-6 rounded-xl bg-white/5 border border-white/10 cursor-pointer active:scale-95 transition-transform">
-                                                            <input type="file" accept="image/*" capture="environment"
-                                                                class="hidden" @change="handleFileSelect($event)">
-                                                            <i class="fa-solid fa-camera text-3xl text-pink-400"></i>
-                                                            <span
-                                                                class="text-white/70 text-sm font-medium">Camera</span>
-                                                        </label>
-                                                    </div>
-
-                                                    <!-- URL Tab Mobile -->
-                                                    <div x-show="activeTab === 'url'">
-                                                        <div class="flex gap-2">
-                                                            <input type="text" x-model="urlInput"
-                                                                placeholder="Dán URL ảnh..."
-                                                                class="flex-1 px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white text-sm placeholder-white/30 focus:outline-none focus:border-purple-500/50">
-                                                            <button type="button" @click="addFromUrl()"
-                                                                class="px-5 py-3 rounded-xl bg-purple-500 text-white font-medium active:scale-95 transition-transform">
-                                                                <i class="fa-solid fa-plus"></i>
-                                                            </button>
-                                                        </div>
-                                                    </div>
-
-                                                    <!-- Recent Tab Mobile -->
-                                                    <div x-show="activeTab === 'recent'">
-                                                        <template x-if="recentImages.length > 0">
-                                                            <div class="grid grid-cols-3 gap-2">
-                                                                <template x-for="img in recentImages" :key="img.id">
-                                                                    <button type="button"
-                                                                        @click="selectFromRecent(img.url)"
-                                                                        class="aspect-square rounded-xl overflow-hidden border-2 transition-all relative"
-                                                                        :class="isSelected(img.url) ? 'border-purple-500' : 'border-transparent'">
-                                                                        <img :src="img.url"
-                                                                            class="w-full h-full object-cover">
-                                                                        <div x-show="isSelected(img.url)"
-                                                                            class="absolute inset-0 bg-purple-500/40 flex items-center justify-center">
-                                                                            <i
-                                                                                class="fa-solid fa-check text-white text-xl"></i>
-                                                                        </div>
-                                                                    </button>
-                                                                </template>
-                                                            </div>
-                                                        </template>
-                                                        <template x-if="recentImages.length === 0 && !isLoading">
-                                                            <div class="text-center py-8 text-white/40">
-                                                                <i class="fa-regular fa-image text-3xl mb-2"></i>
-                                                                <p>Chưa có ảnh nào</p>
-                                                            </div>
-                                                        </template>
-                                                    </div>
-
-                                                    <!-- Selected Preview Mobile -->
-                                                    <template x-if="selectedImages.length > 0">
-                                                        <div class="mt-4 pt-4 border-t border-white/5">
-                                                            <div class="text-white/40 text-xs font-medium mb-2">Đã chọn:
-                                                            </div>
-                                                            <div class="flex flex-wrap gap-2">
-                                                                <template x-for="img in selectedImages" :key="img.id">
-                                                                    <div class="relative">
-                                                                        <img :src="img.url"
-                                                                            class="w-14 h-14 rounded-lg object-cover border border-white/20">
-                                                                        <button type="button"
-                                                                            @click="removeImage(img.id)"
-                                                                            class="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-red-500 text-white text-xs flex items-center justify-center">
-                                                                            <i class="fa-solid fa-xmark"></i>
-                                                                        </button>
-                                                                    </div>
-                                                                </template>
-                                                            </div>
-                                                        </div>
-                                                    </template>
-                                                </div>
-
-                                                <!-- Footer Mobile -->
-                                                <div
-                                                    class="p-4 border-t border-white/5 bg-[#1a1b20] safe-area-bottom shrink-0">
-                                                    <button type="button" @click="confirmSelection()"
-                                                        class="w-full py-3.5 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold text-center active:scale-[0.98] transition-transform"
-                                                        :disabled="selectedImages.length === 0"
-                                                        :class="selectedImages.length === 0 ? 'opacity-50' : ''">
-                                                        Xác nhận <span
-                                                            x-text="selectedImages.length > 0 ? '(' + selectedImages.length + ' ảnh)' : ''"></span>
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </template>
-
-                                    <!-- Hidden inputs for form submission -->
-                                    <template x-for="(img, index) in selectedImages" :key="img.id">
-                                        <input type="hidden" :name="'reference_images[' + index + ']'" :value="img.url">
-                                    </template>
-                                </div>
-
-                                <!-- Aspect Ratio Button -->
-                                <div class="relative">
-                                    <button type="button" @click="showRatioDropdown = !showRatioDropdown"
-                                        class="flex items-center gap-1.5 h-9 px-2 sm:px-2.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition-all cursor-pointer"
-                                        :class="{ 'bg-purple-500/20 border-purple-500/40': showRatioDropdown }">
-                                        <i class="fa-solid fa-crop text-white/50 text-sm"></i>
-                                        <span class="text-white/70 text-xs font-medium hidden sm:inline"
-                                            x-text="selectedRatio === 'auto' ? 'Tỉ lệ' : selectedRatio"></span>
-                                        <i class="fa-solid fa-chevron-down text-white/40 text-[10px] transition-transform hidden sm:inline"
-                                            :class="{ 'rotate-180': showRatioDropdown }"></i>
-                                    </button>
-
-                                    <!-- Dropdown Panel - Desktop (teleported to body to escape hero mask) -->
-                                    <template x-teleport="body">
-                                        <div x-show="showRatioDropdown" x-cloak
-                                            x-transition:enter="transition ease-out duration-200"
-                                            x-transition:enter-start="opacity-0 -translate-y-2"
-                                            x-transition:enter-end="opacity-100 translate-y-0"
-                                            x-transition:leave="transition ease-in duration-150"
-                                            x-transition:leave-start="opacity-100 translate-y-0"
-                                            x-transition:leave-end="opacity-0 -translate-y-2"
-                                            class="hidden sm:block fixed w-80 p-3 rounded-xl bg-[#1a1b20] border border-white/10 shadow-2xl z-[9999]"
-                                            x-init="$watch('showRatioDropdown', value => {
-                                                if (value) {
-                                                    const btn = $root.querySelector('button');
-                                                    const rect = btn.getBoundingClientRect();
-                                                    $el.style.top = (rect.bottom + 8) + 'px';
-                                                    $el.style.left = rect.left + 'px';
-                                                }
-                                            })" @click.stop>
-                                            <div class="text-white/50 text-xs font-medium mb-2">Tỉ lệ khung hình</div>
-                                            <div class="grid grid-cols-5 gap-1.5">
-                                                <template x-for="ratio in ratios" :key="ratio.id">
-                                                    <button type="button" @click="selectRatio(ratio.id)"
-                                                        class="flex flex-col items-center gap-1 p-2 rounded-lg transition-all"
-                                                        :class="selectedRatio === ratio.id ? 'bg-purple-500/30 border border-purple-500/50' : 'bg-white/5 hover:bg-white/10 border border-transparent'">
-                                                        <div class="w-6 h-6 flex items-center justify-center">
-                                                            <template x-if="ratio.icon">
-                                                                <i :class="'fa-solid ' + ratio.icon"
-                                                                    class="text-white/60 text-sm"></i>
-                                                            </template>
-                                                            <template x-if="!ratio.icon">
-                                                                <div class="border border-white/40 rounded-sm" :style="{
-                                                                    width: ratio.id.split(':')[0] > ratio.id.split(':')[1] ? '20px' : (ratio.id.split(':')[0] == ratio.id.split(':')[1] ? '16px' : '12px'),
-                                                                    height: ratio.id.split(':')[1] > ratio.id.split(':')[0] ? '20px' : (ratio.id.split(':')[0] == ratio.id.split(':')[1] ? '16px' : '12px')
-                                                                }"></div>
-                                                            </template>
-                                                        </div>
-                                                        <span class="text-white/70 text-[10px] font-medium"
-                                                            x-text="ratio.label"></span>
-                                                    </button>
-                                                </template>
-                                            </div>
-
-                                            <!-- Size Section -->
-                                            <div class="mt-3 pt-3 border-t border-white/10">
-                                                <div class="text-white/50 text-xs font-medium mb-2">Kích thước</div>
-                                                <div class="flex items-center gap-2">
-                                                    <div
-                                                        class="flex-1 flex items-center gap-1.5 px-2.5 py-2 rounded-lg bg-white/5 border border-white/10">
-                                                        <span class="text-white/40 text-xs font-medium">W</span>
-                                                        <input type="number" name="width" x-model="customWidth"
-                                                            @input="updateWidth($event.target.value)"
-                                                            class="w-full bg-transparent border-none outline-none ring-0 focus:ring-0 focus:outline-none text-white text-sm font-medium text-center"
-                                                            placeholder="1024" min="512" max="4096" step="64">
-                                                    </div>
-                                                    <button type="button" @click="linkDimensions = !linkDimensions"
-                                                        class="w-8 h-8 flex items-center justify-center rounded-lg transition-all"
-                                                        :class="linkDimensions ? 'bg-purple-500/30 text-purple-400' : 'bg-white/5 text-white/40 hover:bg-white/10'">
-                                                        <i class="fa-solid fa-link text-xs"></i>
-                                                    </button>
-                                                    <div
-                                                        class="flex-1 flex items-center gap-1.5 px-2.5 py-2 rounded-lg bg-white/5 border border-white/10">
-                                                        <span class="text-white/40 text-xs font-medium">H</span>
-                                                        <input type="number" name="height" x-model="customHeight"
-                                                            @input="updateHeight($event.target.value)"
-                                                            class="w-full bg-transparent border-none outline-none ring-0 focus:ring-0 focus:outline-none text-white text-sm font-medium text-center"
-                                                            placeholder="1024" min="512" max="4096" step="64">
-                                                    </div>
-                                                    <span class="text-white/40 text-xs font-medium">PX</span>
-                                                </div>
-                                            </div>
-
-                                        </div>
-                                    </template>
-
-                                    <!-- Bottom Sheet - Mobile -->
-                                    <template x-teleport="body">
-                                        <div x-show="showRatioDropdown" x-cloak
-                                            class="sm:hidden fixed inset-0 z-[100] flex items-end justify-center bg-black/80 backdrop-blur-md"
-                                            style="z-index: 9999;" @click.self="showRatioDropdown = false" @click.stop>
-                                            <div x-show="showRatioDropdown"
-                                                x-transition:enter="transition ease-out duration-300"
-                                                x-transition:enter-start="translate-y-full"
-                                                x-transition:enter-end="translate-y-0"
-                                                x-transition:leave="transition ease-in duration-200"
-                                                x-transition:leave-start="translate-y-0"
-                                                x-transition:leave-end="translate-y-full"
-                                                class="w-full max-w-lg bg-[#1a1b20] border-t border-white/10 rounded-t-3xl flex flex-col max-h-[85vh] shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
-
-                                                <!-- Header -->
-                                                <div
-                                                    class="flex items-center justify-between p-4 border-b border-white/5 shrink-0">
-                                                    <span class="text-white font-semibold text-base">Tùy chỉnh khung
-                                                        hình</span>
-                                                    <button type="button" @click="showRatioDropdown = false"
-                                                        class="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 text-white/60 active:scale-95 transition-transform">
-                                                        <i class="fa-solid fa-xmark"></i>
-                                                    </button>
-                                                </div>
-
-                                                <!-- Scrollable Content -->
-                                                <div class="p-4 overflow-y-auto overscroll-contain">
-                                                    <div class="text-white/50 text-sm font-medium mb-3">Tỉ lệ</div>
-                                                    <div class="grid grid-cols-4 gap-2 mb-6">
-                                                        <template x-for="ratio in ratios" :key="ratio.id">
-                                                            <button type="button" @click="selectRatio(ratio.id)"
-                                                                class="flex flex-col items-center gap-1.5 p-3 rounded-xl transition-all"
-                                                                :class="selectedRatio === ratio.id ? 'bg-purple-500/30 border border-purple-500/50' : 'bg-white/5 active:bg-white/10 border border-transparent'">
-                                                                <div class="w-8 h-8 flex items-center justify-center">
-                                                                    <template x-if="ratio.icon">
-                                                                        <i :class="'fa-solid ' + ratio.icon"
-                                                                            class="text-white/60 text-lg"></i>
-                                                                    </template>
-                                                                    <template x-if="!ratio.icon">
-                                                                        <div class="border-2 border-white/40 rounded-sm"
-                                                                            :style="{
-                                                                                width: ratio.id.split(':')[0] > ratio.id.split(':')[1] ? '28px' : (ratio.id.split(':')[0] == ratio.id.split(':')[1] ? '24px' : '16px'),
-                                                                                height: ratio.id.split(':')[1] > ratio.id.split(':')[0] ? '28px' : (ratio.id.split(':')[0] == ratio.id.split(':')[1] ? '24px' : '16px')
-                                                                            }"></div>
-                                                                    </template>
-                                                                </div>
-                                                                <span class="text-white/70 text-xs font-medium"
-                                                                    x-text="ratio.label"></span>
-                                                            </button>
-                                                        </template>
-                                                    </div>
-
-                                                    <!-- Size Section - Mobile -->
-                                                    <div class="pt-4 border-t border-white/10">
-                                                        <div class="text-white/50 text-sm font-medium mb-3">Kích thước
-                                                            tùy
-                                                            chỉnh (PX)</div>
-                                                        <div class="flex items-center gap-3">
-                                                            <div
-                                                                class="flex-1 flex items-center gap-2 px-3 py-3 rounded-xl bg-white/5 border border-white/10 focus-within:border-purple-500/50 transition-colors">
-                                                                <span
-                                                                    class="text-white/40 text-sm font-semibold">W</span>
-                                                                <input type="number" x-model="customWidth"
-                                                                    @input="updateWidth($event.target.value)"
-                                                                    class="w-full bg-transparent border-none outline-none ring-0 focus:ring-0 focus:outline-none text-white text-lg font-medium text-center"
-                                                                    placeholder="1024" min="512" max="4096" step="64">
-                                                            </div>
-                                                            <button type="button"
-                                                                @click="linkDimensions = !linkDimensions"
-                                                                class="w-12 h-12 flex items-center justify-center rounded-xl transition-all shrink-0"
-                                                                :class="linkDimensions ? 'bg-purple-500/30 text-purple-400' : 'bg-white/5 text-white/40'">
-                                                                <i class="fa-solid fa-link text-lg"></i>
-                                                            </button>
-                                                            <div
-                                                                class="flex-1 flex items-center gap-2 px-3 py-3 rounded-xl bg-white/5 border border-white/10 focus-within:border-purple-500/50 transition-colors">
-                                                                <span
-                                                                    class="text-white/40 text-sm font-semibold">H</span>
-                                                                <input type="number" x-model="customHeight"
-                                                                    @input="updateHeight($event.target.value)"
-                                                                    class="w-full bg-transparent border-none outline-none ring-0 focus:ring-0 focus:outline-none text-white text-lg font-medium text-center"
-                                                                    placeholder="1024" min="512" max="4096" step="64">
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                <!-- Footer Action -->
-                                                <div
-                                                    class="p-4 border-t border-white/5 bg-[#1a1b20] safe-area-bottom shrink-0">
-                                                    <button type="button" @click="showRatioDropdown = false"
-                                                        class="w-full py-3.5 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold text-center active:scale-[0.98] transition-transform shadow-lg shadow-purple-900/20">
-                                                        Áp dụng & Đóng
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </template>
-                                </div>
-
-
-                                <!-- Model Selector -->
-                                <div class="relative" x-data="{
-                                    showModelDropdown: false,
-                                    selectedModel: 'flux-pro-1.1-ultra',
-                                    models: [
-                                        { id: 'flux-2-max', name: 'FLUX.2 Max', desc: 'Cao cấp nhất', icon: '👑' },
-                                        { id: 'flux-2-pro', name: 'FLUX.2 Pro', desc: 'Chất lượng cao', icon: '⭐' },
-                                        { id: 'flux-pro-1.1-ultra', name: 'FLUX 1.1 Ultra', desc: 'Siêu nhanh', icon: '⚡' },
-                                        { id: 'flux-pro-1.1', name: 'FLUX 1.1 Pro', desc: 'Cân bằng', icon: '🎯' },
-                                        { id: 'flux-dev', name: 'FLUX Dev', desc: 'Thử nghiệm', icon: '🔬' }
-                                    ],
-                                    getSelectedModel() {
-                                        return this.models.find(m => m.id === this.selectedModel) || this.models[2];
-                                    }
-                                }" @click.away="showModelDropdown = false">
-                                    <button type="button" @click="showModelDropdown = !showModelDropdown"
-                                        class="flex items-center gap-1.5 h-9 px-2 sm:px-2.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition-all cursor-pointer"
-                                        :class="{ 'bg-purple-500/20 border-purple-500/40': showModelDropdown }">
-                                        <i class="fa-solid fa-microchip text-white/50 text-sm"></i>
-                                        <span class="text-white/70 text-xs font-medium hidden sm:inline"
-                                            x-text="getSelectedModel().name"></span>
-                                        <i class="fa-solid fa-chevron-down text-white/40 text-[10px] transition-transform hidden sm:inline"
-                                            :class="{ 'rotate-180': showModelDropdown }"></i>
-                                    </button>
-
-                                    <!-- Model Dropdown - Desktop -->
-                                    <template x-teleport="body">
-                                        <div x-show="showModelDropdown" x-cloak
-                                            x-transition:enter="transition ease-out duration-200"
-                                            x-transition:enter-start="opacity-0 -translate-y-2"
-                                            x-transition:enter-end="opacity-100 translate-y-0"
-                                            x-transition:leave="transition ease-in duration-150"
-                                            x-transition:leave-start="opacity-100 translate-y-0"
-                                            x-transition:leave-end="opacity-0 -translate-y-2"
-                                            class="hidden sm:block fixed w-64 p-2 rounded-xl bg-[#1a1b20] border border-white/10 shadow-2xl z-[9999]"
-                                            x-init="$watch('showModelDropdown', value => {
-                                                if (value) {
-                                                    const btn = $root.querySelector('button');
-                                                    const rect = btn.getBoundingClientRect();
-                                                    $el.style.top = (rect.bottom + 8) + 'px';
-                                                    $el.style.left = rect.left + 'px';
-                                                }
-                                            })" @click.stop>
-                                            <div class="text-white/50 text-xs font-medium mb-2 px-2">Chọn Model AI</div>
-                                            <template x-for="model in models" :key="model.id">
-                                                <button type="button"
-                                                    @click="selectedModel = model.id; showModelDropdown = false"
-                                                    class="w-full flex items-center gap-3 p-2.5 rounded-lg transition-all text-left"
-                                                    :class="selectedModel === model.id ? 'bg-purple-500/30 border border-purple-500/50' : 'hover:bg-white/5 border border-transparent'">
-                                                    <span class="text-lg" x-text="model.icon"></span>
-                                                    <div class="flex-1 min-w-0">
-                                                        <div class="text-white text-sm font-medium" x-text="model.name">
-                                                        </div>
-                                                        <div class="text-white/40 text-xs" x-text="model.desc"></div>
-                                                    </div>
-                                                    <i x-show="selectedModel === model.id"
-                                                        class="fa-solid fa-check text-purple-400 text-sm"></i>
-                                                </button>
-                                            </template>
-                                        </div>
-                                    </template>
-
-                                    <!-- Model Dropdown - Mobile (Bottom Sheet) -->
-                                    <template x-teleport="body">
-                                        <div x-show="showModelDropdown" x-cloak
-                                            class="sm:hidden fixed inset-0 z-[100] flex items-end justify-center bg-black/80 backdrop-blur-md"
-                                            style="z-index: 9999;" @click.self="showModelDropdown = false" @click.stop>
-                                            <div x-show="showModelDropdown"
-                                                x-transition:enter="transition ease-out duration-300"
-                                                x-transition:enter-start="translate-y-full"
-                                                x-transition:enter-end="translate-y-0"
-                                                x-transition:leave="transition ease-in duration-200"
-                                                x-transition:leave-start="translate-y-0"
-                                                x-transition:leave-end="translate-y-full"
-                                                class="w-full max-w-lg bg-[#1a1b20] border-t border-white/10 rounded-t-3xl flex flex-col max-h-[85vh] shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
-
-                                                <!-- Header -->
-                                                <div
-                                                    class="flex items-center justify-between p-4 border-b border-white/5 shrink-0">
-                                                    <span class="text-white font-semibold text-base">Chọn Model
-                                                        AI</span>
-                                                    <button type="button" @click="showModelDropdown = false"
-                                                        class="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 text-white/60 active:scale-95 transition-transform">
-                                                        <i class="fa-solid fa-xmark"></i>
-                                                    </button>
-                                                </div>
-
-                                                <!-- Scrollable List -->
-                                                <div class="p-4 overflow-y-auto overscroll-contain">
-                                                    <div class="text-white/50 text-sm font-medium mb-3">Danh sách Model
-                                                    </div>
-                                                    <div class="space-y-1">
-                                                        <template x-for="model in models" :key="model.id">
-                                                            <button type="button" @click="selectedModel = model.id"
-                                                                class="w-full flex items-center gap-3 p-3 rounded-xl transition-all text-left"
-                                                                :class="selectedModel === model.id ? 'bg-purple-500/30 border border-purple-500/50' : 'bg-white/5 active:bg-white/10 border border-transparent'">
-                                                                <span class="text-2xl" x-text="model.icon"></span>
-                                                                <div class="flex-1 min-w-0">
-                                                                    <div class="text-white font-semibold text-base"
-                                                                        x-text="model.name">
-                                                                    </div>
-                                                                    <div class="text-white/50 text-sm mt-0.5"
-                                                                        x-text="model.desc">
-                                                                    </div>
-                                                                </div>
-                                                                <div class="w-6 h-6 rounded-full border-2 flex items-center justify-center"
-                                                                    :class="selectedModel === model.id ? 'border-purple-500 bg-purple-500' : 'border-white/20'">
-                                                                    <i x-show="selectedModel === model.id"
-                                                                        class="fa-solid fa-check text-white text-xs"></i>
-                                                                </div>
-                                                            </button>
-                                                        </template>
-                                                    </div>
-                                                </div>
-
-                                                <!-- Footer Action -->
-                                                <div
-                                                    class="p-4 border-t border-white/5 bg-[#1a1b20] safe-area-bottom shrink-0">
-                                                    <button type="button" @click="showModelDropdown = false"
-                                                        class="w-full py-3.5 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold text-center active:scale-[0.98] transition-transform shadow-lg shadow-purple-900/20">
-                                                        Xác nhận lựa chọn
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </template>
-
-                                    <input type="hidden" name="model" :value="selectedModel">
-                                </div>
-
-                                <!-- Hidden inputs for form submission -->
-                                <input type="hidden" name="aspect_ratio" :value="selectedRatio">
-                            </div>
-
-                            <!-- Generate Button -->
-                            <button type="submit"
-                                class="shrink-0 flex items-center gap-2 px-4 sm:px-6 py-2.5 rounded-xl bg-gradient-to-r from-purple-500 via-fuchsia-500 to-pink-500 text-white font-semibold text-sm hover:scale-[1.02] hover:shadow-lg hover:shadow-purple-500/30 active:scale-[0.98] transition-all duration-200">
-                                <i class="fa-solid fa-wand-magic-sparkles text-sm"></i>
-                                <span>Tạo ảnh</span>
+    <!-- Bottom row: icons + button -->
+    <div class="flex items-center justify-between gap-2 sm:gap-3">
+        <div class="flex items-center gap-2">
+            <!-- Ratio Picker -->
+            <div class="relative">
+                <button type="button"
+                    @click="showRatioDropdown = !showRatioDropdown; showModelDropdown = false; showBatchDropdown = false"
+                    class="flex items-center justify-center w-9 h-9 rounded-lg bg-white/5 hover:bg-white/10 text-white/70 hover:text-white border border-white/10 transition-all"
+                    :class="selectedRatio !== 'auto' ? 'text-purple-400 border-purple-500/30 bg-purple-500/10' : ''"
+                    title="Tỉ lệ khung hình">
+                    <template x-if="selectedRatio === 'auto'">
+                        <i class="fa-solid fa-expand text-sm"></i>
+                    </template>
+                    <template x-if="selectedRatio !== 'auto'">
+                        <span class="text-xs font-medium" x-text="selectedRatio"></span>
+                    </template>
+                </button>
+                <!-- Dropdown -->
+                <div x-show="showRatioDropdown" x-cloak x-transition:enter="transition ease-out duration-200"
+                    x-transition:enter-start="opacity-0 translate-y-2"
+                    x-transition:enter-end="opacity-100 translate-y-0"
+                    class="absolute bottom-full left-0 mb-2 w-32 bg-[#15161A] border border-white/10 rounded-xl p-1 shadow-xl z-50">
+                    <div class="grid grid-cols-2 gap-0.5">
+                        <template x-for="r in ratios" :key="r.id">
+                            <button type="button" @click="selectedRatio = r.id; showRatioDropdown = false"
+                                class="flex items-center justify-center h-8 rounded-lg text-xs hover:bg-white/10 transition-colors"
+                                :class="selectedRatio === r.id ? 'bg-purple-500/20 text-white' : 'text-white/60'">
+                                <span x-text="r.label"></span>
                             </button>
-                        </div>
+                        </template>
                     </div>
                 </div>
-            </form>
+            </div>
+
+            <!-- Model Picker (Simplified) -->
+            <div class="relative hidden sm:block">
+                <button type="button"
+                    class="flex items-center gap-1.5 h-9 px-2.5 rounded-lg bg-white/5 border border-white/10 text-white/50 text-xs cursor-default">
+                    <i class="fa-solid fa-microchip"></i>
+                    <span>Flux Pro 1.1</span>
+                </button>
+            </div>
+
+            <!-- Batch Size -->
+            <div class="relative">
+                <button type="button" @click="showBatchDropdown = !showBatchDropdown; showRatioDropdown = false"
+                    class="flex items-center justify-center w-9 h-9 rounded-lg bg-white/5 hover:bg-white/10 text-white/70 hover:text-white border border-white/10 transition-all"
+                    :class="batchSize > 1 ? 'text-purple-400 border-purple-500/30 bg-purple-500/10' : ''"
+                    title="Số lượng ảnh">
+                    <span class="text-xs font-medium" x-text="'x' + batchSize"></span>
+                </button>
+                <!-- Dropdown -->
+                <div x-show="showBatchDropdown" x-cloak x-transition:enter="transition ease-out duration-200"
+                    x-transition:enter-start="opacity-0 translate-y-2"
+                    x-transition:enter-end="opacity-100 translate-y-0"
+                    class="absolute bottom-full left-0 mb-2 w-20 bg-[#15161A] border border-white/10 rounded-xl p-1 shadow-xl z-50">
+                    <div class="flex flex-col gap-0.5">
+                        <template x-for="n in 4" :key="n">
+                            <button type="button" @click="batchSize = n; showBatchDropdown = false"
+                                class="flex items-center justify-center h-8 rounded-lg text-xs hover:bg-white/10 transition-colors"
+                                :class="batchSize === n ? 'bg-purple-500/20 text-white' : 'text-white/60'">
+                                <span x-text="n + ' ảnh'"></span>
+                            </button>
+                        </template>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Generate Button -->
+        <button type="submit"
+            class="shrink-0 flex items-center gap-2 px-4 sm:px-6 py-2.5 rounded-xl bg-gradient-to-r from-purple-500 via-fuchsia-500 to-pink-500 text-white font-semibold text-sm shadow-lg shadow-purple-500/25 hover:scale-[1.02] hover:shadow-xl hover:shadow-purple-500/40 active:scale-[0.98] transition-all duration-200">
+            <i class="fa-solid fa-wand-magic-sparkles text-sm"></i>
+            <span>Tạo ảnh</span>
+        </button>
+    </div>
+</form>
 
             <!-- Tool Icons - Grid on mobile, inline on desktop -->
             <div
