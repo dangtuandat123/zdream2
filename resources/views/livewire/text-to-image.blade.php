@@ -37,10 +37,17 @@
     {{-- ============================================================ --}}
     {{-- FIXED FILTER BAR --}}
     {{-- ============================================================ --}}
-    <div class="fixed top-14 md:top-0 left-0 right-0 md:left-[72px] z-[55]" x-data="{ openFilter: null }">
+    <div class="fixed top-14 md:top-0 left-0 right-0 md:left-[72px] z-[55]" x-data="{ openFilter: null }"
+        x-ref="filterBar">
         <div class="bg-[#0a0a0f]/80 backdrop-blur-[20px] saturate-[180%] border-b border-white/[0.08]">
             <div class="max-w-5xl mx-auto px-4 py-2.5">
                 <div class="flex items-center gap-2 flex-wrap">
+                    {{-- Total count --}}
+                    @php $totalImages = ($history instanceof \Illuminate\Pagination\LengthAwarePaginator) ? $history->total() : $historyCollection->count(); @endphp
+                    @if($totalImages > 0)
+                        <span class="text-white/30 text-xs font-medium shrink-0 mr-1"><i
+                                class="fa-solid fa-images mr-1"></i>{{ $totalImages }} ảnh</span>
+                    @endif
                     {{-- Date Filter --}}
                     <div class="relative">
                         <button @click="openFilter = openFilter === 'date' ? null : 'date'" class="inline-flex items-center gap-1.5 h-9 px-3.5 rounded-lg text-sm font-medium transition-all duration-200 active:scale-[0.98]
@@ -60,7 +67,7 @@
                             @foreach(['all' => 'Tất cả', 'week' => 'Tuần qua', 'month' => 'Tháng qua', '3months' => '3 tháng qua'] as $val => $lbl)
                                 <button wire:click="$set('filterDate', '{{ $val }}')" @click="openFilter = null"
                                     class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm transition-colors duration-150
-                                                                                    {{ $filterDate === $val ? 'text-white/95 bg-white/[0.06]' : 'text-white/70 hover:bg-white/[0.06] hover:text-white' }}">
+                                                                                        {{ $filterDate === $val ? 'text-white/95 bg-white/[0.06]' : 'text-white/70 hover:bg-white/[0.06] hover:text-white' }}">
                                     <span>{{ $lbl }}</span>
                                     @if($filterDate === $val)
                                         <i class="fa-solid fa-check text-purple-400 text-xs"></i>
@@ -99,7 +106,7 @@
                             @foreach($availableModels as $model)
                                 <button wire:click="$set('filterModel', '{{ $model['id'] }}')" @click="openFilter = null"
                                     class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm transition-colors duration-150
-                                                                                    {{ $filterModel === $model['id'] ? 'text-white/95 bg-white/[0.06]' : 'text-white/70 hover:bg-white/[0.06] hover:text-white' }}">
+                                                                                        {{ $filterModel === $model['id'] ? 'text-white/95 bg-white/[0.06]' : 'text-white/70 hover:bg-white/[0.06] hover:text-white' }}">
                                     <span>{{ $model['name'] }}</span>
                                     @if($filterModel === $model['id'])
                                         <i class="fa-solid fa-check text-purple-400 text-xs"></i>
@@ -128,7 +135,7 @@
                             @foreach(['all' => 'Tất cả', '1:1' => '1:1', '16:9' => '16:9', '9:16' => '9:16', '4:3' => '4:3', '3:4' => '3:4', '3:2' => '3:2', '2:3' => '2:3', '21:9' => '21:9'] as $val => $lbl)
                                 <button wire:click="$set('filterRatio', '{{ $val }}')" @click="openFilter = null"
                                     class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm transition-colors duration-150
-                                                                                    {{ $filterRatio === $val ? 'text-white/95 bg-white/[0.06]' : 'text-white/70 hover:bg-white/[0.06] hover:text-white' }}">
+                                                                                        {{ $filterRatio === $val ? 'text-white/95 bg-white/[0.06]' : 'text-white/70 hover:bg-white/[0.06] hover:text-white' }}">
                                     <span>{{ $lbl }}</span>
                                     @if($filterRatio === $val)
                                         <i class="fa-solid fa-check text-purple-400 text-xs"></i>
@@ -155,7 +162,7 @@
     {{-- SCROLLABLE GALLERY AREA --}}
     {{-- ============================================================ --}}
     <div id="gallery-scroll">
-        <div class="max-w-4xl mx-auto px-4 pt-16 pb-36">
+        <div class="max-w-4xl mx-auto px-4 pt-20 pb-40">
 
             {{-- Error --}}
             @if($errorMessage)
@@ -178,52 +185,57 @@
             @endif
 
             {{-- Gallery Feed --}}
-            <div class="space-y-6 px-1 md:px-2 pt-6" id="gallery-feed" data-history='@json($flatHistoryForJs)' wire:key="gallery-feed-{{ $perPage }}">
+            <div class="space-y-6 px-1 md:px-2 pt-6" id="gallery-feed" data-history='@json($flatHistoryForJs)'
+                wire:key="gallery-feed-{{ $perPage }}">
 
                 @php $absoluteIndex = 0; @endphp
 
-                <div class="space-y-6" style="visibility: hidden;" x-data x-init="
-                    requestAnimationFrame(() => {
+                <div class="space-y-6 gallery-wrapper" x-data="{ initialLoad: true }" x-init="
+                    if (initialLoad) {
+                        $el.style.visibility = 'hidden';
                         requestAnimationFrame(() => {
-                            document.documentElement.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'instant' });
-                            $el.style.visibility = 'visible';
+                            requestAnimationFrame(() => {
+                                document.documentElement.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'instant' });
+                                $el.style.visibility = 'visible';
+                                initialLoad = false;
+                            });
                         });
-                    });
+                    }
                 ">
                     {{-- Infinite Scroll Sentinel (auto-load older images on scroll up) --}}
                     @if($history instanceof \Illuminate\Pagination\LengthAwarePaginator && $history->hasMorePages())
                         <div id="load-more-sentinel" class="flex justify-center py-4" x-data="{
-                                            observer: null,
-                                            isLoading: false,
-                                            ready: false,
-                                            init() {
-                                                // Wait 2s before activating to avoid triggering on initial page load
-                                                setTimeout(() => {
-                                                    this.ready = true;
-                                                    this.observer = new IntersectionObserver((entries) => {
-                                                        entries.forEach(entry => {
-                                                            if (entry.isIntersecting && !this.isLoading && this.ready) {
-                                                                this.isLoading = true;
-                                                                const scrollH = document.documentElement.scrollHeight;
-                                                                $wire.loadMore().then(() => {
-                                                                    this.$nextTick(() => {
-                                                                        requestAnimationFrame(() => {
-                                                                            const newScrollH = document.documentElement.scrollHeight;
-                                                                            document.documentElement.scrollTop += (newScrollH - scrollH);
-                                                                            this.isLoading = false;
+                                                observer: null,
+                                                isLoading: false,
+                                                ready: false,
+                                                init() {
+                                                    // Wait 2s before activating to avoid triggering on initial page load
+                                                    setTimeout(() => {
+                                                        this.ready = true;
+                                                        this.observer = new IntersectionObserver((entries) => {
+                                                            entries.forEach(entry => {
+                                                                if (entry.isIntersecting && !this.isLoading && this.ready) {
+                                                                    this.isLoading = true;
+                                                                    const scrollH = document.documentElement.scrollHeight;
+                                                                    $wire.loadMore().then(() => {
+                                                                        this.$nextTick(() => {
+                                                                            requestAnimationFrame(() => {
+                                                                                const newScrollH = document.documentElement.scrollHeight;
+                                                                                document.documentElement.scrollTop += (newScrollH - scrollH);
+                                                                                this.isLoading = false;
+                                                                            });
                                                                         });
-                                                                    });
-                                                                }).catch(() => { this.isLoading = false; });
-                                                            }
-                                                        });
-                                                    }, { rootMargin: '100px 0px 0px 0px' });
-                                                    this.observer.observe(this.$el);
-                                                }, 2000);
-                                            },
-                                            destroy() {
-                                                if (this.observer) this.observer.disconnect();
-                                            }
-                                        }">
+                                                                    }).catch(() => { this.isLoading = false; });
+                                                                }
+                                                            });
+                                                        }, { rootMargin: '100px 0px 0px 0px' });
+                                                        this.observer.observe(this.$el);
+                                                    }, 2000);
+                                                },
+                                                destroy() {
+                                                    if (this.observer) this.observer.disconnect();
+                                                }
+                                            }">
                             <div class="flex items-center gap-2 text-white/40 text-sm" wire:loading.flex
                                 wire:target="loadMore">
                                 <i class="fa-solid fa-spinner fa-spin text-purple-400"></i>
@@ -236,7 +248,8 @@
                     @endif
 
                     {{-- Grouped Batches --}}
-                    @php $totalGroups = $groupedHistory->count(); $groupIdx = 0; @endphp
+                    @php $totalGroups = $groupedHistory->count();
+                    $groupIdx = 0; @endphp
                     @forelse($groupedHistory as $groupKey => $groupItems)
                         @php $wireKey = md5($groupKey); @endphp
                         @php
@@ -259,7 +272,8 @@
                         @endphp
 
                         {{-- Batch Group --}}
-                        <div class="space-y-2.5" x-data="{ expanded: false }" wire:key="group-{{ $wireKey }}">
+                        <div class="space-y-2.5 group-batch" x-data="{ expanded: false }" wire:key="group-{{ $wireKey }}"
+                            style="content-visibility: auto;">
 
                             {{-- Header Row: Mode > Prompt + Actions --}}
                             <div class="flex items-center gap-2">
@@ -276,7 +290,7 @@
                                     <div class="flex items-center gap-0.5 shrink-0">
                                         {{-- Copy Prompt (ghost button) --}}
                                         <button x-data="{ copied: false }"
-                                            @click="navigator.clipboard.writeText(@js($firstItem->final_prompt)); copied = true; notify('Đã copy prompt'); setTimeout(() => copied = false, 2000)"
+                                            @click="navigator.clipboard.writeText(@js($firstItem->final_prompt)); copied = true; $dispatch('show-toast', { message: 'Đã copy prompt' }); setTimeout(() => copied = false, 2000)"
                                             class="inline-flex items-center justify-center h-7 px-2 rounded-lg bg-transparent text-white/50 hover:bg-white/[0.05] hover:text-white/90 text-xs transition-all duration-200 active:scale-[0.98]"
                                             title="Copy prompt">
                                             <i :class="copied ? 'fa-solid fa-check text-green-400' : 'fa-regular fa-copy'"
@@ -319,19 +333,19 @@
                                 @foreach($groupItems as $image)
                                     <div class="block group cursor-pointer" @click="openPreview(null, {{ $absoluteIndex }})">
                                         <div class="h-full bg-white/[0.02]">
-                                            <div class="relative overflow-hidden" style="aspect-ratio: {{ $aspectRatioCss }};"
-                                                x-data="{ loaded: false }">
-                                                {{-- Shimmer --}}
-                                                <div x-show="!loaded" class="absolute inset-0 bg-white/[0.04]">
+                                            <div class="relative overflow-hidden" style="aspect-ratio: {{ $aspectRatioCss }};">
+                                                {{-- Shimmer (CSS-only, hidden when img loads) --}}
+                                                <div class="img-shimmer absolute inset-0 bg-white/[0.04]">
                                                     <div
                                                         class="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.06] to-transparent animate-shimmer">
                                                     </div>
                                                 </div>
-                                                {{-- Image --}}
+                                                {{-- Image (CSS-only fade-in, survives morph) --}}
                                                 <img src="{{ $image->image_url }}" alt="Preview"
-                                                    class="w-full h-full object-cover transition-all duration-300 ease-out group-hover:scale-[1.05]"
-                                                    :class="loaded ? 'opacity-100' : 'opacity-0'" draggable="false"
-                                                    @load="loaded = true"
+                                                    class="gallery-img w-full h-full object-cover transition-all duration-300 ease-out group-hover:scale-[1.05]"
+                                                    draggable="false"
+                                                    onload="this.classList.add('is-loaded');this.previousElementSibling.style.display='none'"
+                                                    onerror="this.classList.add('is-error');this.src='/images/placeholder-broken.svg'"
                                                     {{ $groupIdx < $totalGroups - 2 ? 'loading=lazy decoding=async' : 'fetchpriority=high' }}>
                                                 {{-- Hover Overlay + Actions --}}
                                                 <div
@@ -361,8 +375,26 @@
 
                     @empty
                         @if(!$isGenerating)
-                            <div class="py-16 sm:py-24 text-center"
-                                x-data="{ prompts: ['Một chú mèo dễ thương ngủ trên mây', 'Phong cảnh núi tuyết hoàng hôn', 'Logo công nghệ gradient xanh'] }">
+                            <div class="py-16 sm:py-24 text-center" x-data="{
+                                            allPrompts: [
+                                                'Một chú mèo dễ thương ngủ trên mây',
+                                                'Phong cảnh núi tuyết hoàng hôn',
+                                                'Logo công nghệ gradient xanh',
+                                                'Cô gái anime với đôi cánh thiên thần',
+                                                'Thành phố cyberpunk dưới mưa neon',
+                                                'Rồng phương Đông bay trên biển mây',
+                                                'Chiếc xe cổ điển trên con đường hoa anh đào',
+                                                'Lâu đài fantasy trên ngọn núi tuyết',
+                                                'Robot dễ thương đang tưới hoa',
+                                                'Bình minh trên cánh đồng hoa lavender',
+                                                'Phi hành gia lơ lửng trong không gian đầy sao',
+                                                'Quán cà phê ấm cúng ngày mưa phong cách Ghibli'
+                                            ],
+                                            get prompts() {
+                                                const shuffled = [...this.allPrompts].sort(() => Math.random() - 0.5);
+                                                return shuffled.slice(0, 3);
+                                            }
+                                        }">
                                 <div
                                     class="w-16 h-16 mx-auto rounded-2xl bg-white/[0.05] border border-white/[0.08] flex items-center justify-center mb-4 shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]">
                                     <i class="fa-solid fa-image text-3xl text-white/20"></i>
@@ -389,10 +421,10 @@
             {{-- Loading Skeleton (bottom, like chatbot) --}}
             @if($isGenerating && !$generatedImageUrl)
                 <div x-data="{ elapsed: 0, timer: null }" x-init="
-                                                                        startLoading();
-                                                                        timer = setInterval(() => elapsed++, 1000);
-                                                                        $nextTick(() => setTimeout(() => document.documentElement.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' }), 100));
-                                                                     "
+                                                                            startLoading();
+                                                                            timer = setInterval(() => elapsed++, 1000);
+                                                                            $nextTick(() => setTimeout(() => document.documentElement.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' }), 100));
+                                                                         "
                     x-effect="if (!@js($isGenerating)) { stopLoading(); clearInterval(timer); }"
                     x-on:remove="clearInterval(timer)">
                     <div
@@ -424,9 +456,9 @@
                                 </button>
                             </div>
                             {{-- Loading placeholder per batch --}}
-                            <div class="flex flex-wrap gap-1 rounded-lg overflow-hidden">
+                            <div class="grid grid-cols-2 gap-1 rounded-lg overflow-hidden">
                                 @for ($i = 0; $i < $batchSize; $i++)
-                                    <div class="bg-white/[0.03] flex items-center justify-center {{ $batchSize == 1 ? 'w-full max-w-sm' : ($batchSize == 3 && $i == 2 ? 'w-full' : 'flex-1 min-w-[45%]') }}"
+                                    <div class="bg-white/[0.03] flex items-center justify-center {{ $batchSize == 1 ? 'col-span-2 max-w-sm' : '' }}"
                                         style="aspect-ratio: {{ $aspectRatio !== 'auto' && strpos($aspectRatio, ':') !== false ? str_replace(':', ' / ', $aspectRatio) : '1 / 1' }};">
                                         <div
                                             class="w-6 h-6 border-2 border-purple-500/40 border-t-transparent rounded-full animate-spin">
@@ -444,8 +476,11 @@
     {{-- ============================================================ --}}
     {{-- FIXED INPUT BAR (inside textToImage Alpine scope) --}}
     {{-- ============================================================ --}}
-    <div class="fixed bottom-[60px] md:bottom-0 left-0 right-0 md:left-[72px] z-[60]"
-        @click.away="showRatioDropdown = false; showModelDropdown = false; showBatchDropdown = false">
+    <div class="fixed left-0 right-0 md:left-[72px] z-[60] safe-area-bottom"
+        style="bottom: calc(60px + env(safe-area-inset-bottom, 0px)); --md-bottom: 0px;"
+        x-bind:style="window.innerWidth >= 768 ? 'bottom: 0' : ''"
+        @click.away="showRatioDropdown = false; showModelDropdown = false; showBatchDropdown = false"
+        @show-toast.window="notify($event.detail.message)">
 
 
         <div class="max-w-4xl mx-auto px-3 sm:px-4 pb-3 sm:pb-4 pt-3">
@@ -463,8 +498,11 @@
                     <textarea x-ref="promptInput" wire:model.live.debounce.500ms="prompt" rows="2"
                         placeholder="Mô tả ý tưởng của bạn..."
                         class="w-full min-h-[48px] max-h-[160px] bg-transparent border-none outline-none ring-0 focus:ring-0 focus:outline-none text-white placeholder-white/40 text-sm sm:text-base resize-none focus:placeholder-white/60 transition-all overflow-y-auto"
-                        x-init="$watch('$wire.prompt', () => { $el.style.height = 'auto'; $el.style.height = Math.min($el.scrollHeight, 160) + 'px'; })"
-                        @keydown.ctrl.enter.prevent="$wire.generate()" @keydown.meta.enter.prevent="$wire.generate()" {{ $isGenerating ? 'disabled' : '' }}></textarea>
+                        x-init="
+                            $watch('$wire.prompt', () => { $el.style.height = 'auto'; $el.style.height = Math.min($el.scrollHeight, 160) + 'px'; });
+                            if (window.innerWidth >= 768) { $nextTick(() => $el.focus()); }
+                        " @keydown.ctrl.enter.prevent="$wire.generate()" @keydown.meta.enter.prevent="$wire.generate()"
+                        {{ $isGenerating ? 'disabled' : '' }}></textarea>
 
                     {{-- Character counter + keyboard hint --}}
                     <div class="flex items-center justify-between -mt-1 mb-1" x-show="$wire.prompt?.length > 0">
@@ -735,7 +773,7 @@
                                     <span class="text-white/70 text-xs font-medium hidden sm:inline"
                                         x-text="'Số lượng: ' + $wire.batchSize"></span>
                                     <span class="text-white/70 text-xs font-medium sm:hidden"
-                                        x-text="$wire.batchSize"></span>
+                                        x-text="'x' + $wire.batchSize"></span>
                                 </button>
 
                                 {{-- Batch Dropdown - Desktop --}}
@@ -822,14 +860,16 @@
                             </button>
                         @else
                             <button type="button" wire:click="generate"
-                                class="shrink-0 flex items-center gap-2 px-4 sm:px-6 py-2.5 rounded-xl bg-gradient-to-r from-purple-500 via-fuchsia-500 to-pink-500 text-white font-semibold text-sm shadow-lg shadow-purple-500/25 hover:scale-[1.02] hover:shadow-xl hover:shadow-purple-500/40 active:scale-[0.98] transition-all duration-200"
-                                wire:loading.attr="disabled" wire:loading.class="opacity-50 pointer-events-none" wire:target="generate">
+                                class="shrink-0 flex items-center gap-1.5 sm:gap-2 px-3 sm:px-6 py-2.5 rounded-xl bg-gradient-to-r from-purple-500 via-fuchsia-500 to-pink-500 text-white font-semibold text-sm shadow-lg shadow-purple-500/25 hover:scale-[1.02] hover:shadow-xl hover:shadow-purple-500/40 active:scale-[0.98] transition-all duration-200"
+                                wire:loading.attr="disabled" wire:loading.class="opacity-50 pointer-events-none"
+                                wire:target="generate">
                                 <span wire:loading.remove wire:target="generate"><i
                                         class="fa-solid fa-wand-magic-sparkles text-sm"></i></span>
                                 <span wire:loading wire:target="generate"><i
                                         class="fa-solid fa-spinner fa-spin text-sm"></i></span>
-                                <span>Tạo ảnh</span>
-                                <span class="text-white/60 text-xs font-normal">· {{ $creditCost }} credits</span>
+                                <span class="hidden sm:inline">Tạo ảnh</span>
+                                <span class="text-white/60 text-[11px] sm:text-xs font-normal">{{ $creditCost }} <span
+                                        class="hidden sm:inline">credits</span><span class="sm:hidden">cr</span></span>
                             </button>
                         @endif
                     </div>
@@ -857,6 +897,44 @@
             padding-top: env(safe-area-inset-top, 0px);
         }
 
+        /* #1/#3: CSS-only image loading (survives Livewire morph) */
+        .gallery-img {
+            opacity: 0;
+            transition: opacity 0.3s ease-out;
+        }
+
+        .gallery-img.is-loaded {
+            opacity: 1;
+        }
+
+        .gallery-img.is-error {
+            opacity: 0.5;
+            object-fit: contain;
+        }
+
+        /* #4/#16: New image entrance animation */
+        @keyframes image-entrance {
+            from {
+                opacity: 0;
+                transform: scale(0.92) translateY(12px);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        .new-batch-animate {
+            animation: image-entrance 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        .new-batch-glow {
+            box-shadow: 0 0 20px rgba(168, 85, 247, 0.3), 0 0 40px rgba(168, 85, 247, 0.1);
+            border-radius: 0.5rem;
+            transition: box-shadow 3s ease-out;
+        }
+
         @keyframes shimmer {
             0% {
                 transform: translateX(-100%);
@@ -882,6 +960,20 @@
             50% {
                 opacity: 1;
                 transform: translateX(0%);
+            }
+        }
+
+        /* #8: Responsive filter bar spacing */
+        @media (max-width: 640px) {
+            #gallery-scroll>div:first-child {
+                padding-top: 5.5rem;
+            }
+        }
+
+        /* Fix input bar for md+ */
+        @media (min-width: 768px) {
+            .input-bar-fixed {
+                bottom: 0 !important;
             }
         }
     </style>
@@ -955,17 +1047,32 @@
                 ])),
 
                 init() {
-                    // Auto-scroll handled by gallery x-data init (instant + fade-in)
+                    // #18: Auto-scroll handled by gallery x-data init (instant + fade-in)
 
-                    // Scroll to bottom when new image generated
+                    // #4/#16: Scroll + celebrate when new image generated
                     this.$wire.$on('imageGenerated', () => {
                         this.$nextTick(() => {
-                            setTimeout(() => this.scrollToBottom(true), 300);
+                            setTimeout(() => {
+                                this.scrollToBottom(true);
+                                // Highlight the newest batch
+                                const batches = document.querySelectorAll('.group-batch');
+                                const lastBatch = batches[batches.length - 1];
+                                if (lastBatch) {
+                                    lastBatch.classList.add('new-batch-animate', 'new-batch-glow');
+                                    setTimeout(() => {
+                                        lastBatch.classList.remove('new-batch-glow');
+                                    }, 3000);
+                                    setTimeout(() => {
+                                        lastBatch.classList.remove('new-batch-animate');
+                                    }, 600);
+                                }
+                                this.notify('🎨 Đã tạo xong ảnh!');
+                            }, 300);
                         });
                     });
 
                     // Update historyData after Livewire re-renders
-                    Livewire.hook('morph.updated', ({ el }) => {
+                    this._morphHook = Livewire.hook('morph.updated', ({ el }) => {
                         // Only re-sync when gallery-feed was morphed
                         if (el.id === 'gallery-feed' || el.querySelector?.('#gallery-feed')) {
                             const dataEl = document.getElementById('gallery-feed');
@@ -976,6 +1083,17 @@
                             }
                         }
                     });
+
+                    // #20: Listen for toast dispatches from nested scopes
+                    // (handled via @show-toast.window on input bar wrapper)
+
+                    // #22: Cleanup on SPA navigation
+                    document.addEventListener('livewire:navigating', () => {
+                        if (this._morphHook) {
+                            // Livewire hooks are auto-cleaned, but let's be safe
+                            this._morphHook = null;
+                        }
+                    }, { once: true });
                 },
 
                 // ============================================================

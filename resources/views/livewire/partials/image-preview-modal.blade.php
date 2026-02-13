@@ -9,7 +9,7 @@
 
         <div x-show="showPreview" x-transition:enter="transition ease-out duration-300"
             x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
-            class="relative max-w-4xl w-full mx-4" @click.stop>
+            class="relative max-w-5xl w-full mx-4" @click.stop>
 
             {{-- Close --}}
             <button @click="closePreview()"
@@ -29,7 +29,8 @@
 
             {{-- Image + Info --}}
             <div class="rounded-2xl overflow-hidden bg-[#15161A] border border-white/10">
-                <img :src="previewImage?.url" alt="Preview" class="w-full max-h-[70vh] object-contain">
+                <img :src="previewImage?.url" alt="Preview"
+                    class="w-full max-h-[80vh] object-contain transition-opacity duration-200" :key="previewIndex">
 
                 <div class="p-5 border-t border-white/5">
                     {{-- Prompt --}}
@@ -109,22 +110,41 @@
                 class="absolute left-2 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/60 text-white/80 flex items-center justify-center active:scale-95 z-10 backdrop-blur-sm">
                 <i class="fa-solid fa-chevron-left"></i>
             </button>
-            <img :src="previewImage?.url" alt="Preview" class="max-w-full max-h-full object-contain rounded-xl">
+            <img :src="previewImage?.url" alt="Preview"
+                class="max-w-full max-h-full object-contain rounded-xl transition-opacity duration-200"
+                :key="previewIndex">
             <button x-show="previewIndex < historyData.length - 1" @click="nextImage()"
                 class="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/60 text-white/80 flex items-center justify-center active:scale-95 z-10 backdrop-blur-sm">
                 <i class="fa-solid fa-chevron-right"></i>
             </button>
 
-            {{-- Dots --}}
+            {{-- Dots (sliding window of 7 max) --}}
             <div class="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1.5 px-2 py-1 rounded-full bg-black/40 backdrop-blur-sm"
-                x-show="historyData.length > 1 && historyData.length <= 10">
-                <template x-for="(_, i) in historyData.slice(0, 10)" :key="i">
+                x-show="historyData.length > 1 && historyData.length <= 7">
+                <template x-for="(_, i) in historyData.slice(0, 7)" :key="i">
                     <button @click="goToImage(i)" class="w-2 h-2 rounded-full transition-all"
                         :class="previewIndex === i ? 'bg-white scale-125' : 'bg-white/40'"></button>
                 </template>
             </div>
+            {{-- Sliding window dots for 8-30 images --}}
+            <div class="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1.5 px-2 py-1 rounded-full bg-black/40 backdrop-blur-sm"
+                x-show="historyData.length > 7 && historyData.length <= 30" x-data="{
+                    get visibleDots() {
+                        const total = this.historyData.length;
+                        const max = 7;
+                        let start = Math.max(0, this.previewIndex - Math.floor(max / 2));
+                        let end = Math.min(total, start + max);
+                        if (end - start < max) start = Math.max(0, end - max);
+                        return Array.from({length: end - start}, (_, i) => start + i);
+                    }
+                }">
+                <template x-for="i in visibleDots" :key="i">
+                    <button @click="goToImage(i)" class="rounded-full transition-all"
+                        :class="previewIndex === i ? 'w-2.5 h-2.5 bg-white' : (Math.abs(previewIndex - i) <= 1 ? 'w-2 h-2 bg-white/50' : 'w-1.5 h-1.5 bg-white/30')"></button>
+                </template>
+            </div>
             <div class="absolute bottom-2 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-black/40 backdrop-blur-sm text-white/70 text-xs"
-                x-show="historyData.length > 10" x-text="(previewIndex + 1) + ' / ' + historyData.length"></div>
+                x-show="historyData.length > 30" x-text="(previewIndex + 1) + ' / ' + historyData.length"></div>
         </div>
 
         {{-- Prompt --}}
@@ -145,24 +165,24 @@
         {{-- Actions --}}
         <div class="shrink-0 grid grid-cols-4 gap-2 p-4 bg-[#0a0a0f] border-t border-white/5 safe-area-bottom">
             <button @click="downloadImage(previewImage?.url)"
-                class="flex flex-col items-center gap-1 py-2.5 rounded-xl bg-white/10 active:bg-white/20 transition-colors">
+                class="flex flex-col items-center gap-1.5 py-3 rounded-xl bg-white/10 active:bg-white/20 transition-colors">
                 <i class="fa-solid fa-download text-white/70"></i><span
-                    class="text-white/60 text-[10px] font-medium">Tải</span>
+                    class="text-white/60 text-xs font-medium">Tải</span>
             </button>
             <button @click="shareImage()"
-                class="flex flex-col items-center gap-1 py-2.5 rounded-xl bg-white/10 active:bg-white/20 transition-colors">
+                class="flex flex-col items-center gap-1.5 py-3 rounded-xl bg-white/10 active:bg-white/20 transition-colors">
                 <i class="fa-solid fa-share-nodes text-white/70"></i><span
-                    class="text-white/60 text-[10px] font-medium">Chia sẻ</span>
+                    class="text-white/60 text-xs font-medium">Chia sẻ</span>
             </button>
             <button @click="useAsReference()"
-                class="flex flex-col items-center gap-1 py-2.5 rounded-xl bg-purple-500/20 active:bg-purple-500/30 transition-colors">
+                class="flex flex-col items-center gap-1.5 py-3 rounded-xl bg-purple-500/20 active:bg-purple-500/30 transition-colors">
                 <i class="fa-solid fa-images text-purple-400"></i><span
-                    class="text-purple-300 text-[10px] font-medium">Mẫu</span>
+                    class="text-purple-300 text-xs font-medium">Mẫu</span>
             </button>
             <button @click="copyPrompt()"
-                class="flex flex-col items-center gap-1 py-2.5 rounded-xl bg-white/10 active:bg-white/20 transition-colors">
+                class="flex flex-col items-center gap-1.5 py-3 rounded-xl bg-white/10 active:bg-white/20 transition-colors">
                 <i class="fa-solid fa-copy text-white/70"></i><span
-                    class="text-white/60 text-[10px] font-medium">Copy</span>
+                    class="text-white/60 text-xs font-medium">Copy</span>
             </button>
         </div>
     </div>

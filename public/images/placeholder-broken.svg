@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200" fill="none">
+  <rect width="200" height="200" rx="8" fill="#1a1a2e"/>
+  <path d="M100 60 L85 90 L70 85 L55 110 L145 110 L130 80 L115 95 L100 60Z" fill="#2a2a4a" stroke="#4a4a6a" stroke-width="1.5"/>
+  <circle cx="75" cy="73" r="8" fill="#4a4a6a"/>
+  <path d="M88 130 L90 140 L95 132 L100 145 L105 132 L110 140 L112 130" stroke="#6b46c1" stroke-width="2" stroke-linecap="round" fill="none" opacity="0.6"/>
+  <text x="100" y="165" text-anchor="middle" fill="#666" font-family="system-ui" font-size="11">Ảnh không khả dụng</text>
+</svg>
