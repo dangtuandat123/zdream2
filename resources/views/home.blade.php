@@ -164,97 +164,7 @@
             </h1>
 
             <!-- Prompt Input Bar - Enhanced -->
-            <form action="{{ route('create') }}" method="GET"
-                class="w-full max-w-2xl mx-auto mb-6 sm:mb-8 group/form relative z-50" x-data="{
-                    showImagePicker: false,
-                    selectedImages: [],
-                    maxImages: 4,
-                    isDragging: false,
-                    recentImages: [],
-                    isLoading: false,
-                    urlInput: '',
-                    activeTab: 'upload',
-                    
-                    async loadRecentImages() {
-                        if (this.recentImages.length > 0) return;
-                        this.isLoading = true;
-                        try {
-                            const response = await fetch('/api/user/recent-images');
-                            if (response.ok) {
-                                const data = await response.json();
-                                this.recentImages = data.images || [];
-                            }
-                        } catch (e) {
-                            console.log('Could not load recent images');
-                        }
-                        this.isLoading = false;
-                    },
-                    
-                    handleFileSelect(event) {
-                        const files = Array.from(event.target.files);
-                        files.forEach(file => this.processFile(file));
-                        event.target.value = '';
-                    },
-                    
-                    handleDrop(event) {
-                        this.isDragging = false;
-                        const files = Array.from(event.dataTransfer.files);
-                        files.forEach(file => this.processFile(file));
-                    },
-                    
-                    processFile(file) {
-                        if (this.selectedImages.length >= this.maxImages) {
-                            alert('Tối đa ' + this.maxImages + ' ảnh');
-                            return;
-                        }
-                        if (!file.type.startsWith('image/')) return;
-                        if (file.size > 10 * 1024 * 1024) {
-                            alert('Ảnh quá lớn (tối đa 10MB)');
-                            return;
-                        }
-                        const url = URL.createObjectURL(file);
-                        this.selectedImages.push({ type: 'file', file: file, url: url, id: Date.now() + Math.random() });
-                    },
-                    
-                    addFromUrl() {
-                        if (!this.urlInput.trim()) return;
-                        if (this.selectedImages.length >= this.maxImages) {
-                            alert('Tối đa ' + this.maxImages + ' ảnh');
-                            return;
-                        }
-                        if (!this.urlInput.match(/^https?:\/\/.+/)) {
-                            alert('URL không hợp lệ');
-                            return;
-                        }
-                        this.selectedImages.push({ type: 'url', url: this.urlInput.trim(), id: Date.now() });
-                        this.urlInput = '';
-                    },
-                    
-                    selectFromRecent(imageUrl) {
-                        if (this.selectedImages.length >= this.maxImages) {
-                            alert('Tối đa ' + this.maxImages + ' ảnh');
-                            return;
-                        }
-                        if (this.selectedImages.find(img => img.url === imageUrl)) return;
-                        this.selectedImages.push({ type: 'url', url: imageUrl, id: Date.now() });
-                    },
-                    
-                    isSelected(imageUrl) {
-                        return this.selectedImages.find(img => img.url === imageUrl);
-                    },
-                    
-                    removeImage(id) {
-                        this.selectedImages = this.selectedImages.filter(img => img.id !== id);
-                    },
-                    
-                    clearAll() {
-                        this.selectedImages = [];
-                    },
-                    
-                    confirmSelection() {
-                        this.showImagePicker = false;
-                    }
-                }">
+<div class="w-full max-w-2xl mx-auto mb-6 sm:mb-8 group/form relative z-50">
                 <div class="relative">
                     <!-- Glow effect -->
                     <div
@@ -377,6 +287,8 @@
         </button>
     </div>
 </form>
+</div>
+</div>
 
             <!-- Tool Icons - Grid on mobile, inline on desktop -->
             <div
