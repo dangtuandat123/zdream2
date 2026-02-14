@@ -64,12 +64,21 @@ class GenerateImageJob implements ShouldQueue
         StorageService $storageService,
         WalletService $walletService
     ): void {
-        $generatedImage = $this->generatedImage;
+        $generatedImage = $this->generatedImage->fresh() ?? $this->generatedImage;
+        if (!in_array($generatedImage->status, [GeneratedImage::STATUS_PENDING, GeneratedImage::STATUS_PROCESSING], true)) {
+            Log::info('GenerateImageJob skipped because image is no longer pending/processing', [
+                'image_id' => $generatedImage->id,
+                'status' => $generatedImage->status,
+            ]);
+            return;
+        }
+
+        if ($generatedImage->status === GeneratedImage::STATUS_PENDING) {
+            $generatedImage->markAsProcessing();
+        }
+
         $user = $generatedImage->user;
         $style = $generatedImage->style;
-
-        // Fix: Mark as processing when job starts
-        $generatedImage->update(['status' => GeneratedImage::STATUS_PROCESSING]);
 
         if (!$user || !$style) {
             Log::error('GenerateImageJob: Missing user or style', [

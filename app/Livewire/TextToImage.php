@@ -18,8 +18,8 @@ use Livewire\Component;
 /**
  * Livewire Component: TextToImage
  * 
- * Giao diện đơn giản để tạo ảnh từ prompt text.
- * Không cần chọn Style - sử dụng system style mặc định.
+ * Giao dien don gian de tao anh tu prompt text.
+ * Khong can chon Style - su dung system style mac dinh.
  */
 class TextToImage extends Component
 {
@@ -45,6 +45,7 @@ class TextToImage extends Component
     // Async mode
     public bool $useAsyncMode = true;
     public int $pollingInterval = 2000;
+    public int $lastPolledCompletedCount = 0;
 
     // History data
     public int $perPage = 6; // Load a small newest batch first; older history loads progressively
@@ -209,26 +210,26 @@ class TextToImage extends Component
 
         $user = Auth::user();
         if (!$user) {
-            $this->errorMessage = 'Vui lòng đăng nhập để tạo ảnh.';
+            $this->errorMessage = 'Vui long dang nhap de tao anh.';
             return;
         }
 
         // Validate prompt
         $prompt = trim($this->prompt);
         if (empty($prompt)) {
-            $this->errorMessage = 'Vui lòng nhập mô tả hình ảnh.';
+            $this->errorMessage = 'Vui long nhap mo ta hinh anh.';
             return;
         }
 
         if (mb_strlen($prompt) > 2000) {
-            $this->errorMessage = 'Mô tả quá dài (tối đa 2000 ký tự).';
+            $this->errorMessage = 'Mo ta qua dai (toi da 2000 ky tu).';
             return;
         }
 
         // Check credits for TOTAL batch
         $totalCost = $this->creditCost * $this->batchSize;
         if ($totalCost > 0 && !$user->hasEnoughCredits($totalCost)) {
-            $this->errorMessage = "Bạn không đủ credits. Cần: {$totalCost}, Hiện có: {$user->credits}";
+            $this->errorMessage = "Ban khong du credits. Can: {$totalCost}, Hien co: {$user->credits}";
             return;
         }
 
@@ -257,22 +258,16 @@ class TextToImage extends Component
                     $systemStyle = Style::create([
                         'name' => 'Text to Image',
                         'slug' => Style::SYSTEM_T2I_SLUG,
-                        'description' => 'Tạo ảnh AI từ mô tả văn bản.',
+                        'description' => 'Tao anh AI tu mo ta van ban.',
                         'price' => $this->creditCost,
                         'bfl_model_id' => $this->modelId,
                         'is_active' => true,
                         'is_system' => true,
                         'allow_user_custom_prompt' => true,
                     ]);
-                } else {
-                    // Always sync model to user selection (Bug 3 fix)
-                    if ($systemStyle->bfl_model_id !== $this->modelId) {
-                        $systemStyle->bfl_model_id = $this->modelId;
-                        $systemStyle->save();
-                    }
                 }
 
-                // Resolve auto ratio — store user choice + effective value for API
+                // Resolve auto ratio - store user choice + effective value for API
                 $effectiveRatio = $this->aspectRatio === 'auto' ? null : $this->aspectRatio;
 
                 $generationParams = [
@@ -303,7 +298,7 @@ class TextToImage extends Component
                     $walletService->deductCredits(
                         $user,
                         $this->creditCost,
-                        "Tạo ảnh Text-to-Image (Batch " . ($i + 1) . ")",
+                        "Tao anh Text-to-Image (Batch " . ($i + 1) . ")",
                         'generation',
                         (string) $generatedImage->id
                     );
@@ -336,8 +331,10 @@ class TextToImage extends Component
                 } else {
                     // Sync fallback
                     $bflService = app(BflService::class);
+                    $syncStyle = clone $systemStyle;
+                    $syncStyle->bfl_model_id = $this->modelId;
                     $result = $bflService->generateImage(
-                        $systemStyle,
+                        $syncStyle,
                         [],
                         $prompt,
                         $effectiveRatio ?? $this->aspectRatio,
@@ -357,7 +354,19 @@ class TextToImage extends Component
                     } else {
                         $generatedImage->markAsFailed($result['error'] ?? 'Error');
                         if ($creditsDeducted) {
-                            $walletService->addCredits($user, $this->creditCost, 'refund', 'refund', (string) $generatedImage->id);
+                            try {
+                                $walletService->refundCredits(
+                                    $user,
+                                    $this->creditCost,
+                                    'Generation failed',
+                                    (string) $generatedImage->id
+                                );
+                            } catch (\Throwable $refundError) {
+                                Log::error('Sync refund failed', [
+                                    'image_id' => $generatedImage->id,
+                                    'error' => $refundError->getMessage(),
+                                ]);
+                            }
                         }
                     }
                 }
@@ -368,7 +377,19 @@ class TextToImage extends Component
                     $generatedImage->markAsFailed($e->getMessage());
                 }
                 if ($creditsDeducted && isset($walletService)) {
-                    $walletService->addCredits($user, $this->creditCost, 'refund', 'refund', $generatedImage ? (string) $generatedImage->id : null);
+                    try {
+                        $walletService->refundCredits(
+                            $user,
+                            $this->creditCost,
+                            'Generation exception',
+                            $generatedImage ? (string) $generatedImage->id : null
+                        );
+                    } catch (\Throwable $refundError) {
+                        Log::error('Exception refund failed', [
+                            'image_id' => $generatedImage?->id,
+                            'error' => $refundError->getMessage(),
+                        ]);
+                    }
                 }
             }
         }
@@ -398,16 +419,46 @@ class TextToImage extends Component
             ->first();
 
         if ($firstPending && $firstPending->created_at->diffInMinutes(now()) > $timeoutMinutes) {
-            GeneratedImage::whereIn('id', $this->generatingImageIds)
+            $pendingImages = GeneratedImage::whereIn('id', $this->generatingImageIds)
                 ->whereIn('status', [GeneratedImage::STATUS_PENDING, GeneratedImage::STATUS_PROCESSING])
-                ->update(['status' => GeneratedImage::STATUS_FAILED, 'error_message' => 'Timeout: Generation took too long']);
+                ->get();
+
+            $walletService = app(WalletService::class);
+            $authUser = Auth::user();
+
+            foreach ($pendingImages as $image) {
+                $image->markAsFailed('Timeout: Generation took too long');
+
+                if (!$authUser || $image->user_id !== $authUser->id || (float) $image->credits_used <= 0) {
+                    continue;
+                }
+
+                try {
+                    $walletService->refundCredits(
+                        $authUser,
+                        (float) $image->credits_used,
+                        'Generation timeout',
+                        (string) $image->id
+                    );
+                } catch (\Throwable $e) {
+                    Log::error('Failed to refund timeout generation', [
+                        'image_id' => $image->id,
+                        'error' => $e->getMessage(),
+                    ]);
+                }
+            }
 
             $this->isGenerating = false;
             $this->generatingImageIds = [];
-            $this->errorMessage = 'Quá trình tạo ảnh mất quá nhiều thời gian. Vui lòng thử lại.';
+            $this->lastPolledCompletedCount = 0;
+            $this->errorMessage = 'Qua trinh tao anh mat qua nhieu thoi gian. Vui long thu lai.';
             $this->dispatch('imageGenerationFailed');
             return;
         }
+
+        $completedCount = GeneratedImage::whereIn('id', $this->generatingImageIds)
+            ->where('status', GeneratedImage::STATUS_COMPLETED)
+            ->count();
 
         // Count pending
         $pendingCount = GeneratedImage::whereIn('id', $this->generatingImageIds)
@@ -417,16 +468,20 @@ class TextToImage extends Component
             })
             ->count();
 
-        // Fix 1: Skip re-render while still pending to prevent gallery flash
+        // Render only when there is newly completed output while batch is still pending.
         if ($pendingCount > 0) {
+            if ($completedCount > $this->lastPolledCompletedCount) {
+                $this->lastPolledCompletedCount = $completedCount;
+                return;
+            }
+
             $this->skipRender();
             return;
         }
 
-        // All done — allow full re-render
+        // All done - allow full re-render
         $this->isGenerating = false;
-        $successCount = GeneratedImage::whereIn('id', $this->generatingImageIds)
-            ->where('status', GeneratedImage::STATUS_COMPLETED)->count();
+        $successCount = $completedCount;
         $failedCount = count($this->generatingImageIds) - $successCount;
         $lastId = end($this->generatingImageIds);
         if ($lastId) {
@@ -434,6 +489,7 @@ class TextToImage extends Component
             $this->generatedImageUrl = $img ? $img->image_url : null;
         }
         $this->generatingImageIds = [];
+        $this->lastPolledCompletedCount = 0;
         if ($successCount > 0) {
             $this->dispatch('imageGenerated', successCount: $successCount, failedCount: $failedCount);
         } else {
@@ -446,32 +502,7 @@ class TextToImage extends Component
         $this->errorMessage = null;
         $this->generatedImageUrl = null;
         $this->generatingImageIds = [];
-    }
-
-    protected function handleRefund(
-        WalletService $walletService,
-        $user,
-        bool $creditsDeducted,
-        string $reason,
-        ?GeneratedImage $generatedImage = null
-    ): bool {
-        if (!$creditsDeducted || $this->creditCost <= 0) {
-            return false;
-        }
-
-        try {
-            $walletService->addCredits(
-                $user,
-                $this->creditCost,
-                "Hoàn tiền: {$reason}",
-                'refund',
-                $generatedImage ? (string) $generatedImage->id : null
-            );
-            return true;
-        } catch (\Exception $e) {
-            Log::error('Refund failed', ['error' => $e->getMessage()]);
-            return false;
-        }
+        $this->lastPolledCompletedCount = 0;
     }
 
     public function resetForm(): void
@@ -533,23 +564,40 @@ class TextToImage extends Component
     {
         if ($this->isGenerating && !empty($this->generatingImageIds)) {
             $walletService = app(WalletService::class);
+            $authUser = Auth::user();
             foreach ($this->generatingImageIds as $imageId) {
                 $image = GeneratedImage::find($imageId);
-                if ($image && $image->user_id === Auth::id() && $image->status === GeneratedImage::STATUS_PROCESSING) {
-                    $image->markAsFailed('Đã hủy bởi user');
-                    $walletService->addCredits(
-                        Auth::user(),
-                        $this->creditCost,
-                        'Hoàn tiền: Hủy tạo ảnh',
-                        'refund',
-                        (string) $image->id
-                    );
+                if (!$image || $image->user_id !== Auth::id()) {
+                    continue;
+                }
+
+                if (!in_array($image->status, [GeneratedImage::STATUS_PENDING, GeneratedImage::STATUS_PROCESSING], true)) {
+                    continue;
+                }
+
+                $image->markAsFailed('Da huy boi user');
+
+                if ($authUser && (float) $image->credits_used > 0) {
+                    try {
+                        $walletService->refundCredits(
+                            $authUser,
+                            (float) $image->credits_used,
+                            'Huy tao anh',
+                            (string) $image->id
+                        );
+                    } catch (\Throwable $e) {
+                        Log::error('Cancel refund failed', [
+                            'image_id' => $image->id,
+                            'error' => $e->getMessage(),
+                        ]);
+                    }
                 }
             }
         }
 
         $this->isGenerating = false;
         $this->generatingImageIds = [];
+        $this->lastPolledCompletedCount = 0;
         $this->errorMessage = null;
     }
 
@@ -601,3 +649,4 @@ class TextToImage extends Component
         ]);
     }
 }
+

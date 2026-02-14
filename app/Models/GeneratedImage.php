@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
@@ -181,13 +182,18 @@ class GeneratedImage extends Model
      */
     protected function buildMinioTemporaryUrl(string $path, Carbon $expiresAt): ?string
     {
+        /** @var FilesystemAdapter $disk */
         $disk = Storage::disk('minio');
 
-        if (is_object($disk) && method_exists($disk, 'temporaryUrl')) {
-            return $disk->temporaryUrl($path, $expiresAt);
+        if (!$disk instanceof FilesystemAdapter) {
+            return null;
         }
 
-        return null;
+        try {
+            return $disk->temporaryUrl($path, $expiresAt);
+        } catch (\Throwable $e) {
+            return null;
+        }
     }
 
     /**
@@ -195,9 +201,10 @@ class GeneratedImage extends Model
      */
     protected function buildMinioPublicUrl(string $path): ?string
     {
+        /** @var FilesystemAdapter $disk */
         $disk = Storage::disk('minio');
 
-        if (is_object($disk) && method_exists($disk, 'url')) {
+        if ($disk instanceof FilesystemAdapter) {
             return $disk->url($path);
         }
 

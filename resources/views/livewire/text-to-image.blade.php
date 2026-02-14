@@ -280,6 +280,7 @@
                 prependBeforeScrollY: 0,
                 prependBeforeHeight: 0,
                 prependBoundaryId: null,
+                prependBoundaryTop: null,
                 centerAfterPrepend: false,
                 lastLoadMoreAt: 0,
                 lastScrollY: 0,
@@ -287,8 +288,8 @@
                 canScrollVertically: false,
                 bootstrapLoadCount: 0,
                 maxBootstrapLoads: 4,
-                loadOlderStep: 3,
-                bootstrapStep: 2,
+                loadOlderStep: 4,
+                bootstrapStep: 3,
 
                 // Dynamic max images based on selected model
                 get maxImages() {
@@ -436,11 +437,14 @@
                                     cancelAnimationFrame(this._prependRestoreRaf);
                                     this._prependRestoreRaf = null;
                                 }
-                                // Apply a single correction frame:
-                                // prefer centering the newly loaded item; fallback to residual restore.
+                                // Apply a single correction frame after DOM morph.
                                 this._prependRestoreRaf = requestAnimationFrame(() => {
-                                    const centered = this.centerPrependedItem();
-                                    if (!centered) {
+                                    if (this.centerAfterPrepend) {
+                                        const centered = this.centerPrependedItem();
+                                        if (!centered) {
+                                            this.restorePrependAnchor();
+                                        }
+                                    } else {
                                         this.restorePrependAnchor();
                                     }
                                     this._prependRestoreRaf = null;
@@ -452,6 +456,7 @@
                             this.prependBeforeScrollY = 0;
                             this.prependBeforeHeight = 0;
                             this.prependBoundaryId = null;
+                            this.prependBoundaryTop = null;
                             this.centerAfterPrepend = false;
                             clearTimeout(this._loadMoreFailSafeTimer);
                             this._loadMoreFailSafeTimer = null;
@@ -586,6 +591,7 @@
                     this.prependBeforeScrollY = 0;
                     this.prependBeforeHeight = 0;
                     this.prependBoundaryId = null;
+                    this.prependBoundaryTop = null;
                     this.centerAfterPrepend = false;
                     document.body.style.overflow = '';
                     document.documentElement.style.overflow = '';
@@ -674,19 +680,40 @@
                     );
                     const boundary = groups.find((el) => el.getBoundingClientRect().bottom > 0) || groups[0] || null;
                     this.prependBoundaryId = boundary?.dataset?.historyAnchorId ?? null;
+                    this.prependBoundaryTop = boundary ? boundary.getBoundingClientRect().top : null;
                 },
                 restorePrependAnchor() {
                     const doc = document.documentElement;
-                    const currentY = window.scrollY || doc.scrollTop || 0;
-                    const currentHeight = doc.scrollHeight || 0;
-                    if (this.prependBeforeHeight > 0) {
+                    let restored = false;
+
+                    if (this.prependBoundaryId !== null && this.prependBoundaryTop !== null) {
+                        const groups = Array.from(
+                            document.querySelectorAll('#gallery-feed .group-batch[data-history-anchor-id]')
+                        );
+                        const boundary = groups.find(
+                            (el) => String(el?.dataset?.historyAnchorId ?? '') === String(this.prependBoundaryId)
+                        );
+
+                        if (boundary) {
+                            const currentY = window.scrollY || doc.scrollTop || 0;
+                            const delta = boundary.getBoundingClientRect().top - this.prependBoundaryTop;
+                            if (Math.abs(delta) > 1) {
+                                window.scrollTo(0, Math.max(0, Math.round(currentY + delta)));
+                            }
+                            restored = true;
+                        }
+                    }
+
+                    if (!restored && this.prependBeforeHeight > 0) {
+                        const currentY = window.scrollY || doc.scrollTop || 0;
+                        const currentHeight = doc.scrollHeight || 0;
                         const expectedY = this.prependBeforeScrollY + Math.max(0, currentHeight - this.prependBeforeHeight);
                         const residual = expectedY - currentY;
                         if (Math.abs(residual) > 1) {
-                            // Instant correction: avoid smooth animation jitter during prepend.
-                            window.scrollTo(0, expectedY);
+                            window.scrollTo(0, Math.max(0, Math.round(expectedY)));
                         }
                     }
+
                     this.refreshScrollState();
                 },
                 centerPrependedItem() {
@@ -747,7 +774,7 @@
                     this.capturePrependAnchor();
                     this.loadingMoreHistory = true;
                     this.isPrependingHistory = true;
-                    this.centerAfterPrepend = source !== 'bootstrap';
+                    this.centerAfterPrepend = source === 'manual';
 
                     const fallbackStep = Number.isFinite(this.loadOlderStep) ? this.loadOlderStep : 1;
                     const requested = Number.isFinite(count) ? count : fallbackStep;
@@ -761,6 +788,7 @@
                         this.prependBeforeScrollY = 0;
                         this.prependBeforeHeight = 0;
                         this.prependBoundaryId = null;
+                        this.prependBoundaryTop = null;
                         this.centerAfterPrepend = false;
                         this._loadMoreFailSafeTimer = null;
                     }, 7000);
@@ -829,6 +857,20 @@
                         this.previewIndex = index;
                         this.previewImage = this.historyData[index];
                     }
+                },
+                goToDot(position) {
+                    const dot = this.previewDotAt(position);
+                    if (dot) {
+                        this.goToImage(dot.idx);
+                    }
+                },
+                previewDotLabel(position) {
+                    const dot = this.previewDotAt(position);
+                    const index = dot && Number.isFinite(dot.idx) ? dot.idx : position;
+                    return 'Anh ' + (index + 1);
+                },
+                dotClassAt(position, withHover = false) {
+                    return this.dotButtonClass(this.previewDotAt(position), withHover);
                 },
                 previewDots() {
                     const len = Array.isArray(this.historyData) ? this.historyData.length : 0;

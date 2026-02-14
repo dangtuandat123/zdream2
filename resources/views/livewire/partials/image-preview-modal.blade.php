@@ -116,10 +116,10 @@
             <div class="flex items-center gap-1.5" x-show="historyData.length > 1">
                 @for ($dotSlot = 0; $dotSlot < 7; $dotSlot++)
                     <button x-show="previewDotAt({{ $dotSlot }})"
-                        @click="(() => { const d = previewDotAt({{ $dotSlot }}); if (d) goToImage(d.idx); })()"
-                        :aria-label="'Ảnh ' + ((previewDotAt({{ $dotSlot }})?.idx ?? 0) + 1)"
+                        @click="goToDot({{ $dotSlot }})"
+                        :aria-label="previewDotLabel({{ $dotSlot }})"
                         class="rounded-full transition-all duration-200"
-                        :class="dotButtonClass(previewDotAt({{ $dotSlot }}), true)"></button>
+                        :class="dotClassAt({{ $dotSlot }}, true)"></button>
                 @endfor
             </div>
         </div>
@@ -169,10 +169,10 @@
             <div class="flex justify-center gap-1.5 mb-3" x-show="historyData.length > 1">
                 @for ($dotSlot = 0; $dotSlot < 7; $dotSlot++)
                     <button x-show="previewDotAt({{ $dotSlot }})"
-                        @click="(() => { const d = previewDotAt({{ $dotSlot }}); if (d) goToImage(d.idx); })()"
-                        :aria-label="'Ảnh ' + ((previewDotAt({{ $dotSlot }})?.idx ?? 0) + 1)"
+                        @click="goToDot({{ $dotSlot }})"
+                        :aria-label="previewDotLabel({{ $dotSlot }})"
                         class="rounded-full transition-all duration-200"
-                        :class="dotButtonClass(previewDotAt({{ $dotSlot }}), false)"></button>
+                        :class="dotClassAt({{ $dotSlot }}, false)"></button>
                 @endfor
             </div>
 
