@@ -31,19 +31,7 @@
 
             @php $absoluteIndex = 0; @endphp
 
-            <div class="space-y-6 gallery-wrapper" x-data="{ initialLoad: !window.__t2iInitDone }" x-init="
-                if (initialLoad && !window.__t2iInitDone) {
-                    window.__t2iInitDone = true;
-                    $el.style.visibility = 'hidden';
-                    requestAnimationFrame(() => {
-                        requestAnimationFrame(() => {
-                            document.documentElement.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'auto' });
-                            $el.style.visibility = 'visible';
-                            initialLoad = false;
-                        });
-                    });
-                }
-            ">
+            <div class="space-y-6 gallery-wrapper" x-data>
                 {{-- Infinite Scroll Sentinel --}}
                 @if($history instanceof \Illuminate\Pagination\LengthAwarePaginator && $history->hasMorePages())
                     <div id="load-more-sentinel" class="flex justify-center py-4" x-data="{
@@ -206,9 +194,9 @@
                                             <img src="{{ $image->image_url }}" alt="Preview"
                                                 class="gallery-img w-full h-full object-cover transition-all duration-300 ease-out group-hover:scale-[1.05]"
                                                 draggable="false"
-                                                onload="this.classList.add('is-loaded');this.previousElementSibling.style.display='none'"
-                                                onerror="this.classList.add('is-error');this.src='/images/placeholder-broken.svg'"
-                                                x-init="if ($el.complete && $el.naturalWidth > 0) { $el.classList.add('is-loaded'); $el.previousElementSibling.style.display='none'; }"
+                                                onload="this.previousElementSibling.style.display='none'"
+                                                onerror="this.src='/images/placeholder-broken.svg'"
+                                                x-init="if ($el.complete && $el.naturalWidth > 0) { $el.previousElementSibling.style.display='none'; }"
                                                 {{ $groupIdx < $totalGroups - 2 ? 'loading=lazy decoding=async' : 'fetchpriority=high' }}>
 
                                             {{-- Desktop Hover Overlay --}}
@@ -307,53 +295,51 @@
                 @endforelse
             </div>
 
-        </div>
-
-        {{-- Loading Skeleton (inline, replaces t2i-loading.blade.php) --}}
-        @if($isGenerating && !$generatedImageUrl)
-            <div x-data="{ elapsed: 0, timer: null }" x-init="
-                    timer = setInterval(() => elapsed++, 1000);
-                    $cleanup(() => { clearInterval(timer); });
-                    $nextTick(() => setTimeout(() => document.documentElement.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' }), 100));
-                ">
-                <div
-                    class="bg-white/[0.03] backdrop-blur-[12px] border border-white/[0.08] rounded-xl overflow-hidden shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]">
-                    <div class="h-0.5 bg-white/[0.03] overflow-hidden">
-                        <div class="h-full bg-gradient-to-r from-purple-500 via-fuchsia-500 to-purple-500 animate-pulse"
-                            style="width: 100%; animation: progress-slide 2s ease-in-out infinite;"></div>
-                    </div>
-                    <div class="p-4">
-                        <div class="flex items-center gap-3 mb-3">
-                            <div class="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center">
-                                <div
-                                    class="w-5 h-5 border-2 border-purple-400 border-t-transparent rounded-full animate-spin">
-                                </div>
-                            </div>
-                            <div class="flex-1">
-                                <p class="text-white/90 text-sm font-medium"
-                                    x-text="loadingMessages[currentLoadingMessage]">Đang tạo ảnh...</p>
-                                <p class="text-white/40 text-xs mt-0.5">
-                                    <span
-                                        x-text="Math.floor(elapsed / 60) > 0 ? Math.floor(elapsed / 60) + ' phút ' : ''"></span>
-                                    <span x-text="(elapsed % 60) + ' giây'"></span>
-                                </p>
-                            </div>
+            {{-- Loading Skeleton (Pending Batch) --}}
+            @if($isGenerating && !$generatedImageUrl)
+                <div class="mt-6" x-data="{ elapsed: 0, timer: null }" x-init="
+                        timer = setInterval(() => elapsed++, 1000);
+                        $cleanup(() => { clearInterval(timer); });
+                        // Fix: Removed auto-scroll on poll
+                    ">
+                    <div
+                        class="bg-white/[0.03] backdrop-blur-[12px] border border-white/[0.08] rounded-xl overflow-hidden shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]">
+                        <div class="h-0.5 bg-white/[0.03] overflow-hidden">
+                            <div class="h-full bg-gradient-to-r from-purple-500 via-fuchsia-500 to-purple-500 animate-pulse"
+                                style="width: 100%; animation: progress-slide 2s ease-in-out infinite;"></div>
                         </div>
-                        <div class="grid grid-cols-2 gap-1 rounded-lg overflow-hidden">
-                            @for ($i = 0; $i < $batchSize; $i++)
-                                <div class="bg-white/[0.03] flex items-center justify-center {{ $batchSize == 1 ? 'col-span-2 max-w-sm' : '' }}"
-                                    style="aspect-ratio: {{ $aspectRatio !== 'auto' && strpos($aspectRatio, ':') !== false ? str_replace(':', ' / ', $aspectRatio) : '1 / 1' }};">
+                        <div class="p-4">
+                            <div class="flex items-center gap-3 mb-3">
+                                <div class="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center">
                                     <div
-                                        class="w-6 h-6 border-2 border-purple-500/40 border-t-transparent rounded-full animate-spin">
+                                        class="w-5 h-5 border-2 border-purple-400 border-t-transparent rounded-full animate-spin">
                                     </div>
                                 </div>
-                            @endfor
+                                <div class="flex-1">
+                                    <p class="text-white/90 text-sm font-medium"
+                                        x-text="loadingMessages[currentLoadingMessage] || 'Đang tạo ảnh...'">Đang tạo ảnh...</p>
+                                    <p class="text-white/40 text-xs mt-0.5">
+                                        <span
+                                            x-text="Math.floor(elapsed / 60) > 0 ? Math.floor(elapsed / 60) + ' phút ' : ''"></span>
+                                        <span x-text="(elapsed % 60) + ' giây'"></span>
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-1 rounded-lg overflow-hidden">
+                                @for ($i = 0; $i < $batchSize; $i++)
+                                    <div class="bg-white/[0.03] flex items-center justify-center {{ $batchSize == 1 ? 'col-span-2 max-w-sm' : '' }}"
+                                        style="aspect-ratio: {{ $aspectRatio !== 'auto' && strpos($aspectRatio, ':') !== false ? str_replace(':', ' / ', $aspectRatio) : '1 / 1' }};">
+                                        <div
+                                            class="w-6 h-6 border-2 border-purple-500/40 border-t-transparent rounded-full animate-spin">
+                                        </div>
+                                    </div>
+                                @endfor
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-        @endif
-    </div>
+            @endif
+        </div>
 
     {{-- Floating "Scroll to latest" button --}}
     <button x-show="showScrollToBottom" x-cloak

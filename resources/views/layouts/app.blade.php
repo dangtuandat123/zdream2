@@ -71,11 +71,12 @@
         }
 
         /* Simple loading state - just dim content slightly */
-        body.livewire-navigating main {
+        /* Simple loading state - disabled for T2I polling UX */
+        /* body.livewire-navigating main {
             opacity: 0.6;
             pointer-events: none;
             transition: opacity 0.1s ease;
-        }
+        } */
 
         /* ========== LOADING SKELETON ========== */
         .skeleton {

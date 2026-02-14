@@ -130,10 +130,15 @@
         }
 
         /* Fix composer for md+ */
-        @media (min-width: 768px) {
-            .composer-fixed {
-                bottom: 0 !important;
-            }
+        .composer-fixed {
+            bottom: 0 !important;
+        }
+        }
+
+        /* Fix 3: Force gallery images to be visible, don't rely on JS class */
+        .gallery-img {
+            opacity: 1 !important;
+            transform: none !important;
         }
     </style>
 
@@ -243,6 +248,9 @@
                 // INIT
                 // ============================================================
                 init() {
+                    // Fix: Initial scroll to bottom
+                    setTimeout(() => this.scrollToBottom(false), 100);
+
                     // Image generated → scroll + celebrate
                     this.$wire.$on('imageGenerated', (params) => {
                         const { successCount, failedCount } = Array.isArray(params) ? params[0] || {} : params || {};

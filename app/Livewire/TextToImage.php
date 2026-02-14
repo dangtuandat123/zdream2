@@ -377,6 +377,24 @@ class TextToImage extends Component
             return;
         }
 
+        // Timeout check (10 minutes)
+        $firstPending = GeneratedImage::whereIn('id', $this->generatingImageIds)
+            ->whereIn('status', [GeneratedImage::STATUS_PENDING, GeneratedImage::STATUS_PROCESSING])
+            ->oldest()
+            ->first();
+
+        if ($firstPending && $firstPending->created_at->diffInMinutes(now()) > 10) {
+            GeneratedImage::whereIn('id', $this->generatingImageIds)
+                ->whereIn('status', [GeneratedImage::STATUS_PENDING, GeneratedImage::STATUS_PROCESSING])
+                ->update(['status' => GeneratedImage::STATUS_FAILED, 'error_message' => 'Timeout: Generation took too long']);
+
+            $this->isGenerating = false;
+            $this->generatingImageIds = [];
+            $this->errorMessage = 'Quá trình tạo ảnh mất quá nhiều thời gian. Vui lòng thử lại.';
+            $this->dispatch('imageGenerationFailed');
+            return;
+        }
+
         // Count pending
         $pendingCount = GeneratedImage::whereIn('id', $this->generatingImageIds)
             ->where(function ($q) {
