@@ -279,6 +279,8 @@
                 isPrependingHistory: false,
                 prependBeforeScrollY: 0,
                 prependBeforeHeight: 0,
+                prependBoundaryId: null,
+                centerAfterPrepend: false,
                 lastLoadMoreAt: 0,
                 lastScrollY: 0,
                 userInitiatedUpScroll: false,
@@ -434,9 +436,13 @@
                                     cancelAnimationFrame(this._prependRestoreRaf);
                                     this._prependRestoreRaf = null;
                                 }
-                                // Apply a single compensation frame to avoid visible "multi-jump" jitter.
+                                // Apply a single correction frame:
+                                // prefer centering the newly loaded item; fallback to residual restore.
                                 this._prependRestoreRaf = requestAnimationFrame(() => {
-                                    this.restorePrependAnchor();
+                                    const centered = this.centerPrependedItem();
+                                    if (!centered) {
+                                        this.restorePrependAnchor();
+                                    }
                                     this._prependRestoreRaf = null;
                                 });
                             }
@@ -445,6 +451,8 @@
                             this.isPrependingHistory = false;
                             this.prependBeforeScrollY = 0;
                             this.prependBeforeHeight = 0;
+                            this.prependBoundaryId = null;
+                            this.centerAfterPrepend = false;
                             clearTimeout(this._loadMoreFailSafeTimer);
                             this._loadMoreFailSafeTimer = null;
                             this.refreshScrollState();
@@ -577,6 +585,8 @@
                     this.isPrependingHistory = false;
                     this.prependBeforeScrollY = 0;
                     this.prependBeforeHeight = 0;
+                    this.prependBoundaryId = null;
+                    this.centerAfterPrepend = false;
                     document.body.style.overflow = '';
                     document.documentElement.style.overflow = '';
                     if (this._scrollRestoration !== null && 'scrollRestoration' in history) {
@@ -658,6 +668,12 @@
                     const doc = document.documentElement;
                     this.prependBeforeScrollY = window.scrollY || doc.scrollTop || 0;
                     this.prependBeforeHeight = doc.scrollHeight || 0;
+
+                    const groups = Array.from(
+                        document.querySelectorAll('#gallery-feed .group-batch[data-history-anchor-id]')
+                    );
+                    const boundary = groups.find((el) => el.getBoundingClientRect().bottom > 0) || groups[0] || null;
+                    this.prependBoundaryId = boundary?.dataset?.historyAnchorId ?? null;
                 },
                 restorePrependAnchor() {
                     const doc = document.documentElement;
@@ -673,6 +689,35 @@
                     }
                     this.refreshScrollState();
                 },
+                centerPrependedItem() {
+                    if (!this.centerAfterPrepend) return false;
+
+                    const groups = Array.from(
+                        document.querySelectorAll('#gallery-feed .group-batch[data-history-anchor-id]')
+                    );
+                    if (!groups.length) return false;
+
+                    let target = null;
+                    if (this.prependBoundaryId !== null) {
+                        const boundaryIndex = groups.findIndex(
+                            (el) => String(el?.dataset?.historyAnchorId ?? '') === String(this.prependBoundaryId)
+                        );
+                        if (boundaryIndex > 0) {
+                            // Nearest newly prepended group above previous boundary.
+                            target = groups[boundaryIndex - 1];
+                        }
+                    }
+                    if (!target) {
+                        return false;
+                    }
+
+                    const rect = target.getBoundingClientRect();
+                    const currentY = window.scrollY || document.documentElement.scrollTop || 0;
+                    const desiredTop = currentY + rect.top - ((window.innerHeight - rect.height) / 2);
+                    window.scrollTo(0, Math.max(0, Math.round(desiredTop)));
+                    this.refreshScrollState();
+                    return true;
+                },
                 maybeBootstrapHistory() {
                     if (!this.hasMoreHistory || this.loadingMoreHistory) return;
                     this.refreshScrollState();
@@ -680,7 +725,7 @@
                     if (this.bootstrapLoadCount >= this.maxBootstrapLoads) return;
 
                     this.bootstrapLoadCount += 1;
-                    this.requestLoadOlder(this.bootstrapStep);
+                    this.requestLoadOlder(this.bootstrapStep, 'bootstrap');
                 },
                 maybeLoadOlder(force = false) {
                     if (!this.hasMoreHistory || this.loadingMoreHistory) return;
@@ -690,18 +735,19 @@
                     const now = Date.now();
                     if (now - this.lastLoadMoreAt < 500) return;
                     this.lastLoadMoreAt = now;
-                    this.requestLoadOlder(this.loadOlderStep);
+                    this.requestLoadOlder(this.loadOlderStep, force ? 'manual' : 'scroll');
                 },
                 manualLoadOlder() {
                     this.userInitiatedUpScroll = true;
-                    this.requestLoadOlder(this.loadOlderStep);
+                    this.requestLoadOlder(this.loadOlderStep, 'manual');
                 },
-                requestLoadOlder(count = null) {
+                requestLoadOlder(count = null, source = 'scroll') {
                     if (!this.hasMoreHistory || this.loadingMoreHistory) return;
 
                     this.capturePrependAnchor();
                     this.loadingMoreHistory = true;
                     this.isPrependingHistory = true;
+                    this.centerAfterPrepend = source !== 'bootstrap';
 
                     const fallbackStep = Number.isFinite(this.loadOlderStep) ? this.loadOlderStep : 1;
                     const requested = Number.isFinite(count) ? count : fallbackStep;
@@ -714,6 +760,8 @@
                         this.isPrependingHistory = false;
                         this.prependBeforeScrollY = 0;
                         this.prependBeforeHeight = 0;
+                        this.prependBoundaryId = null;
+                        this.centerAfterPrepend = false;
                         this._loadMoreFailSafeTimer = null;
                     }, 7000);
                 },
