@@ -76,6 +76,7 @@ class TextToImage extends Component
 
         $query = GeneratedImage::where('user_id', Auth::id())
             ->where('status', GeneratedImage::STATUS_COMPLETED)
+            ->whereNotNull('storage_path')
             ->whereHas('style', function ($q) {
                 $q->where('is_system', true)->where('slug', Style::SYSTEM_T2I_SLUG);
             });
@@ -377,13 +378,13 @@ class TextToImage extends Component
             return;
         }
 
-        // Timeout check (10 minutes)
+        // Timeout check (5 minutes)
         $firstPending = GeneratedImage::whereIn('id', $this->generatingImageIds)
             ->whereIn('status', [GeneratedImage::STATUS_PENDING, GeneratedImage::STATUS_PROCESSING])
             ->oldest()
             ->first();
 
-        if ($firstPending && $firstPending->created_at->diffInMinutes(now()) > 10) {
+        if ($firstPending && $firstPending->created_at->diffInMinutes(now()) > 5) {
             GeneratedImage::whereIn('id', $this->generatingImageIds)
                 ->whereIn('status', [GeneratedImage::STATUS_PENDING, GeneratedImage::STATUS_PROCESSING])
                 ->update(['status' => GeneratedImage::STATUS_FAILED, 'error_message' => 'Timeout: Generation took too long']);

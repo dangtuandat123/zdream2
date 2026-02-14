@@ -29,7 +29,7 @@
                 ($item->generation_params['model_id'] ?? '') . '|' .
                 ($item->generation_params['aspect_ratio'] ?? '') . '|' .
                 'legacy-' . $item->id;
-        })->reverse();
+        });
 
         // 2. Flatten for JS (keep reversed order) — Fix 7: map model_id to friendly name
         $modelMap = collect($availableModels)->pluck('name', 'id')->toArray();
@@ -63,20 +63,7 @@
             padding-top: env(safe-area-inset-top, 0px);
         }
 
-        /* CSS-only image loading (survives Livewire morph) */
-        .gallery-img {
-            opacity: 0;
-            transition: opacity 0.3s ease-out;
-        }
-
-        .gallery-img.is-loaded {
-            opacity: 1;
-        }
-
-        .gallery-img.is-error {
-            opacity: 0.5;
-            object-fit: contain;
-        }
+        /* New image entrance animation */
 
         /* New image entrance animation */
         @keyframes image-entrance {
@@ -132,7 +119,6 @@
         /* Fix composer for md+ */
         .composer-fixed {
             bottom: 0 !important;
-        }
         }
 
         /* Fix 3: Force gallery images to be visible, don't rely on JS class */
@@ -248,8 +234,7 @@
                 // INIT
                 // ============================================================
                 init() {
-                    // Fix: Initial scroll to bottom
-                    setTimeout(() => this.scrollToBottom(false), 100);
+                    // Fix: Removed initial scroll to bottom on mount
 
                     // Image generated → scroll + celebrate
                     this.$wire.$on('imageGenerated', (params) => {
@@ -318,6 +303,11 @@
                             this.startLoading();
                         } else {
                             this.stopLoading();
+                            this.stopStatusTimer();
+                            // Failsafe: if stopped but mode is still generating (no success/fail event), reset
+                            if (this.uiMode === 'generating') {
+                                this.uiMode = 'idle';
+                            }
                         }
                     });
 

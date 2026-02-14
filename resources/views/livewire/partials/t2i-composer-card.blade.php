@@ -148,8 +148,8 @@
                             {{-- Model Bottom Sheet Mobile --}}
                             <div x-show="showModelSheet" x-cloak
                                 class="sm:hidden fixed inset-0 z-[9999] flex items-end justify-center bg-black/80 backdrop-blur-md"
-                                @click.self="showModelSheet = false" @click.stop>
-                                <div x-show="showModelSheet"
+                                @click.self="showModelSheet = false">
+                                <div x-show="showModelSheet" @click.stop
                                     x-transition:enter="transition ease-out duration-300"
                                     x-transition:enter-start="translate-y-full"
                                     x-transition:enter-end="translate-y-0"
@@ -232,8 +232,8 @@
                             {{-- Ratio Bottom Sheet Mobile --}}
                             <div x-show="showRatioSheet" x-cloak
                                 class="sm:hidden fixed inset-0 z-[9999] flex items-end justify-center bg-black/80 backdrop-blur-md"
-                                @click.self="showRatioSheet = false" @click.stop>
-                                <div x-show="showRatioSheet"
+                                @click.self="showRatioSheet = false">
+                                <div x-show="showRatioSheet" @click.stop
                                     x-transition:enter="transition ease-out duration-300"
                                     x-transition:enter-start="translate-y-full"
                                     x-transition:enter-end="translate-y-0"
@@ -502,13 +502,13 @@
                         </button>
                     @else
                         <button type="button"
-                            @click="uiMode = 'generating'; startStatusTimer(); startLoading(); $wire.generate()"
+                            @click="startStatusTimer(); startLoading(); $wire.generate()"
                             class="shrink-0 flex items-center gap-1.5 px-3 sm:px-5 py-2 rounded-xl bg-gradient-to-r from-purple-500 via-fuchsia-500 to-pink-500 text-white font-semibold text-sm shadow-lg shadow-purple-500/25 hover:scale-[1.02] hover:shadow-xl hover:shadow-purple-500/40 active:scale-[0.98] transition-all duration-200"
                             :disabled="!$wire.prompt?.trim() || uiMode === 'generating'" :class="{ 'opacity-40 pointer-events-none': !$wire.prompt?.trim() || uiMode === 'generating' }"
                             wire:loading.attr="disabled" wire:loading.class="opacity-50 pointer-events-none" wire:target="generate">
                             <span x-show="uiMode !== 'generating'" wire:loading.remove wire:target="generate"><i class="fa-solid fa-wand-magic-sparkles text-xs"></i></span>
                             <span x-show="uiMode === 'generating'" wire:loading wire:target="generate"><i class="fa-solid fa-spinner fa-spin text-xs"></i></span>
-                            <span class="hidden sm:inline">Tạo</span>
+                            <span>Tạo</span>
                             <span class="text-white/60 text-[11px] font-normal"><span x-text="$wire.creditCost * $wire.batchSize"></span> cr</span>
                         </button>
                     @endif

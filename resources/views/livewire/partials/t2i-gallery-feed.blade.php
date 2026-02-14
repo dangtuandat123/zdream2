@@ -32,62 +32,6 @@
             @php $absoluteIndex = 0; @endphp
 
             <div class="space-y-6 gallery-wrapper" x-data>
-                {{-- Infinite Scroll Sentinel --}}
-                @if($history instanceof \Illuminate\Pagination\LengthAwarePaginator && $history->hasMorePages())
-                    <div id="load-more-sentinel" class="flex justify-center py-4" x-data="{
-                            observer: null,
-                            isLoading: false,
-                            ready: false,
-                            lastLoadTime: 0,
-                            init() {
-                                setTimeout(() => {
-                                    this.ready = true;
-                                    this.observer = new IntersectionObserver((entries) => {
-                                        entries.forEach(entry => {
-                                            if (entry.isIntersecting && !this.isLoading && this.ready) {
-                                                const now = Date.now();
-                                                if (now - this.lastLoadTime < 800) return;
-                                                this.isLoading = true;
-                                                this.lastLoadTime = now;
-                                                this.observer.unobserve(this.$el);
-                                                const scrollH = document.documentElement.scrollHeight;
-                                                $wire.loadMore().then(() => {
-                                                    this.$nextTick(() => {
-                                                        requestAnimationFrame(() => {
-                                                            const newScrollH = document.documentElement.scrollHeight;
-                                                            document.documentElement.scrollTop += (newScrollH - scrollH);
-                                                            this.isLoading = false;
-                                                            setTimeout(() => {
-                                                                if (this.observer && this.$el) this.observer.observe(this.$el);
-                                                            }, 800);
-                                                        });
-                                                    });
-                                                }).catch(() => {
-                                                    this.isLoading = false;
-                                                    setTimeout(() => {
-                                                        if (this.observer && this.$el) this.observer.observe(this.$el);
-                                                    }, 800);
-                                                });
-                                            }
-                                        });
-                                    }, { rootMargin: '100px 0px 0px 0px' });
-                                    this.observer.observe(this.$el);
-                                }, 500);
-                            },
-                            destroy() {
-                                if (this.observer) this.observer.disconnect();
-                            }
-                        }">
-                        <div class="flex items-center gap-2 text-white/40 text-sm" wire:loading.flex wire:target="loadMore">
-                            <i class="fa-solid fa-spinner fa-spin text-purple-400"></i>
-                            <span>Đang tải thêm...</span>
-                        </div>
-                        <div class="text-white/20 text-xs" wire:loading.remove wire:target="loadMore">
-                            <i class="fa-solid fa-ellipsis"></i>
-                        </div>
-                    </div>
-                @endif
-
                 {{-- Grouped Batches --}}
                 @php $totalGroups = $groupedHistory->count();
                 $groupIdx = 0; @endphp
@@ -293,6 +237,16 @@
                         </div>
                     @endif
                 @endforelse
+
+                {{-- Bottom Infinite Scroll Sentinel --}}
+                @if($history instanceof \Illuminate\Pagination\LengthAwarePaginator && $history->hasMorePages())
+                    <div class="py-8 flex justify-center" x-intersect.margin.500px="$wire.loadMore()">
+                        <div class="flex items-center gap-2 text-white/40 text-sm">
+                            <i class="fa-solid fa-spinner fa-spin text-purple-400" wire:loading wire:target="loadMore"></i>
+                            <span wire:loading wire:target="loadMore">Đang tải thêm...</span>
+                        </div>
+                    </div>
+                @endif
             </div>
 
             {{-- Loading Skeleton (Pending Batch) --}}
