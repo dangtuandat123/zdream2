@@ -382,7 +382,7 @@
                             setTimeout(() => {
                                 let centeredNewest = false;
                                 if (this.autoScrollEnabled || this.isNearBottom(240)) {
-                                    centeredNewest = this.centerLatestBatch(true);
+                                    centeredNewest = this.centerLatestBatchWhenReady();
                                     if (!centeredNewest) {
                                         this.scrollToBottom(false);
                                     }
@@ -812,6 +812,54 @@
                     } else {
                         window.scrollTo(0, top);
                     }
+                    return true;
+                },
+                centerLatestBatchWhenReady() {
+                    const batches = Array.from(document.querySelectorAll('#gallery-feed .group-batch'));
+                    const latest = batches[batches.length - 1];
+                    if (!latest) return false;
+
+                    const images = Array.from(latest.querySelectorAll('img'));
+                    const pending = images.filter((img) => !img.complete);
+                    if (!pending.length) {
+                        return this.centerLatestBatch(true);
+                    }
+
+                    let settled = false;
+                    let timeoutId = null;
+                    const cleanupFns = [];
+
+                    const settle = () => {
+                        if (settled) return;
+                        settled = true;
+                        if (timeoutId) {
+                            clearTimeout(timeoutId);
+                            timeoutId = null;
+                        }
+                        cleanupFns.forEach((fn) => fn());
+                        cleanupFns.length = 0;
+
+                        requestAnimationFrame(() => {
+                            const centered = this.centerLatestBatch(true);
+                            if (centered) {
+                                // One extra frame correction to neutralize late image decode shifts.
+                                requestAnimationFrame(() => this.centerLatestBatch(false));
+                            }
+                        });
+                    };
+
+                    pending.forEach((img) => {
+                        const onLoad = () => settle();
+                        const onError = () => settle();
+                        img.addEventListener('load', onLoad, { once: true });
+                        img.addEventListener('error', onError, { once: true });
+                        cleanupFns.push(() => {
+                            img.removeEventListener('load', onLoad);
+                            img.removeEventListener('error', onError);
+                        });
+                    });
+
+                    timeoutId = setTimeout(settle, 1500);
                     return true;
                 },
                 maybeBootstrapHistory() {

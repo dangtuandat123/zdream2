@@ -46,6 +46,18 @@ class TextToImageComponentTest extends TestCase
             ->assertDispatched('historyUpdated', fn($event, $params) => ($params['hasMore'] ?? null) === false);
     }
 
+    public function test_load_more_dispatches_history_updated_false_when_no_history(): void
+    {
+        $user = User::factory()->create();
+
+        Livewire::actingAs($user)
+            ->test(TextToImage::class)
+            ->assertSet('perPage', 6)
+            ->call('loadMore', 4)
+            ->assertSet('perPage', 6)
+            ->assertDispatched('historyUpdated', fn($event, $params) => ($params['hasMore'] ?? null) === false);
+    }
+
     public function test_cancel_generation_marks_pending_failed_and_refunds_once(): void
     {
         $user = User::factory()->create(['credits' => 95]);
@@ -139,4 +151,3 @@ class TextToImageComponentTest extends TestCase
         ]);
     }
 }
-

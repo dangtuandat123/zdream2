@@ -143,6 +143,10 @@
                         {{-- Image Grid --}}
                         <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-1 rounded-lg overflow-hidden">
                             @foreach($groupItems as $image)
+                                @php
+                                    $isNewestGroup = $groupIdx === $totalGroups - 1;
+                                    $isPriorityImage = $isNewestGroup && $loop->index < 2;
+                                @endphp
                                 <div class="block group cursor-pointer" wire:key="img-{{ $image->id }}" @click="openPreview(null, {{ $absoluteIndex }})">
                                     <div class="h-full bg-white/[0.02]">
                                     <div class="relative overflow-hidden" {!! $aspectRatioCss ? 'style="aspect-ratio: '.$aspectRatioCss.';"' : '' !!}>
@@ -158,7 +162,7 @@
                                                 draggable="false"
                                                 onload="this.previousElementSibling && (this.previousElementSibling.style.display='none')"
                                                 onerror="this.previousElementSibling && (this.previousElementSibling.style.display='none'); this.onerror=null; this.src='/images/placeholder.svg'"
-                                                {{ $groupIdx < $totalGroups - 2 ? 'loading=lazy decoding=async' : 'fetchpriority=high' }}>
+                                                {{ $isPriorityImage ? 'loading=eager fetchpriority=high decoding=async' : 'loading=lazy fetchpriority=low decoding=async' }}>
 
                                             {{-- Desktop Hover Overlay --}}
                                             <div

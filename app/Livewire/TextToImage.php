@@ -520,11 +520,18 @@ class TextToImage extends Component
 
         $history = $this->history;
         if (!$history instanceof \Illuminate\Pagination\LengthAwarePaginator) {
+            $this->dispatch('historyUpdated', hasMore: false);
             return;
         }
 
         $total = (int) $history->total();
-        if ($total <= 0 || !$history->hasMorePages()) {
+        if ($total <= 0) {
+            $this->dispatch('historyUpdated', hasMore: false);
+            return;
+        }
+
+        if (!$history->hasMorePages()) {
+            $this->dispatch('historyUpdated', hasMore: false);
             return;
         }
 
@@ -532,12 +539,13 @@ class TextToImage extends Component
         $count = max(1, min($count, 12));
 
         $this->loadingMore = true;
-        $this->perPage = min($this->perPage + $count, $total);
-        $this->loadingMore = false;
-
-        $hasMoreAfterUpdate = $this->perPage < $total;
-
-        $this->dispatch('historyUpdated', hasMore: $hasMoreAfterUpdate);
+        try {
+            $this->perPage = min($this->perPage + $count, $total);
+            $hasMoreAfterUpdate = $this->perPage < $total;
+            $this->dispatch('historyUpdated', hasMore: $hasMoreAfterUpdate);
+        } finally {
+            $this->loadingMore = false;
+        }
     }
 
     /**
