@@ -31,8 +31,9 @@
 
             @php $absoluteIndex = 0; @endphp
 
-            <div class="space-y-6 gallery-wrapper" x-data="{ initialLoad: true }" x-init="
-                if (initialLoad) {
+            <div class="space-y-6 gallery-wrapper" x-data="{ initialLoad: !window.__t2iInitDone }" x-init="
+                if (initialLoad && !window.__t2iInitDone) {
+                    window.__t2iInitDone = true;
                     $el.style.visibility = 'hidden';
                     requestAnimationFrame(() => {
                         requestAnimationFrame(() => {
@@ -49,13 +50,18 @@
                             observer: null,
                             isLoading: false,
                             ready: false,
+                            lastLoadTime: 0,
                             init() {
                                 setTimeout(() => {
                                     this.ready = true;
                                     this.observer = new IntersectionObserver((entries) => {
                                         entries.forEach(entry => {
                                             if (entry.isIntersecting && !this.isLoading && this.ready) {
+                                                const now = Date.now();
+                                                if (now - this.lastLoadTime < 800) return;
                                                 this.isLoading = true;
+                                                this.lastLoadTime = now;
+                                                this.observer.unobserve(this.$el);
                                                 const scrollH = document.documentElement.scrollHeight;
                                                 $wire.loadMore().then(() => {
                                                     this.$nextTick(() => {
@@ -63,9 +69,17 @@
                                                             const newScrollH = document.documentElement.scrollHeight;
                                                             document.documentElement.scrollTop += (newScrollH - scrollH);
                                                             this.isLoading = false;
+                                                            setTimeout(() => {
+                                                                if (this.observer && this.$el) this.observer.observe(this.$el);
+                                                            }, 800);
                                                         });
                                                     });
-                                                }).catch(() => { this.isLoading = false; });
+                                                }).catch(() => {
+                                                    this.isLoading = false;
+                                                    setTimeout(() => {
+                                                        if (this.observer && this.$el) this.observer.observe(this.$el);
+                                                    }, 800);
+                                                });
                                             }
                                         });
                                     }, { rootMargin: '100px 0px 0px 0px' });
@@ -146,6 +160,15 @@
                                         <i class="fa-solid fa-arrow-rotate-left text-xs mr-1"></i>
                                         <span class="hidden sm:inline">Reuse</span>
                                     </button>
+                                    @if($groupItems->count() > 1)
+                                    <button x-data
+                                        @click="(() => { const urls = @js($groupItems->pluck('image_url')->toArray()); urls.forEach((u, i) => { setTimeout(() => downloadImage(u), i * 500); }); notify('Đang tải ' + urls.length + ' ảnh...'); })()"
+                                        class="inline-flex items-center justify-center h-7 px-2 rounded-lg bg-transparent text-white/50 hover:bg-white/[0.05] hover:text-white/90 text-xs transition-all duration-200 active:scale-[0.98]"
+                                        title="Tải cả batch">
+                                        <i class="fa-solid fa-download text-xs mr-1"></i>
+                                        <span class="hidden sm:inline">All</span>
+                                    </button>
+                                    @endif
                                 </div>
                             </div>
                         </div>
@@ -170,9 +193,10 @@
                         {{-- Image Grid --}}
                         <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-1 rounded-lg overflow-hidden">
                             @foreach($groupItems as $image)
-                                <div class="block group cursor-pointer" @click="openPreview(null, {{ $absoluteIndex }})">
+                                <div class="block group cursor-pointer" wire:key="img-{{ $image->id }}" @click="openPreview(null, {{ $absoluteIndex }})">
                                     <div class="h-full bg-white/[0.02]">
-                                    <div class="relative overflow-hidden" {!! $aspectRatioCss ? 'style="aspect-ratio: '.$aspectRatioCss.';"' : '' !!}>                                            {{-- Shimmer --}}
+                                    <div class="relative overflow-hidden" {!! $aspectRatioCss ? 'style="aspect-ratio: '.$aspectRatioCss.';"' : '' !!}>
+                                            {{-- Shimmer --}}
                                             <div class="img-shimmer absolute inset-0 bg-white/[0.04]">
                                                 <div
                                                     class="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.06] to-transparent animate-shimmer">
@@ -184,6 +208,7 @@
                                                 draggable="false"
                                                 onload="this.classList.add('is-loaded');this.previousElementSibling.style.display='none'"
                                                 onerror="this.classList.add('is-error');this.src='/images/placeholder-broken.svg'"
+                                                x-init="if ($el.complete && $el.naturalWidth > 0) { $el.classList.add('is-loaded'); $el.previousElementSibling.style.display='none'; }"
                                                 {{ $groupIdx < $totalGroups - 2 ? 'loading=lazy decoding=async' : 'fetchpriority=high' }}>
 
                                             {{-- Desktop Hover Overlay --}}
@@ -223,6 +248,17 @@
                                 </div>
                                 @php $absoluteIndex++; @endphp
                             @endforeach
+                        </div>
+
+                        {{-- Batch Metadata Footer --}}
+                        <div class="flex items-center gap-2 mt-1.5 px-0.5 text-[11px] text-white/35">
+                            <span class="text-purple-300/60">{{ $modelName }}</span>
+                            <span class="text-white/15">•</span>
+                            <span>{{ $ratioDisplay }}</span>
+                            <span class="text-white/15">•</span>
+                            <span>{{ $groupItems->count() }} ảnh</span>
+                            <span class="text-white/15">•</span>
+                            <span>{{ $firstItem->created_at->diffForHumans() }}</span>
                         </div>
                     </div>
                     @php $groupIdx++; @endphp
@@ -318,4 +354,28 @@
             </div>
         @endif
     </div>
+
+    {{-- Floating "Scroll to latest" button --}}
+    <button x-show="showScrollToBottom" x-cloak
+        @click="scrollToBottom(true)"
+        x-transition:enter="transition ease-out duration-200"
+        x-transition:enter-start="opacity-0 translate-y-4"
+        x-transition:enter-end="opacity-100 translate-y-0"
+        x-transition:leave="transition ease-in duration-150"
+        x-transition:leave-end="opacity-0 translate-y-4"
+        class="fixed right-4 z-[55] flex items-center gap-2 px-4 py-2.5 rounded-full bg-purple-500/90 hover:bg-purple-500 text-white text-sm font-medium shadow-xl shadow-purple-500/25 backdrop-blur-sm active:scale-[0.95] transition-all"
+        style="bottom: calc(var(--composer-h, 10rem) + 1rem);">
+        <i class="fa-solid fa-arrow-down text-xs"></i>
+        <span>Về ảnh mới nhất</span>
+    </button>
+
+    {{-- Auto-scroll toggle --}}
+    <button x-show="!autoScrollEnabled" x-cloak
+        @click="autoScrollEnabled = true; notify('Auto-scroll bật')"
+        x-transition
+        class="fixed right-4 z-[54] flex items-center gap-1.5 px-3 py-2 rounded-full bg-white/10 hover:bg-white/15 text-white/60 text-xs font-medium backdrop-blur-sm active:scale-[0.95] transition-all border border-white/10"
+        style="bottom: calc(var(--composer-h, 10rem) + 3.5rem);">
+        <i class="fa-solid fa-arrows-up-down text-[10px]"></i>
+        <span>Auto-scroll: OFF</span>
+    </button>
 </div>

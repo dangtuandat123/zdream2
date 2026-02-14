@@ -68,15 +68,6 @@ class GenerateImageJob implements ShouldQueue
         $user = $generatedImage->user;
         $style = $generatedImage->style;
 
-        // P0#2 FIX: Freeze model per-job to prevent race condition
-        // Priority: explicit override → generation_params → style default
-        if ($style) {
-            $frozenModel = $this->modelOverride
-                ?? ($generatedImage->generation_params['model_id'] ?? null)
-                ?? $style->bfl_model_id;
-            $style->bfl_model_id = $frozenModel;
-        }
-
         if (!$user || !$style) {
             Log::error('GenerateImageJob: Missing user or style', [
                 'image_id' => $generatedImage->id,
@@ -101,6 +92,13 @@ class GenerateImageJob implements ShouldQueue
             $this->refundCreditsDirectly($user, $generatedImage);
             return;
         }
+
+        // Fix 4: Freeze model AFTER refresh so override is not lost
+        // Priority: explicit override → generation_params → style default
+        $frozenModel = $this->modelOverride
+            ?? ($generatedImage->generation_params['model_id'] ?? null)
+            ?? $style->bfl_model_id;
+        $style->bfl_model_id = $frozenModel;
 
         try {
             Log::info('GenerateImageJob started', [
@@ -159,6 +157,32 @@ class GenerateImageJob implements ShouldQueue
                 $storageResult['path'],
                 $result['bfl_task_id'] ?? null
             );
+
+            // Fix 5: Save actual output dimensions for proper gallery rendering
+            try {
+                $imageData = $result['image_base64'] ?? null;
+                if ($imageData) {
+                    // Remove data URI prefix if present
+                    if (str_contains($imageData, ',')) {
+                        $imageData = substr($imageData, strpos($imageData, ',') + 1);
+                    }
+                    $decoded = base64_decode($imageData);
+                    if ($decoded) {
+                        $size = getimagesizefromstring($decoded);
+                        if ($size) {
+                            $params = $generatedImage->generation_params ?? [];
+                            $params['output_width'] = $size[0];
+                            $params['output_height'] = $size[1];
+                            $generatedImage->update(['generation_params' => $params]);
+                        }
+                    }
+                }
+            } catch (\Throwable $e) {
+                Log::warning('GenerateImageJob: Failed to detect output dimensions', [
+                    'image_id' => $generatedImage->id,
+                    'error' => $e->getMessage(),
+                ]);
+            }
 
             Log::info('GenerateImageJob completed', [
                 'image_id' => $generatedImage->id,

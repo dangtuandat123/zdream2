@@ -47,7 +47,7 @@ class TextToImage extends Component
     public int $pollingInterval = 2000;
 
     // History data
-    public int $perPage = 5; // Load 5 items initially (chat style)
+    public int $perPage = 20; // Load 20 items initially
     public bool $loadingMore = false;
 
     // Filters
@@ -385,23 +385,27 @@ class TextToImage extends Component
             })
             ->count();
 
-        // If none pending
-        if ($pendingCount === 0) {
-            $this->isGenerating = false;
-            $successCount = GeneratedImage::whereIn('id', $this->generatingImageIds)
-                ->where('status', GeneratedImage::STATUS_COMPLETED)->count();
-            $failedCount = count($this->generatingImageIds) - $successCount;
-            $lastId = end($this->generatingImageIds);
-            if ($lastId) {
-                $img = GeneratedImage::find($lastId);
-                $this->generatedImageUrl = $img ? $img->image_url : null;
-            }
-            $this->generatingImageIds = [];
-            if ($successCount > 0) {
-                $this->dispatch('imageGenerated', successCount: $successCount, failedCount: $failedCount);
-            } else {
-                $this->dispatch('imageGenerationFailed');
-            }
+        // Fix 1: Skip re-render while still pending to prevent gallery flash
+        if ($pendingCount > 0) {
+            $this->skipRender();
+            return;
+        }
+
+        // All done — allow full re-render
+        $this->isGenerating = false;
+        $successCount = GeneratedImage::whereIn('id', $this->generatingImageIds)
+            ->where('status', GeneratedImage::STATUS_COMPLETED)->count();
+        $failedCount = count($this->generatingImageIds) - $successCount;
+        $lastId = end($this->generatingImageIds);
+        if ($lastId) {
+            $img = GeneratedImage::find($lastId);
+            $this->generatedImageUrl = $img ? $img->image_url : null;
+        }
+        $this->generatingImageIds = [];
+        if ($successCount > 0) {
+            $this->dispatch('imageGenerated', successCount: $successCount, failedCount: $failedCount);
+        } else {
+            $this->dispatch('imageGenerationFailed');
         }
     }
 
@@ -449,7 +453,7 @@ class TextToImage extends Component
     public function loadMore(): void
     {
         $this->loadingMore = true;
-        $this->perPage += 5;
+        $this->perPage += 20;
         $this->loadingMore = false;
         $this->dispatch('historyUpdated');
     }

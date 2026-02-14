@@ -28,16 +28,17 @@
             return $item->final_prompt . '|' .
                 ($item->generation_params['model_id'] ?? '') . '|' .
                 ($item->generation_params['aspect_ratio'] ?? '') . '|' .
-                $item->created_at->format('Y-m-d H:i');
+                'legacy-' . $item->id;
         })->reverse();
 
-        // 2. Flatten for JS (keep reversed order)
+        // 2. Flatten for JS (keep reversed order) — Fix 7: map model_id to friendly name
+        $modelMap = collect($availableModels)->pluck('name', 'id')->toArray();
         $flatHistoryForJs = $groupedHistory->flatten(1)->map(fn($img) => [
             'id' => $img->id,
             'url' => $img->image_url,
             'prompt' => $img->final_prompt,
-            'model' => $img->generation_params['model_id'] ?? null,
-            'ratio' => $img->generation_params['aspect_ratio'] ?? null,
+            'model' => $modelMap[$img->generation_params['model_id'] ?? ''] ?? ($img->generation_params['model_id'] ?? null),
+            'ratio' => $img->generation_params['aspect_ratio_user'] ?? $img->generation_params['aspect_ratio'] ?? 'Auto',
             'created_at' => $img->created_at->diffForHumans(),
         ])->values()->toArray();
     @endphp
@@ -147,6 +148,8 @@
                 statusMessage: '',
                 statusElapsed: 0,
                 statusTimer: null,
+                autoScrollEnabled: true, // Fix 8: toggle auto-scroll
+                showScrollToBottom: false, // Fix 8: floating button visibility
 
                 // Toast
                 showToast: false,
@@ -245,7 +248,12 @@
                         const { successCount, failedCount } = Array.isArray(params) ? params[0] || {} : params || {};
                         this.$nextTick(() => {
                             setTimeout(() => {
-                                this.scrollToBottom(true);
+                                // Fix 8: Only auto-scroll if near bottom or autoScroll enabled
+                                if (this.autoScrollEnabled && this.isNearBottom(400)) {
+                                    this.scrollToBottom(true);
+                                } else {
+                                    this.showScrollToBottom = true;
+                                }
                                 const batches = document.querySelectorAll('.group-batch');
                                 const lastBatch = batches[batches.length - 1];
                                 if (lastBatch) {
@@ -383,6 +391,12 @@
                         top: el.scrollHeight,
                         behavior: smooth ? 'smooth' : 'auto'
                     });
+                    this.showScrollToBottom = false;
+                },
+                // Fix 8: Check if user is near bottom of page
+                isNearBottom(threshold = 300) {
+                    const el = document.documentElement;
+                    return (el.scrollHeight - el.scrollTop - el.clientHeight) < threshold;
                 },
 
                 // ============================================================

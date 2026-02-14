@@ -74,6 +74,11 @@
                         <i class="fa-solid fa-download text-[11px]"></i>
                         <span>Tải xuống</span>
                     </button>
+                    <button @click="window.open(previewImage?.url, '_blank')"
+                        class="inline-flex items-center gap-1.5 h-9 px-3.5 rounded-lg bg-white/[0.05] hover:bg-white/[0.08] border border-white/[0.08] text-white/70 hover:text-white text-xs font-medium transition-all active:scale-[0.98]">
+                        <i class="fa-solid fa-arrow-up-right-from-square text-[11px]"></i>
+                        <span>Mở tab mới</span>
+                    </button>
                     <button @click="shareImage()"
                         class="inline-flex items-center gap-1.5 h-9 px-3.5 rounded-lg bg-white/[0.05] hover:bg-white/[0.08] border border-white/[0.08] text-white/70 hover:text-white text-xs font-medium transition-all active:scale-[0.98]">
                         <i class="fa-solid fa-share-nodes text-[11px]"></i>
