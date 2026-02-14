@@ -1674,7 +1674,8 @@
 
     <!-- Service Worker Registration -->
     <script>
-        if ('serviceWorker' in navigator) {
+        if ('serviceWorker' in navigator && !window.__zdreamSwRegisterBound) {
+            window.__zdreamSwRegisterBound = true;
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('/sw.js?v=zdream-v5')
                     .then((registration) => {
@@ -1683,7 +1684,7 @@
                     .catch((error) => {
                         console.log('[SW] Registration failed:', error);
                     });
-            });
+            }, { once: true });
         }
     </script>
 

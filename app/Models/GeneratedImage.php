@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use App\Models\Setting;
@@ -78,6 +79,35 @@ class GeneratedImage extends Model
     }
 
     /**
+     * Check whether a BFL signed URL has expired (via `se` query param).
+     */
+    protected function isExpiredBflSignedUrl(string $url): bool
+    {
+        $host = (string) parse_url($url, PHP_URL_HOST);
+        if (!str_contains($host, 'cdn.bfl.ai')) {
+            return false;
+        }
+
+        $query = (string) parse_url($url, PHP_URL_QUERY);
+        if ($query === '') {
+            return false;
+        }
+
+        parse_str($query, $params);
+        $expiryRaw = $params['se'] ?? null;
+        if (empty($expiryRaw)) {
+            return false;
+        }
+
+        try {
+            $expiry = Carbon::parse(urldecode((string) $expiryRaw));
+            return now()->greaterThanOrEqualTo($expiry);
+        } catch (\Throwable $e) {
+            return false;
+        }
+    }
+
+    /**
      * Lấy style đã sử dụng
      */
     public function style(): BelongsTo
@@ -146,6 +176,9 @@ class GeneratedImage extends Model
 
         // Nếu là URL đầy đủ (đã có protocol)
         if (str_starts_with($this->storage_path, 'http')) {
+            if ($this->isExpiredBflSignedUrl($this->storage_path)) {
+                return asset('images/placeholder.svg');
+            }
             return $this->storage_path;
         }
 
