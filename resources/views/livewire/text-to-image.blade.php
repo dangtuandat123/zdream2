@@ -287,7 +287,7 @@
                 // INIT
                 // ============================================================
                 init() {
-                    // Keep Alpine state in sync with Livewire without @entangle (safe across wire:navigate remounts).
+                    // Keep Alpine state in sync with Livewire without entangle() (safe across wire:navigate remounts).
                     if (this.$wire?.aspectRatio !== undefined) {
                         this.selectedRatio = this.$wire.aspectRatio;
                     }

@@ -71,43 +71,50 @@ class TextToImage extends Component
     #[Computed]
     public function history()
     {
-        if (!Auth::check())
-            return collect();
-
-        $query = GeneratedImage::where('user_id', Auth::id())
-            ->where('status', GeneratedImage::STATUS_COMPLETED)
-            ->whereNotNull('storage_path')
-            ->whereHas('style', function ($q) {
-                $q->where('is_system', true)->where('slug', Style::SYSTEM_T2I_SLUG);
-            });
-
-        // Date filter
-        if ($this->filterDate !== 'all') {
-            $date = match ($this->filterDate) {
-                'week' => now()->subWeek(),
-                'month' => now()->subMonth(),
-                '3months' => now()->subMonths(3),
-                default => null,
-            };
-            if ($date) {
-                $query->where('created_at', '>=', $date);
+        try {
+            if (!Auth::check()) {
+                return collect();
             }
-        }
 
-        // Model filter
-        if ($this->filterModel !== 'all') {
-            $query->whereJsonContains('generation_params->model_id', $this->filterModel);
-        }
+            $query = GeneratedImage::where('user_id', Auth::id())
+                ->where('status', GeneratedImage::STATUS_COMPLETED)
+                ->whereNotNull('storage_path')
+                ->whereHas('style', function ($q) {
+                    $q->where('is_system', true)->where('slug', Style::SYSTEM_T2I_SLUG);
+                });
 
-        // Ratio filter
-        if ($this->filterRatio !== 'all') {
-            $query->whereJsonContains('generation_params->aspect_ratio', $this->filterRatio);
-        }
+            // Date filter
+            if ($this->filterDate !== 'all') {
+                $date = match ($this->filterDate) {
+                    'week' => now()->subWeek(),
+                    'month' => now()->subMonth(),
+                    '3months' => now()->subMonths(3),
+                    default => null,
+                };
+                if ($date) {
+                    $query->where('created_at', '>=', $date);
+                }
+            }
 
-        return $query
-            ->orderByDesc('created_at')
-            ->orderByDesc('id')
-            ->paginate($this->perPage);
+            // Model filter
+            if ($this->filterModel !== 'all') {
+                $query->whereJsonContains('generation_params->model_id', $this->filterModel);
+            }
+
+            // Ratio filter
+            if ($this->filterRatio !== 'all') {
+                $query->whereJsonContains('generation_params->aspect_ratio', $this->filterRatio);
+            }
+
+            return $query
+                ->orderByDesc('created_at')
+                ->orderByDesc('id')
+                ->paginate($this->perPage);
+        } catch (\Throwable $e) {
+            report($e);
+
+            return collect();
+        }
     }
 
     public function updatedFilterDate(): void
