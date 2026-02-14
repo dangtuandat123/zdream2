@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
@@ -189,8 +190,11 @@ class GeneratedImage extends Model
             $cacheKey = 'minio:temp_url:' . md5($storagePath);
             $cacheTtl = now()->addDays(6); // buffer trước khi hết hạn
 
-            return Cache::remember($cacheKey, $cacheTtl, function () use ($storagePath) {
-                return Storage::disk('minio')->temporaryUrl(
+            /** @var FilesystemAdapter $disk */
+            $disk = Storage::disk('minio');
+
+            return Cache::remember($cacheKey, $cacheTtl, function () use ($storagePath, $disk) {
+                return $disk->temporaryUrl(
                     $storagePath,
                     now()->addDays(7)  // Max 7 days for S3-compatible
                 );
@@ -198,7 +202,9 @@ class GeneratedImage extends Model
         } catch (\Exception $e) {
             // Fallback to regular URL nếu temporaryUrl không khả dụng
             Cache::forget('minio:temp_url:' . md5($this->storage_path));
-            return Storage::disk('minio')->url($this->storage_path);
+            /** @var FilesystemAdapter $disk */
+            $disk = Storage::disk('minio');
+            return $disk->url($this->storage_path);
         }
     }
 
