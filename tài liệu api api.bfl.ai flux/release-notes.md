@@ -25,7 +25,7 @@
 
   Download open weights from [Hugging Face](https://huggingface.co/black-forest-labs) or get started with the [API documentation](/flux_2/flux2_text_to_image).
 </Update>
-
+S
 <Update label="January 8, 2026">
   ## Credit Transfer
 
