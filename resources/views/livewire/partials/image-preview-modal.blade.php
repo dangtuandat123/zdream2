@@ -114,24 +114,9 @@
 
             {{-- Dot Navigation --}}
             <div class="flex items-center gap-1.5" x-show="historyData.length > 1">
-                <template x-for="(dot, dotIdx) in (() => {
-                    const len = historyData.length;
-                    if (len <= 7) return Array.from({length: len}, (_, i) => ({idx: i, size: 'normal'}));
-                    const center = previewIndex;
-                    const start = Math.max(0, Math.min(center - 3, len - 7));
-                    const end = Math.min(len, start + 7);
-                    return Array.from({length: end - start}, (_, i) => ({
-                        idx: start + i,
-                        size: (start + i === start || start + i === end - 1) && len > 7 ? 'small' : 'normal'
-                    }));
-                })()" :key="dot.idx">
-                    <button @click="goToImage(dot.idx)" :aria-label="'Ảnh ' + (dot.idx + 1)"
-                        class="rounded-full transition-all duration-200" :class="{
-                            'w-2.5 h-2.5 bg-purple-400': dot.idx === previewIndex && dot.size === 'normal',
-                            'w-2 h-2 bg-white/40 hover:bg-white/60': dot.idx !== previewIndex && dot.size === 'normal',
-                            'w-1.5 h-1.5 bg-purple-400': dot.idx === previewIndex && dot.size === 'small',
-                            'w-1 h-1 bg-white/30': dot.idx !== previewIndex && dot.size === 'small'
-                        }"></button>
+                <template x-for="dot in previewDots()" :key="dot.id">
+                    <button @click="goToImage(dot.idx)" :aria-label="'Ảnh ' + ((dot?.idx ?? 0) + 1)"
+                        class="rounded-full transition-all duration-200" :class="dotButtonClass(dot, true)"></button>
                 </template>
             </div>
         </div>
@@ -179,23 +164,9 @@
 
             {{-- Dot navigation --}}
             <div class="flex justify-center gap-1.5 mb-3" x-show="historyData.length > 1">
-                <template x-for="(dot, dotIdx) in (() => {
-                    const len = historyData.length;
-                    if (len <= 7) return Array.from({length: len}, (_, i) => ({idx: i, size: 'normal'}));
-                    const center = previewIndex;
-                    const start = Math.max(0, Math.min(center - 3, len - 7));
-                    const end = Math.min(len, start + 7);
-                    return Array.from({length: end - start}, (_, i) => ({
-                        idx: start + i,
-                        size: (start + i === start || start + i === end - 1) && len > 7 ? 'small' : 'normal'
-                    }));
-                })()" :key="dot.idx">
-                    <button @click="goToImage(dot.idx)" class="rounded-full transition-all duration-200" :class="{
-                            'w-2.5 h-2.5 bg-purple-400': dot.idx === previewIndex && dot.size === 'normal',
-                            'w-2 h-2 bg-white/40': dot.idx !== previewIndex && dot.size === 'normal',
-                            'w-1.5 h-1.5 bg-purple-400': dot.idx === previewIndex && dot.size === 'small',
-                            'w-1 h-1 bg-white/30': dot.idx !== previewIndex && dot.size === 'small'
-                        }"></button>
+                <template x-for="dot in previewDots()" :key="dot.id">
+                    <button @click="goToImage(dot.idx)" :aria-label="'Ảnh ' + ((dot?.idx ?? 0) + 1)"
+                        class="rounded-full transition-all duration-200" :class="dotButtonClass(dot, false)"></button>
                 </template>
             </div>
 

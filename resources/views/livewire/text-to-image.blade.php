@@ -829,6 +829,48 @@
                         this.previewImage = this.historyData[index];
                     }
                 },
+                previewDots() {
+                    const len = Array.isArray(this.historyData) ? this.historyData.length : 0;
+                    if (len <= 0) return [];
+
+                    if (len <= 7) {
+                        return Array.from({ length: len }, (_, i) => ({
+                            id: `dot-${i}`,
+                            idx: i,
+                            size: 'normal',
+                        }));
+                    }
+
+                    const center = Math.max(0, Math.min(this.previewIndex, len - 1));
+                    const start = Math.max(0, Math.min(center - 3, len - 7));
+                    const end = Math.min(len, start + 7);
+
+                    return Array.from({ length: end - start }, (_, i) => {
+                        const idx = start + i;
+                        const isEdge = (idx === start || idx === end - 1) && len > 7;
+                        return {
+                            id: `dot-${idx}`,
+                            idx,
+                            size: isEdge ? 'small' : 'normal',
+                        };
+                    });
+                },
+                dotButtonClass(dot, withHover = false) {
+                    if (!dot) return 'w-2 h-2 bg-white/30';
+
+                    const active = dot.idx === this.previewIndex;
+                    const small = dot.size === 'small';
+
+                    if (active) {
+                        return small ? 'w-1.5 h-1.5 bg-purple-400' : 'w-2.5 h-2.5 bg-purple-400';
+                    }
+
+                    if (small) {
+                        return 'w-1 h-1 bg-white/30';
+                    }
+
+                    return withHover ? 'w-2 h-2 bg-white/40 hover:bg-white/60' : 'w-2 h-2 bg-white/40';
+                },
 
                 // ============================================================
                 // Keyboard
