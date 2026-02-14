@@ -38,6 +38,7 @@ class Style extends Model
         'thumbnail_url',
         'description',
         'price',
+        'openrouter_model_id',
         'bfl_model_id',
         'base_prompt',
         'config_payload',

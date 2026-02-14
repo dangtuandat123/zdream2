@@ -21,9 +21,11 @@ return new class extends Migration
             
             // Remove old fields (from previous implementation)
             if (Schema::hasColumn('styles', 'is_featured')) {
+                $table->dropIndex(['is_featured']);
                 $table->dropColumn('is_featured');
             }
             if (Schema::hasColumn('styles', 'is_new')) {
+                $table->dropIndex(['is_new']);
                 $table->dropColumn('is_new');
             }
         });

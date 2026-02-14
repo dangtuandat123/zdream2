@@ -12,6 +12,10 @@ return new class extends Migration
             return;
         }
 
+        if (DB::getDriverName() === 'sqlite') {
+            return;
+        }
+
         // Avoid doctrine/dbal dependency by using raw SQL.
         DB::statement('ALTER TABLE `styles` MODIFY `openrouter_model_id` VARCHAR(255) NULL');
     }
@@ -19,6 +23,10 @@ return new class extends Migration
     public function down(): void
     {
         if (!Schema::hasTable('styles')) {
+            return;
+        }
+
+        if (DB::getDriverName() === 'sqlite') {
             return;
         }
 

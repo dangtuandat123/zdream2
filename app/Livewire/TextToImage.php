@@ -227,6 +227,7 @@ class TextToImage extends Component
         }
 
         // Check credits for TOTAL batch
+        $this->batchSize = max(1, min($this->batchSize, 4));
         $totalCost = $this->creditCost * $this->batchSize;
         if ($totalCost > 0 && !$user->hasEnoughCredits($totalCost)) {
             $this->errorMessage = "Ban khong du credits. Can: {$totalCost}, Hien co: {$user->credits}";
@@ -243,6 +244,20 @@ class TextToImage extends Component
         ];
 
         $walletService = app(WalletService::class);
+        $systemStyle = Style::firstOrCreate(
+            ['slug' => Style::SYSTEM_T2I_SLUG],
+            [
+                'name' => 'Text to Image',
+                'description' => 'Tao anh AI tu mo ta van ban.',
+                'price' => $this->creditCost,
+                'openrouter_model_id' => $this->modelId,
+                'bfl_model_id' => $this->modelId,
+                'base_prompt' => '',
+                'is_active' => true,
+                'is_system' => true,
+                'allow_user_custom_prompt' => true,
+            ]
+        );
 
         // Loop for batch size
         $batchId = Str::uuid()->toString();
@@ -251,22 +266,6 @@ class TextToImage extends Component
             $creditsDeducted = false;
 
             try {
-                // Get or create system style
-                $systemStyle = Style::where('slug', Style::SYSTEM_T2I_SLUG)->first();
-
-                if (!$systemStyle) {
-                    $systemStyle = Style::create([
-                        'name' => 'Text to Image',
-                        'slug' => Style::SYSTEM_T2I_SLUG,
-                        'description' => 'Tao anh AI tu mo ta van ban.',
-                        'price' => $this->creditCost,
-                        'bfl_model_id' => $this->modelId,
-                        'is_active' => true,
-                        'is_system' => true,
-                        'allow_user_custom_prompt' => true,
-                    ]);
-                }
-
                 // Resolve auto ratio - store user choice + effective value for API
                 $effectiveRatio = $this->aspectRatio === 'auto' ? null : $this->aspectRatio;
 

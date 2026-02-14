@@ -1,7 +1,7 @@
 {{-- ============================================================ --}}
 {{-- TEXT-TO-IMAGE — Root Orchestrator (Redesigned: Core-first) --}}
 {{-- ============================================================ --}}
-<div class="relative min-h-screen" @if($isGenerating) wire:poll.2s="pollImageStatus" @endif x-data="textToImage"
+<div class="relative min-h-screen" @if($isGenerating) wire:poll.1500ms="pollImageStatus" @endif x-data="textToImage"
     @keydown.window="handleKeydown($event)"
     x-on:show-toast.window="notify($event.detail.message, $event.detail.type || 'success')">
 
@@ -274,6 +274,7 @@
                 _loadMoreFailSafeTimer: null,
                 _resizeHandler: null,
                 _prependRestoreRaf: null,
+                _prependStabilizeRaf: null,
                 hasMoreHistory: @js($history instanceof \Illuminate\Pagination\LengthAwarePaginator ? $history->hasMorePages() : false),
                 loadingMoreHistory: false,
                 isPrependingHistory: false,
@@ -379,12 +380,13 @@
                         const { successCount, failedCount } = Array.isArray(params) ? params[0] || {} : params || {};
                         this.$nextTick(() => {
                             setTimeout(() => {
+                                let centeredNewest = false;
                                 if (this.autoScrollEnabled || this.isNearBottom(240)) {
-                                    this.scrollToBottom(true);
-                                    setTimeout(() => {
+                                    centeredNewest = this.centerLatestBatch(true);
+                                    if (!centeredNewest) {
                                         this.scrollToBottom(false);
-                                        this.autoScrollEnabled = true;
-                                    }, 100);
+                                    }
+                                    this.autoScrollEnabled = true;
                                     this.showScrollToBottom = false;
                                 } else {
                                     this.showScrollToBottom = true;
@@ -439,6 +441,9 @@
                                 }
                                 // Apply a single correction frame after DOM morph.
                                 this._prependRestoreRaf = requestAnimationFrame(() => {
+                                    const stabilizeBoundaryId = !this.centerAfterPrepend ? this.prependBoundaryId : null;
+                                    const stabilizeBoundaryTop = !this.centerAfterPrepend ? this.prependBoundaryTop : null;
+
                                     if (this.centerAfterPrepend) {
                                         const centered = this.centerPrependedItem();
                                         if (!centered) {
@@ -446,6 +451,9 @@
                                         }
                                     } else {
                                         this.restorePrependAnchor();
+                                        if (stabilizeBoundaryId !== null && stabilizeBoundaryTop !== null) {
+                                            this.stabilizePrependAnchor(stabilizeBoundaryId, stabilizeBoundaryTop);
+                                        }
                                     }
                                     this._prependRestoreRaf = null;
                                 });
@@ -586,6 +594,7 @@
                         cancelAnimationFrame(this._prependRestoreRaf);
                         this._prependRestoreRaf = null;
                     }
+                    this.stopPrependStabilize();
                     this.loadingMoreHistory = false;
                     this.isPrependingHistory = false;
                     this.prependBeforeScrollY = 0;
@@ -716,6 +725,46 @@
 
                     this.refreshScrollState();
                 },
+                stopPrependStabilize() {
+                    if (this._prependStabilizeRaf !== null) {
+                        cancelAnimationFrame(this._prependStabilizeRaf);
+                        this._prependStabilizeRaf = null;
+                    }
+                },
+                stabilizePrependAnchor(boundaryId, boundaryTop, maxFrames = 12) {
+                    this.stopPrependStabilize();
+
+                    if (boundaryId === null || boundaryTop === null) return;
+
+                    let frame = 0;
+                    const tick = () => {
+                        const boundary = document.querySelector(
+                            `#gallery-feed .group-batch[data-history-anchor-id="${String(boundaryId)}"]`
+                        );
+                        if (!boundary) {
+                            this._prependStabilizeRaf = null;
+                            return;
+                        }
+
+                        const currentTop = boundary.getBoundingClientRect().top;
+                        const delta = currentTop - boundaryTop;
+                        if (Math.abs(delta) > 0.5) {
+                            const doc = document.documentElement;
+                            const currentY = window.scrollY || doc.scrollTop || 0;
+                            window.scrollTo(0, Math.max(0, Math.round(currentY + delta)));
+                        }
+
+                        frame += 1;
+                        if (frame >= maxFrames) {
+                            this._prependStabilizeRaf = null;
+                            return;
+                        }
+
+                        this._prependStabilizeRaf = requestAnimationFrame(tick);
+                    };
+
+                    this._prependStabilizeRaf = requestAnimationFrame(tick);
+                },
                 centerPrependedItem() {
                     if (!this.centerAfterPrepend) return false;
 
@@ -745,6 +794,26 @@
                     this.refreshScrollState();
                     return true;
                 },
+                centerLatestBatch(smooth = false) {
+                    const batches = Array.from(document.querySelectorAll('#gallery-feed .group-batch'));
+                    const latest = batches[batches.length - 1];
+                    if (!latest) return false;
+
+                    const rect = latest.getBoundingClientRect();
+                    const currentY = window.scrollY || document.documentElement.scrollTop || 0;
+                    const fitsViewport = rect.height < window.innerHeight;
+                    const desiredTop = fitsViewport
+                        ? currentY + rect.top - ((window.innerHeight - rect.height) / 2)
+                        : currentY + rect.top - 24;
+
+                    const top = Math.max(0, Math.round(desiredTop));
+                    if (smooth) {
+                        window.scrollTo({ top, behavior: 'smooth' });
+                    } else {
+                        window.scrollTo(0, top);
+                    }
+                    return true;
+                },
                 maybeBootstrapHistory() {
                     if (!this.hasMoreHistory || this.loadingMoreHistory) return;
                     this.refreshScrollState();
@@ -771,6 +840,7 @@
                 requestLoadOlder(count = null, source = 'scroll') {
                     if (!this.hasMoreHistory || this.loadingMoreHistory) return;
 
+                    this.stopPrependStabilize();
                     this.capturePrependAnchor();
                     this.loadingMoreHistory = true;
                     this.isPrependingHistory = true;
@@ -785,6 +855,7 @@
                     this._loadMoreFailSafeTimer = setTimeout(() => {
                         this.loadingMoreHistory = false;
                         this.isPrependingHistory = false;
+                        this.stopPrependStabilize();
                         this.prependBeforeScrollY = 0;
                         this.prependBeforeHeight = 0;
                         this.prependBoundaryId = null;
