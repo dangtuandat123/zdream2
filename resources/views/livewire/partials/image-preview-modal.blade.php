@@ -19,7 +19,7 @@
         x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"></div>
 
     {{-- ============ DESKTOP VIEW (sm+) ============ --}}
-    <div class="hidden sm:flex relative z-10 w-full max-w-5xl mx-auto px-4 items-center gap-4" x-show="showPreview"
+    <div class="hidden sm:flex relative z-10 w-full h-[100dvh] max-w-6xl mx-auto px-4 py-4 items-center gap-4" x-show="showPreview"
         x-cloak x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 scale-95"
         x-transition:enter-end="opacity-100 scale-100" x-transition:leave="transition ease-in duration-200"
         x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95">
@@ -40,14 +40,14 @@
         {{-- Main Image + Info --}}
         <div class="flex-1 flex flex-col items-center gap-4 min-w-0">
             {{-- Image --}}
-            <div class="relative w-full flex items-center justify-center" style="max-height: 80vh;">
+            <div class="relative w-full flex items-center justify-center" style="max-height: 68vh;">
                 <img :src="previewImage?.url" :key="'preview-' + previewIndex"
                     class="max-w-full max-h-[80vh] object-contain rounded-xl shadow-2xl transition-opacity duration-200"
                     :alt="previewImage?.prompt || 'Preview'" onerror="this.onerror=null; this.src='/images/placeholder.svg'">
             </div>
 
             {{-- Info panel --}}
-            <div class="w-full max-w-2xl">
+            <div class="w-full max-w-3xl max-h-[22vh] overflow-y-auto rounded-xl bg-black/30 border border-white/[0.08] p-3">
                 {{-- Prompt --}}
                 <div x-data="{ expanded: false }" class="mb-3">
                     <p class="text-white/80 text-sm leading-relaxed" :class="expanded ? '' : 'line-clamp-2'"
@@ -145,7 +145,7 @@
     </div>
 
     {{-- ============ MOBILE VIEW (sm:hidden) ============ --}}
-    <div class="sm:hidden relative z-10 flex flex-col w-full h-full" x-show="showPreview" x-cloak
+    <div class="sm:hidden relative z-10 flex flex-col w-full h-[100dvh] overflow-hidden" x-show="showPreview" x-cloak
         x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4"
         x-transition:enter-end="opacity-100 translate-y-0">
 
@@ -159,14 +159,14 @@
         </div>
 
         {{-- Image area (takes remaining space) --}}
-        <div class="flex-1 flex items-center justify-center px-4 overflow-hidden">
+        <div class="flex-1 min-h-0 flex items-center justify-center px-4 overflow-hidden">
             <img :src="previewImage?.url" :key="'mobile-preview-' + previewIndex"
                 class="max-w-full max-h-full object-contain rounded-xl transition-opacity duration-200"
                 :alt="previewImage?.prompt || 'Preview'" onerror="this.onerror=null; this.src='/images/placeholder.svg'">
         </div>
 
         {{-- Bottom info + actions --}}
-        <div class="px-4 pb-4 safe-area-bottom">
+        <div class="px-4 pb-4 safe-area-bottom max-h-[42vh] overflow-y-auto bg-gradient-to-t from-black/90 to-black/20 rounded-t-2xl">
             {{-- Prompt --}}
             <div x-data="{ expanded: false }" class="mb-3">
                 <p class="text-white/80 text-sm leading-relaxed" :class="expanded ? '' : 'line-clamp-2'"

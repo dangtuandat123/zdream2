@@ -22,15 +22,21 @@
             ? $history->getCollection()
             : collect($history);
         $historyCollection = $historyCollection->sortByDesc('created_at')->values();
-        $groupedHistory = $historyCollection->groupBy(function ($item) {
-            if (!empty($item->generation_params['batch_id'])) {
-                return $item->generation_params['batch_id'];
-            }
-            return $item->final_prompt . '|' .
-                ($item->generation_params['model_id'] ?? '') . '|' .
-                ($item->generation_params['aspect_ratio'] ?? '') . '|' .
-                'legacy-' . $item->id;
-        });
+        $groupedHistory = $historyCollection
+            ->groupBy(function ($item) {
+                if (!empty($item->generation_params['batch_id'])) {
+                    return $item->generation_params['batch_id'];
+                }
+                return $item->final_prompt . '|' .
+                    ($item->generation_params['model_id'] ?? '') . '|' .
+                    ($item->generation_params['aspect_ratio'] ?? '') . '|' .
+                    'legacy-' . $item->id;
+            })
+            ->map(fn($items) => collect($items)->sortByDesc('created_at')->values())
+            ->sortByDesc(function ($items) {
+                $first = $items->first();
+                return $first && $first->created_at ? $first->created_at->getTimestamp() : 0;
+            });
 
         // 2. Flatten for JS (keep reversed order) — Fix 7: map model_id to friendly name
         $modelMap = collect($availableModels)->pluck('name', 'id')->toArray();
@@ -140,8 +146,8 @@
                 statusMessage: '',
                 statusElapsed: 0,
                 statusTimer: null,
-                autoScrollEnabled: true, // Fix 8: toggle auto-scroll
-                showScrollToBottom: false, // Fix 8: floating button visibility
+                autoScrollEnabled: true, // Auto-follow newest content (top)
+                showScrollToBottom: false, // Floating jump-to-newest button
 
                 // Toast
                 showToast: false,
@@ -241,7 +247,7 @@
                     window.addEventListener('scroll', () => {
                         if (!this.autoScrollEnabled) return;
                         // If user scrolls up significantly (not at bottom), disable auto-scroll
-                        if (!this.isNearBottom(100)) {
+                        if (!this.isNearTop(120)) {
                             this.autoScrollEnabled = false;
                             // Optional: notify('Auto-scroll tắt');
                         }
@@ -252,22 +258,22 @@
                         const { successCount, failedCount } = Array.isArray(params) ? params[0] || {} : params || {};
                         this.$nextTick(() => {
                             setTimeout(() => {
-                                // Fix 8: Only auto-scroll if near bottom or autoScroll enabled
-                                if (this.autoScrollEnabled && this.isNearBottom(400)) {
-                                    this.scrollToBottom(true);
+                                if (this.autoScrollEnabled || this.isNearTop(240)) {
+                                    this.scrollToTop(true);
                                     setTimeout(() => {
-                                        this.scrollToBottom(false);
-                                        this.autoScrollEnabled = true; // Re-enable auto-scroll
+                                        this.scrollToTop(false);
+                                        this.autoScrollEnabled = true;
                                     }, 100);
+                                    this.showScrollToBottom = false;
                                 } else {
                                     this.showScrollToBottom = true;
                                 }
                                 const batches = document.querySelectorAll('.group-batch');
-                                const lastBatch = batches[batches.length - 1];
-                                if (lastBatch) {
-                                    lastBatch.classList.add('new-batch-animate', 'new-batch-glow');
-                                    setTimeout(() => lastBatch.classList.remove('new-batch-glow'), 3000);
-                                    setTimeout(() => lastBatch.classList.remove('new-batch-animate'), 600);
+                                const firstBatch = batches[0];
+                                if (firstBatch) {
+                                    firstBatch.classList.add('new-batch-animate', 'new-batch-glow');
+                                    setTimeout(() => firstBatch.classList.remove('new-batch-glow'), 3000);
+                                    setTimeout(() => firstBatch.classList.remove('new-batch-animate'), 600);
                                 }
 
                                 // Update uiMode based on results
@@ -398,18 +404,17 @@
                 // ============================================================
                 // Scroll
                 // ============================================================
-                scrollToBottom(smooth = true) {
+                scrollToTop(smooth = true) {
                     const el = document.documentElement;
                     el.scrollTo({
-                        top: el.scrollHeight,
+                        top: 0,
                         behavior: smooth ? 'smooth' : 'auto'
                     });
                     this.showScrollToBottom = false;
                 },
-                // Fix 8: Check if user is near bottom of page
-                isNearBottom(threshold = 300) {
+                isNearTop(threshold = 200) {
                     const el = document.documentElement;
-                    return (el.scrollHeight - el.scrollTop - el.clientHeight) < threshold;
+                    return el.scrollTop < threshold;
                 },
 
                 // ============================================================

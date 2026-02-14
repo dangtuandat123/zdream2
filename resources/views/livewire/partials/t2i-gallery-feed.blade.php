@@ -26,7 +26,7 @@
         @endif
 
         {{-- Gallery Feed --}}
-        <div class="space-y-6 px-1 md:px-2 pt-6" id="gallery-feed" data-history='@json($flatHistoryForJs)'
+        <div class="flex flex-col gap-6 px-1 md:px-2 pt-6" id="gallery-feed" data-history='@json($flatHistoryForJs)'
             wire:key="gallery-feed">
 
             @php $absoluteIndex = 0; @endphp
@@ -250,7 +250,7 @@
 
             {{-- Loading Skeleton (Pending Batch) --}}
             @if($isGenerating && !$generatedImageUrl)
-                <div class="mt-6" x-data="{ elapsed: 0, timer: null }" x-init="
+                <div class="order-first" x-data="{ elapsed: 0, timer: null }" x-init="
                         timer = setInterval(() => elapsed++, 1000);
                         const stopTimer = () => clearInterval(timer);
                         window.addEventListener('livewire:navigating', stopTimer, { once: true });
@@ -302,9 +302,9 @@
             @endif
         </div>
 
-    {{-- Floating "Scroll to latest" button --}}
+    {{-- Floating "Jump to newest" button --}}
     <button x-show="showScrollToBottom" x-cloak
-        @click="scrollToBottom(true)"
+        @click="scrollToTop(true); autoScrollEnabled = true"
         x-transition:enter="transition ease-out duration-200"
         x-transition:enter-start="opacity-0 translate-y-4"
         x-transition:enter-end="opacity-100 translate-y-0"
@@ -312,17 +312,17 @@
         x-transition:leave-end="opacity-0 translate-y-4"
         class="fixed right-4 z-[55] flex items-center gap-2 px-4 py-2.5 rounded-full bg-purple-500/90 hover:bg-purple-500 text-white text-sm font-medium shadow-xl shadow-purple-500/25 backdrop-blur-sm active:scale-[0.95] transition-all"
         style="bottom: calc(var(--composer-h, 10rem) + 1rem);">
-        <i class="fa-solid fa-arrow-down text-xs"></i>
+        <i class="fa-solid fa-arrow-up text-xs"></i>
         <span>Về ảnh mới nhất</span>
     </button>
 
     {{-- Auto-scroll toggle --}}
     <button x-show="!autoScrollEnabled" x-cloak
-        @click="autoScrollEnabled = true; notify('Auto-scroll bật')"
+        @click="autoScrollEnabled = true; scrollToTop(true); notify('Da bat theo doi anh moi')"
         x-transition
         class="fixed right-4 z-[54] flex items-center gap-1.5 px-3 py-2 rounded-full bg-white/10 hover:bg-white/15 text-white/60 text-xs font-medium backdrop-blur-sm active:scale-[0.95] transition-all border border-white/10"
         style="bottom: calc(var(--composer-h, 10rem) + 3.5rem);">
-        <i class="fa-solid fa-arrows-up-down text-[10px]"></i>
-        <span>Auto-scroll: OFF</span>
+        <i class="fa-solid fa-bolt text-[10px]"></i>
+        <span>Theo doi anh moi: OFF</span>
     </button>
 </div>
