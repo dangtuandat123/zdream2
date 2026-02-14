@@ -167,6 +167,7 @@
     {{-- ============================================================ --}}
     {{-- ALPINE DATA --}}
     {{-- ============================================================ --}}
+    @script
     <script>
         (() => {
             const registerTextToImage = () => {
@@ -856,8 +857,12 @@
             }
 
             // For wire:navigate: page scripts can run after Alpine has already initialized.
-            document.addEventListener('livewire:navigated', registerTextToImage);
+            if (!window.__t2iNavigateListenerBound) {
+                document.addEventListener('livewire:navigated', registerTextToImage);
+                window.__t2iNavigateListenerBound = true;
+            }
         })();
     </script>
+    @endscript
 
 </div>
