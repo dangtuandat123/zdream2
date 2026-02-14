@@ -27,11 +27,22 @@
 
         {{-- Gallery Feed --}}
         <div class="flex flex-col gap-6 px-1 md:px-2 pt-6" id="gallery-feed" data-history='@json($flatHistoryForJs)'
+            data-has-more="{{ ($history instanceof \Illuminate\Pagination\LengthAwarePaginator && $history->hasMorePages()) ? '1' : '0' }}"
             wire:key="gallery-feed">
 
             @php $absoluteIndex = 0; @endphp
 
             <div class="space-y-6 gallery-wrapper" x-data>
+                {{-- Older history loader hint (top) --}}
+                <div x-show="hasMoreHistory || loadingMoreHistory" x-cloak class="flex justify-center py-1">
+                    <div class="inline-flex items-center gap-2 text-white/40 text-xs rounded-full px-3 py-1.5 bg-white/[0.03] border border-white/[0.06]">
+                        <i class="fa-solid fa-arrow-up text-[10px]"></i>
+                        <span x-show="!loadingMoreHistory">Lướt lên để tải ảnh cũ hơn</span>
+                        <span x-show="loadingMoreHistory">Đang tải ảnh cũ hơn...</span>
+                        <i class="fa-solid fa-spinner fa-spin text-purple-400" x-show="loadingMoreHistory"></i>
+                    </div>
+                </div>
+
                 {{-- Grouped Batches --}}
                 @php $totalGroups = $groupedHistory->count();
                 $groupIdx = 0; @endphp
@@ -238,7 +249,7 @@
                 @endforelse
 
                 {{-- Bottom Infinite Scroll Sentinel --}}
-                @if($history instanceof \Illuminate\Pagination\LengthAwarePaginator && $history->hasMorePages())
+                @if(false)
                     <div class="py-8 flex justify-center" wire:intersect.once.margin.500px="loadMore">
                         <div class="flex items-center gap-2 text-white/40 text-sm">
                             <i class="fa-solid fa-spinner fa-spin text-purple-400" wire:loading wire:target="loadMore"></i>
@@ -250,7 +261,7 @@
 
             {{-- Loading Skeleton (Pending Batch) --}}
             @if($isGenerating && !$generatedImageUrl)
-                <div class="order-first" x-data="{ elapsed: 0, timer: null }" x-init="
+                <div x-data="{ elapsed: 0, timer: null }" x-init="
                         timer = setInterval(() => elapsed++, 1000);
                         const stopTimer = () => clearInterval(timer);
                         window.addEventListener('livewire:navigating', stopTimer, { once: true });
@@ -304,7 +315,7 @@
 
     {{-- Floating "Jump to newest" button --}}
     <button x-show="showScrollToBottom" x-cloak
-        @click="scrollToTop(true); autoScrollEnabled = true"
+        @click="scrollToBottom(true); autoScrollEnabled = true"
         x-transition:enter="transition ease-out duration-200"
         x-transition:enter-start="opacity-0 translate-y-4"
         x-transition:enter-end="opacity-100 translate-y-0"
@@ -312,13 +323,13 @@
         x-transition:leave-end="opacity-0 translate-y-4"
         class="fixed right-4 z-[55] flex items-center gap-2 px-4 py-2.5 rounded-full bg-purple-500/90 hover:bg-purple-500 text-white text-sm font-medium shadow-xl shadow-purple-500/25 backdrop-blur-sm active:scale-[0.95] transition-all"
         style="bottom: calc(var(--composer-h, 10rem) + 1rem);">
-        <i class="fa-solid fa-arrow-up text-xs"></i>
+        <i class="fa-solid fa-arrow-down text-xs"></i>
         <span>Về ảnh mới nhất</span>
     </button>
 
     {{-- Auto-scroll toggle --}}
     <button x-show="!autoScrollEnabled" x-cloak
-        @click="autoScrollEnabled = true; scrollToTop(true); notify('Da bat theo doi anh moi')"
+        @click="autoScrollEnabled = true; scrollToBottom(true); notify('Da bat theo doi anh moi')"
         x-transition
         class="fixed right-4 z-[54] flex items-center gap-1.5 px-3 py-2 rounded-full bg-white/10 hover:bg-white/15 text-white/60 text-xs font-medium backdrop-blur-sm active:scale-[0.95] transition-all border border-white/10"
         style="bottom: calc(var(--composer-h, 10rem) + 3.5rem);">

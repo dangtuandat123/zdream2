@@ -26,9 +26,9 @@
                 $aTs = $a->created_at?->getTimestamp() ?? 0;
                 $bTs = $b->created_at?->getTimestamp() ?? 0;
                 if ($aTs === $bTs) {
-                    return ($b->id ?? 0) <=> ($a->id ?? 0);
+                    return ($a->id ?? 0) <=> ($b->id ?? 0);
                 }
-                return $bTs <=> $aTs;
+                return $aTs <=> $bTs;
             })
             ->values();
         $groupedHistory = $historyCollection
@@ -47,9 +47,9 @@
                         $aTs = $a->created_at?->getTimestamp() ?? 0;
                         $bTs = $b->created_at?->getTimestamp() ?? 0;
                         if ($aTs === $bTs) {
-                            return ($b->id ?? 0) <=> ($a->id ?? 0);
+                            return ($a->id ?? 0) <=> ($b->id ?? 0);
                         }
-                        return $bTs <=> $aTs;
+                        return $aTs <=> $bTs;
                     })
                     ->values();
             })
@@ -59,13 +59,13 @@
                 $aTs = $aFirst?->created_at?->getTimestamp() ?? 0;
                 $bTs = $bFirst?->created_at?->getTimestamp() ?? 0;
                 if ($aTs === $bTs) {
-                    return ($bFirst->id ?? 0) <=> ($aFirst->id ?? 0);
+                    return ($aFirst->id ?? 0) <=> ($bFirst->id ?? 0);
                 }
-                return $bTs <=> $aTs;
+                return $aTs <=> $bTs;
             })
             ->values();
 
-        // 2. Flatten for JS (keep reversed order) — Fix 7: map model_id to friendly name
+        // 2. Flatten for JS (chat order: oldest -> newest) — map model_id to friendly name
         $modelMap = collect($availableModels)->pluck('name', 'id')->toArray();
         $flatHistoryForJs = $groupedHistory->flatten(1)->map(fn($img) => [
             'id' => $img->id,
@@ -168,14 +168,21 @@
     {{-- ALPINE DATA --}}
     {{-- ============================================================ --}}
     <script>
-        document.addEventListener('alpine:init', () => {
+        (() => {
+            const registerTextToImage = () => {
+                if (!window.Alpine || window.__t2iAlpineRegistered) {
+                    return;
+                }
+
+                window.__t2iAlpineRegistered = true;
+
             Alpine.data('textToImage', () => ({
                 // ── UI State ──────────────────────────────────────
                 uiMode: 'idle', // idle | generating | partial_success | failed | done
                 statusMessage: '',
                 statusElapsed: 0,
                 statusTimer: null,
-                autoScrollEnabled: true, // Auto-follow newest content (top)
+                autoScrollEnabled: true, // Auto-follow newest content (bottom)
                 showScrollToBottom: false, // Floating jump-to-newest button
 
                 // Toast
@@ -264,6 +271,12 @@
                 _morphCleanup: null,
                 _wireListeners: [],
                 _scrollRestoration: null,
+                _loadMoreFailSafeTimer: null,
+                hasMoreHistory: @js($history instanceof \Illuminate\Pagination\LengthAwarePaginator ? $history->hasMorePages() : false),
+                loadingMoreHistory: false,
+                isPrependingHistory: false,
+                prependAnchorHeight: 0,
+                lastLoadMoreAt: 0,
 
                 // Dynamic max images based on selected model
                 get maxImages() {
@@ -275,18 +288,30 @@
                 // INIT
                 // ============================================================
                 init() {
-                    this.$nextTick(() => this.scrollToTop(false));
+                    this.$nextTick(() => {
+                        this.scrollToBottom(false);
+                        requestAnimationFrame(() => this.scrollToBottom(false));
+                        setTimeout(() => this.maybeLoadOlder(), 120);
+                    });
 
                     if ('scrollRestoration' in history) {
                         this._scrollRestoration = history.scrollRestoration;
                         history.scrollRestoration = 'manual';
                     }
 
+                    const dataEl = document.getElementById('gallery-feed');
+                    if (dataEl?.dataset?.hasMore !== undefined) {
+                        this.hasMoreHistory = dataEl.dataset.hasMore === '1';
+                    }
+
                     this._scrollHandler = () => {
-                        if (!this.autoScrollEnabled) return;
-                        if (!this.isNearTop(120)) {
+                        if (this.autoScrollEnabled && !this.isNearBottom(120)) {
                             this.autoScrollEnabled = false;
                         }
+                        if (this.isNearBottom(120)) {
+                            this.showScrollToBottom = false;
+                        }
+                        this.maybeLoadOlder();
                     };
                     window.addEventListener('scroll', this._scrollHandler, { passive: true });
 
@@ -295,10 +320,10 @@
                         const { successCount, failedCount } = Array.isArray(params) ? params[0] || {} : params || {};
                         this.$nextTick(() => {
                             setTimeout(() => {
-                                if (this.autoScrollEnabled || this.isNearTop(240)) {
-                                    this.scrollToTop(true);
+                                if (this.autoScrollEnabled || this.isNearBottom(240)) {
+                                    this.scrollToBottom(true);
                                     setTimeout(() => {
-                                        this.scrollToTop(false);
+                                        this.scrollToBottom(false);
                                         this.autoScrollEnabled = true;
                                     }, 100);
                                     this.showScrollToBottom = false;
@@ -306,11 +331,11 @@
                                     this.showScrollToBottom = true;
                                 }
                                 const batches = document.querySelectorAll('.group-batch');
-                                const firstBatch = batches[0];
-                                if (firstBatch) {
-                                    firstBatch.classList.add('new-batch-animate', 'new-batch-glow');
-                                    setTimeout(() => firstBatch.classList.remove('new-batch-glow'), 3000);
-                                    setTimeout(() => firstBatch.classList.remove('new-batch-animate'), 600);
+                                const lastBatch = batches[batches.length - 1];
+                                if (lastBatch) {
+                                    lastBatch.classList.add('new-batch-animate', 'new-batch-glow');
+                                    setTimeout(() => lastBatch.classList.remove('new-batch-glow'), 3000);
+                                    setTimeout(() => lastBatch.classList.remove('new-batch-animate'), 600);
                                 }
 
                                 // Update uiMode based on results
@@ -340,6 +365,33 @@
                         this.notify(this.statusMessage, 'error');
                     });
                     if (typeof offFailed === 'function') this._wireListeners.push(offFailed);
+
+                    const offHistoryUpdated = this.$wire.$on('historyUpdated', (params) => {
+                        const payload = Array.isArray(params) ? params[0] || {} : params || {};
+                        if (Object.prototype.hasOwnProperty.call(payload, 'hasMore')) {
+                            this.hasMoreHistory = !!payload.hasMore;
+                        }
+
+                        this.$nextTick(() => {
+                            if (this.isPrependingHistory) {
+                                const newHeight = document.documentElement.scrollHeight;
+                                const delta = newHeight - this.prependAnchorHeight;
+                                if (delta > 0) {
+                                    window.scrollBy(0, delta);
+                                }
+                            }
+
+                            this.loadingMoreHistory = false;
+                            this.isPrependingHistory = false;
+                            clearTimeout(this._loadMoreFailSafeTimer);
+                            this._loadMoreFailSafeTimer = null;
+
+                            if (this.isNearTop(220)) {
+                                this.maybeLoadOlder();
+                            }
+                        });
+                    });
+                    if (typeof offHistoryUpdated === 'function') this._wireListeners.push(offHistoryUpdated);
 
                     // Auto-trim refs when model changes
                     this.$watch('selectedModel', () => {
@@ -376,6 +428,12 @@
                         this._morphCleanup = Livewire.hook('morph.updated', ({ el }) => {
                             if (el.id === 'gallery-feed' || el.querySelector?.('#gallery-feed')) {
                                 const dataEl = document.getElementById('gallery-feed');
+                                if (!dataEl) return;
+
+                                if (dataEl.dataset?.hasMore !== undefined) {
+                                    this.hasMoreHistory = dataEl.dataset.hasMore === '1';
+                                }
+
                                 if (dataEl?.dataset?.history) {
                                     try {
                                         this.historyData = JSON.parse(dataEl.dataset.history);
@@ -442,6 +500,10 @@
                     }
                     this.stopLoading();
                     this.stopStatusTimer();
+                    clearTimeout(this._loadMoreFailSafeTimer);
+                    this._loadMoreFailSafeTimer = null;
+                    this.loadingMoreHistory = false;
+                    this.isPrependingHistory = false;
                     document.body.style.overflow = '';
                     document.documentElement.style.overflow = '';
                     if (this._scrollRestoration !== null && 'scrollRestoration' in history) {
@@ -480,10 +542,9 @@
                 // ============================================================
                 // Scroll
                 // ============================================================
-                scrollToTop(smooth = true) {
-                    const el = document.documentElement;
-                    el.scrollTo({
-                        top: 0,
+                scrollToBottom(smooth = true) {
+                    window.scrollTo({
+                        top: document.documentElement.scrollHeight,
                         behavior: smooth ? 'smooth' : 'auto'
                     });
                     this.showScrollToBottom = false;
@@ -491,6 +552,35 @@
                 isNearTop(threshold = 200) {
                     const el = document.documentElement;
                     return el.scrollTop < threshold;
+                },
+                isNearBottom(threshold = 200) {
+                    const el = document.documentElement;
+                    const distanceFromBottom = el.scrollHeight - (el.scrollTop + window.innerHeight);
+                    return distanceFromBottom < threshold;
+                },
+                maybeLoadOlder() {
+                    if (!this.hasMoreHistory || this.loadingMoreHistory) return;
+                    if (!this.isNearTop(220)) return;
+
+                    const now = Date.now();
+                    if (now - this.lastLoadMoreAt < 500) return;
+                    this.lastLoadMoreAt = now;
+                    this.requestLoadOlder();
+                },
+                requestLoadOlder() {
+                    if (!this.hasMoreHistory || this.loadingMoreHistory) return;
+
+                    this.loadingMoreHistory = true;
+                    this.isPrependingHistory = true;
+                    this.prependAnchorHeight = document.documentElement.scrollHeight;
+                    this.$wire.loadMore();
+
+                    clearTimeout(this._loadMoreFailSafeTimer);
+                    this._loadMoreFailSafeTimer = setTimeout(() => {
+                        this.loadingMoreHistory = false;
+                        this.isPrependingHistory = false;
+                        this._loadMoreFailSafeTimer = null;
+                    }, 7000);
                 },
 
                 // ============================================================
@@ -757,7 +847,17 @@
                     this.$wire.setReferenceImages([]);
                 },
             }));
-        });
+            };
+
+            if (window.Alpine) {
+                registerTextToImage();
+            } else {
+                document.addEventListener('alpine:init', registerTextToImage, { once: true });
+            }
+
+            // For wire:navigate: page scripts can run after Alpine has already initialized.
+            document.addEventListener('livewire:navigated', registerTextToImage);
+        })();
     </script>
 
 </div>

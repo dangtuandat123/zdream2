@@ -477,12 +477,29 @@ class TextToImage extends Component
 
     public function loadMore(): void
     {
-        if ($this->loadingMore)
+        if ($this->loadingMore) {
             return;
+        }
+
+        $history = $this->history;
+        $hasMore = $history instanceof \Illuminate\Pagination\LengthAwarePaginator
+            ? $history->hasMorePages()
+            : false;
+
+        if (!$hasMore) {
+            return;
+        }
+
         $this->loadingMore = true;
         $this->perPage += 8;
         $this->loadingMore = false;
-        $this->dispatch('historyUpdated');
+
+        $updatedHistory = $this->history;
+        $hasMoreAfterUpdate = $updatedHistory instanceof \Illuminate\Pagination\LengthAwarePaginator
+            ? $updatedHistory->hasMorePages()
+            : false;
+
+        $this->dispatch('historyUpdated', hasMore: $hasMoreAfterUpdate);
     }
 
     /**
