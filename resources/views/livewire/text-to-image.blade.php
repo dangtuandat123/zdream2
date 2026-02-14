@@ -21,7 +21,16 @@
         $historyCollection = ($history instanceof \Illuminate\Pagination\LengthAwarePaginator)
             ? $history->getCollection()
             : collect($history);
-        $historyCollection = $historyCollection->sortByDesc('created_at')->values();
+        $historyCollection = $historyCollection
+            ->sort(function ($a, $b) {
+                $aTs = $a->created_at?->getTimestamp() ?? 0;
+                $bTs = $b->created_at?->getTimestamp() ?? 0;
+                if ($aTs === $bTs) {
+                    return ($b->id ?? 0) <=> ($a->id ?? 0);
+                }
+                return $bTs <=> $aTs;
+            })
+            ->values();
         $groupedHistory = $historyCollection
             ->groupBy(function ($item) {
                 if (!empty($item->generation_params['batch_id'])) {
@@ -32,11 +41,29 @@
                     ($item->generation_params['aspect_ratio'] ?? '') . '|' .
                     'legacy-' . $item->id;
             })
-            ->map(fn($items) => collect($items)->sortByDesc('created_at')->values())
-            ->sortByDesc(function ($items) {
-                $first = $items->first();
-                return $first && $first->created_at ? $first->created_at->getTimestamp() : 0;
-            });
+            ->map(function ($items) {
+                return collect($items)
+                    ->sort(function ($a, $b) {
+                        $aTs = $a->created_at?->getTimestamp() ?? 0;
+                        $bTs = $b->created_at?->getTimestamp() ?? 0;
+                        if ($aTs === $bTs) {
+                            return ($b->id ?? 0) <=> ($a->id ?? 0);
+                        }
+                        return $bTs <=> $aTs;
+                    })
+                    ->values();
+            })
+            ->sort(function ($groupA, $groupB) {
+                $aFirst = $groupA->first();
+                $bFirst = $groupB->first();
+                $aTs = $aFirst?->created_at?->getTimestamp() ?? 0;
+                $bTs = $bFirst?->created_at?->getTimestamp() ?? 0;
+                if ($aTs === $bTs) {
+                    return ($bFirst->id ?? 0) <=> ($aFirst->id ?? 0);
+                }
+                return $bTs <=> $aTs;
+            })
+            ->values();
 
         // 2. Flatten for JS (keep reversed order) — Fix 7: map model_id to friendly name
         $modelMap = collect($availableModels)->pluck('name', 'id')->toArray();
@@ -124,8 +151,10 @@
         }
 
         /* Fix composer for md+ */
-        .composer-fixed {
-            bottom: 0 !important;
+        @media (min-width: 768px) {
+            .composer-fixed {
+                bottom: 0 !important;
+            }
         }
 
         /* Fix 3: Force gallery images to be visible, don't rely on JS class */
@@ -230,6 +259,11 @@
                 ],
                 currentLoadingMessage: 0,
                 loadingInterval: null,
+                _scrollHandler: null,
+                _onNavigating: null,
+                _morphCleanup: null,
+                _wireListeners: [],
+                _scrollRestoration: null,
 
                 // Dynamic max images based on selected model
                 get maxImages() {
@@ -241,20 +275,23 @@
                 // INIT
                 // ============================================================
                 init() {
-                    // Fix: Removed initial scroll to bottom on mount
+                    this.$nextTick(() => this.scrollToTop(false));
 
-                    // Fix: Scroll listener to disable auto-scroll when user scrolls up
-                    window.addEventListener('scroll', () => {
+                    if ('scrollRestoration' in history) {
+                        this._scrollRestoration = history.scrollRestoration;
+                        history.scrollRestoration = 'manual';
+                    }
+
+                    this._scrollHandler = () => {
                         if (!this.autoScrollEnabled) return;
-                        // If user scrolls up significantly (not at bottom), disable auto-scroll
                         if (!this.isNearTop(120)) {
                             this.autoScrollEnabled = false;
-                            // Optional: notify('Auto-scroll tắt');
                         }
-                    }, { passive: true });
+                    };
+                    window.addEventListener('scroll', this._scrollHandler, { passive: true });
 
                     // Image generated → scroll + celebrate
-                    this.$wire.$on('imageGenerated', (params) => {
+                    const offGenerated = this.$wire.$on('imageGenerated', (params) => {
                         const { successCount, failedCount } = Array.isArray(params) ? params[0] || {} : params || {};
                         this.$nextTick(() => {
                             setTimeout(() => {
@@ -293,14 +330,16 @@
                             }, 300);
                         });
                     });
+                    if (typeof offGenerated === 'function') this._wireListeners.push(offGenerated);
 
                     // Generation failed (all images)
-                    this.$wire.$on('imageGenerationFailed', () => {
+                    const offFailed = this.$wire.$on('imageGenerationFailed', () => {
                         this.uiMode = 'failed';
                         this.statusMessage = '❌ Tạo ảnh thất bại. Vui lòng thử lại.';
                         this.stopStatusTimer();
                         this.notify(this.statusMessage, 'error');
                     });
+                    if (typeof offFailed === 'function') this._wireListeners.push(offFailed);
 
                     // Auto-trim refs when model changes
                     this.$watch('selectedModel', () => {
@@ -333,21 +372,39 @@
                     });
 
                     // Update historyData after Livewire re-renders
-                    this._morphCleanup = Livewire.hook('morph.updated', ({ el }) => {
-                        if (el.id === 'gallery-feed' || el.querySelector?.('#gallery-feed')) {
-                            const dataEl = document.getElementById('gallery-feed');
-                            if (dataEl?.dataset?.history) {
-                                try {
-                                    this.historyData = JSON.parse(dataEl.dataset.history);
-                                } catch (e) { }
+                    if (window.Livewire?.hook) {
+                        this._morphCleanup = Livewire.hook('morph.updated', ({ el }) => {
+                            if (el.id === 'gallery-feed' || el.querySelector?.('#gallery-feed')) {
+                                const dataEl = document.getElementById('gallery-feed');
+                                if (dataEl?.dataset?.history) {
+                                    try {
+                                        this.historyData = JSON.parse(dataEl.dataset.history);
+                                        if (this.showPreview && this.previewImage) {
+                                            const currentId = this.previewImage.id ?? null;
+                                            let nextIndex = -1;
+                                            if (currentId !== null) {
+                                                nextIndex = this.historyData.findIndex((img) => img.id === currentId);
+                                            } else if (this.previewImage.url) {
+                                                nextIndex = this.historyData.findIndex((img) => img.url === this.previewImage.url);
+                                            }
+                                            if (nextIndex === -1) {
+                                                this.closePreview();
+                                            } else {
+                                                this.previewIndex = nextIndex;
+                                                this.previewImage = this.historyData[nextIndex];
+                                            }
+                                        }
+                                    } catch (e) { }
+                                }
                             }
-                        }
-                    });
+                        });
+                    }
 
                     // Cleanup on SPA navigation
-                    document.addEventListener('livewire:navigating', () => {
+                    this._onNavigating = () => {
                         this._cleanup();
-                    }, { once: true });
+                    };
+                    document.addEventListener('livewire:navigating', this._onNavigating, { once: true });
                 },
 
                 // ============================================================
@@ -367,11 +424,30 @@
                 _cleanup() {
                     if (typeof this._morphCleanup === 'function') {
                         this._morphCleanup();
+                        this._morphCleanup = null;
+                    }
+                    if (this._scrollHandler) {
+                        window.removeEventListener('scroll', this._scrollHandler);
+                        this._scrollHandler = null;
+                    }
+                    if (this._onNavigating) {
+                        document.removeEventListener('livewire:navigating', this._onNavigating);
+                        this._onNavigating = null;
+                    }
+                    if (Array.isArray(this._wireListeners) && this._wireListeners.length) {
+                        this._wireListeners.forEach((off) => {
+                            if (typeof off === 'function') off();
+                        });
+                        this._wireListeners = [];
                     }
                     this.stopLoading();
                     this.stopStatusTimer();
                     document.body.style.overflow = '';
                     document.documentElement.style.overflow = '';
+                    if (this._scrollRestoration !== null && 'scrollRestoration' in history) {
+                        history.scrollRestoration = this._scrollRestoration;
+                        this._scrollRestoration = null;
+                    }
                 },
 
                 destroy() {
@@ -440,6 +516,7 @@
                 },
                 stopLoading() {
                     clearInterval(this.loadingInterval);
+                    this.loadingInterval = null;
                 },
 
                 // ============================================================

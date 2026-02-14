@@ -104,22 +104,25 @@ class TextToImage extends Component
             $query->whereJsonContains('generation_params->aspect_ratio', $this->filterRatio);
         }
 
-        return $query->latest()->paginate($this->perPage);
+        return $query
+            ->orderByDesc('created_at')
+            ->orderByDesc('id')
+            ->paginate($this->perPage);
     }
 
     public function updatedFilterDate(): void
     {
-        $this->perPage = 12;
+        $this->perPage = 20;
     }
 
     public function updatedFilterModel(): void
     {
-        $this->perPage = 12;
+        $this->perPage = 20;
     }
 
     public function updatedFilterRatio(): void
     {
-        $this->perPage = 12;
+        $this->perPage = 20;
     }
 
     public function resetFilters(): void
@@ -127,7 +130,7 @@ class TextToImage extends Component
         $this->filterDate = 'all';
         $this->filterModel = 'all';
         $this->filterRatio = 'all';
-        $this->perPage = 12;
+        $this->perPage = 20;
     }
 
     public function mount(?string $initialPrompt = null): void
@@ -380,13 +383,14 @@ class TextToImage extends Component
             return;
         }
 
-        // Timeout check (7 minutes)
+        // Timeout check (configurable)
+        $timeoutMinutes = (int) config('services_custom.bfl.processing_timeout_minutes', 7);
         $firstPending = GeneratedImage::whereIn('id', $this->generatingImageIds)
             ->whereIn('status', [GeneratedImage::STATUS_PENDING, GeneratedImage::STATUS_PROCESSING])
             ->oldest()
             ->first();
 
-        if ($firstPending && $firstPending->created_at->diffInMinutes(now()) > 7) {
+        if ($firstPending && $firstPending->created_at->diffInMinutes(now()) > $timeoutMinutes) {
             GeneratedImage::whereIn('id', $this->generatingImageIds)
                 ->whereIn('status', [GeneratedImage::STATUS_PENDING, GeneratedImage::STATUS_PROCESSING])
                 ->update(['status' => GeneratedImage::STATUS_FAILED, 'error_message' => 'Timeout: Generation took too long']);

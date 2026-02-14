@@ -83,7 +83,6 @@
                     class="w-full min-h-[48px] max-h-[120px] bg-transparent border-none outline-none ring-0 focus:ring-0 focus:outline-none text-white placeholder-white/40 text-sm sm:text-base resize-none focus:placeholder-white/60 transition-all overflow-y-auto"
                     x-init="
                         $watch('$wire.prompt', () => { $el.style.height = 'auto'; $el.style.height = Math.min($el.scrollHeight, 120) + 'px'; });
-                        if (window.innerWidth >= 768) { $nextTick(() => $el.focus()); }
                     "
                     @keydown.ctrl.enter.prevent="$wire.generate()"
                     @keydown.meta.enter.prevent="$wire.generate()"

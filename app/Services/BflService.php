@@ -893,10 +893,10 @@ Rules:
     ): array {
         $payload = [
             'image' => $image,
-            'expand_top' => (int) ($expandDirections['top'] ?? 0),
-            'expand_bottom' => (int) ($expandDirections['bottom'] ?? 0),
-            'expand_left' => (int) ($expandDirections['left'] ?? 0),
-            'expand_right' => (int) ($expandDirections['right'] ?? 0),
+            'top' => (int) ($expandDirections['top'] ?? 0),
+            'bottom' => (int) ($expandDirections['bottom'] ?? 0),
+            'left' => (int) ($expandDirections['left'] ?? 0),
+            'right' => (int) ($expandDirections['right'] ?? 0),
         ];
 
         if (!empty($prompt)) {

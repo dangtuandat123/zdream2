@@ -239,7 +239,7 @@
 
                 {{-- Bottom Infinite Scroll Sentinel --}}
                 @if($history instanceof \Illuminate\Pagination\LengthAwarePaginator && $history->hasMorePages())
-                    <div class="py-8 flex justify-center" wire:intersect.margin.500px="loadMore">
+                    <div class="py-8 flex justify-center" wire:intersect.once.margin.500px="loadMore">
                         <div class="flex items-center gap-2 text-white/40 text-sm">
                             <i class="fa-solid fa-spinner fa-spin text-purple-400" wire:loading wire:target="loadMore"></i>
                             <span wire:loading wire:target="loadMore">Đang tải thêm...</span>
