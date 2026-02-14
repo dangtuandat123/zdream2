@@ -64,7 +64,7 @@
                             $modelName = $found['name'] ?? $modelId;
                         }
 
-                        // P0#3 FIX: Handle auto/null ratio gracefully
+                        // Keep a stable card height to avoid layout jumps while images stream in.
                         $aspectRatioCss = null;
                         $outW = $firstItem->generation_params['output_width'] ?? null;
                         $outH = $firstItem->generation_params['output_height'] ?? null;
@@ -74,13 +74,14 @@
                             [$w, $h] = explode(':', $ratio);
                             $aspectRatioCss = $w . ' / ' . $h;
                         }
-                        // If null, we'll use natural image aspect ratio
+                        if (!$aspectRatioCss) {
+                            $aspectRatioCss = '1 / 1';
+                        }
                         $ratioDisplay = $ratio ?: 'Auto';
                     @endphp
 
                     <div class="space-y-2 group-batch" x-data="{ expanded: false }" wire:key="group-{{ $wireKey }}"
-                        data-history-anchor-id="{{ $firstItem->id }}"
-                        style="content-visibility: auto;">
+                        data-history-anchor-id="{{ $firstItem->id }}">
 
                         {{-- Batch Header --}}
                         <div class="flex items-center gap-2">
