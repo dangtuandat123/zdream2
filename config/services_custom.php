@@ -21,7 +21,7 @@ return [
         'max_post_attempts' => 3,
         // Maximum bytes allowed for downloading/processing BFL images (25MB)
         'max_image_bytes' => 26214400,
-        'processing_timeout_minutes' => 10,
+        'processing_timeout_minutes' => 7,
         'max_dimension' => 1440,
         'min_dimension' => 64,
         'dimension_multiple' => 32,

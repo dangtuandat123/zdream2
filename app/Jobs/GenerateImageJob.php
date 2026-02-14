@@ -68,6 +68,9 @@ class GenerateImageJob implements ShouldQueue
         $user = $generatedImage->user;
         $style = $generatedImage->style;
 
+        // Fix: Mark as processing when job starts
+        $generatedImage->update(['status' => GeneratedImage::STATUS_PROCESSING]);
+
         if (!$user || !$style) {
             Log::error('GenerateImageJob: Missing user or style', [
                 'image_id' => $generatedImage->id,

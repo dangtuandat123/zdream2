@@ -21,6 +21,7 @@
         $historyCollection = ($history instanceof \Illuminate\Pagination\LengthAwarePaginator)
             ? $history->getCollection()
             : collect($history);
+        $historyCollection = $historyCollection->sortByDesc('created_at')->values();
         $groupedHistory = $historyCollection->groupBy(function ($item) {
             if (!empty($item->generation_params['batch_id'])) {
                 return $item->generation_params['batch_id'];
@@ -236,6 +237,16 @@
                 init() {
                     // Fix: Removed initial scroll to bottom on mount
 
+                    // Fix: Scroll listener to disable auto-scroll when user scrolls up
+                    window.addEventListener('scroll', () => {
+                        if (!this.autoScrollEnabled) return;
+                        // If user scrolls up significantly (not at bottom), disable auto-scroll
+                        if (!this.isNearBottom(100)) {
+                            this.autoScrollEnabled = false;
+                            // Optional: notify('Auto-scroll tắt');
+                        }
+                    }, { passive: true });
+
                     // Image generated → scroll + celebrate
                     this.$wire.$on('imageGenerated', (params) => {
                         const { successCount, failedCount } = Array.isArray(params) ? params[0] || {} : params || {};
@@ -244,6 +255,10 @@
                                 // Fix 8: Only auto-scroll if near bottom or autoScroll enabled
                                 if (this.autoScrollEnabled && this.isNearBottom(400)) {
                                     this.scrollToBottom(true);
+                                    setTimeout(() => {
+                                        this.scrollToBottom(false);
+                                        this.autoScrollEnabled = true; // Re-enable auto-scroll
+                                    }, 100);
                                 } else {
                                     this.showScrollToBottom = true;
                                 }

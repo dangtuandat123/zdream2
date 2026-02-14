@@ -138,9 +138,8 @@
                                             <img src="{{ $image->image_url }}" alt="Preview"
                                                 class="gallery-img w-full h-full object-cover transition-all duration-300 ease-out group-hover:scale-[1.05]"
                                                 draggable="false"
-                                                onload="this.previousElementSibling.style.display='none'"
-                                                onerror="this.src='/images/placeholder-broken.svg'"
-                                                x-init="if ($el.complete && $el.naturalWidth > 0) { $el.previousElementSibling.style.display='none'; }"
+                                                onload="this.previousElementSibling && (this.previousElementSibling.style.display='none')"
+                                                onerror="this.previousElementSibling && (this.previousElementSibling.style.display='none'); this.onerror=null; this.src='/images/placeholder-broken.svg'"
                                                 {{ $groupIdx < $totalGroups - 2 ? 'loading=lazy decoding=async' : 'fetchpriority=high' }}>
 
                                             {{-- Desktop Hover Overlay --}}
@@ -240,7 +239,7 @@
 
                 {{-- Bottom Infinite Scroll Sentinel --}}
                 @if($history instanceof \Illuminate\Pagination\LengthAwarePaginator && $history->hasMorePages())
-                    <div class="py-8 flex justify-center" x-intersect.margin.500px="$wire.loadMore()">
+                    <div class="py-8 flex justify-center" wire:intersect.margin.500px="loadMore">
                         <div class="flex items-center gap-2 text-white/40 text-sm">
                             <i class="fa-solid fa-spinner fa-spin text-purple-400" wire:loading wire:target="loadMore"></i>
                             <span wire:loading wire:target="loadMore">Đang tải thêm...</span>

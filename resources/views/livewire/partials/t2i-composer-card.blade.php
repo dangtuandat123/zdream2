@@ -502,7 +502,7 @@
                         </button>
                     @else
                         <button type="button"
-                            @click="startStatusTimer(); startLoading(); $wire.generate()"
+                            @click="$wire.generate()"
                             class="shrink-0 flex items-center gap-1.5 px-3 sm:px-5 py-2 rounded-xl bg-gradient-to-r from-purple-500 via-fuchsia-500 to-pink-500 text-white font-semibold text-sm shadow-lg shadow-purple-500/25 hover:scale-[1.02] hover:shadow-xl hover:shadow-purple-500/40 active:scale-[0.98] transition-all duration-200"
                             :disabled="!$wire.prompt?.trim() || uiMode === 'generating'" :class="{ 'opacity-40 pointer-events-none': !$wire.prompt?.trim() || uiMode === 'generating' }"
                             wire:loading.attr="disabled" wire:loading.class="opacity-50 pointer-events-none" wire:target="generate">

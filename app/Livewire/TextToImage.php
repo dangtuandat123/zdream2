@@ -279,7 +279,9 @@ class TextToImage extends Component
                     'user_id' => $user->id,
                     'style_id' => $systemStyle->id,
                     'final_prompt' => $prompt,
-                    'status' => GeneratedImage::STATUS_PROCESSING,
+                    'model_id' => $this->modelId,
+                    'aspect_ratio' => $this->aspectRatio,
+                    'status' => GeneratedImage::STATUS_PENDING, // Fix: Init as PENDING
                     'credits_used' => $this->creditCost,
                     'generation_params' => $generationParams,
                 ]);
@@ -378,13 +380,13 @@ class TextToImage extends Component
             return;
         }
 
-        // Timeout check (5 minutes)
+        // Timeout check (7 minutes)
         $firstPending = GeneratedImage::whereIn('id', $this->generatingImageIds)
             ->whereIn('status', [GeneratedImage::STATUS_PENDING, GeneratedImage::STATUS_PROCESSING])
             ->oldest()
             ->first();
 
-        if ($firstPending && $firstPending->created_at->diffInMinutes(now()) > 5) {
+        if ($firstPending && $firstPending->created_at->diffInMinutes(now()) > 7) {
             GeneratedImage::whereIn('id', $this->generatingImageIds)
                 ->whereIn('status', [GeneratedImage::STATUS_PENDING, GeneratedImage::STATUS_PROCESSING])
                 ->update(['status' => GeneratedImage::STATUS_FAILED, 'error_message' => 'Timeout: Generation took too long']);
@@ -471,8 +473,10 @@ class TextToImage extends Component
 
     public function loadMore(): void
     {
+        if ($this->loadingMore)
+            return;
         $this->loadingMore = true;
-        $this->perPage += 20;
+        $this->perPage += 8;
         $this->loadingMore = false;
         $this->dispatch('historyUpdated');
     }

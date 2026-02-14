@@ -54,7 +54,6 @@
 
         body {
             overflow-x: hidden;
-            overflow-y: hidden !important;
             /* Never show body scrollbar - only html */
             max-width: 100%;
             width: 100%;
@@ -1637,25 +1636,8 @@
             });
         });
         // Re-initialize Select2 after Livewire updates
-        document.addEventListener('livewire:load', function () {
-            Livewire.hook('message.processed', (message, component) => {
-                $('select').each(function () {
-                    if (!$(this).hasClass('select2-hidden-accessible')) {
-                        if ($(this).data('no-select2')) {
-                            return;
-                        }
-                        const minResults = $(this).data('min-results-for-search');
-                        const $parent = $(this).parent();
-                        $(this).select2({
-                            minimumResultsForSearch: (minResults !== undefined ? minResults : 5),
-                            dropdownAutoWidth: false,
-                            width: '100%',
-                            dropdownParent: $parent
-                        });
-                    }
-                });
-            });
         });
+        // Fix: Removed legacy Livewire.hook('message.processed')
     </script>
 
     <script>
@@ -1696,7 +1678,7 @@
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js')
+                navigator.serviceWorker.register('/sw.js?v=zdream-v2')
                     .then((registration) => {
                         console.log('[SW] Registered:', registration.scope);
                     })
