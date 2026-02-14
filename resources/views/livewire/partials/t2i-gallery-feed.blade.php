@@ -79,6 +79,7 @@
                     @endphp
 
                     <div class="space-y-2 group-batch" x-data="{ expanded: false }" wire:key="group-{{ $wireKey }}"
+                        data-history-anchor-id="{{ $firstItem->id }}"
                         style="content-visibility: auto;">
 
                         {{-- Batch Header --}}

@@ -47,7 +47,7 @@ class TextToImage extends Component
     public int $pollingInterval = 2000;
 
     // History data
-    public int $perPage = 1; // Start with newest item only; older items load on upward scroll
+    public int $perPage = 6; // Load a small newest batch first; older history loads progressively
     public bool $loadingMore = false;
 
     // Filters
@@ -119,17 +119,17 @@ class TextToImage extends Component
 
     public function updatedFilterDate(): void
     {
-        $this->perPage = 1;
+        $this->perPage = 6;
     }
 
     public function updatedFilterModel(): void
     {
-        $this->perPage = 1;
+        $this->perPage = 6;
     }
 
     public function updatedFilterRatio(): void
     {
-        $this->perPage = 1;
+        $this->perPage = 6;
     }
 
     public function resetFilters(): void
@@ -137,7 +137,7 @@ class TextToImage extends Component
         $this->filterDate = 'all';
         $this->filterModel = 'all';
         $this->filterRatio = 'all';
-        $this->perPage = 1;
+        $this->perPage = 6;
     }
 
     public function mount(?string $initialPrompt = null): void
@@ -482,7 +482,7 @@ class TextToImage extends Component
         $this->isGenerating = false;
     }
 
-    public function loadMore(): void
+    public function loadMore(int $count = 1): void
     {
         if ($this->loadingMore) {
             return;
@@ -498,9 +498,11 @@ class TextToImage extends Component
             return;
         }
 
+        // Clamp client-requested batch size to protect from over-fetch.
+        $count = max(1, min($count, 12));
+
         $this->loadingMore = true;
-        // Load one older item at a time for smooth prepend behavior
-        $this->perPage = min($this->perPage + 1, $total);
+        $this->perPage = min($this->perPage + $count, $total);
         $this->loadingMore = false;
 
         $hasMoreAfterUpdate = $this->perPage < $total;
