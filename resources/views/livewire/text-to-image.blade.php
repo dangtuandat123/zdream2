@@ -171,13 +171,11 @@
     <script>
         (() => {
             const registerTextToImage = () => {
-                if (!window.Alpine || window.__t2iAlpineRegistered) {
+                if (!window.Alpine) {
                     return;
                 }
 
-                window.__t2iAlpineRegistered = true;
-
-            Alpine.data('textToImage', () => ({
+                Alpine.data('textToImage', () => ({
                 // ── UI State ──────────────────────────────────────
                 uiMode: 'idle', // idle | generating | partial_success | failed | done
                 statusMessage: '',
@@ -854,12 +852,6 @@
                 registerTextToImage();
             } else {
                 document.addEventListener('alpine:init', registerTextToImage, { once: true });
-            }
-
-            // For wire:navigate: page scripts can run after Alpine has already initialized.
-            if (!window.__t2iNavigateListenerBound) {
-                document.addEventListener('livewire:navigated', registerTextToImage);
-                window.__t2iNavigateListenerBound = true;
             }
         })();
     </script>

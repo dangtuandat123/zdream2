@@ -1426,11 +1426,12 @@
 
     <!-- Global Lightbox Script -->
     <script>
-        let lightboxOpen = false;
-        let lightboxImages = [];
-        let lightboxImageData = []; // For actions (download, delete)
-        let lightboxIndex = 0;
-        let lightboxHasActions = false;
+        // Use `var` for SPA navigations: this script can be evaluated multiple times by wire:navigate.
+        var lightboxOpen = false;
+        var lightboxImages = [];
+        var lightboxImageData = []; // For actions (download, delete)
+        var lightboxIndex = 0;
+        var lightboxHasActions = false;
 
         // Simple lightbox (just images)
         function openLightbox(index, images) {
@@ -1675,7 +1676,7 @@
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js?v=zdream-v3')
+                navigator.serviceWorker.register('/sw.js?v=zdream-v4')
                     .then((registration) => {
                         console.log('[SW] Registered:', registration.scope);
                     })
