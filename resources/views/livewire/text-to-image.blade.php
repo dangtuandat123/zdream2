@@ -276,6 +276,8 @@
                 isPrependingHistory: false,
                 prependAnchorHeight: 0,
                 lastLoadMoreAt: 0,
+                lastScrollY: 0,
+                userInitiatedUpScroll: false,
 
                 // Dynamic max images based on selected model
                 get maxImages() {
@@ -317,9 +319,10 @@
                     });
 
                     this.$nextTick(() => {
-                        this.scrollToBottom(false);
-                        requestAnimationFrame(() => this.scrollToBottom(false));
-                        setTimeout(() => this.maybeLoadOlder(), 120);
+                        requestAnimationFrame(() => {
+                            this.scrollToBottom(false);
+                            this.lastScrollY = window.scrollY || document.documentElement.scrollTop || 0;
+                        });
                     });
 
                     if ('scrollRestoration' in history) {
@@ -333,6 +336,12 @@
                     }
 
                     this._scrollHandler = () => {
+                        const currentY = window.scrollY || document.documentElement.scrollTop || 0;
+                        if (currentY < this.lastScrollY - 2) {
+                            this.userInitiatedUpScroll = true;
+                        }
+                        this.lastScrollY = currentY;
+
                         if (this.autoScrollEnabled && !this.isNearBottom(120)) {
                             this.autoScrollEnabled = false;
                         }
@@ -413,10 +422,6 @@
                             this.isPrependingHistory = false;
                             clearTimeout(this._loadMoreFailSafeTimer);
                             this._loadMoreFailSafeTimer = null;
-
-                            if (this.isNearTop(220)) {
-                                this.maybeLoadOlder();
-                            }
                         });
                     });
                     if (typeof offHistoryUpdated === 'function') this._wireListeners.push(offHistoryUpdated);
@@ -586,8 +591,9 @@
                     const distanceFromBottom = el.scrollHeight - (el.scrollTop + window.innerHeight);
                     return distanceFromBottom < threshold;
                 },
-                maybeLoadOlder() {
+                maybeLoadOlder(force = false) {
                     if (!this.hasMoreHistory || this.loadingMoreHistory) return;
+                    if (!force && !this.userInitiatedUpScroll) return;
                     if (!this.isNearTop(220)) return;
 
                     const now = Date.now();

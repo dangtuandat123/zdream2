@@ -47,7 +47,7 @@ class TextToImage extends Component
     public int $pollingInterval = 2000;
 
     // History data
-    public int $perPage = 20; // Load 20 items initially
+    public int $perPage = 1; // Start with newest item only; older items load on upward scroll
     public bool $loadingMore = false;
 
     // Filters
@@ -119,17 +119,17 @@ class TextToImage extends Component
 
     public function updatedFilterDate(): void
     {
-        $this->perPage = 20;
+        $this->perPage = 1;
     }
 
     public function updatedFilterModel(): void
     {
-        $this->perPage = 20;
+        $this->perPage = 1;
     }
 
     public function updatedFilterRatio(): void
     {
-        $this->perPage = 20;
+        $this->perPage = 1;
     }
 
     public function resetFilters(): void
@@ -137,7 +137,7 @@ class TextToImage extends Component
         $this->filterDate = 'all';
         $this->filterModel = 'all';
         $this->filterRatio = 'all';
-        $this->perPage = 20;
+        $this->perPage = 1;
     }
 
     public function mount(?string $initialPrompt = null): void
@@ -498,7 +498,8 @@ class TextToImage extends Component
         }
 
         $this->loadingMore = true;
-        $this->perPage += 8;
+        // Load one older item at a time for smooth prepend behavior
+        $this->perPage += 1;
         $this->loadingMore = false;
 
         $updatedHistory = $this->history;
