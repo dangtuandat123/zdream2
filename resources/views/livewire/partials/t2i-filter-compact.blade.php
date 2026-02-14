@@ -8,7 +8,8 @@
             document.documentElement.style.setProperty('--filter-bar-h', bar.offsetHeight + 'px');
         });
         ro.observe(bar);
-        $cleanup(() => ro.disconnect());
+        const stop = () => ro.disconnect();
+        window.addEventListener('livewire:navigating', stop, { once: true });
     ">
     <div class="bg-[#0a0a0f]/80 backdrop-blur-[20px] saturate-[180%] border-b border-white/[0.08]">
         <div class="max-w-5xl mx-auto px-4 py-2">

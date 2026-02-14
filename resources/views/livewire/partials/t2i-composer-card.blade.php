@@ -11,7 +11,8 @@
             document.documentElement.style.setProperty('--composer-h', bar.offsetHeight + 'px');
         });
         ro.observe(bar);
-        $cleanup(() => ro.disconnect());
+        const stop = () => ro.disconnect();
+        window.addEventListener('livewire:navigating', stop, { once: true });
     ">
 
     <div class="max-w-4xl mx-auto px-3 sm:px-4 pb-3 sm:pb-4 pt-2">

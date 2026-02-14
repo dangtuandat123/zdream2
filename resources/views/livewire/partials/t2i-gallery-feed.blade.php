@@ -139,7 +139,7 @@
                                                 class="gallery-img w-full h-full object-cover transition-all duration-300 ease-out group-hover:scale-[1.05]"
                                                 draggable="false"
                                                 onload="this.previousElementSibling && (this.previousElementSibling.style.display='none')"
-                                                onerror="this.previousElementSibling && (this.previousElementSibling.style.display='none'); this.onerror=null; this.src='/images/placeholder-broken.svg'"
+                                                onerror="this.previousElementSibling && (this.previousElementSibling.style.display='none'); this.onerror=null; this.src='/images/placeholder.svg'"
                                                 {{ $groupIdx < $totalGroups - 2 ? 'loading=lazy decoding=async' : 'fetchpriority=high' }}>
 
                                             {{-- Desktop Hover Overlay --}}
@@ -252,7 +252,15 @@
             @if($isGenerating && !$generatedImageUrl)
                 <div class="mt-6" x-data="{ elapsed: 0, timer: null }" x-init="
                         timer = setInterval(() => elapsed++, 1000);
-                        $cleanup(() => { clearInterval(timer); });
+                        const stopTimer = () => clearInterval(timer);
+                        window.addEventListener('livewire:navigating', stopTimer, { once: true });
+                        const self = $el;
+                        const guard = setInterval(() => {
+                            if (!document.body.contains(self)) {
+                                clearInterval(timer);
+                                clearInterval(guard);
+                            }
+                        }, 1500);
                         // Fix: Removed auto-scroll on poll
                     ">
                     <div

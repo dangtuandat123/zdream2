@@ -1635,9 +1635,6 @@
                 $(this).closest('form').submit();
             });
         });
-        // Re-initialize Select2 after Livewire updates
-        });
-        // Fix: Removed legacy Livewire.hook('message.processed')
     </script>
 
     <script>
@@ -1678,7 +1675,7 @@
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js?v=zdream-v2')
+                navigator.serviceWorker.register('/sw.js?v=zdream-v3')
                     .then((registration) => {
                         console.log('[SW] Registered:', registration.scope);
                     })

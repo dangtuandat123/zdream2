@@ -43,7 +43,7 @@
             <div class="relative w-full flex items-center justify-center" style="max-height: 80vh;">
                 <img :src="previewImage?.url" :key="'preview-' + previewIndex"
                     class="max-w-full max-h-[80vh] object-contain rounded-xl shadow-2xl transition-opacity duration-200"
-                    :alt="previewImage?.prompt || 'Preview'" onerror="this.src='/images/placeholder-broken.svg'">
+                    :alt="previewImage?.prompt || 'Preview'" onerror="this.onerror=null; this.src='/images/placeholder.svg'">
             </div>
 
             {{-- Info panel --}}
@@ -162,7 +162,7 @@
         <div class="flex-1 flex items-center justify-center px-4 overflow-hidden">
             <img :src="previewImage?.url" :key="'mobile-preview-' + previewIndex"
                 class="max-w-full max-h-full object-contain rounded-xl transition-opacity duration-200"
-                :alt="previewImage?.prompt || 'Preview'" onerror="this.src='/images/placeholder-broken.svg'">
+                :alt="previewImage?.prompt || 'Preview'" onerror="this.onerror=null; this.src='/images/placeholder.svg'">
         </div>
 
         {{-- Bottom info + actions --}}
