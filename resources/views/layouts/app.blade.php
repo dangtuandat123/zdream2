@@ -1676,7 +1676,7 @@
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js?v=zdream-v4')
+                navigator.serviceWorker.register('/sw.js?v=zdream-v5')
                     .then((registration) => {
                         console.log('[SW] Registered:', registration.scope);
                     })

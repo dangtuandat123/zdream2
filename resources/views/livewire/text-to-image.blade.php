@@ -3,7 +3,7 @@
 {{-- ============================================================ --}}
 <div class="relative min-h-screen" @if($isGenerating) wire:poll.2s="pollImageStatus" @endif x-data="textToImage"
     @keydown.window="handleKeydown($event)"
-    @show-toast.window="notify($event.detail.message, $event.detail.type || 'success')">
+    x-on:show-toast.window="notify($event.detail.message, $event.detail.type || 'success')">
 
     {{-- Toast --}}
     <div x-show="showToast" x-cloak x-transition:enter="transition ease-out duration-300"
@@ -196,8 +196,8 @@
                 showBatchSheet: false,
                 showRefPicker: false,
 
-                selectedRatio: @entangle('aspectRatio'),
-                selectedModel: @entangle('modelId'),
+                selectedRatio: @js($aspectRatio),
+                selectedModel: @js($modelId),
                 customWidth: 1024,
                 customHeight: 1024,
                 linkDimensions: true,
@@ -287,6 +287,35 @@
                 // INIT
                 // ============================================================
                 init() {
+                    // Keep Alpine state in sync with Livewire without @entangle (safe across wire:navigate remounts).
+                    if (this.$wire?.aspectRatio !== undefined) {
+                        this.selectedRatio = this.$wire.aspectRatio;
+                    }
+                    if (this.$wire?.modelId !== undefined) {
+                        this.selectedModel = this.$wire.modelId;
+                    }
+
+                    this.$watch('selectedRatio', (value) => {
+                        if (this.$wire?.aspectRatio !== value) {
+                            this.$wire.set('aspectRatio', value);
+                        }
+                    });
+                    this.$watch('selectedModel', (value) => {
+                        if (this.$wire?.modelId !== value) {
+                            this.$wire.set('modelId', value);
+                        }
+                    });
+                    this.$watch('$wire.aspectRatio', (value) => {
+                        if (value !== undefined && value !== this.selectedRatio) {
+                            this.selectedRatio = value;
+                        }
+                    });
+                    this.$watch('$wire.modelId', (value) => {
+                        if (value !== undefined && value !== this.selectedModel) {
+                            this.selectedModel = value;
+                        }
+                    });
+
                     this.$nextTick(() => {
                         this.scrollToBottom(false);
                         requestAnimationFrame(() => this.scrollToBottom(false));

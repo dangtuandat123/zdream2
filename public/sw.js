@@ -1,6 +1,6 @@
 // ZDream Service Worker - Cache First Strategy for Static Assets
-const CACHE_NAME = 'zdream-v4';
-const STATIC_CACHE = 'zdream-static-v4';
+const CACHE_NAME = 'zdream-v5';
+const STATIC_CACHE = 'zdream-static-v5';
 
 // Assets to cache immediately
 const STATIC_ASSETS = [
