@@ -855,6 +855,10 @@
                         };
                     });
                 },
+                previewDotAt(position) {
+                    const dots = this.previewDots();
+                    return (position >= 0 && position < dots.length) ? dots[position] : null;
+                },
                 dotButtonClass(dot, withHover = false) {
                     if (!dot) return 'w-2 h-2 bg-white/30';
 

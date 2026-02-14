@@ -1,6 +1,6 @@
 // ZDream Service Worker - Cache First Strategy for Static Assets
-const CACHE_NAME = 'zdream-v5';
-const STATIC_CACHE = 'zdream-static-v5';
+const CACHE_NAME = 'zdream-v6';
+const STATIC_CACHE = 'zdream-static-v6';
 
 // Assets to cache immediately
 const STATIC_ASSETS = [
@@ -53,6 +53,17 @@ self.addEventListener('fetch', (event) => {
 
     // For navigation requests (HTML) - Network first
     if (request.mode === 'navigate') {
+        // Never cache highly dynamic app pages to avoid stale Livewire/Alpine markup.
+        const neverCacheHtmlPaths = ['/create'];
+        const skipHtmlCache = neverCacheHtmlPaths.some((path) =>
+            url.pathname === path || url.pathname.startsWith(path + '/')
+        );
+
+        if (skipHtmlCache) {
+            event.respondWith(fetch(request));
+            return;
+        }
+
         event.respondWith(
             fetch(request)
                 .then((response) => {

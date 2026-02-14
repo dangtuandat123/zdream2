@@ -114,10 +114,13 @@
 
             {{-- Dot Navigation --}}
             <div class="flex items-center gap-1.5" x-show="historyData.length > 1">
-                <template x-for="dot in previewDots()" :key="dot.id">
-                    <button @click="goToImage(dot.idx)" :aria-label="'Ảnh ' + ((dot?.idx ?? 0) + 1)"
-                        class="rounded-full transition-all duration-200" :class="dotButtonClass(dot, true)"></button>
-                </template>
+                @for ($dotSlot = 0; $dotSlot < 7; $dotSlot++)
+                    <button x-show="previewDotAt({{ $dotSlot }})"
+                        @click="(() => { const d = previewDotAt({{ $dotSlot }}); if (d) goToImage(d.idx); })()"
+                        :aria-label="'Ảnh ' + ((previewDotAt({{ $dotSlot }})?.idx ?? 0) + 1)"
+                        class="rounded-full transition-all duration-200"
+                        :class="dotButtonClass(previewDotAt({{ $dotSlot }}), true)"></button>
+                @endfor
             </div>
         </div>
 
@@ -164,10 +167,13 @@
 
             {{-- Dot navigation --}}
             <div class="flex justify-center gap-1.5 mb-3" x-show="historyData.length > 1">
-                <template x-for="dot in previewDots()" :key="dot.id">
-                    <button @click="goToImage(dot.idx)" :aria-label="'Ảnh ' + ((dot?.idx ?? 0) + 1)"
-                        class="rounded-full transition-all duration-200" :class="dotButtonClass(dot, false)"></button>
-                </template>
+                @for ($dotSlot = 0; $dotSlot < 7; $dotSlot++)
+                    <button x-show="previewDotAt({{ $dotSlot }})"
+                        @click="(() => { const d = previewDotAt({{ $dotSlot }}); if (d) goToImage(d.idx); })()"
+                        :aria-label="'Ảnh ' + ((previewDotAt({{ $dotSlot }})?.idx ?? 0) + 1)"
+                        class="rounded-full transition-all duration-200"
+                        :class="dotButtonClass(previewDotAt({{ $dotSlot }}), false)"></button>
+                @endfor
             </div>
 
             {{-- Action buttons (auto-fit grid) --}}

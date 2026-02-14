@@ -1677,7 +1677,7 @@
         if ('serviceWorker' in navigator && !window.__zdreamSwRegisterBound) {
             window.__zdreamSwRegisterBound = true;
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js?v=zdream-v5')
+                navigator.serviceWorker.register('/sw.js?v=zdream-v6')
                     .then((registration) => {
                         console.log('[SW] Registered:', registration.scope);
                     })
