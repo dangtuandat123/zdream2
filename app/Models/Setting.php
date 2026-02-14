@@ -38,33 +38,39 @@ class Setting extends Model
     public static function get(string $key, mixed $default = null): mixed
     {
         $cacheKey = "setting_{$key}";
-        
-        return Cache::remember($cacheKey, 3600, function () use ($key, $default) {
-            $setting = self::where('key', $key)->first();
-            
-            if (!$setting) {
-                return $default;
-            }
-            
-            $value = $setting->value;
-            
-            // Decrypt if encrypted
-            if ($setting->is_encrypted && $value) {
-                try {
-                    $value = Crypt::decryptString($value);
-                } catch (\Exception $e) {
+
+        try {
+            return Cache::remember($cacheKey, 3600, function () use ($key, $default) {
+                $setting = self::where('key', $key)->first();
+
+                if (!$setting) {
                     return $default;
                 }
-            }
-            
-            // Cast based on type
-            return match ($setting->type) {
-                'boolean' => filter_var($value, FILTER_VALIDATE_BOOLEAN),
-                'integer' => (int) $value,
-                'json' => json_decode($value, true),
-                default => $value,
-            };
-        });
+
+                $value = $setting->value;
+
+                // Decrypt if encrypted
+                if ($setting->is_encrypted && $value) {
+                    try {
+                        $value = Crypt::decryptString($value);
+                    } catch (\Exception $e) {
+                        return $default;
+                    }
+                }
+
+                // Cast based on type
+                return match ($setting->type) {
+                    'boolean' => filter_var($value, FILTER_VALIDATE_BOOLEAN),
+                    'integer' => (int) $value,
+                    'json' => json_decode($value, true),
+                    default => $value,
+                };
+            });
+        } catch (\Throwable $e) {
+            report($e);
+
+            return $default;
+        }
     }
 
     /**
