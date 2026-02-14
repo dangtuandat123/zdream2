@@ -254,6 +254,7 @@
                 previewIndex: 0,
                 previewImage: null,
                 historyData: @js($flatHistoryForJs),
+                historySignature: '',
 
                 // ── Loading ───────────────────────────────────────
                 loadingMessages: [
@@ -271,6 +272,7 @@
                 _wireListeners: [],
                 _scrollRestoration: null,
                 _loadMoreFailSafeTimer: null,
+                _resizeHandler: null,
                 hasMoreHistory: @js($history instanceof \Illuminate\Pagination\LengthAwarePaginator ? $history->hasMorePages() : false),
                 loadingMoreHistory: false,
                 isPrependingHistory: false,
@@ -278,6 +280,9 @@
                 lastLoadMoreAt: 0,
                 lastScrollY: 0,
                 userInitiatedUpScroll: false,
+                canScrollVertically: false,
+                bootstrapLoadCount: 0,
+                maxBootstrapLoads: 3,
 
                 // Dynamic max images based on selected model
                 get maxImages() {
@@ -322,6 +327,8 @@
                         requestAnimationFrame(() => {
                             this.scrollToBottom(false);
                             this.lastScrollY = window.scrollY || document.documentElement.scrollTop || 0;
+                            this.refreshScrollState();
+                            this.maybeBootstrapHistory();
                         });
                     });
 
@@ -334,6 +341,7 @@
                     if (dataEl?.dataset?.hasMore !== undefined) {
                         this.hasMoreHistory = dataEl.dataset.hasMore === '1';
                     }
+                    this.syncHistoryData(this.historyData);
 
                     this._scrollHandler = () => {
                         const currentY = window.scrollY || document.documentElement.scrollTop || 0;
@@ -348,9 +356,16 @@
                         if (this.isNearBottom(120)) {
                             this.showScrollToBottom = false;
                         }
+                        this.refreshScrollState();
                         this.maybeLoadOlder();
                     };
                     window.addEventListener('scroll', this._scrollHandler, { passive: true });
+
+                    this._resizeHandler = () => {
+                        this.refreshScrollState();
+                        this.maybeBootstrapHistory();
+                    };
+                    window.addEventListener('resize', this._resizeHandler, { passive: true });
 
                     // Image generated → scroll + celebrate
                     const offGenerated = this.$wire.$on('imageGenerated', (params) => {
@@ -422,6 +437,8 @@
                             this.isPrependingHistory = false;
                             clearTimeout(this._loadMoreFailSafeTimer);
                             this._loadMoreFailSafeTimer = null;
+                            this.refreshScrollState();
+                            this.maybeBootstrapHistory();
                         });
                     });
                     if (typeof offHistoryUpdated === 'function') this._wireListeners.push(offHistoryUpdated);
@@ -469,7 +486,7 @@
 
                                 if (dataEl?.dataset?.history) {
                                     try {
-                                        this.historyData = JSON.parse(dataEl.dataset.history);
+                                        this.syncHistoryData(JSON.parse(dataEl.dataset.history));
                                         if (this.showPreview && this.previewImage) {
                                             const currentId = this.previewImage.id ?? null;
                                             let nextIndex = -1;
@@ -487,6 +504,9 @@
                                         }
                                     } catch (e) { }
                                 }
+
+                                this.refreshScrollState();
+                                this.maybeBootstrapHistory();
                             }
                         });
                     }
@@ -520,6 +540,10 @@
                     if (this._scrollHandler) {
                         window.removeEventListener('scroll', this._scrollHandler);
                         this._scrollHandler = null;
+                    }
+                    if (this._resizeHandler) {
+                        window.removeEventListener('resize', this._resizeHandler);
+                        this._resizeHandler = null;
                     }
                     if (this._onNavigating) {
                         document.removeEventListener('livewire:navigating', this._onNavigating);
@@ -591,6 +615,35 @@
                     const distanceFromBottom = el.scrollHeight - (el.scrollTop + window.innerHeight);
                     return distanceFromBottom < threshold;
                 },
+                buildHistorySignature(items = this.historyData) {
+                    if (!Array.isArray(items) || items.length === 0) {
+                        return '0';
+                    }
+                    const first = items[0]?.id ?? items[0]?.url ?? 'x';
+                    const last = items[items.length - 1]?.id ?? items[items.length - 1]?.url ?? 'x';
+                    return `${items.length}:${first}:${last}`;
+                },
+                syncHistoryData(items) {
+                    this.historyData = Array.isArray(items) ? items : [];
+                    const nextSignature = this.buildHistorySignature(this.historyData);
+                    if (nextSignature !== this.historySignature) {
+                        this.bootstrapLoadCount = 0;
+                        this.historySignature = nextSignature;
+                    }
+                },
+                refreshScrollState() {
+                    const el = document.documentElement;
+                    this.canScrollVertically = (el.scrollHeight - window.innerHeight) > 8;
+                },
+                maybeBootstrapHistory() {
+                    if (!this.hasMoreHistory || this.loadingMoreHistory) return;
+                    this.refreshScrollState();
+                    if (this.canScrollVertically) return;
+                    if (this.bootstrapLoadCount >= this.maxBootstrapLoads) return;
+
+                    this.bootstrapLoadCount += 1;
+                    this.requestLoadOlder();
+                },
                 maybeLoadOlder(force = false) {
                     if (!this.hasMoreHistory || this.loadingMoreHistory) return;
                     if (!force && !this.userInitiatedUpScroll) return;
@@ -599,6 +652,10 @@
                     const now = Date.now();
                     if (now - this.lastLoadMoreAt < 500) return;
                     this.lastLoadMoreAt = now;
+                    this.requestLoadOlder();
+                },
+                manualLoadOlder() {
+                    this.userInitiatedUpScroll = true;
                     this.requestLoadOlder();
                 },
                 requestLoadOlder() {

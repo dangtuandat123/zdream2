@@ -35,12 +35,17 @@
             <div class="space-y-6 gallery-wrapper" x-data>
                 {{-- Older history loader hint (top) --}}
                 <div x-show="hasMoreHistory || loadingMoreHistory" x-cloak class="flex justify-center py-1">
-                    <div class="inline-flex items-center gap-2 text-white/40 text-xs rounded-full px-3 py-1.5 bg-white/[0.03] border border-white/[0.06]">
+                    <button type="button"
+                        @click="if (hasMoreHistory && !loadingMoreHistory) manualLoadOlder()"
+                        class="inline-flex items-center gap-2 text-white/40 text-xs rounded-full px-3 py-1.5 bg-white/[0.03] border border-white/[0.06] transition-colors"
+                        :class="(!loadingMoreHistory && hasMoreHistory && !canScrollVertically) ? 'cursor-pointer hover:text-white/70 hover:bg-white/[0.06]' : 'cursor-default'"
+                        :disabled="loadingMoreHistory || !hasMoreHistory">
                         <i class="fa-solid fa-arrow-up text-[10px]"></i>
-                        <span x-show="!loadingMoreHistory">Lướt lên để tải ảnh cũ hơn</span>
+                        <span x-show="!loadingMoreHistory && canScrollVertically">Lướt lên để tải ảnh cũ hơn</span>
+                        <span x-show="!loadingMoreHistory && !canScrollVertically">Nhấn để tải ảnh cũ hơn</span>
                         <span x-show="loadingMoreHistory">Đang tải ảnh cũ hơn...</span>
                         <i class="fa-solid fa-spinner fa-spin text-purple-400" x-show="loadingMoreHistory"></i>
-                    </div>
+                    </button>
                 </div>
 
                 {{-- Grouped Batches --}}

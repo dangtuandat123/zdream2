@@ -489,23 +489,21 @@ class TextToImage extends Component
         }
 
         $history = $this->history;
-        $hasMore = $history instanceof \Illuminate\Pagination\LengthAwarePaginator
-            ? $history->hasMorePages()
-            : false;
+        if (!$history instanceof \Illuminate\Pagination\LengthAwarePaginator) {
+            return;
+        }
 
-        if (!$hasMore) {
+        $total = (int) $history->total();
+        if ($total <= 0 || !$history->hasMorePages()) {
             return;
         }
 
         $this->loadingMore = true;
         // Load one older item at a time for smooth prepend behavior
-        $this->perPage += 1;
+        $this->perPage = min($this->perPage + 1, $total);
         $this->loadingMore = false;
 
-        $updatedHistory = $this->history;
-        $hasMoreAfterUpdate = $updatedHistory instanceof \Illuminate\Pagination\LengthAwarePaginator
-            ? $updatedHistory->hasMorePages()
-            : false;
+        $hasMoreAfterUpdate = $this->perPage < $total;
 
         $this->dispatch('historyUpdated', hasMore: $hasMoreAfterUpdate);
     }

@@ -6,17 +6,14 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
-use App\Models\Setting;
 
 /**
  * Model: GeneratedImage
- * 
- * Lưu lịch sử ảnh đã tạo bởi user.
- * 
+ * Stores generated images created by users.
+ *
  * @property int $id
  * @property int $user_id
  * @property int|null $style_id
@@ -59,9 +56,6 @@ class GeneratedImage extends Model
         'credits_used' => 'decimal:2',
     ];
 
-    /**
-     * Default attribute values
-     */
     protected $attributes = [
         'status' => self::STATUS_PENDING,
         'credits_used' => 0,
@@ -71,21 +65,56 @@ class GeneratedImage extends Model
     // RELATIONSHIPS
     // =========================================
 
-    /**
-     * Lấy user đã tạo ảnh này
-     */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
+    public function style(): BelongsTo
+    {
+        return $this->belongsTo(Style::class);
+    }
+
+    // =========================================
+    // SCOPES
+    // =========================================
+
+    public function scopeStatus($query, string $status)
+    {
+        return $query->where('status', $status);
+    }
+
+    public function scopeCompleted($query)
+    {
+        return $query->where('status', self::STATUS_COMPLETED);
+    }
+
+    public function scopePending($query)
+    {
+        return $query->whereIn('status', [self::STATUS_PENDING, self::STATUS_PROCESSING]);
+    }
+
+    public function scopeFailed($query)
+    {
+        return $query->where('status', self::STATUS_FAILED);
+    }
+
+    public function scopeLatest($query)
+    {
+        return $query->orderByDesc('created_at');
+    }
+
+    // =========================================
+    // ACCESSORS
+    // =========================================
+
     /**
-     * Check whether a BFL signed URL has expired (via `se` query param).
+     * Check whether a signed BFL URL has expired via `se` query param.
      */
     protected function isExpiredBflSignedUrl(string $url): bool
     {
-        $host = (string) parse_url($url, PHP_URL_HOST);
-        if (!str_contains($host, 'cdn.bfl.ai')) {
+        $host = strtolower((string) parse_url($url, PHP_URL_HOST));
+        if ($host === '' || !str_contains($host, 'bfl.ai')) {
             return false;
         }
 
@@ -109,65 +138,9 @@ class GeneratedImage extends Model
     }
 
     /**
-     * Lấy style đã sử dụng
-     */
-    public function style(): BelongsTo
-    {
-        return $this->belongsTo(Style::class);
-    }
-
-    // =========================================
-    // SCOPES
-    // =========================================
-
-    /**
-     * Scope: Lấy ảnh theo status
-     */
-    public function scopeStatus($query, string $status)
-    {
-        return $query->where('status', $status);
-    }
-
-    /**
-     * Scope: Ảnh đã hoàn thành
-     */
-    public function scopeCompleted($query)
-    {
-        return $query->where('status', self::STATUS_COMPLETED);
-    }
-
-    /**
-     * Scope: Ảnh đang xử lý
-     */
-    public function scopePending($query)
-    {
-        return $query->whereIn('status', [self::STATUS_PENDING, self::STATUS_PROCESSING]);
-    }
-
-    /**
-     * Scope: Ảnh thất bại
-     */
-    public function scopeFailed($query)
-    {
-        return $query->where('status', self::STATUS_FAILED);
-    }
-
-    /**
-     * Scope: Sắp xếp mới nhất
-     */
-    public function scopeLatest($query)
-    {
-        return $query->orderByDesc('created_at');
-    }
-
-    // =========================================
-    // ACCESSORS
-    // =========================================
-
-    /**
-     * Lấy URL ảnh từ storage_path
-     * Sử dụng temporaryUrl (pre-signed) để bypass bucket policy restrictions
-     * Note: AWS S3/MinIO giới hạn pre-signed URL max 7 ngày
+     * Resolve image URL from storage_path.
+     * - For full HTTP URL: return as-is, except expired signed BFL URLs.
+     * - For internal path: generate cached temporary URL (preferred), then public URL fallback.
      */
     public function getImageUrlAttribute(): ?string
     {
@@ -175,90 +148,101 @@ class GeneratedImage extends Model
             return null;
         }
 
-        // Nếu là URL đầy đủ (đã có protocol)
         if (str_starts_with($this->storage_path, 'http')) {
             if ($this->isExpiredBflSignedUrl($this->storage_path)) {
                 return asset('images/placeholder.svg');
             }
+
             return $this->storage_path;
         }
 
-        // Pre-signed URL với expiry 7 ngày (max allowed by S3/MinIO)
-        // Cache URL để tránh tạo mới liên tục (giảm băng thông S3)
         try {
             $storagePath = $this->storage_path;
             $cacheKey = 'minio:temp_url:' . md5($storagePath);
-            $cacheTtl = now()->addDays(6); // buffer trước khi hết hạn
+            $cacheTtl = now()->addDays(6); // Refresh before 7-day max expiry.
 
-            /** @var FilesystemAdapter $disk */
-            $disk = Storage::disk('minio');
+            return Cache::remember($cacheKey, $cacheTtl, function () use ($storagePath) {
+                $temporaryUrl = $this->buildMinioTemporaryUrl($storagePath, now()->addDays(7));
 
-            return Cache::remember($cacheKey, $cacheTtl, function () use ($storagePath, $disk) {
-                return $disk->temporaryUrl(
-                    $storagePath,
-                    now()->addDays(7)  // Max 7 days for S3-compatible
-                );
+                if (!empty($temporaryUrl)) {
+                    return $temporaryUrl;
+                }
+
+                return $this->buildMinioPublicUrl($storagePath) ?? asset('images/placeholder.svg');
             });
         } catch (\Exception $e) {
-            // Fallback to regular URL nếu temporaryUrl không khả dụng
             Cache::forget('minio:temp_url:' . md5($this->storage_path));
-            /** @var FilesystemAdapter $disk */
-            $disk = Storage::disk('minio');
-            return $disk->url($this->storage_path);
+            return $this->buildMinioPublicUrl($this->storage_path) ?? asset('images/placeholder.svg');
         }
     }
 
     /**
-     * Lấy số ngày còn lại trước khi ảnh hết hạn
+     * Build temporary URL from MinIO disk if driver supports it.
+     */
+    protected function buildMinioTemporaryUrl(string $path, Carbon $expiresAt): ?string
+    {
+        $disk = Storage::disk('minio');
+
+        if (is_object($disk) && method_exists($disk, 'temporaryUrl')) {
+            return $disk->temporaryUrl($path, $expiresAt);
+        }
+
+        return null;
+    }
+
+    /**
+     * Build public URL from MinIO disk if driver supports it.
+     */
+    protected function buildMinioPublicUrl(string $path): ?string
+    {
+        $disk = Storage::disk('minio');
+
+        if (is_object($disk) && method_exists($disk, 'url')) {
+            return $disk->url($path);
+        }
+
+        return null;
+    }
+
+    /**
+     * Remaining days before image expiry.
      */
     public function getDaysUntilExpiryAttribute(): int
     {
         $expiryDays = (int) Setting::get('image_expiry_days', 30);
         $expiryDate = $this->created_at->addDays($expiryDays);
         $daysLeft = now()->diffInDays($expiryDate, false);
-        
+
         return max(0, (int) $daysLeft);
     }
 
     /**
-     * Kiểm tra ảnh sắp hết hạn (còn dưới 7 ngày)
+     * Whether image is expiring soon (within 7 days).
      */
     public function getIsExpiringAttribute(): bool
     {
         return $this->days_until_expiry <= 7 && $this->days_until_expiry > 0;
     }
 
-    /**
-     * Kiểm tra ảnh có hoàn thành không
-     */
     public function getIsCompletedAttribute(): bool
     {
         return $this->status === self::STATUS_COMPLETED;
     }
 
-    /**
-     * Kiểm tra ảnh có đang xử lý không
-     */
     public function getIsProcessingAttribute(): bool
     {
-        return in_array($this->status, [self::STATUS_PENDING, self::STATUS_PROCESSING]);
+        return in_array($this->status, [self::STATUS_PENDING, self::STATUS_PROCESSING], true);
     }
 
     // =========================================
-    // HELPER METHODS
+    // HELPERS
     // =========================================
 
-    /**
-     * Đánh dấu đang xử lý
-     */
     public function markAsProcessing(): void
     {
         $this->update(['status' => self::STATUS_PROCESSING]);
     }
 
-    /**
-     * Đánh dấu hoàn thành
-     */
     public function markAsCompleted(string $storagePath, ?string $bflTaskId = null): void
     {
         $this->update([
@@ -268,9 +252,6 @@ class GeneratedImage extends Model
         ]);
     }
 
-    /**
-     * Đánh dấu thất bại
-     */
     public function markAsFailed(string $errorMessage): void
     {
         $this->update([
