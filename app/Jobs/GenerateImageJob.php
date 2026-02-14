@@ -51,8 +51,10 @@ class GenerateImageJob implements ShouldQueue
         public string $aspectRatio,
         public string $imageSize,
         public array $inputImagesBase64 = [],
-        public array $generationOverrides = []
-    ) {}
+        public array $generationOverrides = [],
+        public ?string $modelOverride = null
+    ) {
+    }
 
     /**
      * Execute the job.
@@ -66,12 +68,21 @@ class GenerateImageJob implements ShouldQueue
         $user = $generatedImage->user;
         $style = $generatedImage->style;
 
+        // P0#2 FIX: Freeze model per-job to prevent race condition
+        // Priority: explicit override → generation_params → style default
+        if ($style) {
+            $frozenModel = $this->modelOverride
+                ?? ($generatedImage->generation_params['model_id'] ?? null)
+                ?? $style->bfl_model_id;
+            $style->bfl_model_id = $frozenModel;
+        }
+
         if (!$user || !$style) {
             Log::error('GenerateImageJob: Missing user or style', [
                 'image_id' => $generatedImage->id,
             ]);
             $generatedImage->markAsFailed('Missing user or style data');
-            
+
             // HIGH-01 FIX: Refund credits nếu có user và credits_used > 0
             if ($user && $generatedImage->credits_used > 0) {
                 $this->refundCreditsDirectly($user, $generatedImage);
@@ -284,7 +295,7 @@ class GenerateImageJob implements ShouldQueue
         // Mark as failed nếu chưa
         if ($this->generatedImage->status === GeneratedImage::STATUS_PROCESSING) {
             $this->generatedImage->markAsFailed('Job failed: ' . $exception->getMessage());
-            
+
             // HIGH-01 FIX: Refund credits khi job fail permanently
             $user = $this->generatedImage->user;
             if ($user && $this->generatedImage->credits_used > 0) {
@@ -292,7 +303,7 @@ class GenerateImageJob implements ShouldQueue
             }
         }
     }
-    
+
     /**
      * Refund credits trực tiếp (dùng khi không có DI container)
      * HIGH-01 FIX: Helper method để refund trong failed() và edge cases
@@ -307,7 +318,7 @@ class GenerateImageJob implements ShouldQueue
                 'Job failed permanently',
                 (string) $generatedImage->id
             );
-            
+
             Log::info('Credits refunded in failed() handler', [
                 'image_id' => $generatedImage->id,
                 'user_id' => $user->id,

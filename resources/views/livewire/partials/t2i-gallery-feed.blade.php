@@ -94,7 +94,7 @@
                     @php
                         $firstItem = $groupItems->first();
                         $modelId = $firstItem->generation_params['model_id'] ?? null;
-                        $ratio = $firstItem->generation_params['aspect_ratio'] ?? '1:1';
+                        $ratio = $firstItem->generation_params['aspect_ratio_user'] ?? $firstItem->generation_params['aspect_ratio'] ?? null;
 
                         $modelName = $modelId;
                         if ($modelId && isset($availableModels)) {
@@ -102,11 +102,18 @@
                             $modelName = $found['name'] ?? $modelId;
                         }
 
-                        $aspectRatioCss = '1 / 1';
-                        if ($ratio !== 'Auto' && strpos($ratio, ':') !== false) {
+                        // P0#3 FIX: Handle auto/null ratio gracefully
+                        $aspectRatioCss = null;
+                        $outW = $firstItem->generation_params['output_width'] ?? null;
+                        $outH = $firstItem->generation_params['output_height'] ?? null;
+                        if ($outW && $outH) {
+                            $aspectRatioCss = $outW . ' / ' . $outH;
+                        } elseif ($ratio && $ratio !== 'auto' && $ratio !== 'Auto' && strpos($ratio, ':') !== false) {
                             [$w, $h] = explode(':', $ratio);
                             $aspectRatioCss = $w . ' / ' . $h;
                         }
+                        // If null, we'll use natural image aspect ratio
+                        $ratioDisplay = $ratio ?: 'Auto';
                     @endphp
 
                     <div class="space-y-2 group-batch" x-data="{ expanded: false }" wire:key="group-{{ $wireKey }}"
@@ -126,7 +133,7 @@
                                 </div>
                                 <div class="flex items-center gap-0.5 shrink-0">
                                     <button x-data="{ copied: false }"
-                                        @click="navigator.clipboard.writeText(@js($firstItem->final_prompt)); copied = true; $dispatch('show-toast', { message: 'Đã copy prompt' }); setTimeout(() => copied = false, 2000)"
+                                        @click="navigator.clipboard.writeText(@js($firstItem->final_prompt)); copied = true; notify('Đã copy prompt'); setTimeout(() => copied = false, 2000)"
                                         class="inline-flex items-center justify-center h-7 px-2 rounded-lg bg-transparent text-white/50 hover:bg-white/[0.05] hover:text-white/90 text-xs transition-all duration-200 active:scale-[0.98]"
                                         title="Copy prompt">
                                         <i :class="copied ? 'fa-solid fa-check text-green-400' : 'fa-regular fa-copy'"
@@ -152,7 +159,7 @@
                             <div class="flex items-center gap-2 mt-2 text-[11px] text-white/40">
                                 <span class="text-purple-300/70">{{ $modelName }}</span>
                                 <span class="text-white/20">•</span>
-                                <span>{{ $ratio }}</span>
+                                <span>{{ $ratioDisplay }}</span>
                                 <span class="text-white/20">•</span>
                                 <span>{{ $groupItems->count() }} ảnh</span>
                                 <span class="text-white/20">•</span>
@@ -165,8 +172,7 @@
                             @foreach($groupItems as $image)
                                 <div class="block group cursor-pointer" @click="openPreview(null, {{ $absoluteIndex }})">
                                     <div class="h-full bg-white/[0.02]">
-                                        <div class="relative overflow-hidden" style="aspect-ratio: {{ $aspectRatioCss }};">
-                                            {{-- Shimmer --}}
+                                    <div class="relative overflow-hidden" {!! $aspectRatioCss ? 'style="aspect-ratio: '.$aspectRatioCss.';"' : '' !!}>                                            {{-- Shimmer --}}
                                             <div class="img-shimmer absolute inset-0 bg-white/[0.04]">
                                                 <div
                                                     class="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.06] to-transparent animate-shimmer">

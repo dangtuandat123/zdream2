@@ -317,7 +317,8 @@ class TextToImage extends Component
                         $effectiveRatio ?? $this->aspectRatio,
                         '1K',
                         $inputImages,
-                        ['aspect_ratio' => $effectiveRatio ?? $this->aspectRatio]
+                        ['aspect_ratio' => $effectiveRatio ?? $this->aspectRatio],
+                        $this->modelId  // P0#2: freeze model at dispatch time
                     );
                 } else {
                     // Sync fallback

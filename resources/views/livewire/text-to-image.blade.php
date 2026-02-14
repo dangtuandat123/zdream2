@@ -2,7 +2,8 @@
 {{-- TEXT-TO-IMAGE — Root Orchestrator (Redesigned: Core-first) --}}
 {{-- ============================================================ --}}
 <div class="relative min-h-screen" @if($isGenerating) wire:poll.2s="pollImageStatus" @endif x-data="textToImage"
-    @keydown.window="handleKeydown($event)">
+    @keydown.window="handleKeydown($event)"
+    @show-toast.window="notify($event.detail.message, $event.detail.type || 'success')">
 
     {{-- Toast --}}
     <div x-show="showToast" x-cloak x-transition:enter="transition ease-out duration-300"
@@ -187,6 +188,20 @@
                         str_contains($m['id'], 'pro') => '💎',
                         str_contains($m['id'], 'schnell') => '🚀',
                         default => '🛠️'
+                    },
+                    'shortLabel' => match (true) {
+                        str_contains($m['id'], 'kontext-max') => 'K-Max',
+                        str_contains($m['id'], 'kontext-pro') => 'K-Pro',
+                        str_contains($m['id'], 'flux-2-max') => '2 Max',
+                        str_contains($m['id'], 'flux-2-pro') => '2 Pro',
+                        str_contains($m['id'], 'flux-2-flex') => '2 Flex',
+                        str_contains($m['id'], 'klein-4b') => 'K-4B',
+                        str_contains($m['id'], 'klein-9b') => 'K-9B',
+                        str_contains($m['id'], 'pro-1.1-ultra') => '1.1 Ultra',
+                        str_contains($m['id'], 'pro-1.1') => '1.1 Pro',
+                        str_contains($m['id'], 'schnell') => 'Schnell',
+                        str_contains($m['id'], 'dev') => 'Dev',
+                        default => last(explode('-', $m['id'])),
                     },
                     'maxImages' => ($m['supports_image_input'] ?? false) ? ($m['max_input_images'] ?? 1) : 0,
                     'supportsImageInput' => $m['supports_image_input'] ?? false,
@@ -506,9 +521,12 @@
                     try {
                         const res = await fetch(url);
                         const blob = await res.blob();
+                        // P1#2: detect correct extension from blob type
+                        const extMap = { 'image/jpeg': '.jpg', 'image/png': '.png', 'image/webp': '.webp', 'image/gif': '.gif' };
+                        const ext = extMap[blob.type] || '.png';
                         const a = document.createElement('a');
                         a.href = URL.createObjectURL(blob);
-                        a.download = 'zdream-' + Date.now() + '.png';
+                        a.download = 'zdream-' + Date.now() + ext;
                         a.click();
                         URL.revokeObjectURL(a.href);
                     } catch (e) {

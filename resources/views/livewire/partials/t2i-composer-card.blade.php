@@ -113,7 +113,7 @@
                                 :class="showModelSheet ? 'bg-purple-500/20 border border-purple-500/40 text-purple-300' : 'bg-white/[0.05] hover:bg-white/[0.08] border border-white/[0.08] text-white/70'">
                                 <span x-text="getSelectedModel().icon" class="text-sm"></span>
                                 <span class="hidden sm:inline max-w-[100px] truncate" x-text="getSelectedModel().name"></span>
-                                <span class="sm:hidden" x-text="getSelectedModel().name.split(' ').pop()"></span>
+                                <span class="sm:hidden" x-text="getSelectedModel().shortLabel || getSelectedModel().name.split(' ').pop()"></span>
                             </button>
 
                             {{-- Model Dropdown Desktop --}}
@@ -398,11 +398,11 @@
                                 <div x-show="recentImages.length > 0" class="mt-2">
                                     <div class="text-white/40 text-[10px] font-medium mb-1.5">Ảnh gần đây</div>
                                     <div class="grid grid-cols-5 gap-1 max-h-32 overflow-y-auto">
-                                        <template x-for="img in recentImages.slice(0, 15)" :key="img">
-                                            <button @click="selectFromRecent(img)" class="relative aspect-square rounded-lg overflow-hidden border transition-all"
-                                                :class="isSelected(img) ? 'border-purple-500 ring-1 ring-purple-500' : 'border-transparent hover:border-white/20'">
-                                                <img :src="img" class="w-full h-full object-cover">
-                                                <div x-show="isSelected(img)" class="absolute inset-0 bg-purple-500/30 flex items-center justify-center">
+                                        <template x-for="img in recentImages.slice(0, 15)" :key="img.id || img.url">
+                                            <button @click="selectFromRecent(img.url)" class="relative aspect-square rounded-lg overflow-hidden border transition-all"
+                                                :class="isSelected(img.url) ? 'border-purple-500 ring-1 ring-purple-500' : 'border-transparent hover:border-white/20'">
+                                                <img :src="img.url" class="w-full h-full object-cover">
+                                                <div x-show="isSelected(img.url)" class="absolute inset-0 bg-purple-500/30 flex items-center justify-center">
                                                     <i class="fa-solid fa-check text-white text-xs"></i>
                                                 </div>
                                             </button>
@@ -460,11 +460,11 @@
                                         <div x-show="recentImages.length > 0">
                                             <div class="text-white/40 text-xs font-medium mb-2">Ảnh gần đây</div>
                                             <div class="grid grid-cols-4 gap-1.5 max-h-40 overflow-y-auto">
-                                                <template x-for="img in recentImages.slice(0, 16)" :key="img">
-                                                    <button @click="selectFromRecent(img)" class="relative aspect-square rounded-xl overflow-hidden border-2 transition-all"
-                                                        :class="isSelected(img) ? 'border-purple-500' : 'border-transparent'">
-                                                        <img :src="img" class="w-full h-full object-cover">
-                                                        <div x-show="isSelected(img)" class="absolute inset-0 bg-purple-500/30 flex items-center justify-center">
+                                                <template x-for="img in recentImages.slice(0, 16)" :key="img.id || img.url">
+                                                    <button @click="selectFromRecent(img.url)" class="relative aspect-square rounded-xl overflow-hidden border-2 transition-all"
+                                                        :class="isSelected(img.url) ? 'border-purple-500' : 'border-transparent'">
+                                                        <img :src="img.url" class="w-full h-full object-cover">
+                                                        <div x-show="isSelected(img.url)" class="absolute inset-0 bg-purple-500/30 flex items-center justify-center">
                                                             <i class="fa-solid fa-check text-white"></i>
                                                         </div>
                                                     </button>
@@ -503,6 +503,7 @@
                     @else
                         <button type="button" wire:click="generate"
                             class="shrink-0 flex items-center gap-1.5 px-3 sm:px-5 py-2 rounded-xl bg-gradient-to-r from-purple-500 via-fuchsia-500 to-pink-500 text-white font-semibold text-sm shadow-lg shadow-purple-500/25 hover:scale-[1.02] hover:shadow-xl hover:shadow-purple-500/40 active:scale-[0.98] transition-all duration-200"
+                            :disabled="!$wire.prompt?.trim()" :class="{ 'opacity-40 pointer-events-none': !$wire.prompt?.trim() }"
                             wire:loading.attr="disabled" wire:loading.class="opacity-50 pointer-events-none" wire:target="generate">
                             <span wire:loading.remove wire:target="generate"><i class="fa-solid fa-wand-magic-sparkles text-xs"></i></span>
                             <span wire:loading wire:target="generate"><i class="fa-solid fa-spinner fa-spin text-xs"></i></span>

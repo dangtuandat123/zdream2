@@ -1438,8 +1438,13 @@ Rules:
                 'height' => $height,
             ];
         }
+        // P0#3 FIX: when ratio is null/empty (auto), omit width/height
+        // so BFL API uses its own defaults instead of forcing 1:1
+        if (empty($aspectRatio)) {
+            return null;
+        }
 
-        $ratio = $aspectRatio ?: '1:1';
+        $ratio = $aspectRatio;
         $ratioMap = config('services_custom.bfl.ratio_dimensions', []);
         $dimensions = $ratioMap[$ratio] ?? ($ratioMap['1:1'] ?? null);
 
