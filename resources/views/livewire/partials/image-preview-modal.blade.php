@@ -3,7 +3,14 @@
 {{-- ============================================================ --}}
 <div x-show="showPreview" x-cloak class="fixed inset-0 z-[200] flex items-center justify-center" role="dialog"
     aria-modal="true" aria-label="Xem trước ảnh" @keydown.escape.window="if (showPreview) closePreview()"
-    @touchstart="handleTouchStart($event)" @touchend="handleTouchEnd($event)">
+    @touchstart="handleTouchStart($event)" @touchend="handleTouchEnd($event)" x-ref="previewModal" @keydown.tab.prevent="
+        const focusable = [...$refs.previewModal.querySelectorAll('button:not([disabled]), [href], input:not([disabled]), [tabindex]:not([tabindex=\'-1\'])')].filter(el => el.offsetParent !== null);
+        if (!focusable.length) return;
+        const idx = focusable.indexOf(document.activeElement);
+        if ($event.shiftKey) { focusable[idx <= 0 ? focusable.length - 1 : idx - 1].focus(); }
+        else { focusable[idx >= focusable.length - 1 ? 0 : idx + 1].focus(); }
+    "
+    x-effect="if (showPreview) { $nextTick(() => { const btn = $refs.previewModal?.querySelector('[aria-label]'); if (btn) btn.focus(); }); }">
 
     {{-- Backdrop --}}
     <div class="absolute inset-0 bg-black/90 backdrop-blur-sm" @click="closePreview()" x-show="showPreview"

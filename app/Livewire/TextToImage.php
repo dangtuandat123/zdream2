@@ -261,13 +261,14 @@ class TextToImage extends Component
                     }
                 }
 
-                // Resolve auto ratio — store as-is in metadata, but resolve for API
-                $resolvedRatio = $this->aspectRatio === 'auto' ? null : $this->aspectRatio;
+                // Resolve auto ratio — store user choice + effective value for API
+                $effectiveRatio = $this->aspectRatio === 'auto' ? null : $this->aspectRatio;
 
                 $generationParams = [
                     'model_id' => $this->modelId,
-                    'aspect_ratio' => $this->aspectRatio, // original user choice
-                    'resolved_ratio' => $resolvedRatio,   // what API actually receives
+                    'aspect_ratio' => $this->aspectRatio,
+                    'aspect_ratio_user' => $this->aspectRatio,
+                    'aspect_ratio_effective' => $effectiveRatio,
                     'batch_id' => $batchId,
                     'batch_index' => $i,
                 ];
@@ -313,10 +314,10 @@ class TextToImage extends Component
                         $generatedImage,
                         [],
                         $prompt,
-                        $this->aspectRatio,
+                        $effectiveRatio ?? $this->aspectRatio,
                         '1K',
                         $inputImages,
-                        ['aspect_ratio' => $this->aspectRatio]
+                        ['aspect_ratio' => $effectiveRatio ?? $this->aspectRatio]
                     );
                 } else {
                     // Sync fallback
@@ -325,10 +326,10 @@ class TextToImage extends Component
                         $systemStyle,
                         [],
                         $prompt,
-                        $this->aspectRatio,
+                        $effectiveRatio ?? $this->aspectRatio,
                         null,
                         $inputImages,
-                        ['aspect_ratio' => $this->aspectRatio]
+                        ['aspect_ratio' => $effectiveRatio ?? $this->aspectRatio]
                     );
 
                     if ($result['success']) {

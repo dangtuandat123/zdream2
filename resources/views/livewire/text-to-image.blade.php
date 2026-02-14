@@ -1,5 +1,5 @@
 {{-- ============================================================ --}}
-{{-- TEXT-TO-IMAGE — Root Orchestrator --}}
+{{-- TEXT-TO-IMAGE — Root Orchestrator (Redesigned: Core-first) --}}
 {{-- ============================================================ --}}
 <div class="relative min-h-screen" @if($isGenerating) wire:poll.2s="pollImageStatus" @endif x-data="textToImage"
     @keydown.window="handleKeydown($event)">
@@ -21,7 +21,6 @@
             ? $history->getCollection()
             : collect($history);
         $groupedHistory = $historyCollection->groupBy(function ($item) {
-            // Prefer batch_id for precise grouping, fallback for old images
             if (!empty($item->generation_params['batch_id'])) {
                 return $item->generation_params['batch_id'];
             }
@@ -42,13 +41,12 @@
         ])->values()->toArray();
     @endphp
 
-    {{-- PARTIALS --}}
-    @include('livewire.partials.t2i-filter-bar')
-    @include('livewire.partials.t2i-gallery')
-    @include('livewire.partials.t2i-input-bar')
+    {{-- PARTIALS (new core-first layout) --}}
+    @include('livewire.partials.t2i-filter-compact')
+    @include('livewire.partials.t2i-gallery-feed')
+    @include('livewire.partials.t2i-composer-card')
 
     {{-- MODALS --}}
-    @include('livewire.partials.image-picker-modal')
     @include('livewire.partials.image-preview-modal')
 
     {{-- ============================================================ --}}
@@ -129,9 +127,9 @@
             }
         }
 
-        /* Fix input bar for md+ */
+        /* Fix composer for md+ */
         @media (min-width: 768px) {
-            .input-bar-fixed {
+            .composer-fixed {
                 bottom: 0 !important;
             }
         }
@@ -143,47 +141,30 @@
     <script>
         document.addEventListener('alpine:init', () => {
             Alpine.data('textToImage', () => ({
+                // ── UI State ──────────────────────────────────────
+                uiMode: 'idle', // idle | generating | partial_success | failed | done
+                statusMessage: '',
+                statusElapsed: 0,
+                statusTimer: null,
+
                 // Toast
                 showToast: false,
                 toastMessage: '',
                 toastType: 'success',
                 toastTimer: null,
 
-                // Image picker
-                showImagePicker: false,
-                selectedImages: [],
-                recentImages: [],
-                isLoadingPicker: false,
-                activeTab: 'upload',
-                isDragging: false,
-                urlInput: '',
+                // ── Composer ──────────────────────────────────────
+                showRatioSheet: false,
+                showModelSheet: false,
+                showBatchSheet: false,
+                showRefPicker: false,
 
-                // Preview
-                showPreview: false,
-                previewIndex: 0,
-                previewImage: null,
-                historyData: @js($flatHistoryForJs),
-
-                // Loading
-                loadingMessages: [
-                    'Đang tạo ảnh...',
-                    'AI đang sáng tạo...',
-                    'Đang xử lý prompt...',
-                    'Đang render chi tiết...',
-                    'Sắp xong rồi...'
-                ],
-                currentLoadingMessage: 0,
-                loadingInterval: null,
-
-                // Input Bar & Settings
-                showRatioDropdown: false,
-                showModelDropdown: false,
-                showBatchDropdown: false,
                 selectedRatio: @entangle('aspectRatio'),
                 selectedModel: @entangle('modelId'),
                 customWidth: 1024,
                 customHeight: 1024,
                 linkDimensions: true,
+
                 ratios: [
                     { id: 'auto', label: 'Auto', icon: 'fa-expand' },
                     { id: '1:1', label: '1:1', icon: null },
@@ -211,6 +192,29 @@
                     'supportsImageInput' => $m['supports_image_input'] ?? false,
                 ])),
 
+                // ── Refs ──────────────────────────────────────────
+                selectedImages: [],
+                recentImages: [],
+                isLoadingPicker: false,
+                urlInput: '',
+
+                // ── Preview ───────────────────────────────────────
+                showPreview: false,
+                previewIndex: 0,
+                previewImage: null,
+                historyData: @js($flatHistoryForJs),
+
+                // ── Loading ───────────────────────────────────────
+                loadingMessages: [
+                    'Đang tạo ảnh...',
+                    'AI đang sáng tạo...',
+                    'Đang xử lý prompt...',
+                    'Đang render chi tiết...',
+                    'Sắp xong rồi...'
+                ],
+                currentLoadingMessage: 0,
+                loadingInterval: null,
+
                 // Dynamic max images based on selected model
                 get maxImages() {
                     const model = this.models.find(m => m.id === this.selectedModel);
@@ -221,7 +225,7 @@
                 // INIT
                 // ============================================================
                 init() {
-                    // Scroll + celebrate when new image generated (with counts)
+                    // Image generated → scroll + celebrate
                     this.$wire.$on('imageGenerated', (params) => {
                         const { successCount, failedCount } = Array.isArray(params) ? params[0] || {} : params || {};
                         this.$nextTick(() => {
@@ -234,21 +238,34 @@
                                     setTimeout(() => lastBatch.classList.remove('new-batch-glow'), 3000);
                                     setTimeout(() => lastBatch.classList.remove('new-batch-animate'), 600);
                                 }
-                                if (failedCount > 0) {
-                                    this.notify(`🎨 ${successCount} ảnh thành công, ${failedCount} thất bại`, 'warning');
+
+                                // Update uiMode based on results
+                                if (failedCount > 0 && successCount > 0) {
+                                    this.uiMode = 'partial_success';
+                                    this.statusMessage = `🎨 ${successCount} ảnh thành công, ${failedCount} thất bại`;
+                                } else if (failedCount > 0) {
+                                    this.uiMode = 'failed';
+                                    this.statusMessage = `❌ Tạo ảnh thất bại`;
                                 } else {
-                                    this.notify(`🎨 Đã tạo xong ${successCount > 1 ? successCount + ' ảnh' : 'ảnh'}!`);
+                                    this.uiMode = 'done';
+                                    this.statusMessage = `🎨 Đã tạo xong ${successCount > 1 ? successCount + ' ảnh' : 'ảnh'}!`;
+                                    setTimeout(() => { if (this.uiMode === 'done') this.uiMode = 'idle'; }, 5000);
                                 }
+                                this.stopStatusTimer();
+                                this.notify(this.statusMessage, failedCount > 0 ? 'warning' : 'success');
                             }, 300);
                         });
                     });
 
-                    // Handle generation failure (all images in batch failed)
+                    // Generation failed (all images)
                     this.$wire.$on('imageGenerationFailed', () => {
-                        this.notify('❌ Tạo ảnh thất bại. Vui lòng thử lại.', 'error');
+                        this.uiMode = 'failed';
+                        this.statusMessage = '❌ Tạo ảnh thất bại. Vui lòng thử lại.';
+                        this.stopStatusTimer();
+                        this.notify(this.statusMessage, 'error');
                     });
 
-                    // Auto-trim/clear images when model changes
+                    // Auto-trim refs when model changes
                     this.$watch('selectedModel', () => {
                         const max = this.maxImages;
                         if (max === 0 && this.selectedImages.length > 0) {
@@ -259,6 +276,17 @@
                             this.selectedImages = this.selectedImages.slice(0, max);
                             this.$wire.setReferenceImages(this.selectedImages.map(img => ({ url: img.url })));
                             this.notify(`Model này hỗ trợ tối đa ${max} ảnh tham chiếu`, 'warning');
+                        }
+                    });
+
+                    // Start status timer when generating
+                    this.$watch('$wire.isGenerating', (val) => {
+                        if (val) {
+                            this.uiMode = 'generating';
+                            this.startStatusTimer();
+                            this.startLoading();
+                        } else {
+                            this.stopLoading();
                         }
                     });
 
@@ -280,12 +308,26 @@
                     }, { once: true });
                 },
 
-                // Centralized cleanup (P0#3)
+                // ============================================================
+                // Status Timer
+                // ============================================================
+                startStatusTimer() {
+                    this.statusElapsed = 0;
+                    this.stopStatusTimer();
+                    this.statusTimer = setInterval(() => this.statusElapsed++, 1000);
+                },
+                stopStatusTimer() {
+                    clearInterval(this.statusTimer);
+                    this.statusTimer = null;
+                },
+
+                // Centralized cleanup
                 _cleanup() {
                     if (typeof this._morphCleanup === 'function') {
                         this._morphCleanup();
                     }
                     this.stopLoading();
+                    this.stopStatusTimer();
                     document.body.style.overflow = '';
                     document.documentElement.style.overflow = '';
                 },
@@ -306,29 +348,15 @@
                         this.customHeight = Math.round(baseSize * Math.sqrt(h / w) / 64) * 64;
                     }
                     if (window.innerWidth >= 640) {
-                        this.showRatioDropdown = false;
+                        this.showRatioSheet = false;
                     }
                 },
                 selectModel(id) {
                     this.selectedModel = id;
-                    this.showModelDropdown = false;
+                    this.showModelSheet = false;
                 },
                 getSelectedModel() {
                     return this.models.find(m => m.id === this.selectedModel) || this.models[0] || { name: 'Model', icon: '🛠️', desc: '' };
-                },
-                updateWidth(newWidth) {
-                    this.customWidth = newWidth;
-                    if (this.linkDimensions && this.selectedRatio !== 'auto') {
-                        const [w, h] = this.selectedRatio.split(':').map(Number);
-                        this.customHeight = Math.round(newWidth * h / w / 64) * 64;
-                    }
-                },
-                updateHeight(newHeight) {
-                    this.customHeight = newHeight;
-                    if (this.linkDimensions && this.selectedRatio !== 'auto') {
-                        const [w, h] = this.selectedRatio.split(':').map(Number);
-                        this.customWidth = Math.round(newHeight * w / h / 64) * 64;
-                    }
                 },
 
                 // ============================================================
@@ -354,10 +382,10 @@
                 },
 
                 // ============================================================
-                // Loading
+                // Loading messages rotation
                 // ============================================================
                 startLoading() {
-                    this.stopLoading(); // Clear any existing interval first
+                    this.stopLoading();
                     this.currentLoadingMessage = 0;
                     this.loadingInterval = setInterval(() => {
                         this.currentLoadingMessage = (this.currentLoadingMessage + 1) % this.loadingMessages.length;
@@ -489,7 +517,7 @@
                 },
 
                 // ============================================================
-                // Image Picker
+                // Image Picker (inline in composer)
                 // ============================================================
                 async loadRecentImages() {
                     this.isLoadingPicker = true;
@@ -507,19 +535,6 @@
                     const files = Array.from(e.target.files);
                     this.processFiles(files);
                     e.target.value = '';
-                },
-
-                handleDrop(e) {
-                    this.isDragging = false;
-                    const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
-                    this.processFiles(files);
-                },
-
-                handleDirectUpload(e) {
-                    const files = Array.from(e.target.files);
-                    this.processFiles(files);
-                    e.target.value = '';
-                    this.notify(files.length + ' ảnh đã thêm làm tham chiếu');
                 },
 
                 processFiles(files) {
@@ -548,7 +563,6 @@
                                 file: file
                             });
                             processed++;
-                            // Sync only after all files are read
                             if (processed >= total) {
                                 this.$wire.setReferenceImages(
                                     this.selectedImages.map(img => ({ url: img.url }))
@@ -614,16 +628,6 @@
                 clearAll() {
                     this.selectedImages = [];
                     this.$wire.setReferenceImages([]);
-                },
-
-                confirmSelection() {
-                    this.$wire.setReferenceImages(
-                        this.selectedImages.map(img => ({ url: img.url }))
-                    );
-                    this.showImagePicker = false;
-                    if (this.selectedImages.length > 0) {
-                        this.notify(this.selectedImages.length + ' ảnh tham chiếu đã chọn');
-                    }
                 },
             }));
         });
