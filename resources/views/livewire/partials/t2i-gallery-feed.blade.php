@@ -333,13 +333,4 @@
         <span>Về ảnh mới nhất</span>
     </button>
 
-    {{-- Auto-scroll toggle --}}
-    <button x-show="!autoScrollEnabled" x-cloak
-        @click="autoScrollEnabled = true; scrollToBottom(true); notify('Da bat theo doi anh moi')"
-        x-transition
-        class="fixed right-4 z-[54] flex items-center gap-1.5 px-3 py-2 rounded-full bg-white/10 hover:bg-white/15 text-white/60 text-xs font-medium backdrop-blur-sm active:scale-[0.95] transition-all border border-white/10"
-        style="bottom: calc(var(--composer-h, 10rem) + 3.5rem);">
-        <i class="fa-solid fa-bolt text-[10px]"></i>
-        <span>Theo doi anh moi: OFF</span>
-    </button>
 </div>

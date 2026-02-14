@@ -278,6 +278,8 @@
                 isPrependingHistory: false,
                 prependAnchorId: null,
                 prependAnchorTop: 0,
+                prependBeforeScrollY: 0,
+                prependBeforeHeight: 0,
                 _anchorRestoreTimers: [],
                 lastLoadMoreAt: 0,
                 lastScrollY: 0,
@@ -440,10 +442,14 @@
                                 this._anchorRestoreTimers.push(setTimeout(() => {
                                     this.prependAnchorId = null;
                                     this.prependAnchorTop = 0;
+                                    this.prependBeforeScrollY = 0;
+                                    this.prependBeforeHeight = 0;
                                 }, 220));
                             } else {
                                 this.prependAnchorId = null;
                                 this.prependAnchorTop = 0;
+                                this.prependBeforeScrollY = 0;
+                                this.prependBeforeHeight = 0;
                             }
 
                             this.loadingMoreHistory = false;
@@ -580,6 +586,8 @@
                     this.isPrependingHistory = false;
                     this.prependAnchorId = null;
                     this.prependAnchorTop = 0;
+                    this.prependBeforeScrollY = 0;
+                    this.prependBeforeHeight = 0;
                     document.body.style.overflow = '';
                     document.documentElement.style.overflow = '';
                     if (this._scrollRestoration !== null && 'scrollRestoration' in history) {
@@ -655,6 +663,10 @@
                     this.canScrollVertically = (el.scrollHeight - window.innerHeight) > 8;
                 },
                 capturePrependAnchor() {
+                    const doc = document.documentElement;
+                    this.prependBeforeScrollY = window.scrollY || doc.scrollTop || 0;
+                    this.prependBeforeHeight = doc.scrollHeight || 0;
+
                     const groups = Array.from(
                         document.querySelectorAll('#gallery-feed .group-batch[data-history-anchor-id]')
                     );
@@ -672,7 +684,24 @@
                     this.prependAnchorTop = anchorEl?.getBoundingClientRect?.().top ?? 0;
                 },
                 restorePrependAnchor() {
-                    if (!this.prependAnchorId) return;
+                    const doc = document.documentElement;
+                    const currentY = window.scrollY || doc.scrollTop || 0;
+                    const currentHeight = doc.scrollHeight || 0;
+                    let adjusted = false;
+
+                    if (this.prependBeforeHeight > 0) {
+                        const expectedY = this.prependBeforeScrollY + Math.max(0, currentHeight - this.prependBeforeHeight);
+                        const residual = expectedY - currentY;
+                        if (Math.abs(residual) > 1) {
+                            window.scrollBy({ top: residual, behavior: 'auto' });
+                            adjusted = true;
+                        }
+                    }
+
+                    if (adjusted || !this.prependAnchorId) {
+                        this.refreshScrollState();
+                        return;
+                    }
 
                     const anchors = Array.from(
                         document.querySelectorAll('#gallery-feed .group-batch[data-history-anchor-id]')
@@ -730,6 +759,8 @@
                         this.isPrependingHistory = false;
                         this.prependAnchorId = null;
                         this.prependAnchorTop = 0;
+                        this.prependBeforeScrollY = 0;
+                        this.prependBeforeHeight = 0;
                         this._loadMoreFailSafeTimer = null;
                     }, 7000);
                 },
