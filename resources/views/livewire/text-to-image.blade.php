@@ -392,7 +392,6 @@
                     _loadMoreFailSafeTimer: null,
                     _resizeHandler: null,
                     _prependRestoreRaf: null,
-                    _prependStabilizeCleanup: null,
                     _sentinelObserver: null,
 
                     // ── Infinite scroll state ─────────────────────
@@ -400,7 +399,6 @@
                     loadingMoreHistory: false,
                     isPrependingHistory: false,
                     prependBoundaryId: null,
-                    prependBoundaryTop: null,
                     lastLoadMoreAt: 0,
                     lastScrollY: 0,
                     loadOlderStep: 3,
@@ -538,18 +536,14 @@
                             }
 
                             this.$nextTick(() => {
-                                if (this.isPrependingHistory) {
+                                if (this.isPrependingHistory && this.prependBoundaryId) {
                                     if (this._prependRestoreRaf !== null) {
                                         cancelAnimationFrame(this._prependRestoreRaf);
                                         this._prependRestoreRaf = null;
                                     }
+                                    const savedBoundaryId = this.prependBoundaryId;
                                     this._prependRestoreRaf = requestAnimationFrame(() => {
-                                        const sid = this.prependBoundaryId;
-                                        const sTop = this.prependBoundaryTop;
-                                        this.restorePrependAnchor();
-                                        if (sid !== null && sTop !== null) {
-                                            this.stabilizePrependAnchor(sid, sTop);
-                                        }
+                                        this.centerFirstPrependedImage(savedBoundaryId);
                                         this._prependRestoreRaf = null;
                                     });
                                 }
@@ -557,7 +551,6 @@
                                 this.loadingMoreHistory = false;
                                 this.isPrependingHistory = false;
                                 this.prependBoundaryId = null;
-                                this.prependBoundaryTop = null;
                                 clearTimeout(this._loadMoreFailSafeTimer);
                                 this._loadMoreFailSafeTimer = null;
 
@@ -690,11 +683,9 @@
                             cancelAnimationFrame(this._prependRestoreRaf);
                             this._prependRestoreRaf = null;
                         }
-                        this.stopPrependStabilize();
                         this.loadingMoreHistory = false;
                         this.isPrependingHistory = false;
                         this.prependBoundaryId = null;
-                        this.prependBoundaryTop = null;
                         document.body.style.overflow = '';
                         document.documentElement.style.overflow = '';
                         if (this._scrollRestoration !== null && 'scrollRestoration' in history) {
@@ -777,87 +768,54 @@
                     },
 
                     // ============================================================
-                    // Scroll preservation (prepend anchor)
+                    // Scroll centering after loading older images
                     // ============================================================
                     capturePrependAnchor() {
                         const groups = Array.from(
                             document.querySelectorAll('#gallery-feed .group-batch[data-history-anchor-id]')
                         );
-                        // Find the first batch whose bottom edge is in or below the viewport
+                        // The first batch whose bottom edge is visible = our boundary (was visible before load)
                         const boundary = groups.find((el) => el.getBoundingClientRect().bottom > 0) || groups[0] || null;
                         this.prependBoundaryId = boundary?.dataset?.historyAnchorId ?? null;
-                        this.prependBoundaryTop = boundary ? boundary.getBoundingClientRect().top : null;
                     },
-                    restorePrependAnchor() {
-                        if (this.prependBoundaryId === null || this.prependBoundaryTop === null) return;
 
-                        const boundary = document.querySelector(
-                            `#gallery-feed .group-batch[data-history-anchor-id="${this.prependBoundaryId}"]`
-                        );
-                        if (!boundary) return;
+                    /**
+                     * After older images are prepended above the boundary batch,
+                     * center the FIRST (topmost) newly loaded image in the viewport.
+                     *
+                     * Flow: load older → center first new img → user scrolls down → sentinel fires → repeat
+                     */
+                    centerFirstPrependedImage(boundaryId) {
+                        if (!boundaryId) return;
 
-                        const currentY = window.scrollY || document.documentElement.scrollTop || 0;
-                        const delta = boundary.getBoundingClientRect().top - this.prependBoundaryTop;
-                        if (Math.abs(delta) > 1) {
-                            window.scrollTo(0, Math.max(0, Math.round(currentY + delta)));
-                        }
-                    },
-                    stopPrependStabilize() {
-                        if (typeof this._prependStabilizeCleanup === 'function') {
-                            this._prependStabilizeCleanup();
-                        }
-                        this._prependStabilizeCleanup = null;
-                    },
-                    stabilizePrependAnchor(boundaryId, boundaryTop, maxDurationMs = 1800) {
-                        this.stopPrependStabilize();
-                        if (boundaryId === null || boundaryTop === null) return;
-
-                        const selector = `#gallery-feed .group-batch[data-history-anchor-id="${String(boundaryId)}"]`;
-                        const syncBoundary = () => {
-                            const boundary = document.querySelector(selector);
-                            if (!boundary) return;
-                            const delta = boundary.getBoundingClientRect().top - boundaryTop;
-                            if (Math.abs(delta) <= 0.5) return;
-                            const currentY = window.scrollY || document.documentElement.scrollTop || 0;
-                            window.scrollTo(0, Math.max(0, Math.round(currentY + delta)));
-                        };
-
-                        const groups = Array.from(
+                        const allBatches = Array.from(
                             document.querySelectorAll('#gallery-feed .group-batch[data-history-anchor-id]')
                         );
-                        const boundaryIndex = groups.findIndex(
-                            (el) => String(el?.dataset?.historyAnchorId ?? '') === String(boundaryId)
+                        if (!allBatches.length) return;
+
+                        // Find where the old content starts
+                        const boundaryIndex = allBatches.findIndex(
+                            el => String(el.dataset?.historyAnchorId || '') === String(boundaryId)
                         );
-                        const prependedGroups = boundaryIndex > 0 ? groups.slice(0, boundaryIndex) : [];
-                        const pendingImages = prependedGroups
-                            .flatMap((el) => Array.from(el.querySelectorAll('img')))
-                            .filter((img) => !img.complete);
 
-                        if (!pendingImages.length) {
-                            requestAnimationFrame(syncBoundary);
-                            return;
-                        }
+                        // Everything before boundaryIndex = newly prepended batches
+                        // The topmost newly prepended batch is allBatches[0]
+                        const firstNewBatch = boundaryIndex > 0 ? allBatches[0] : null;
+                        if (!firstNewBatch) return;
 
-                        const cleanupFns = [];
-                        const onSettled = () => requestAnimationFrame(syncBoundary);
-                        pendingImages.forEach((img) => {
-                            img.addEventListener('load', onSettled, { once: true });
-                            img.addEventListener('error', onSettled, { once: true });
-                            cleanupFns.push(() => {
-                                img.removeEventListener('load', onSettled);
-                                img.removeEventListener('error', onSettled);
-                            });
-                        });
+                        // Target the first image in the topmost new batch
+                        const firstImg = firstNewBatch.querySelector('img');
+                        const target = firstImg || firstNewBatch;
+                        const rect = target.getBoundingClientRect();
+                        const currentY = window.scrollY || document.documentElement.scrollTop || 0;
 
-                        const timeoutId = setTimeout(() => cleanup(), maxDurationMs);
-                        const cleanup = () => {
-                            clearTimeout(timeoutId);
-                            cleanupFns.forEach((fn) => fn());
-                            cleanupFns.length = 0;
-                            this._prependStabilizeCleanup = null;
-                        };
-                        this._prependStabilizeCleanup = cleanup;
-                        requestAnimationFrame(syncBoundary);
+                        // Center vertically in viewport
+                        const fitsViewport = rect.height < window.innerHeight;
+                        const desiredTop = fitsViewport
+                            ? currentY + rect.top - ((window.innerHeight - rect.height) / 2)
+                            : currentY + rect.top - 24;
+
+                        window.scrollTo(0, Math.max(0, Math.round(desiredTop)));
                     },
 
                     // ============================================================
@@ -945,7 +903,6 @@
                         if (now - this.lastLoadMoreAt < 300) return;
                         this.lastLoadMoreAt = now;
 
-                        this.stopPrependStabilize();
                         this.capturePrependAnchor();
                         this.loadingMoreHistory = true;
                         this.isPrependingHistory = true;
@@ -957,9 +914,7 @@
                         this._loadMoreFailSafeTimer = setTimeout(() => {
                             this.loadingMoreHistory = false;
                             this.isPrependingHistory = false;
-                            this.stopPrependStabilize();
                             this.prependBoundaryId = null;
-                            this.prependBoundaryTop = null;
                             this._loadMoreFailSafeTimer = null;
                         }, 7000);
                     },
