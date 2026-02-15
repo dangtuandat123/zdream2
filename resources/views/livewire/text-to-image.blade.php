@@ -404,6 +404,7 @@
                 maxBootstrapLoads: 2,
                 loadOlderStep: 3,
                 bootstrapStep: 2,
+                topAutoLoadsLeft: 0,
 
                 // Dynamic max images based on selected model
                 get maxImages() {
@@ -467,9 +468,6 @@
                     this._scrollHandler = () => {
                         const currentY = window.scrollY || document.documentElement.scrollTop || 0;
                         if (currentY < this.lastScrollY - 2) {
-                            this.userInitiatedUpScroll = true;
-                        }
-                        if (this.isNearTop(90)) {
                             this.userInitiatedUpScroll = true;
                         }
                         this.lastScrollY = currentY;
@@ -581,6 +579,10 @@
                                 this.userInitiatedUpScroll = true;
                                 setTimeout(() => this.maybeLoadOlder(), 180);
                             }
+                            if (!this.hasMoreHistory || !this.isNearTop(180)) {
+                                this.topAutoLoadsLeft = 0;
+                            }
+                            this.maybeAutoLoadOlderAfterPrepend();
                             this.maybeBootstrapHistory();
                         });
                     });
@@ -713,6 +715,7 @@
                     this.prependBeforeHeight = 0;
                     this.prependBoundaryId = null;
                     this.prependBoundaryTop = null;
+                    this.topAutoLoadsLeft = 0;
                     document.body.style.overflow = '';
                     document.documentElement.style.overflow = '';
                     if (this._scrollRestoration !== null && 'scrollRestoration' in history) {
@@ -993,10 +996,18 @@
                     if (!this.userInitiatedUpScroll) return;
                     if (!this.isNearTop(260)) return;
 
-                    const now = Date.now();
-                    if (now - this.lastLoadMoreAt < 280) return;
-                    this.lastLoadMoreAt = now;
                     this.requestLoadOlder(this.loadOlderStep, 'scroll');
+                },
+                maybeAutoLoadOlderAfterPrepend() {
+                    if (!this.hasMoreHistory || this.loadingMoreHistory) return;
+                    if (!this.isNearTop(140)) return;
+                    if (this.topAutoLoadsLeft <= 0) return;
+
+                    const now = Date.now();
+                    if (now - this.lastLoadMoreAt < 320) return;
+                    this.topAutoLoadsLeft = Math.max(0, this.topAutoLoadsLeft - 1);
+                    this.lastLoadMoreAt = now;
+                    setTimeout(() => this.requestLoadOlder(this.loadOlderStep, 'auto'), 130);
                 },
                 manualLoadOlder() {
                     this.userInitiatedUpScroll = true;
@@ -1004,13 +1015,21 @@
                 },
                 requestLoadOlder(count = null, source = 'scroll') {
                     if (!this.hasMoreHistory || this.loadingMoreHistory) return;
+                    const now = Date.now();
+                    if (now - this.lastLoadMoreAt < 260) return;
+                    this.lastLoadMoreAt = now;
 
                     this.stopPrependStabilize();
-                    const shouldCenterAnchor = source !== 'bootstrap' && this.isNearTop(120);
+                    const shouldCenterAnchor = source !== 'bootstrap' && this.isNearTop(180);
                     this.capturePrependAnchor(shouldCenterAnchor);
                     this.loadingMoreHistory = true;
                     this.isPrependingHistory = true;
                     this.userInitiatedUpScroll = false;
+                    if (source === 'scroll' || source === 'manual') {
+                        this.topAutoLoadsLeft = this.isNearTop(160) ? 1 : 0;
+                    } else if (source === 'bootstrap') {
+                        this.topAutoLoadsLeft = 0;
+                    }
 
                     const fallbackStep = Number.isFinite(this.loadOlderStep) ? this.loadOlderStep : 1;
                     const requested = Number.isFinite(count) ? count : fallbackStep;
@@ -1026,6 +1045,7 @@
                         this.prependBeforeHeight = 0;
                         this.prependBoundaryId = null;
                         this.prependBoundaryTop = null;
+                        this.topAutoLoadsLeft = 0;
                         this._loadMoreFailSafeTimer = null;
                     }, 7000);
                 },
