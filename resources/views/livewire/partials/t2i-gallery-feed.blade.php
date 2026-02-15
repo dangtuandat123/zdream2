@@ -71,13 +71,10 @@
                             <span class="text-white/40 text-[13px] font-medium">Đang tải ảnh cũ hơn…</span>
                         </div>
 
-                        {{-- Idle State (fallback tap button) --}}
-                        <div x-show="!loadingMoreHistory && hasMoreHistory" x-cloak>
-                            <button type="button" @click="requestLoadOlder(loadOlderStep)"
-                                class="inline-flex items-center gap-2.5 text-white/45 hover:text-white/75 text-[13px] font-medium rounded-full px-5 py-2.5 border border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.05] transition-all duration-200 cursor-pointer active:scale-[0.97]">
-                                <i class="fa-solid fa-chevron-up text-[10px] text-purple-400/60"></i>
-                                <span>Tải ảnh cũ hơn</span>
-                            </button>
+                        {{-- Idle State (auto-loads when scrolled near) --}}
+                        <div x-show="!loadingMoreHistory && hasMoreHistory" x-cloak
+                            class="flex items-center justify-center py-2">
+                            <span class="text-white/25 text-xs">Cuộn để tải thêm ảnh</span>
                         </div>
                     </div>
                 @endif

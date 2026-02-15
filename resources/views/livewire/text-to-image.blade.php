@@ -393,6 +393,7 @@
                     _resizeHandler: null,
                     _prependRestoreRaf: null,
                     _sentinelObserver: null,
+                    _boundaryObserver: null,
 
                     // ── Infinite scroll state ─────────────────────
                     hasMoreHistory: @js($history instanceof \Illuminate\Pagination\LengthAwarePaginator ? $history->hasMorePages() : false),
@@ -461,7 +462,7 @@
                         }
                         this.syncHistoryData(this.historyData);
 
-                        // Scroll handler: only manages auto-scroll + jump button
+                        // Scroll handler: manages auto-scroll + jump button + near-top auto-load
                         this._scrollHandler = () => {
                             const currentY = window.scrollY || document.documentElement.scrollTop || 0;
                             this.lastScrollY = currentY;
@@ -472,11 +473,15 @@
                             if (this.isNearBottom(120)) {
                                 this.showScrollToBottom = false;
                             }
+
+                            // Auto-load older images when near top of page
+                            if (currentY < 600 && this.hasMoreHistory && !this.loadingMoreHistory) {
+                                this.requestLoadOlder(this.loadOlderStep);
+                            }
                         };
                         window.addEventListener('scroll', this._scrollHandler, { passive: true });
-
-                        // IntersectionObserver for top sentinel
-                        this._setupSentinelObserver();
+                        // Re-observe sentinel after each morph
+                        this._reobserveSentinel();
 
                         this._resizeHandler = () => {
                             this.maybeBootstrapHistory();
@@ -544,6 +549,8 @@
                                     const savedBoundaryId = this.prependBoundaryId;
                                     this._prependRestoreRaf = requestAnimationFrame(() => {
                                         this.centerFirstPrependedImage(savedBoundaryId);
+                                        // Watch the old boundary — when user scrolls down to it, trigger next load
+                                        this._watchBoundaryBatch(savedBoundaryId);
                                         this._prependRestoreRaf = null;
                                     });
                                 }
@@ -553,6 +560,9 @@
                                 this.prependBoundaryId = null;
                                 clearTimeout(this._loadMoreFailSafeTimer);
                                 this._loadMoreFailSafeTimer = null;
+
+                                // Re-observe sentinel (DOM may have been morphed)
+                                this._reobserveSentinel();
 
                                 // If content doesn't fill viewport yet, keep loading
                                 this.maybeBootstrapHistory();
@@ -622,6 +632,7 @@
                                         } catch (e) { }
                                     }
 
+                                    this._reobserveSentinel();
                                     this.maybeBootstrapHistory();
                                 }
                             });
@@ -682,6 +693,14 @@
                         if (this._prependRestoreRaf !== null) {
                             cancelAnimationFrame(this._prependRestoreRaf);
                             this._prependRestoreRaf = null;
+                        }
+                        if (this._sentinelObserver) {
+                            this._sentinelObserver.disconnect();
+                            this._sentinelObserver = null;
+                        }
+                        if (this._boundaryObserver) {
+                            this._boundaryObserver.disconnect();
+                            this._boundaryObserver = null;
                         }
                         this.loadingMoreHistory = false;
                         this.isPrependingHistory = false;
@@ -745,9 +764,9 @@
                     },
 
                     // ============================================================
-                    // IntersectionObserver for top sentinel
+                    // IntersectionObserver for top sentinel (re-observe after morph)
                     // ============================================================
-                    _setupSentinelObserver() {
+                    _reobserveSentinel() {
                         if (this._sentinelObserver) {
                             this._sentinelObserver.disconnect();
                             this._sentinelObserver = null;
@@ -765,6 +784,38 @@
                             });
                         }, { rootMargin: '400px 0px 0px 0px', threshold: 0 });
                         this._sentinelObserver.observe(sentinel);
+                    },
+
+                    /**
+                     * After centering on first prepended image, watch the OLD boundary batch.
+                     * When user scrolls DOWN through new content and the boundary enters viewport,
+                     * automatically trigger loading more older images.
+                     *
+                     * Flow: center first new → scroll down → boundary enters view → load more → repeat
+                     */
+                    _watchBoundaryBatch(boundaryId) {
+                        if (this._boundaryObserver) {
+                            this._boundaryObserver.disconnect();
+                            this._boundaryObserver = null;
+                        }
+                        if (!boundaryId) return;
+
+                        const batchEl = document.querySelector(
+                            `#gallery-feed .group-batch[data-history-anchor-id="${boundaryId}"]`
+                        );
+                        if (!batchEl) return;
+
+                        this._boundaryObserver = new IntersectionObserver((entries) => {
+                            entries.forEach(entry => {
+                                if (!entry.isIntersecting) return;
+                                if (this.loadingMoreHistory || !this.hasMoreHistory) return;
+                                // Boundary batch entered viewport — user consumed all new content
+                                this._boundaryObserver?.disconnect();
+                                this._boundaryObserver = null;
+                                this.requestLoadOlder(this.loadOlderStep);
+                            });
+                        }, { rootMargin: '200px 0px 200px 0px', threshold: 0 });
+                        this._boundaryObserver.observe(batchEl);
                     },
 
                     // ============================================================
