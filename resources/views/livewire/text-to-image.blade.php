@@ -292,7 +292,7 @@
                 }
 
                 Alpine.data('textToImage', () => ({
-                        // ── UI State ───────────────────────────────────                            ───
+                    // ── UI State ───────────────────────────────────                            ───
                     uiMode: 'idle', // idle | generating | partial_success | failed | done
                     statusMessage: '',
                     statusElapsed: 0,
@@ -874,8 +874,13 @@
                         const latest = batches[batches.length - 1];
                         if (!latest) return false;
 
-                        const rect = latest.getBoundingClientRect();
+                        // Target the first image in the batch for centering
+                        const firstImg = latest.querySelector('img');
+                        const target = firstImg || latest;
+                        const rect = target.getBoundingClientRect();
                         const currentY = window.scrollY || document.documentElement.scrollTop || 0;
+
+                        // Center the first image vertically in the viewport
                         const fitsViewport = rect.height < window.innerHeight;
                         const desiredTop = fitsViewport
                             ? currentY + rect.top - ((window.innerHeight - rect.height) / 2)
