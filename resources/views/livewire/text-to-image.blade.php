@@ -490,17 +490,11 @@
                             const { successCount, failedCount } = Array.isArray(params) ? params[0] || {} : params || {};
                             this.$nextTick(() => {
                                 setTimeout(() => {
-                                    let centeredNewest = false;
-                                    if (this.autoScrollEnabled || this.isNearBottom(240)) {
-                                        centeredNewest = this.centerLatestBatchWhenReady();
-                                        if (!centeredNewest) {
-                                            this.scrollToBottom(false);
-                                        }
-                                        this.autoScrollEnabled = true;
-                                        this.showScrollToBottom = false;
-                                    } else {
-                                        this.showScrollToBottom = true;
-                                    }
+                                    // Always center the first image of the new batch
+                                    this.centerLatestBatchWhenReady();
+                                    this.autoScrollEnabled = true;
+                                    this.showScrollToBottom = false;
+
                                     const batches = document.querySelectorAll('.group-batch');
                                     const lastBatch = batches[batches.length - 1];
                                     if (lastBatch) {
