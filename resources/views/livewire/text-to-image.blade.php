@@ -393,7 +393,7 @@
                     _resizeHandler: null,
                     _prependRestoreRaf: null,
                     _sentinelObserver: null,
-                    _centeredAtScrollY: null,
+                    _lastCenterAt: 0,
 
                     // ── Infinite scroll state ─────────────────────
                     hasMoreHistory: @js($history instanceof \Illuminate\Pagination\LengthAwarePaginator ? $history->hasMorePages() : false),
@@ -443,14 +443,6 @@
                             }
                         });
 
-                        this.$nextTick(() => {
-                            requestAnimationFrame(() => {
-                                this.scrollToBottom(false);
-                                this.lastScrollY = window.scrollY || document.documentElement.scrollTop || 0;
-                                this.maybeBootstrapHistory();
-                            });
-                        });
-
                         if ('scrollRestoration' in history) {
                             this._scrollRestoration = history.scrollRestoration;
                             history.scrollRestoration = 'manual';
@@ -475,8 +467,16 @@
                             }
                         };
                         window.addEventListener('scroll', this._scrollHandler, { passive: true });
-                        // Observe top sentinel for initial load trigger
-                        this._reobserveSentinel();
+
+                        // FIX BUG 7: observe sentinel AFTER scrollToBottom so it doesn't fire on page load
+                        this.$nextTick(() => {
+                            requestAnimationFrame(() => {
+                                this.scrollToBottom(false);
+                                this.lastScrollY = window.scrollY || document.documentElement.scrollTop || 0;
+                                this.maybeBootstrapHistory();
+                                this._reobserveSentinel();
+                            });
+                        });
 
                         this._resizeHandler = () => {
                             this.maybeBootstrapHistory();
@@ -536,29 +536,32 @@
                             }
 
                             this.$nextTick(() => {
+                                clearTimeout(this._loadMoreFailSafeTimer);
+                                this._loadMoreFailSafeTimer = null;
+
                                 if (this.isPrependingHistory && this.prependBoundaryId) {
                                     if (this._prependRestoreRaf !== null) {
                                         cancelAnimationFrame(this._prependRestoreRaf);
                                         this._prependRestoreRaf = null;
                                     }
                                     const savedBoundaryId = this.prependBoundaryId;
-                                    this._prependRestoreRaf = requestAnimationFrame(() => {
-                                        this.centerFirstPrependedImage(savedBoundaryId);
-                                        this._prependRestoreRaf = null;
+
+                                    // FIX BUG 1+8: Wait for images to load, THEN center, THEN reset flags
+                                    this.centerPrependedWhenReady(savedBoundaryId, () => {
+                                        // FIX BUG 8+3: Reset flags AFTER center completes
+                                        this.loadingMoreHistory = false;
+                                        this.isPrependingHistory = false;
+                                        this.prependBoundaryId = null;
+                                        this._lastCenterAt = Date.now();
+                                        // Re-observe sentinel (time guard prevents immediate re-trigger)
+                                        this._reobserveSentinel();
                                     });
+                                } else {
+                                    this.loadingMoreHistory = false;
+                                    this.isPrependingHistory = false;
+                                    this.prependBoundaryId = null;
+                                    this._reobserveSentinel();
                                 }
-
-                                this.loadingMoreHistory = false;
-                                this.isPrependingHistory = false;
-                                this.prependBoundaryId = null;
-                                clearTimeout(this._loadMoreFailSafeTimer);
-                                this._loadMoreFailSafeTimer = null;
-
-                                // Re-observe sentinel (safe — centering puts us far from it)
-                                this._reobserveSentinel();
-
-                                // If content doesn't fill viewport yet, keep loading
-                                this.maybeBootstrapHistory();
                             });
                         });
                         if (typeof offHistoryUpdated === 'function') this._wireListeners.push(offHistoryUpdated);
@@ -770,12 +773,8 @@
                                 if (this.loadingMoreHistory || !this.hasMoreHistory) return;
                                 const now = Date.now();
                                 if (now - this.lastLoadMoreAt < 800) return;
-                                // Guard: don't re-trigger if we just centered (user hasn't scrolled up yet)
-                                if (this._centeredAtScrollY !== null) {
-                                    const currentY = window.scrollY || document.documentElement.scrollTop || 0;
-                                    if (currentY >= this._centeredAtScrollY - 50) return;
-                                }
-                                this._centeredAtScrollY = null;
+                                // FIX BUG 2: Time-based guard — block for 2s after centering
+                                if (now - this._lastCenterAt < 2000) return;
                                 this.requestLoadOlder(this.loadOlderStep);
                             });
                         }, { rootMargin: '400px 0px 0px 0px', threshold: 0 });
@@ -802,42 +801,83 @@
                      * Layout: sentinel → img1 → img2 → img3 → [boundary] → old content
                      * We center img3 so sentinel is far above → won't re-trigger.
                      * User scrolls UP through img3 → img2 → img1 → reaches sentinel → triggers next load.
+                     *
+                     * FIX BUG 1: Waits for images to load before calculating position.
                      */
-                    centerFirstPrependedImage(boundaryId) {
-                        if (!boundaryId) return;
+                    centerPrependedWhenReady(boundaryId, onDone) {
+                        if (!boundaryId) { if (onDone) onDone(); return; }
 
                         const allBatches = Array.from(
                             document.querySelectorAll('#gallery-feed .group-batch[data-history-anchor-id]')
                         );
-                        if (!allBatches.length) return;
+                        if (!allBatches.length) { if (onDone) onDone(); return; }
 
-                        // Find where the old content starts
                         const boundaryIndex = allBatches.findIndex(
                             el => String(el.dataset?.historyAnchorId || '') === String(boundaryId)
                         );
+                        if (boundaryIndex <= 0) { if (onDone) onDone(); return; }
 
-                        if (boundaryIndex <= 0) return;
-
-                        // The LAST newly prepended batch = right above boundary = allBatches[boundaryIndex - 1]
+                        // The LAST newly prepended batch = right above boundary
                         const lastNewBatch = allBatches[boundaryIndex - 1];
 
-                        // Target the first image in this batch
-                        const firstImg = lastNewBatch.querySelector('img');
-                        const target = firstImg || lastNewBatch;
-                        const rect = target.getBoundingClientRect();
-                        const currentY = window.scrollY || document.documentElement.scrollTop || 0;
+                        // Collect all new batches to wait for their images
+                        const newBatches = allBatches.slice(0, boundaryIndex);
+                        const allImages = [];
+                        newBatches.forEach(b => b.querySelectorAll('img').forEach(img => allImages.push(img)));
 
-                        // Center vertically in viewport
-                        const fitsViewport = rect.height < window.innerHeight;
-                        const desiredTop = fitsViewport
-                            ? currentY + rect.top - ((window.innerHeight - rect.height) / 2)
-                            : currentY + rect.top - 24;
+                        const doCenter = () => {
+                            const firstImg = lastNewBatch.querySelector('img');
+                            const target = firstImg || lastNewBatch;
+                            const rect = target.getBoundingClientRect();
+                            const currentY = window.scrollY || document.documentElement.scrollTop || 0;
 
-                        const scrollTarget = Math.max(0, Math.round(desiredTop));
-                        window.scrollTo(0, scrollTarget);
+                            const fitsViewport = rect.height < window.innerHeight;
+                            const desiredTop = fitsViewport
+                                ? currentY + rect.top - ((window.innerHeight - rect.height) / 2)
+                                : currentY + rect.top - 24;
 
-                        // Save scroll position — sentinel guard checks this
-                        this._centeredAtScrollY = scrollTarget;
+                            const scrollTarget = Math.max(0, Math.round(desiredTop));
+                            // UX 6: Smooth scroll then instant correction
+                            window.scrollTo({ top: scrollTarget, behavior: 'smooth' });
+                            setTimeout(() => {
+                                window.scrollTo(0, scrollTarget);
+                                if (onDone) onDone();
+                            }, 350);
+                        };
+
+                        // Wait for pending images to load (max 2s timeout)
+                        const pending = allImages.filter(img => !img.complete);
+                        if (!pending.length) {
+                            requestAnimationFrame(doCenter);
+                            return;
+                        }
+
+                        let settled = false;
+                        let timeoutId = null;
+                        const cleanupFns = [];
+
+                        const settle = () => {
+                            if (settled) return;
+                            settled = true;
+                            if (timeoutId) { clearTimeout(timeoutId); timeoutId = null; }
+                            cleanupFns.forEach(fn => fn());
+                            cleanupFns.length = 0;
+                            requestAnimationFrame(doCenter);
+                        };
+
+                        // Wait for all images, settle on first load/error
+                        let loadedCount = 0;
+                        pending.forEach(img => {
+                            const onLoad = () => { loadedCount++; if (loadedCount >= pending.length) settle(); };
+                            const onError = () => { loadedCount++; if (loadedCount >= pending.length) settle(); };
+                            img.addEventListener('load', onLoad, { once: true });
+                            img.addEventListener('error', onError, { once: true });
+                            cleanupFns.push(() => {
+                                img.removeEventListener('load', onLoad);
+                                img.removeEventListener('error', onError);
+                            });
+                        });
+                        timeoutId = setTimeout(settle, 2000);
                     },
 
                     // ============================================================
@@ -922,7 +962,8 @@
                     requestLoadOlder(count = null) {
                         if (!this.hasMoreHistory || this.loadingMoreHistory) return;
                         const now = Date.now();
-                        if (now - this.lastLoadMoreAt < 300) return;
+                        // FIX BUG 5: Increased from 300ms to 1500ms
+                        if (now - this.lastLoadMoreAt < 1500) return;
                         this.lastLoadMoreAt = now;
 
                         this.capturePrependAnchor();
