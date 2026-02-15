@@ -393,7 +393,7 @@
                     _resizeHandler: null,
                     _prependRestoreRaf: null,
                     _sentinelObserver: null,
-                    _boundaryObserver: null,
+                    _centeredAtScrollY: null,
 
                     // ── Infinite scroll state ─────────────────────
                     hasMoreHistory: @js($history instanceof \Illuminate\Pagination\LengthAwarePaginator ? $history->hasMorePages() : false),
@@ -462,7 +462,7 @@
                         }
                         this.syncHistoryData(this.historyData);
 
-                        // Scroll handler: manages auto-scroll + jump button + near-top auto-load
+                        // Scroll handler: manages auto-scroll + jump button
                         this._scrollHandler = () => {
                             const currentY = window.scrollY || document.documentElement.scrollTop || 0;
                             this.lastScrollY = currentY;
@@ -473,14 +473,9 @@
                             if (this.isNearBottom(120)) {
                                 this.showScrollToBottom = false;
                             }
-
-                            // Auto-load older images when near top of page
-                            if (currentY < 600 && this.hasMoreHistory && !this.loadingMoreHistory) {
-                                this.requestLoadOlder(this.loadOlderStep);
-                            }
                         };
                         window.addEventListener('scroll', this._scrollHandler, { passive: true });
-                        // Re-observe sentinel after each morph
+                        // Observe top sentinel for initial load trigger
                         this._reobserveSentinel();
 
                         this._resizeHandler = () => {
@@ -549,8 +544,6 @@
                                     const savedBoundaryId = this.prependBoundaryId;
                                     this._prependRestoreRaf = requestAnimationFrame(() => {
                                         this.centerFirstPrependedImage(savedBoundaryId);
-                                        // Watch the old boundary — when user scrolls down to it, trigger next load
-                                        this._watchBoundaryBatch(savedBoundaryId);
                                         this._prependRestoreRaf = null;
                                     });
                                 }
@@ -561,7 +554,7 @@
                                 clearTimeout(this._loadMoreFailSafeTimer);
                                 this._loadMoreFailSafeTimer = null;
 
-                                // Re-observe sentinel (DOM may have been morphed)
+                                // Re-observe sentinel (safe — centering puts us far from it)
                                 this._reobserveSentinel();
 
                                 // If content doesn't fill viewport yet, keep loading
@@ -632,6 +625,7 @@
                                         } catch (e) { }
                                     }
 
+                                    // Re-observe sentinel after morph (scrollY guard prevents loop)
                                     this._reobserveSentinel();
                                     this.maybeBootstrapHistory();
                                 }
@@ -697,10 +691,6 @@
                         if (this._sentinelObserver) {
                             this._sentinelObserver.disconnect();
                             this._sentinelObserver = null;
-                        }
-                        if (this._boundaryObserver) {
-                            this._boundaryObserver.disconnect();
-                            this._boundaryObserver = null;
                         }
                         this.loadingMoreHistory = false;
                         this.isPrependingHistory = false;
@@ -780,43 +770,18 @@
                                 if (this.loadingMoreHistory || !this.hasMoreHistory) return;
                                 const now = Date.now();
                                 if (now - this.lastLoadMoreAt < 800) return;
+                                // Guard: don't re-trigger if we just centered (user hasn't scrolled up yet)
+                                if (this._centeredAtScrollY !== null) {
+                                    const currentY = window.scrollY || document.documentElement.scrollTop || 0;
+                                    if (currentY >= this._centeredAtScrollY - 50) return;
+                                }
+                                this._centeredAtScrollY = null;
                                 this.requestLoadOlder(this.loadOlderStep);
                             });
                         }, { rootMargin: '400px 0px 0px 0px', threshold: 0 });
                         this._sentinelObserver.observe(sentinel);
                     },
 
-                    /**
-                     * After centering on first prepended image, watch the OLD boundary batch.
-                     * When user scrolls DOWN through new content and the boundary enters viewport,
-                     * automatically trigger loading more older images.
-                     *
-                     * Flow: center first new → scroll down → boundary enters view → load more → repeat
-                     */
-                    _watchBoundaryBatch(boundaryId) {
-                        if (this._boundaryObserver) {
-                            this._boundaryObserver.disconnect();
-                            this._boundaryObserver = null;
-                        }
-                        if (!boundaryId) return;
-
-                        const batchEl = document.querySelector(
-                            `#gallery-feed .group-batch[data-history-anchor-id="${boundaryId}"]`
-                        );
-                        if (!batchEl) return;
-
-                        this._boundaryObserver = new IntersectionObserver((entries) => {
-                            entries.forEach(entry => {
-                                if (!entry.isIntersecting) return;
-                                if (this.loadingMoreHistory || !this.hasMoreHistory) return;
-                                // Boundary batch entered viewport — user consumed all new content
-                                this._boundaryObserver?.disconnect();
-                                this._boundaryObserver = null;
-                                this.requestLoadOlder(this.loadOlderStep);
-                            });
-                        }, { rootMargin: '200px 0px 200px 0px', threshold: 0 });
-                        this._boundaryObserver.observe(batchEl);
-                    },
 
                     // ============================================================
                     // Scroll centering after loading older images
@@ -832,9 +797,11 @@
 
                     /**
                      * After older images are prepended above the boundary batch,
-                     * center the FIRST (topmost) newly loaded image in the viewport.
+                     * center the LAST newly loaded batch (closest to boundary, farthest from sentinel).
                      *
-                     * Flow: load older → center first new img → user scrolls down → sentinel fires → repeat
+                     * Layout: sentinel → img1 → img2 → img3 → [boundary] → old content
+                     * We center img3 so sentinel is far above → won't re-trigger.
+                     * User scrolls UP through img3 → img2 → img1 → reaches sentinel → triggers next load.
                      */
                     centerFirstPrependedImage(boundaryId) {
                         if (!boundaryId) return;
@@ -849,14 +816,14 @@
                             el => String(el.dataset?.historyAnchorId || '') === String(boundaryId)
                         );
 
-                        // Everything before boundaryIndex = newly prepended batches
-                        // The topmost newly prepended batch is allBatches[0]
-                        const firstNewBatch = boundaryIndex > 0 ? allBatches[0] : null;
-                        if (!firstNewBatch) return;
+                        if (boundaryIndex <= 0) return;
 
-                        // Target the first image in the topmost new batch
-                        const firstImg = firstNewBatch.querySelector('img');
-                        const target = firstImg || firstNewBatch;
+                        // The LAST newly prepended batch = right above boundary = allBatches[boundaryIndex - 1]
+                        const lastNewBatch = allBatches[boundaryIndex - 1];
+
+                        // Target the first image in this batch
+                        const firstImg = lastNewBatch.querySelector('img');
+                        const target = firstImg || lastNewBatch;
                         const rect = target.getBoundingClientRect();
                         const currentY = window.scrollY || document.documentElement.scrollTop || 0;
 
@@ -866,7 +833,11 @@
                             ? currentY + rect.top - ((window.innerHeight - rect.height) / 2)
                             : currentY + rect.top - 24;
 
-                        window.scrollTo(0, Math.max(0, Math.round(desiredTop)));
+                        const scrollTarget = Math.max(0, Math.round(desiredTop));
+                        window.scrollTo(0, scrollTarget);
+
+                        // Save scroll position — sentinel guard checks this
+                        this._centeredAtScrollY = scrollTarget;
                     },
 
                     // ============================================================
