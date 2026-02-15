@@ -577,9 +577,9 @@
                             clearTimeout(this._loadMoreFailSafeTimer);
                             this._loadMoreFailSafeTimer = null;
                             this.refreshScrollState();
-                            if (this.hasMoreHistory && this.isNearTop(120) && !this.loadingMoreHistory) {
+                            if (this.hasMoreHistory && !this.canScrollVertically && !this.loadingMoreHistory) {
                                 this.userInitiatedUpScroll = true;
-                                setTimeout(() => this.maybeLoadOlder(), 320);
+                                setTimeout(() => this.maybeLoadOlder(), 180);
                             }
                             this.maybeBootstrapHistory();
                         });
@@ -790,15 +790,23 @@
                     const el = document.documentElement;
                     this.canScrollVertically = (el.scrollHeight - window.innerHeight) > 8;
                 },
-                capturePrependAnchor() {
+                capturePrependAnchor(centerAnchor = false) {
                     const doc = document.documentElement;
-                    this.prependBeforeScrollY = window.scrollY || doc.scrollTop || 0;
-                    this.prependBeforeHeight = doc.scrollHeight || 0;
-
                     const groups = Array.from(
                         document.querySelectorAll('#gallery-feed .group-batch[data-history-anchor-id]')
                     );
                     const boundary = groups.find((el) => el.getBoundingClientRect().bottom > 0) || groups[0] || null;
+
+                    if (centerAnchor && boundary) {
+                        const rect = boundary.getBoundingClientRect();
+                        const currentY = window.scrollY || doc.scrollTop || 0;
+                        const targetTop = Math.max(96, Math.round((window.innerHeight - Math.min(rect.height, window.innerHeight * 0.72)) / 2));
+                        const nextY = Math.max(0, Math.round(currentY + rect.top - targetTop));
+                        window.scrollTo(0, nextY);
+                    }
+
+                    this.prependBeforeScrollY = window.scrollY || doc.scrollTop || 0;
+                    this.prependBeforeHeight = doc.scrollHeight || 0;
                     this.prependBoundaryId = boundary?.dataset?.historyAnchorId ?? null;
                     this.prependBoundaryTop = boundary ? boundary.getBoundingClientRect().top : null;
                 },
@@ -978,7 +986,7 @@
                     if (this.bootstrapLoadCount >= this.maxBootstrapLoads) return;
 
                     this.bootstrapLoadCount += 1;
-                    this.requestLoadOlder(this.bootstrapStep);
+                    this.requestLoadOlder(this.bootstrapStep, 'bootstrap');
                 },
                 maybeLoadOlder() {
                     if (!this.hasMoreHistory || this.loadingMoreHistory) return;
@@ -988,17 +996,18 @@
                     const now = Date.now();
                     if (now - this.lastLoadMoreAt < 280) return;
                     this.lastLoadMoreAt = now;
-                    this.requestLoadOlder(this.loadOlderStep);
+                    this.requestLoadOlder(this.loadOlderStep, 'scroll');
                 },
                 manualLoadOlder() {
                     this.userInitiatedUpScroll = true;
-                    this.requestLoadOlder(this.loadOlderStep);
+                    this.requestLoadOlder(this.loadOlderStep, 'manual');
                 },
-                requestLoadOlder(count = null) {
+                requestLoadOlder(count = null, source = 'scroll') {
                     if (!this.hasMoreHistory || this.loadingMoreHistory) return;
 
                     this.stopPrependStabilize();
-                    this.capturePrependAnchor();
+                    const shouldCenterAnchor = source !== 'bootstrap' && this.isNearTop(120);
+                    this.capturePrependAnchor(shouldCenterAnchor);
                     this.loadingMoreHistory = true;
                     this.isPrependingHistory = true;
                     this.userInitiatedUpScroll = false;

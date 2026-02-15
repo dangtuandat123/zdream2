@@ -34,12 +34,10 @@
 
             <div class="space-y-5 sm:space-y-6 gallery-wrapper" x-data>
                 {{-- Older history loader hint (top) --}}
-                <div x-show="hasMoreHistory || loadingMoreHistory" x-cloak
-                    class="flex justify-center py-1.5 transition-[min-height,padding] duration-200"
-                    :class="(loadingMoreHistory || isNearTop(90)) ? 'min-h-[36vh] items-center' : 'min-h-0 items-start'">
+                <div x-show="hasMoreHistory || loadingMoreHistory" x-cloak class="flex justify-center py-1.5">
                     <button type="button"
                         @click="if (hasMoreHistory && !loadingMoreHistory) manualLoadOlder()"
-                        class="inline-flex items-center gap-2 text-white/75 text-xs rounded-full h-11 px-4 border border-white/10 bg-[#121722] transition-colors"
+                        class="inline-flex items-center gap-2 text-white/75 text-xs rounded-full h-10 px-3.5 border border-white/10 bg-[#121722] transition-colors"
                         :class="(!loadingMoreHistory && hasMoreHistory) ? 'cursor-pointer hover:text-white hover:bg-[#172030]' : 'cursor-default'"
                         :disabled="loadingMoreHistory || !hasMoreHistory">
                         <span x-show="!loadingMoreHistory"
@@ -54,6 +52,19 @@
                         </span>
                         <span x-show="loadingMoreHistory" class="text-[13px] font-medium text-blue-100/95">Đang tải ảnh cũ hơn...</span>
                     </button>
+                </div>
+
+                {{-- Centered loader overlay (does not shift gallery layout) --}}
+                <div x-show="loadingMoreHistory || (hasMoreHistory && isNearTop(90))" x-cloak
+                    class="pointer-events-none fixed inset-0 z-[58] flex items-center justify-center">
+                    <div class="inline-flex items-center gap-3 px-4 py-2.5 rounded-full border border-white/15 bg-[#111827]/90 text-white/90 shadow-xl">
+                        <span class="inline-flex items-center justify-center relative w-8 h-8">
+                            <span class="absolute inset-0 rounded-full border-2 border-blue-300/20"></span>
+                            <span class="absolute inset-0 rounded-full border-2 border-transparent border-t-blue-300 animate-spin"></span>
+                            <span class="absolute inset-1.5 rounded-full border border-blue-200/40"></span>
+                        </span>
+                        <span class="text-sm font-medium" x-text="loadingMoreHistory ? 'Đang tải ảnh cũ hơn...' : 'Lướt lên để tải ảnh cũ hơn'"></span>
+                    </div>
                 </div>
 
                 {{-- Grouped Batches --}}
