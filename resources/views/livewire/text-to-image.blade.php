@@ -1,8 +1,8 @@
 {{-- ============================================================ --}}
 {{-- TEXT-TO-IMAGE — Root Orchestrator (Redesigned: Core-first) --}}
 {{-- ============================================================ --}}
-<div class="relative min-h-screen t2i-shell" @if($isGenerating) wire:poll.1500ms="pollImageStatus" @endif x-data="textToImage"
-    @keydown.window="handleKeydown($event)"
+<div class="relative min-h-screen t2i-shell" @if($isGenerating) wire:poll.1500ms="pollImageStatus" @endif
+    x-data="textToImage" @keydown.window="handleKeydown($event)"
     x-on:show-toast.window="notify($event.detail.message, $event.detail.type || 'success')">
 
     {{-- Toast --}}
@@ -247,6 +247,7 @@
         }
 
         @keyframes progress-slide {
+
             0%,
             100% {
                 opacity: 0.45;
@@ -271,6 +272,7 @@
         }
 
         @media (prefers-reduced-motion: reduce) {
+
             .new-batch-animate,
             .animate-shimmer {
                 animation: none !important;
@@ -290,1090 +292,1089 @@
                 }
 
                 Alpine.data('textToImage', () => ({
-                // ── UI State ──────────────────────────────────────
-                uiMode: 'idle', // idle | generating | partial_success | failed | done
-                statusMessage: '',
-                statusElapsed: 0,
-                statusTimer: null,
-                autoScrollEnabled: true, // Auto-follow newest content (bottom)
-                showScrollToBottom: false, // Floating jump-to-newest button
+                    // ── UI State ──────────────────────────────────────
+                    uiMode: 'idle', // idle | generating | partial_success | failed | done
+                    statusMessage: '',
+                    statusElapsed: 0,
+                    statusTimer: null,
+                    autoScrollEnabled: true, // Auto-follow newest content (bottom)
+                    showScrollToBottom: false, // Floating jump-to-newest button
 
-                // Toast
-                showToast: false,
-                toastMessage: '',
-                toastType: 'success',
-                toastTimer: null,
+                    // Toast
+                    showToast: false,
+                    toastMessage: '',
+                    toastType: 'success',
+                    toastTimer: null,
 
-                // ── Composer ──────────────────────────────────────
-                showRatioSheet: false,
-                showModelSheet: false,
-                showBatchSheet: false,
-                showRefPicker: false,
+                    // ── Composer ──────────────────────────────────────
+                    showRatioSheet: false,
+                    showModelSheet: false,
+                    showBatchSheet: false,
+                    showRefPicker: false,
 
-                selectedRatio: @js($aspectRatio),
-                selectedModel: @js($modelId),
-                customWidth: 1024,
-                customHeight: 1024,
-                linkDimensions: true,
+                    selectedRatio: @js($aspectRatio),
+                    selectedModel: @js($modelId),
+                    customWidth: 1024,
+                    customHeight: 1024,
+                    linkDimensions: true,
 
-                ratios: [
-                    { id: 'auto', label: 'Auto', icon: 'fa-expand' },
-                    { id: '1:1', label: '1:1', icon: null },
-                    { id: '16:9', label: '16:9', icon: null },
-                    { id: '9:16', label: '9:16', icon: null },
-                    { id: '4:3', label: '4:3', icon: null },
-                    { id: '3:4', label: '3:4', icon: null },
-                    { id: '3:2', label: '3:2', icon: null },
-                    { id: '2:3', label: '2:3', icon: null },
-                    { id: '5:4', label: '5:4', icon: null },
-                    { id: '4:5', label: '4:5', icon: null },
-                    { id: '21:9', label: '21:9', icon: null }
-                ],
-                models: @js(collect($availableModels)->values()->map(fn($m) => [
-                    'id' => $m['id'],
-                    'name' => $m['name'],
-                    'desc' => $m['description'] ?? '',
-                    'icon' => match (true) {
-                        str_contains($m['id'], 'ultra') => '⚡',
-                        str_contains($m['id'], 'pro') => '💎',
-                        str_contains($m['id'], 'schnell') => '🚀',
-                        default => '🛠️'
+                    ratios: [
+                        { id: 'auto', label: 'Auto', icon: 'fa-expand' },
+                        { id: '1:1', label: '1:1', icon: null },
+                        { id: '16:9', label: '16:9', icon: null },
+                        { id: '9:16', label: '9:16', icon: null },
+                        { id: '4:3', label: '4:3', icon: null },
+                        { id: '3:4', label: '3:4', icon: null },
+                        { id: '3:2', label: '3:2', icon: null },
+                        { id: '2:3', label: '2:3', icon: null },
+                        { id: '5:4', label: '5:4', icon: null },
+                        { id: '4:5', label: '4:5', icon: null },
+                        { id: '21:9', label: '21:9', icon: null }
+                    ],
+                    models: @js(collect($availableModels)->values()->map(fn($m) => [
+                        'id' => $m['id'],
+                        'name' => $m['name'],
+                        'desc' => $m['description'] ?? '',
+                        'icon' => match (true) {
+                            str_contains($m['id'], 'ultra') => '⚡',
+                            str_contains($m['id'], 'pro') => '💎',
+                            str_contains($m['id'], 'schnell') => '🚀',
+                            default => '🛠️'
+                        },
+                        'shortLabel' => match (true) {
+                            str_contains($m['id'], 'kontext-max') => 'K-Max',
+                            str_contains($m['id'], 'kontext-pro') => 'K-Pro',
+                            str_contains($m['id'], 'flux-2-max') => '2 Max',
+                            str_contains($m['id'], 'flux-2-pro') => '2 Pro',
+                            str_contains($m['id'], 'flux-2-flex') => '2 Flex',
+                            str_contains($m['id'], 'klein-4b') => 'K-4B',
+                            str_contains($m['id'], 'klein-9b') => 'K-9B',
+                            str_contains($m['id'], 'pro-1.1-ultra') => '1.1 Ultra',
+                            str_contains($m['id'], 'pro-1.1') => '1.1 Pro',
+                            str_contains($m['id'], 'schnell') => 'Schnell',
+                            str_contains($m['id'], 'dev') => 'Dev',
+                            default => last(explode('-', $m['id'])),
+                        },
+                        'maxImages' => ($m['supports_image_input'] ?? false) ? ($m['max_input_images'] ?? 1) : 0,
+                        'supportsImageInput' => $m['supports_image_input'] ?? false,
+                    ])),
+
+                    // ── Refs ──────────────────────────────────────────
+                    selectedImages: [],
+                    recentImages: [],
+                    isLoadingPicker: false,
+                    urlInput: '',
+
+                    // ── Preview ───────────────────────────────────────
+                    showPreview: false,
+                    previewIndex: 0,
+                    previewImage: null,
+                    historyData: @js($flatHistoryForJs),
+                    historySignature: '',
+
+                    // ── Loading ───────────────────────────────────────
+                    loadingMessages: [
+                        'Đang tạo ảnh...',
+                        'AI đang sáng tạo...',
+                        'Đang xử lý prompt...',
+                        'Đang render chi tiết...',
+                        'Sắp xong rồi...'
+                    ],
+                    currentLoadingMessage: 0,
+                    loadingInterval: null,
+                    _scrollHandler: null,
+                    _onNavigating: null,
+                    _morphCleanup: null,
+                    _wireListeners: [],
+                    _scrollRestoration: null,
+                    _loadMoreFailSafeTimer: null,
+                    _resizeHandler: null,
+                    _prependRestoreRaf: null,
+                    _prependStabilizeCleanup: null,
+                    hasMoreHistory: @js($history instanceof \Illuminate\Pagination\LengthAwarePaginator ? $history->hasMorePages() : false),
+                    loadingMoreHistory: false,
+                    isPrependingHistory: false,
+                    prependBeforeScrollY: 0,
+                    prependBeforeHeight: 0,
+                    prependBoundaryId: null,
+                    prependBoundaryTop: null,
+                    lastLoadMoreAt: 0,
+                    lastScrollY: 0,
+                    userInitiatedUpScroll: false,
+                    canScrollVertically: false,
+                    bootstrapLoadCount: 0,
+                    maxBootstrapLoads: 2,
+                    loadOlderStep: 3,
+                    bootstrapStep: 2,
+                    topAutoLoadsLeft: 0,
+
+                    // Dynamic max images based on selected model
+                    get maxImages() {
+                        const model = this.models.find(m => m.id === this.selectedModel);
+                        return model?.maxImages ?? 0;
                     },
-                    'shortLabel' => match (true) {
-                        str_contains($m['id'], 'kontext-max') => 'K-Max',
-                        str_contains($m['id'], 'kontext-pro') => 'K-Pro',
-                        str_contains($m['id'], 'flux-2-max') => '2 Max',
-                        str_contains($m['id'], 'flux-2-pro') => '2 Pro',
-                        str_contains($m['id'], 'flux-2-flex') => '2 Flex',
-                        str_contains($m['id'], 'klein-4b') => 'K-4B',
-                        str_contains($m['id'], 'klein-9b') => 'K-9B',
-                        str_contains($m['id'], 'pro-1.1-ultra') => '1.1 Ultra',
-                        str_contains($m['id'], 'pro-1.1') => '1.1 Pro',
-                        str_contains($m['id'], 'schnell') => 'Schnell',
-                        str_contains($m['id'], 'dev') => 'Dev',
-                        default => last(explode('-', $m['id'])),
-                    },
-                    'maxImages' => ($m['supports_image_input'] ?? false) ? ($m['max_input_images'] ?? 1) : 0,
-                    'supportsImageInput' => $m['supports_image_input'] ?? false,
-                ])),
 
-                // ── Refs ──────────────────────────────────────────
-                selectedImages: [],
-                recentImages: [],
-                isLoadingPicker: false,
-                urlInput: '',
-
-                // ── Preview ───────────────────────────────────────
-                showPreview: false,
-                previewIndex: 0,
-                previewImage: null,
-                historyData: @js($flatHistoryForJs),
-                historySignature: '',
-
-                // ── Loading ───────────────────────────────────────
-                loadingMessages: [
-                    'Đang tạo ảnh...',
-                    'AI đang sáng tạo...',
-                    'Đang xử lý prompt...',
-                    'Đang render chi tiết...',
-                    'Sắp xong rồi...'
-                ],
-                currentLoadingMessage: 0,
-                loadingInterval: null,
-                _scrollHandler: null,
-                _onNavigating: null,
-                _morphCleanup: null,
-                _wireListeners: [],
-                _scrollRestoration: null,
-                _loadMoreFailSafeTimer: null,
-                _resizeHandler: null,
-                _prependRestoreRaf: null,
-                _prependStabilizeCleanup: null,
-                hasMoreHistory: @js($history instanceof \Illuminate\Pagination\LengthAwarePaginator ? $history->hasMorePages() : false),
-                loadingMoreHistory: false,
-                isPrependingHistory: false,
-                prependBeforeScrollY: 0,
-                prependBeforeHeight: 0,
-                prependBoundaryId: null,
-                prependBoundaryTop: null,
-                lastLoadMoreAt: 0,
-                lastScrollY: 0,
-                userInitiatedUpScroll: false,
-                canScrollVertically: false,
-                bootstrapLoadCount: 0,
-                maxBootstrapLoads: 2,
-                loadOlderStep: 3,
-                bootstrapStep: 2,
-                topAutoLoadsLeft: 0,
-
-                // Dynamic max images based on selected model
-                get maxImages() {
-                    const model = this.models.find(m => m.id === this.selectedModel);
-                    return model?.maxImages ?? 0;
-                },
-
-                // ============================================================
-                // INIT
-                // ============================================================
-                init() {
-                    // Keep Alpine state in sync with Livewire without entangle() (safe across wire:navigate remounts).
-                    if (this.$wire?.aspectRatio !== undefined) {
-                        this.selectedRatio = this.$wire.aspectRatio;
-                    }
-                    if (this.$wire?.modelId !== undefined) {
-                        this.selectedModel = this.$wire.modelId;
-                    }
-
-                    this.$watch('selectedRatio', (value) => {
-                        if (this.$wire?.aspectRatio !== value) {
-                            this.$wire.set('aspectRatio', value);
+                    // ============================================================
+                    // INIT
+                    // ============================================================
+                    init() {
+                        // Keep Alpine state in sync with Livewire without entangle() (safe across wire:navigate remounts).
+                        if (this.$wire?.aspectRatio !== undefined) {
+                            this.selectedRatio = this.$wire.aspectRatio;
                         }
-                    });
-                    this.$watch('selectedModel', (value) => {
-                        if (this.$wire?.modelId !== value) {
-                            this.$wire.set('modelId', value);
+                        if (this.$wire?.modelId !== undefined) {
+                            this.selectedModel = this.$wire.modelId;
                         }
-                    });
-                    this.$watch('$wire.aspectRatio', (value) => {
-                        if (value !== undefined && value !== this.selectedRatio) {
-                            this.selectedRatio = value;
-                        }
-                    });
-                    this.$watch('$wire.modelId', (value) => {
-                        if (value !== undefined && value !== this.selectedModel) {
-                            this.selectedModel = value;
-                        }
-                    });
 
-                    this.$nextTick(() => {
-                        requestAnimationFrame(() => {
-                            this.scrollToBottom(false);
-                            this.lastScrollY = window.scrollY || document.documentElement.scrollTop || 0;
-                            this.refreshScrollState();
-                            this.maybeBootstrapHistory();
+                        this.$watch('selectedRatio', (value) => {
+                            if (this.$wire?.aspectRatio !== value) {
+                                this.$wire.set('aspectRatio', value);
+                            }
                         });
-                    });
-
-                    if ('scrollRestoration' in history) {
-                        this._scrollRestoration = history.scrollRestoration;
-                        history.scrollRestoration = 'manual';
-                    }
-
-                    const dataEl = document.getElementById('gallery-feed');
-                    if (dataEl?.dataset?.hasMore !== undefined) {
-                        this.hasMoreHistory = dataEl.dataset.hasMore === '1';
-                    }
-                    this.syncHistoryData(this.historyData);
-
-                    this._scrollHandler = () => {
-                        const currentY = window.scrollY || document.documentElement.scrollTop || 0;
-                        if (currentY < this.lastScrollY - 2) {
-                            this.userInitiatedUpScroll = true;
-                        }
-                        this.lastScrollY = currentY;
-
-                        if (this.autoScrollEnabled && !this.isNearBottom(120)) {
-                            this.autoScrollEnabled = false;
-                        }
-                        if (this.isNearBottom(120)) {
-                            this.showScrollToBottom = false;
-                        }
-                        this.refreshScrollState();
-                        this.maybeLoadOlder();
-                    };
-                    window.addEventListener('scroll', this._scrollHandler, { passive: true });
-
-                    this._resizeHandler = () => {
-                        this.refreshScrollState();
-                        this.maybeBootstrapHistory();
-                    };
-                    window.addEventListener('resize', this._resizeHandler, { passive: true });
-
-                    // Image generated → scroll + celebrate
-                    const offGenerated = this.$wire.$on('imageGenerated', (params) => {
-                        const { successCount, failedCount } = Array.isArray(params) ? params[0] || {} : params || {};
-                        this.$nextTick(() => {
-                            setTimeout(() => {
-                                let centeredNewest = false;
-                                if (this.autoScrollEnabled || this.isNearBottom(240)) {
-                                    centeredNewest = this.centerLatestBatchWhenReady();
-                                    if (!centeredNewest) {
-                                        this.scrollToBottom(false);
-                                    }
-                                    this.autoScrollEnabled = true;
-                                    this.showScrollToBottom = false;
-                                } else {
-                                    this.showScrollToBottom = true;
-                                }
-                                const batches = document.querySelectorAll('.group-batch');
-                                const lastBatch = batches[batches.length - 1];
-                                if (lastBatch) {
-                                    lastBatch.classList.add('new-batch-animate', 'new-batch-glow');
-                                    setTimeout(() => lastBatch.classList.remove('new-batch-glow'), 3000);
-                                    setTimeout(() => lastBatch.classList.remove('new-batch-animate'), 600);
-                                }
-
-                                // Update uiMode based on results
-                                if (failedCount > 0 && successCount > 0) {
-                                    this.uiMode = 'partial_success';
-                                    this.statusMessage = `🎨 ${successCount} ảnh thành công, ${failedCount} thất bại`;
-                                } else if (failedCount > 0) {
-                                    this.uiMode = 'failed';
-                                    this.statusMessage = `❌ Tạo ảnh thất bại`;
-                                } else {
-                                    this.uiMode = 'done';
-                                    this.statusMessage = `🎨 Đã tạo xong ${successCount > 1 ? successCount + ' ảnh' : 'ảnh'}!`;
-                                    setTimeout(() => { if (this.uiMode === 'done') this.uiMode = 'idle'; }, 5000);
-                                }
-                                this.stopStatusTimer();
-                                this.notify(this.statusMessage, failedCount > 0 ? 'warning' : 'success');
-                            }, 300);
+                        this.$watch('selectedModel', (value) => {
+                            if (this.$wire?.modelId !== value) {
+                                this.$wire.set('modelId', value);
+                            }
                         });
-                    });
-                    if (typeof offGenerated === 'function') this._wireListeners.push(offGenerated);
-
-                    // Generation failed (all images)
-                    const offFailed = this.$wire.$on('imageGenerationFailed', () => {
-                        this.uiMode = 'failed';
-                        this.statusMessage = '❌ Tạo ảnh thất bại. Vui lòng thử lại.';
-                        this.stopStatusTimer();
-                        this.notify(this.statusMessage, 'error');
-                    });
-                    if (typeof offFailed === 'function') this._wireListeners.push(offFailed);
-
-                    const offHistoryUpdated = this.$wire.$on('historyUpdated', (params) => {
-                        const payload = Array.isArray(params) ? params[0] || {} : params || {};
-                        if (Object.prototype.hasOwnProperty.call(payload, 'hasMore')) {
-                            this.hasMoreHistory = !!payload.hasMore;
-                        }
+                        this.$watch('$wire.aspectRatio', (value) => {
+                            if (value !== undefined && value !== this.selectedRatio) {
+                                this.selectedRatio = value;
+                            }
+                        });
+                        this.$watch('$wire.modelId', (value) => {
+                            if (value !== undefined && value !== this.selectedModel) {
+                                this.selectedModel = value;
+                            }
+                        });
 
                         this.$nextTick(() => {
-                            if (this.isPrependingHistory) {
-                                if (this._prependRestoreRaf !== null) {
-                                    cancelAnimationFrame(this._prependRestoreRaf);
-                                    this._prependRestoreRaf = null;
-                                }
-                                // Apply a single correction frame after DOM morph.
-                                this._prependRestoreRaf = requestAnimationFrame(() => {
-                                    const stabilizeBoundaryId = this.prependBoundaryId;
-                                    const stabilizeBoundaryTop = this.prependBoundaryTop;
-
-                                    this.restorePrependAnchor();
-                                    if (stabilizeBoundaryId !== null && stabilizeBoundaryTop !== null) {
-                                        this.stabilizePrependAnchor(stabilizeBoundaryId, stabilizeBoundaryTop);
-                                    }
-                                    this._prependRestoreRaf = null;
-                                });
-                            }
-
-                            this.loadingMoreHistory = false;
-                            this.isPrependingHistory = false;
-                            this.prependBeforeScrollY = 0;
-                            this.prependBeforeHeight = 0;
-                            this.prependBoundaryId = null;
-                            this.prependBoundaryTop = null;
-                            clearTimeout(this._loadMoreFailSafeTimer);
-                            this._loadMoreFailSafeTimer = null;
-                            this.refreshScrollState();
-                            if (this.hasMoreHistory && !this.canScrollVertically && !this.loadingMoreHistory) {
-                                this.userInitiatedUpScroll = true;
-                                setTimeout(() => this.maybeLoadOlder(), 180);
-                            }
-                            if (!this.hasMoreHistory || !this.isNearTop(180)) {
-                                this.topAutoLoadsLeft = 0;
-                            }
-                            this.maybeAutoLoadOlderAfterPrepend();
-                            this.maybeBootstrapHistory();
-                        });
-                    });
-                    if (typeof offHistoryUpdated === 'function') this._wireListeners.push(offHistoryUpdated);
-
-                    // Auto-trim refs when model changes
-                    this.$watch('selectedModel', () => {
-                        const max = this.maxImages;
-                        if (max === 0 && this.selectedImages.length > 0) {
-                            this.selectedImages = [];
-                            this.$wire.setReferenceImages([]);
-                            this.notify('Model này không hỗ trợ ảnh tham chiếu', 'warning');
-                        } else if (this.selectedImages.length > max) {
-                            this.selectedImages = this.selectedImages.slice(0, max);
-                            this.$wire.setReferenceImages(this.selectedImages.map(img => ({ url: img.url })));
-                            this.notify(`Model này hỗ trợ tối đa ${max} ảnh tham chiếu`, 'warning');
-                        }
-                    });
-
-                    // Start status timer when generating
-                    this.$watch('$wire.isGenerating', (val) => {
-                        if (val) {
-                            this.uiMode = 'generating';
-                            this.startStatusTimer();
-                            this.startLoading();
-                        } else {
-                            this.stopLoading();
-                            this.stopStatusTimer();
-                            // Failsafe: if stopped but mode is still generating (no success/fail event), reset
-                            if (this.uiMode === 'generating') {
-                                this.uiMode = 'idle';
-                            }
-                        }
-                    });
-
-                    // Update historyData after Livewire re-renders
-                    if (window.Livewire?.hook) {
-                        this._morphCleanup = Livewire.hook('morph.updated', ({ el }) => {
-                            if (el.id === 'gallery-feed' || el.querySelector?.('#gallery-feed')) {
-                                const dataEl = document.getElementById('gallery-feed');
-                                if (!dataEl) return;
-
-                                if (dataEl.dataset?.hasMore !== undefined) {
-                                    this.hasMoreHistory = dataEl.dataset.hasMore === '1';
-                                }
-
-                                if (dataEl?.dataset?.history) {
-                                    try {
-                                        this.syncHistoryData(JSON.parse(dataEl.dataset.history));
-                                        if (this.showPreview && this.previewImage) {
-                                            const currentId = this.previewImage.id ?? null;
-                                            let nextIndex = -1;
-                                            if (currentId !== null) {
-                                                nextIndex = this.historyData.findIndex((img) => img.id === currentId);
-                                            } else if (this.previewImage.url) {
-                                                nextIndex = this.historyData.findIndex((img) => img.url === this.previewImage.url);
-                                            }
-                                            if (nextIndex === -1) {
-                                                this.closePreview();
-                                            } else {
-                                                this.previewIndex = nextIndex;
-                                                this.previewImage = this.historyData[nextIndex];
-                                            }
-                                        }
-                                    } catch (e) { }
-                                }
-
+                            requestAnimationFrame(() => {
+                                this.scrollToBottom(false);
+                                this.lastScrollY = window.scrollY || document.documentElement.scrollTop || 0;
                                 this.refreshScrollState();
                                 this.maybeBootstrapHistory();
+                            });
+                        });
+
+                        if ('scrollRestoration' in history) {
+                            this._scrollRestoration = history.scrollRestoration;
+                            history.scrollRestoration = 'manual';
+                        }
+
+                        const dataEl = document.getElementById('gallery-feed');
+                        if (dataEl?.dataset?.hasMore !== undefined) {
+                            this.hasMoreHistory = dataEl.dataset.hasMore === '1';
+                        }
+                        this.syncHistoryData(this.historyData);
+
+                        this._scrollHandler = () => {
+                            const currentY = window.scrollY || document.documentElement.scrollTop || 0;
+                            if (currentY < this.lastScrollY - 2) {
+                                this.userInitiatedUpScroll = true;
+                            }
+                            this.lastScrollY = currentY;
+
+                            if (this.autoScrollEnabled && !this.isNearBottom(120)) {
+                                this.autoScrollEnabled = false;
+                            }
+                            if (this.isNearBottom(120)) {
+                                this.showScrollToBottom = false;
+                            }
+                            this.refreshScrollState();
+                            // Note: maybeLoadOlder() removed — IntersectionObserver sentinel handles auto-loading
+                        };
+                        window.addEventListener('scroll', this._scrollHandler, { passive: true });
+
+                        this._resizeHandler = () => {
+                            this.refreshScrollState();
+                            this.maybeBootstrapHistory();
+                        };
+                        window.addEventListener('resize', this._resizeHandler, { passive: true });
+
+                        // Image generated → scroll + celebrate
+                        const offGenerated = this.$wire.$on('imageGenerated', (params) => {
+                            const { successCount, failedCount } = Array.isArray(params) ? params[0] || {} : params || {};
+                            this.$nextTick(() => {
+                                setTimeout(() => {
+                                    let centeredNewest = false;
+                                    if (this.autoScrollEnabled || this.isNearBottom(240)) {
+                                        centeredNewest = this.centerLatestBatchWhenReady();
+                                        if (!centeredNewest) {
+                                            this.scrollToBottom(false);
+                                        }
+                                        this.autoScrollEnabled = true;
+                                        this.showScrollToBottom = false;
+                                    } else {
+                                        this.showScrollToBottom = true;
+                                    }
+                                    const batches = document.querySelectorAll('.group-batch');
+                                    const lastBatch = batches[batches.length - 1];
+                                    if (lastBatch) {
+                                        lastBatch.classList.add('new-batch-animate', 'new-batch-glow');
+                                        setTimeout(() => lastBatch.classList.remove('new-batch-glow'), 3000);
+                                        setTimeout(() => lastBatch.classList.remove('new-batch-animate'), 600);
+                                    }
+
+                                    // Update uiMode based on results
+                                    if (failedCount > 0 && successCount > 0) {
+                                        this.uiMode = 'partial_success';
+                                        this.statusMessage = `🎨 ${successCount} ảnh thành công, ${failedCount} thất bại`;
+                                    } else if (failedCount > 0) {
+                                        this.uiMode = 'failed';
+                                        this.statusMessage = `❌ Tạo ảnh thất bại`;
+                                    } else {
+                                        this.uiMode = 'done';
+                                        this.statusMessage = `🎨 Đã tạo xong ${successCount > 1 ? successCount + ' ảnh' : 'ảnh'}!`;
+                                        setTimeout(() => { if (this.uiMode === 'done') this.uiMode = 'idle'; }, 5000);
+                                    }
+                                    this.stopStatusTimer();
+                                    this.notify(this.statusMessage, failedCount > 0 ? 'warning' : 'success');
+                                }, 300);
+                            });
+                        });
+                        if (typeof offGenerated === 'function') this._wireListeners.push(offGenerated);
+
+                        // Generation failed (all images)
+                        const offFailed = this.$wire.$on('imageGenerationFailed', () => {
+                            this.uiMode = 'failed';
+                            this.statusMessage = '❌ Tạo ảnh thất bại. Vui lòng thử lại.';
+                            this.stopStatusTimer();
+                            this.notify(this.statusMessage, 'error');
+                        });
+                        if (typeof offFailed === 'function') this._wireListeners.push(offFailed);
+
+                        const offHistoryUpdated = this.$wire.$on('historyUpdated', (params) => {
+                            const payload = Array.isArray(params) ? params[0] || {} : params || {};
+                            if (Object.prototype.hasOwnProperty.call(payload, 'hasMore')) {
+                                this.hasMoreHistory = !!payload.hasMore;
+                            }
+
+                            this.$nextTick(() => {
+                                if (this.isPrependingHistory) {
+                                    if (this._prependRestoreRaf !== null) {
+                                        cancelAnimationFrame(this._prependRestoreRaf);
+                                        this._prependRestoreRaf = null;
+                                    }
+                                    // Apply a single correction frame after DOM morph.
+                                    this._prependRestoreRaf = requestAnimationFrame(() => {
+                                        const stabilizeBoundaryId = this.prependBoundaryId;
+                                        const stabilizeBoundaryTop = this.prependBoundaryTop;
+
+                                        this.restorePrependAnchor();
+                                        if (stabilizeBoundaryId !== null && stabilizeBoundaryTop !== null) {
+                                            this.stabilizePrependAnchor(stabilizeBoundaryId, stabilizeBoundaryTop);
+                                        }
+                                        this._prependRestoreRaf = null;
+                                    });
+                                }
+
+                                this.loadingMoreHistory = false;
+                                this.isPrependingHistory = false;
+                                this.prependBeforeScrollY = 0;
+                                this.prependBeforeHeight = 0;
+                                this.prependBoundaryId = null;
+                                this.prependBoundaryTop = null;
+                                clearTimeout(this._loadMoreFailSafeTimer);
+                                this._loadMoreFailSafeTimer = null;
+                                this.refreshScrollState();
+                                if (this.hasMoreHistory && !this.canScrollVertically && !this.loadingMoreHistory) {
+                                    this.userInitiatedUpScroll = true;
+                                    setTimeout(() => this.maybeLoadOlder(), 180);
+                                }
+                                if (!this.hasMoreHistory || !this.isNearTop(180)) {
+                                    this.topAutoLoadsLeft = 0;
+                                }
+                                this.maybeBootstrapHistory();
+                            });
+                        });
+                        if (typeof offHistoryUpdated === 'function') this._wireListeners.push(offHistoryUpdated);
+
+                        // Auto-trim refs when model changes
+                        this.$watch('selectedModel', () => {
+                            const max = this.maxImages;
+                            if (max === 0 && this.selectedImages.length > 0) {
+                                this.selectedImages = [];
+                                this.$wire.setReferenceImages([]);
+                                this.notify('Model này không hỗ trợ ảnh tham chiếu', 'warning');
+                            } else if (this.selectedImages.length > max) {
+                                this.selectedImages = this.selectedImages.slice(0, max);
+                                this.$wire.setReferenceImages(this.selectedImages.map(img => ({ url: img.url })));
+                                this.notify(`Model này hỗ trợ tối đa ${max} ảnh tham chiếu`, 'warning');
                             }
                         });
-                    }
 
-                    // Cleanup on SPA navigation
-                    this._onNavigating = () => {
-                        this._cleanup();
-                    };
-                    document.addEventListener('livewire:navigating', this._onNavigating, { once: true });
-                },
-
-                // ============================================================
-                // Status Timer
-                // ============================================================
-                startStatusTimer() {
-                    this.statusElapsed = 0;
-                    this.stopStatusTimer();
-                    this.statusTimer = setInterval(() => this.statusElapsed++, 1000);
-                },
-                stopStatusTimer() {
-                    clearInterval(this.statusTimer);
-                    this.statusTimer = null;
-                },
-
-                // Centralized cleanup
-                _cleanup() {
-                    if (typeof this._morphCleanup === 'function') {
-                        this._morphCleanup();
-                        this._morphCleanup = null;
-                    }
-                    if (this._scrollHandler) {
-                        window.removeEventListener('scroll', this._scrollHandler);
-                        this._scrollHandler = null;
-                    }
-                    if (this._resizeHandler) {
-                        window.removeEventListener('resize', this._resizeHandler);
-                        this._resizeHandler = null;
-                    }
-                    if (this._onNavigating) {
-                        document.removeEventListener('livewire:navigating', this._onNavigating);
-                        this._onNavigating = null;
-                    }
-                    if (Array.isArray(this._wireListeners) && this._wireListeners.length) {
-                        this._wireListeners.forEach((off) => {
-                            if (typeof off === 'function') off();
-                        });
-                        this._wireListeners = [];
-                    }
-                    this.stopLoading();
-                    this.stopStatusTimer();
-                    clearTimeout(this._loadMoreFailSafeTimer);
-                    this._loadMoreFailSafeTimer = null;
-                    if (this._prependRestoreRaf !== null) {
-                        cancelAnimationFrame(this._prependRestoreRaf);
-                        this._prependRestoreRaf = null;
-                    }
-                    this.stopPrependStabilize();
-                    this.loadingMoreHistory = false;
-                    this.isPrependingHistory = false;
-                    this.prependBeforeScrollY = 0;
-                    this.prependBeforeHeight = 0;
-                    this.prependBoundaryId = null;
-                    this.prependBoundaryTop = null;
-                    this.topAutoLoadsLeft = 0;
-                    document.body.style.overflow = '';
-                    document.documentElement.style.overflow = '';
-                    if (this._scrollRestoration !== null && 'scrollRestoration' in history) {
-                        history.scrollRestoration = this._scrollRestoration;
-                        this._scrollRestoration = null;
-                    }
-                },
-
-                destroy() {
-                    this._cleanup();
-                },
-
-                // ============================================================
-                // Input Settings
-                // ============================================================
-                selectRatio(id) {
-                    this.selectedRatio = id;
-                    if (id !== 'auto') {
-                        const [w, h] = id.split(':').map(Number);
-                        const baseSize = 1024;
-                        this.customWidth = Math.round(baseSize * Math.sqrt(w / h) / 64) * 64;
-                        this.customHeight = Math.round(baseSize * Math.sqrt(h / w) / 64) * 64;
-                    }
-                    if (window.innerWidth >= 640) {
-                        this.showRatioSheet = false;
-                    }
-                },
-                selectModel(id) {
-                    this.selectedModel = id;
-                    this.showModelSheet = false;
-                },
-                getSelectedModel() {
-                    return this.models.find(m => m.id === this.selectedModel) || this.models[0] || { name: 'Model', icon: '🛠️', desc: '' };
-                },
-
-                // ============================================================
-                // Scroll
-                // ============================================================
-                scrollToBottom(smooth = true) {
-                    const targetTop = document.documentElement.scrollHeight;
-                    if (smooth) {
-                        window.scrollTo({ top: targetTop, behavior: 'smooth' });
-                    } else {
-                        // Use legacy signature to bypass global `scroll-behavior: smooth`.
-                        window.scrollTo(0, targetTop);
-                    }
-                    this.showScrollToBottom = false;
-                },
-                isNearTop(threshold = 200) {
-                    const el = document.documentElement;
-                    return el.scrollTop < threshold;
-                },
-                isNearBottom(threshold = 200) {
-                    const el = document.documentElement;
-                    const distanceFromBottom = el.scrollHeight - (el.scrollTop + window.innerHeight);
-                    return distanceFromBottom < threshold;
-                },
-                buildHistorySignature(items = this.historyData) {
-                    if (!Array.isArray(items) || items.length === 0) {
-                        return '0';
-                    }
-                    const first = items[0]?.id ?? items[0]?.url ?? 'x';
-                    const last = items[items.length - 1]?.id ?? items[items.length - 1]?.url ?? 'x';
-                    return `${items.length}:${first}:${last}`;
-                },
-                syncHistoryData(items) {
-                    this.historyData = Array.isArray(items) ? items : [];
-                    const nextSignature = this.buildHistorySignature(this.historyData);
-                    if (nextSignature !== this.historySignature) {
-                        this.bootstrapLoadCount = 0;
-                        this.historySignature = nextSignature;
-                    }
-                },
-                refreshScrollState() {
-                    const el = document.documentElement;
-                    this.canScrollVertically = (el.scrollHeight - window.innerHeight) > 8;
-                },
-                capturePrependAnchor(centerAnchor = false) {
-                    const doc = document.documentElement;
-                    const groups = Array.from(
-                        document.querySelectorAll('#gallery-feed .group-batch[data-history-anchor-id]')
-                    );
-                    const boundary = groups.find((el) => el.getBoundingClientRect().bottom > 0) || groups[0] || null;
-
-                    if (centerAnchor && boundary) {
-                        const rect = boundary.getBoundingClientRect();
-                        const currentY = window.scrollY || doc.scrollTop || 0;
-                        const targetTop = Math.max(96, Math.round((window.innerHeight - Math.min(rect.height, window.innerHeight * 0.72)) / 2));
-                        const nextY = Math.max(0, Math.round(currentY + rect.top - targetTop));
-                        window.scrollTo(0, nextY);
-                    }
-
-                    this.prependBeforeScrollY = window.scrollY || doc.scrollTop || 0;
-                    this.prependBeforeHeight = doc.scrollHeight || 0;
-                    this.prependBoundaryId = boundary?.dataset?.historyAnchorId ?? null;
-                    this.prependBoundaryTop = boundary ? boundary.getBoundingClientRect().top : null;
-                },
-                restorePrependAnchor() {
-                    const doc = document.documentElement;
-                    let restored = false;
-
-                    if (this.prependBoundaryId !== null && this.prependBoundaryTop !== null) {
-                        const groups = Array.from(
-                            document.querySelectorAll('#gallery-feed .group-batch[data-history-anchor-id]')
-                        );
-                        const boundary = groups.find(
-                            (el) => String(el?.dataset?.historyAnchorId ?? '') === String(this.prependBoundaryId)
-                        );
-
-                        if (boundary) {
-                            const currentY = window.scrollY || doc.scrollTop || 0;
-                            const delta = boundary.getBoundingClientRect().top - this.prependBoundaryTop;
-                            if (Math.abs(delta) > 1) {
-                                window.scrollTo(0, Math.max(0, Math.round(currentY + delta)));
-                            }
-                            restored = true;
-                        }
-                    }
-
-                    if (!restored && this.prependBeforeHeight > 0) {
-                        const currentY = window.scrollY || doc.scrollTop || 0;
-                        const currentHeight = doc.scrollHeight || 0;
-                        const expectedY = this.prependBeforeScrollY + Math.max(0, currentHeight - this.prependBeforeHeight);
-                        const residual = expectedY - currentY;
-                        if (Math.abs(residual) > 1) {
-                            window.scrollTo(0, Math.max(0, Math.round(expectedY)));
-                        }
-                    }
-
-                    this.refreshScrollState();
-                },
-                stopPrependStabilize() {
-                    if (typeof this._prependStabilizeCleanup === 'function') {
-                        this._prependStabilizeCleanup();
-                    }
-                    this._prependStabilizeCleanup = null;
-                },
-                stabilizePrependAnchor(boundaryId, boundaryTop, maxDurationMs = 1800) {
-                    this.stopPrependStabilize();
-
-                    if (boundaryId === null || boundaryTop === null) return;
-
-                    const selector = `#gallery-feed .group-batch[data-history-anchor-id="${String(boundaryId)}"]`;
-                    const syncBoundary = () => {
-                        const boundary = document.querySelector(selector);
-                        if (!boundary) return;
-
-                        const currentTop = boundary.getBoundingClientRect().top;
-                        const delta = currentTop - boundaryTop;
-                        if (Math.abs(delta) <= 0.5) return;
-
-                        const doc = document.documentElement;
-                        const currentY = window.scrollY || doc.scrollTop || 0;
-                        window.scrollTo(0, Math.max(0, Math.round(currentY + delta)));
-                    };
-
-                    const groups = Array.from(
-                        document.querySelectorAll('#gallery-feed .group-batch[data-history-anchor-id]')
-                    );
-                    const boundaryIndex = groups.findIndex(
-                        (el) => String(el?.dataset?.historyAnchorId ?? '') === String(boundaryId)
-                    );
-
-                    const prependedGroups = boundaryIndex > 0 ? groups.slice(0, boundaryIndex) : [];
-                    const pendingImages = prependedGroups
-                        .flatMap((el) => Array.from(el.querySelectorAll('img')))
-                        .filter((img) => !img.complete);
-
-                    if (!pendingImages.length) {
-                        requestAnimationFrame(syncBoundary);
-                        return;
-                    }
-
-                    const cleanupFns = [];
-                    const onSettled = () => requestAnimationFrame(syncBoundary);
-                    pendingImages.forEach((img) => {
-                        img.addEventListener('load', onSettled, { once: true });
-                        img.addEventListener('error', onSettled, { once: true });
-                        cleanupFns.push(() => {
-                            img.removeEventListener('load', onSettled);
-                            img.removeEventListener('error', onSettled);
-                        });
-                    });
-
-                    const timeoutId = setTimeout(() => {
-                        cleanup();
-                    }, maxDurationMs);
-
-                    const cleanup = () => {
-                        clearTimeout(timeoutId);
-                        cleanupFns.forEach((fn) => fn());
-                        cleanupFns.length = 0;
-                        this._prependStabilizeCleanup = null;
-                    };
-
-                    this._prependStabilizeCleanup = cleanup;
-                    requestAnimationFrame(syncBoundary);
-                },
-                centerLatestBatch(smooth = false) {
-                    const batches = Array.from(document.querySelectorAll('#gallery-feed .group-batch'));
-                    const latest = batches[batches.length - 1];
-                    if (!latest) return false;
-
-                    const rect = latest.getBoundingClientRect();
-                    const currentY = window.scrollY || document.documentElement.scrollTop || 0;
-                    const fitsViewport = rect.height < window.innerHeight;
-                    const desiredTop = fitsViewport
-                        ? currentY + rect.top - ((window.innerHeight - rect.height) / 2)
-                        : currentY + rect.top - 24;
-
-                    const top = Math.max(0, Math.round(desiredTop));
-                    if (smooth) {
-                        window.scrollTo({ top, behavior: 'smooth' });
-                    } else {
-                        window.scrollTo(0, top);
-                    }
-                    return true;
-                },
-                centerLatestBatchWhenReady() {
-                    const batches = Array.from(document.querySelectorAll('#gallery-feed .group-batch'));
-                    const latest = batches[batches.length - 1];
-                    if (!latest) return false;
-
-                    const images = Array.from(latest.querySelectorAll('img'));
-                    const pending = images.filter((img) => !img.complete);
-                    if (!pending.length) {
-                        return this.centerLatestBatch(true);
-                    }
-
-                    let settled = false;
-                    let timeoutId = null;
-                    const cleanupFns = [];
-
-                    const settle = () => {
-                        if (settled) return;
-                        settled = true;
-                        if (timeoutId) {
-                            clearTimeout(timeoutId);
-                            timeoutId = null;
-                        }
-                        cleanupFns.forEach((fn) => fn());
-                        cleanupFns.length = 0;
-
-                        requestAnimationFrame(() => {
-                            const centered = this.centerLatestBatch(true);
-                            if (centered) {
-                                // One extra frame correction to neutralize late image decode shifts.
-                                requestAnimationFrame(() => this.centerLatestBatch(false));
+                        // Start status timer when generating
+                        this.$watch('$wire.isGenerating', (val) => {
+                            if (val) {
+                                this.uiMode = 'generating';
+                                this.startStatusTimer();
+                                this.startLoading();
+                            } else {
+                                this.stopLoading();
+                                this.stopStatusTimer();
+                                // Failsafe: if stopped but mode is still generating (no success/fail event), reset
+                                if (this.uiMode === 'generating') {
+                                    this.uiMode = 'idle';
+                                }
                             }
                         });
-                    };
 
-                    pending.forEach((img) => {
-                        const onLoad = () => settle();
-                        const onError = () => settle();
-                        img.addEventListener('load', onLoad, { once: true });
-                        img.addEventListener('error', onError, { once: true });
-                        cleanupFns.push(() => {
-                            img.removeEventListener('load', onLoad);
-                            img.removeEventListener('error', onError);
-                        });
-                    });
+                        // Update historyData after Livewire re-renders
+                        if (window.Livewire?.hook) {
+                            this._morphCleanup = Livewire.hook('morph.updated', ({ el }) => {
+                                if (el.id === 'gallery-feed' || el.querySelector?.('#gallery-feed')) {
+                                    const dataEl = document.getElementById('gallery-feed');
+                                    if (!dataEl) return;
 
-                    timeoutId = setTimeout(settle, 1500);
-                    return true;
-                },
-                maybeBootstrapHistory() {
-                    if (!this.hasMoreHistory || this.loadingMoreHistory) return;
-                    this.refreshScrollState();
-                    if (this.canScrollVertically) return;
-                    if (this.bootstrapLoadCount >= this.maxBootstrapLoads) return;
+                                    if (dataEl.dataset?.hasMore !== undefined) {
+                                        this.hasMoreHistory = dataEl.dataset.hasMore === '1';
+                                    }
 
-                    this.bootstrapLoadCount += 1;
-                    this.requestLoadOlder(this.bootstrapStep, 'bootstrap');
-                },
-                maybeLoadOlder() {
-                    if (!this.hasMoreHistory || this.loadingMoreHistory) return;
-                    if (!this.userInitiatedUpScroll) return;
-                    if (!this.isNearTop(260)) return;
+                                    if (dataEl?.dataset?.history) {
+                                        try {
+                                            this.syncHistoryData(JSON.parse(dataEl.dataset.history));
+                                            if (this.showPreview && this.previewImage) {
+                                                const currentId = this.previewImage.id ?? null;
+                                                let nextIndex = -1;
+                                                if (currentId !== null) {
+                                                    nextIndex = this.historyData.findIndex((img) => img.id === currentId);
+                                                } else if (this.previewImage.url) {
+                                                    nextIndex = this.historyData.findIndex((img) => img.url === this.previewImage.url);
+                                                }
+                                                if (nextIndex === -1) {
+                                                    this.closePreview();
+                                                } else {
+                                                    this.previewIndex = nextIndex;
+                                                    this.previewImage = this.historyData[nextIndex];
+                                                }
+                                            }
+                                        } catch (e) { }
+                                    }
 
-                    this.requestLoadOlder(this.loadOlderStep, 'scroll');
-                },
-                maybeAutoLoadOlderAfterPrepend() {
-                    if (!this.hasMoreHistory || this.loadingMoreHistory) return;
-                    if (!this.isNearTop(140)) return;
-                    if (this.topAutoLoadsLeft <= 0) return;
+                                    this.refreshScrollState();
+                                    this.maybeBootstrapHistory();
+                                }
+                            });
+                        }
 
-                    const now = Date.now();
-                    if (now - this.lastLoadMoreAt < 320) return;
-                    this.topAutoLoadsLeft = Math.max(0, this.topAutoLoadsLeft - 1);
-                    this.lastLoadMoreAt = now;
-                    setTimeout(() => this.requestLoadOlder(this.loadOlderStep, 'auto'), 130);
-                },
-                manualLoadOlder() {
-                    this.userInitiatedUpScroll = true;
-                    this.requestLoadOlder(this.loadOlderStep, 'manual');
-                },
-                requestLoadOlder(count = null, source = 'scroll') {
-                    if (!this.hasMoreHistory || this.loadingMoreHistory) return;
-                    const now = Date.now();
-                    if (now - this.lastLoadMoreAt < 260) return;
-                    this.lastLoadMoreAt = now;
+                        // Cleanup on SPA navigation
+                        this._onNavigating = () => {
+                            this._cleanup();
+                        };
+                        document.addEventListener('livewire:navigating', this._onNavigating, { once: true });
+                    },
 
-                    this.stopPrependStabilize();
-                    const shouldCenterAnchor = source !== 'bootstrap' && this.isNearTop(180);
-                    this.capturePrependAnchor(shouldCenterAnchor);
-                    this.loadingMoreHistory = true;
-                    this.isPrependingHistory = true;
-                    this.userInitiatedUpScroll = false;
-                    if (source === 'scroll' || source === 'manual') {
-                        this.topAutoLoadsLeft = this.isNearTop(160) ? 1 : 0;
-                    } else if (source === 'bootstrap') {
-                        this.topAutoLoadsLeft = 0;
-                    }
+                    // ============================================================
+                    // Status Timer
+                    // ============================================================
+                    startStatusTimer() {
+                        this.statusElapsed = 0;
+                        this.stopStatusTimer();
+                        this.statusTimer = setInterval(() => this.statusElapsed++, 1000);
+                    },
+                    stopStatusTimer() {
+                        clearInterval(this.statusTimer);
+                        this.statusTimer = null;
+                    },
 
-                    const fallbackStep = Number.isFinite(this.loadOlderStep) ? this.loadOlderStep : 1;
-                    const requested = Number.isFinite(count) ? count : fallbackStep;
-                    const batch = Math.max(1, Math.min(12, Math.trunc(requested)));
-                    this.$wire.loadMore(batch);
-
-                    clearTimeout(this._loadMoreFailSafeTimer);
-                    this._loadMoreFailSafeTimer = setTimeout(() => {
+                    // Centralized cleanup
+                    _cleanup() {
+                        if (typeof this._morphCleanup === 'function') {
+                            this._morphCleanup();
+                            this._morphCleanup = null;
+                        }
+                        if (this._scrollHandler) {
+                            window.removeEventListener('scroll', this._scrollHandler);
+                            this._scrollHandler = null;
+                        }
+                        if (this._resizeHandler) {
+                            window.removeEventListener('resize', this._resizeHandler);
+                            this._resizeHandler = null;
+                        }
+                        if (this._onNavigating) {
+                            document.removeEventListener('livewire:navigating', this._onNavigating);
+                            this._onNavigating = null;
+                        }
+                        if (Array.isArray(this._wireListeners) && this._wireListeners.length) {
+                            this._wireListeners.forEach((off) => {
+                                if (typeof off === 'function') off();
+                            });
+                            this._wireListeners = [];
+                        }
+                        this.stopLoading();
+                        this.stopStatusTimer();
+                        clearTimeout(this._loadMoreFailSafeTimer);
+                        this._loadMoreFailSafeTimer = null;
+                        if (this._prependRestoreRaf !== null) {
+                            cancelAnimationFrame(this._prependRestoreRaf);
+                            this._prependRestoreRaf = null;
+                        }
+                        this.stopPrependStabilize();
                         this.loadingMoreHistory = false;
                         this.isPrependingHistory = false;
-                        this.stopPrependStabilize();
                         this.prependBeforeScrollY = 0;
                         this.prependBeforeHeight = 0;
                         this.prependBoundaryId = null;
                         this.prependBoundaryTop = null;
                         this.topAutoLoadsLeft = 0;
-                        this._loadMoreFailSafeTimer = null;
-                    }, 7000);
-                },
+                        document.body.style.overflow = '';
+                        document.documentElement.style.overflow = '';
+                        if (this._scrollRestoration !== null && 'scrollRestoration' in history) {
+                            history.scrollRestoration = this._scrollRestoration;
+                            this._scrollRestoration = null;
+                        }
+                    },
 
-                // ============================================================
-                // Toast
-                // ============================================================
-                notify(msg, type = 'success') {
-                    this.toastMessage = msg;
-                    this.toastType = type;
-                    this.showToast = true;
-                    clearTimeout(this.toastTimer);
-                    this.toastTimer = setTimeout(() => this.showToast = false, 3000);
-                },
+                    destroy() {
+                        this._cleanup();
+                    },
 
-                // ============================================================
-                // Loading messages rotation
-                // ============================================================
-                startLoading() {
-                    this.stopLoading();
-                    this.currentLoadingMessage = 0;
-                    this.loadingInterval = setInterval(() => {
-                        this.currentLoadingMessage = (this.currentLoadingMessage + 1) % this.loadingMessages.length;
-                    }, 3000);
-                },
-                stopLoading() {
-                    clearInterval(this.loadingInterval);
-                    this.loadingInterval = null;
-                },
+                    // ============================================================
+                    // Input Settings
+                    // ============================================================
+                    selectRatio(id) {
+                        this.selectedRatio = id;
+                        if (id !== 'auto') {
+                            const [w, h] = id.split(':').map(Number);
+                            const baseSize = 1024;
+                            this.customWidth = Math.round(baseSize * Math.sqrt(w / h) / 64) * 64;
+                            this.customHeight = Math.round(baseSize * Math.sqrt(h / w) / 64) * 64;
+                        }
+                        if (window.innerWidth >= 640) {
+                            this.showRatioSheet = false;
+                        }
+                    },
+                    selectModel(id) {
+                        this.selectedModel = id;
+                        this.showModelSheet = false;
+                    },
+                    getSelectedModel() {
+                        return this.models.find(m => m.id === this.selectedModel) || this.models[0] || { name: 'Model', icon: '🛠️', desc: '' };
+                    },
 
-                // ============================================================
-                // Preview
-                // ============================================================
-                openPreview(url, index) {
-                    if (index !== null && index !== undefined && this.historyData[index]) {
-                        this.previewIndex = index;
-                        this.previewImage = this.historyData[index];
-                    } else if (url) {
-                        this.previewImage = { url: url, prompt: '' };
-                        this.previewIndex = 0;
-                    }
-                    this.showPreview = true;
-                    document.body.style.overflow = 'hidden';
-                    document.documentElement.style.overflow = 'hidden';
-                },
-                closePreview() {
-                    this.showPreview = false;
-                    document.body.style.overflow = '';
-                    document.documentElement.style.overflow = '';
-                },
-                nextImage() {
-                    if (this.previewIndex < this.historyData.length - 1) {
-                        this.previewIndex++;
-                        this.previewImage = this.historyData[this.previewIndex];
-                    }
-                },
-                prevImage() {
-                    if (this.previewIndex > 0) {
-                        this.previewIndex--;
-                        this.previewImage = this.historyData[this.previewIndex];
-                    }
-                },
-                goToImage(index) {
-                    if (index >= 0 && index < this.historyData.length) {
-                        this.previewIndex = index;
-                        this.previewImage = this.historyData[index];
-                    }
-                },
-                goToDot(position) {
-                    const dot = this.previewDotAt(position);
-                    if (dot) {
-                        this.goToImage(dot.idx);
-                    }
-                },
-                previewDotLabel(position) {
-                    const dot = this.previewDotAt(position);
-                    const index = dot && Number.isFinite(dot.idx) ? dot.idx : position;
-                    return 'Anh ' + (index + 1);
-                },
-                dotClassAt(position, withHover = false) {
-                    return this.dotButtonClass(this.previewDotAt(position), withHover);
-                },
-                previewDots() {
-                    const len = Array.isArray(this.historyData) ? this.historyData.length : 0;
-                    if (len <= 0) return [];
+                    // ============================================================
+                    // Scroll
+                    // ============================================================
+                    scrollToBottom(smooth = true) {
+                        const targetTop = document.documentElement.scrollHeight;
+                        if (smooth) {
+                            window.scrollTo({ top: targetTop, behavior: 'smooth' });
+                        } else {
+                            // Use legacy signature to bypass global `scroll-behavior: smooth`.
+                            window.scrollTo(0, targetTop);
+                        }
+                        this.showScrollToBottom = false;
+                    },
+                    isNearTop(threshold = 200) {
+                        const el = document.documentElement;
+                        return el.scrollTop < threshold;
+                    },
+                    isNearBottom(threshold = 200) {
+                        const el = document.documentElement;
+                        const distanceFromBottom = el.scrollHeight - (el.scrollTop + window.innerHeight);
+                        return distanceFromBottom < threshold;
+                    },
+                    buildHistorySignature(items = this.historyData) {
+                        if (!Array.isArray(items) || items.length === 0) {
+                            return '0';
+                        }
+                        const first = items[0]?.id ?? items[0]?.url ?? 'x';
+                        const last = items[items.length - 1]?.id ?? items[items.length - 1]?.url ?? 'x';
+                        return `${items.length}:${first}:${last}`;
+                    },
+                    syncHistoryData(items) {
+                        this.historyData = Array.isArray(items) ? items : [];
+                        const nextSignature = this.buildHistorySignature(this.historyData);
+                        if (nextSignature !== this.historySignature) {
+                            this.bootstrapLoadCount = 0;
+                            this.historySignature = nextSignature;
+                        }
+                    },
+                    refreshScrollState() {
+                        const el = document.documentElement;
+                        this.canScrollVertically = (el.scrollHeight - window.innerHeight) > 8;
+                    },
+                    capturePrependAnchor(centerAnchor = false) {
+                        const doc = document.documentElement;
+                        const groups = Array.from(
+                            document.querySelectorAll('#gallery-feed .group-batch[data-history-anchor-id]')
+                        );
+                        const boundary = groups.find((el) => el.getBoundingClientRect().bottom > 0) || groups[0] || null;
 
-                    if (len <= 7) {
-                        return Array.from({ length: len }, (_, i) => ({
-                            id: `dot-${i}`,
-                            idx: i,
-                            size: 'normal',
-                        }));
-                    }
+                        if (centerAnchor && boundary) {
+                            const rect = boundary.getBoundingClientRect();
+                            const currentY = window.scrollY || doc.scrollTop || 0;
+                            const targetTop = Math.max(96, Math.round((window.innerHeight - Math.min(rect.height, window.innerHeight * 0.72)) / 2));
+                            const nextY = Math.max(0, Math.round(currentY + rect.top - targetTop));
+                            window.scrollTo(0, nextY);
+                        }
 
-                    const center = Math.max(0, Math.min(this.previewIndex, len - 1));
-                    const start = Math.max(0, Math.min(center - 3, len - 7));
-                    const end = Math.min(len, start + 7);
+                        this.prependBeforeScrollY = window.scrollY || doc.scrollTop || 0;
+                        this.prependBeforeHeight = doc.scrollHeight || 0;
+                        this.prependBoundaryId = boundary?.dataset?.historyAnchorId ?? null;
+                        this.prependBoundaryTop = boundary ? boundary.getBoundingClientRect().top : null;
+                    },
+                    restorePrependAnchor() {
+                        const doc = document.documentElement;
+                        let restored = false;
 
-                    return Array.from({ length: end - start }, (_, i) => {
-                        const idx = start + i;
-                        const isEdge = (idx === start || idx === end - 1) && len > 7;
-                        return {
-                            id: `dot-${idx}`,
-                            idx,
-                            size: isEdge ? 'small' : 'normal',
+                        if (this.prependBoundaryId !== null && this.prependBoundaryTop !== null) {
+                            const groups = Array.from(
+                                document.querySelectorAll('#gallery-feed .group-batch[data-history-anchor-id]')
+                            );
+                            const boundary = groups.find(
+                                (el) => String(el?.dataset?.historyAnchorId ?? '') === String(this.prependBoundaryId)
+                            );
+
+                            if (boundary) {
+                                const currentY = window.scrollY || doc.scrollTop || 0;
+                                const delta = boundary.getBoundingClientRect().top - this.prependBoundaryTop;
+                                if (Math.abs(delta) > 1) {
+                                    window.scrollTo(0, Math.max(0, Math.round(currentY + delta)));
+                                }
+                                restored = true;
+                            }
+                        }
+
+                        if (!restored && this.prependBeforeHeight > 0) {
+                            const currentY = window.scrollY || doc.scrollTop || 0;
+                            const currentHeight = doc.scrollHeight || 0;
+                            const expectedY = this.prependBeforeScrollY + Math.max(0, currentHeight - this.prependBeforeHeight);
+                            const residual = expectedY - currentY;
+                            if (Math.abs(residual) > 1) {
+                                window.scrollTo(0, Math.max(0, Math.round(expectedY)));
+                            }
+                        }
+
+                        this.refreshScrollState();
+                    },
+                    stopPrependStabilize() {
+                        if (typeof this._prependStabilizeCleanup === 'function') {
+                            this._prependStabilizeCleanup();
+                        }
+                        this._prependStabilizeCleanup = null;
+                    },
+                    stabilizePrependAnchor(boundaryId, boundaryTop, maxDurationMs = 1800) {
+                        this.stopPrependStabilize();
+
+                        if (boundaryId === null || boundaryTop === null) return;
+
+                        const selector = `#gallery-feed .group-batch[data-history-anchor-id="${String(boundaryId)}"]`;
+                        const syncBoundary = () => {
+                            const boundary = document.querySelector(selector);
+                            if (!boundary) return;
+
+                            const currentTop = boundary.getBoundingClientRect().top;
+                            const delta = currentTop - boundaryTop;
+                            if (Math.abs(delta) <= 0.5) return;
+
+                            const doc = document.documentElement;
+                            const currentY = window.scrollY || doc.scrollTop || 0;
+                            window.scrollTo(0, Math.max(0, Math.round(currentY + delta)));
                         };
-                    });
-                },
-                previewDotAt(position) {
-                    const dots = this.previewDots();
-                    return (position >= 0 && position < dots.length) ? dots[position] : null;
-                },
-                dotButtonClass(dot, withHover = false) {
-                    if (!dot) return 'w-2 h-2 bg-white/30';
 
-                    const active = dot.idx === this.previewIndex;
-                    const small = dot.size === 'small';
+                        const groups = Array.from(
+                            document.querySelectorAll('#gallery-feed .group-batch[data-history-anchor-id]')
+                        );
+                        const boundaryIndex = groups.findIndex(
+                            (el) => String(el?.dataset?.historyAnchorId ?? '') === String(boundaryId)
+                        );
 
-                    if (active) {
-                        return small ? 'w-1.5 h-1.5 bg-purple-400' : 'w-2.5 h-2.5 bg-purple-400';
-                    }
+                        const prependedGroups = boundaryIndex > 0 ? groups.slice(0, boundaryIndex) : [];
+                        const pendingImages = prependedGroups
+                            .flatMap((el) => Array.from(el.querySelectorAll('img')))
+                            .filter((img) => !img.complete);
 
-                    if (small) {
-                        return 'w-1 h-1 bg-white/30';
-                    }
-
-                    return withHover ? 'w-2 h-2 bg-white/40 hover:bg-white/60' : 'w-2 h-2 bg-white/40';
-                },
-
-                // ============================================================
-                // Keyboard
-                // ============================================================
-                handleKeydown(e) {
-                    if (this.showPreview) {
-                        if (e.key === 'ArrowLeft') this.prevImage();
-                        if (e.key === 'ArrowRight') this.nextImage();
-                        if (e.key === 'Escape') this.closePreview();
-                    }
-                },
-
-                // ============================================================
-                // Preview Actions
-                // ============================================================
-                copyPrompt() {
-                    if (this.previewImage?.prompt) {
-                        navigator.clipboard.writeText(this.previewImage.prompt);
-                        this.notify('Đã copy prompt');
-                    }
-                },
-                async shareImage() {
-                    const url = this.previewImage?.url;
-                    if (!url) return;
-                    if (navigator.share) {
-                        try {
-                            await navigator.share({ title: 'AI Generated Image', url: url });
-                        } catch (e) { /* user cancelled */ }
-                    } else {
-                        navigator.clipboard.writeText(url);
-                        this.notify('Đã copy link ảnh');
-                    }
-                },
-                useAsReference() {
-                    const url = this.previewImage?.url;
-                    if (!url) return;
-                    if (this.maxImages === 0) {
-                        this.notify('Model này không hỗ trợ ảnh tham chiếu', 'warning');
-                        return;
-                    }
-                    if (this.selectedImages.some(i => i.url === url)) {
-                        this.notify('Ảnh đã có trong danh sách', 'warning');
-                        this.closePreview();
-                        return;
-                    }
-                    if (this.selectedImages.length >= this.maxImages) {
-                        this.notify('Tối đa ' + this.maxImages + ' ảnh', 'warning');
-                        return;
-                    }
-                    this.selectedImages.push({ id: Date.now(), url: url });
-                    this.$wire.setReferenceImages(
-                        this.selectedImages.map(img => ({ url: img.url }))
-                    );
-                    this.closePreview();
-                    this.notify('Đã thêm ảnh làm tham chiếu');
-                },
-
-                // Touch swipe for mobile preview
-                touchStartX: 0,
-                handleTouchStart(e) {
-                    this.touchStartX = e.touches[0].clientX;
-                },
-                handleTouchEnd(e) {
-                    const diff = e.changedTouches[0].clientX - this.touchStartX;
-                    if (Math.abs(diff) > 50) {
-                        if (diff > 0) this.prevImage();
-                        else this.nextImage();
-                    }
-                },
-                async downloadImage(url) {
-                    try {
-                        const res = await fetch(url);
-                        const blob = await res.blob();
-                        // P1#2: detect correct extension from blob type
-                        const extMap = { 'image/jpeg': '.jpg', 'image/png': '.png', 'image/webp': '.webp', 'image/gif': '.gif' };
-                        const ext = extMap[blob.type] || '.png';
-                        const a = document.createElement('a');
-                        a.href = URL.createObjectURL(blob);
-                        a.download = 'zdream-' + Date.now() + ext;
-                        a.click();
-                        URL.revokeObjectURL(a.href);
-                    } catch (e) {
-                        window.open(url, '_blank');
-                    }
-                },
-
-                // ============================================================
-                // Image Picker (inline in composer)
-                // ============================================================
-                async loadRecentImages() {
-                    this.isLoadingPicker = true;
-                    try {
-                        const res = await fetch('/api/user/recent-images');
-                        if (res.ok) this.recentImages = await res.json();
-                    } catch (e) {
-                        console.error(e);
-                        this.notify('Không tải được ảnh gần đây', 'error');
-                    }
-                    this.isLoadingPicker = false;
-                },
-
-                handleFileSelect(e) {
-                    const files = Array.from(e.target.files);
-                    this.processFiles(files);
-                    e.target.value = '';
-                },
-
-                processFiles(files) {
-                    const remaining = this.maxImages - this.selectedImages.length;
-                    const toProcess = files.slice(0, remaining);
-                    const skipped = files.length - toProcess.length;
-                    let processed = 0;
-                    const total = toProcess.length;
-
-                    if (total === 0 && skipped > 0) {
-                        this.notify(`Đã đạt giới hạn ${this.maxImages} ảnh`, 'warning');
-                        return;
-                    }
-
-                    toProcess.forEach(file => {
-                        if (file.size > 10 * 1024 * 1024) {
-                            this.notify('Ảnh quá lớn (tối đa 10MB)', 'error');
-                            processed++;
+                        if (!pendingImages.length) {
+                            requestAnimationFrame(syncBoundary);
                             return;
                         }
-                        const reader = new FileReader();
-                        reader.onload = (ev) => {
-                            this.selectedImages.push({
-                                id: Date.now() + Math.random(),
-                                url: ev.target.result,
-                                file: file
+
+                        const cleanupFns = [];
+                        const onSettled = () => requestAnimationFrame(syncBoundary);
+                        pendingImages.forEach((img) => {
+                            img.addEventListener('load', onSettled, { once: true });
+                            img.addEventListener('error', onSettled, { once: true });
+                            cleanupFns.push(() => {
+                                img.removeEventListener('load', onSettled);
+                                img.removeEventListener('error', onSettled);
                             });
-                            processed++;
-                            if (processed >= total) {
-                                this.$wire.setReferenceImages(
-                                    this.selectedImages.map(img => ({ url: img.url }))
-                                );
-                                if (skipped > 0) {
-                                    this.notify(`Đã thêm ${total} ảnh, bỏ ${skipped} (vượt giới hạn ${this.maxImages})`, 'warning');
-                                }
-                            }
+                        });
+
+                        const timeoutId = setTimeout(() => {
+                            cleanup();
+                        }, maxDurationMs);
+
+                        const cleanup = () => {
+                            clearTimeout(timeoutId);
+                            cleanupFns.forEach((fn) => fn());
+                            cleanupFns.length = 0;
+                            this._prependStabilizeCleanup = null;
                         };
-                        reader.readAsDataURL(file);
-                    });
-                },
 
-                addFromUrl() {
-                    const url = this.urlInput.trim();
-                    if (!url) return;
-                    if (!/^https?:\/\//i.test(url)) {
-                        this.notify('URL phải bắt đầu bằng http:// hoặc https://', 'warning');
-                        return;
-                    }
-                    if (this.selectedImages.some(i => i.url === url)) {
-                        this.notify('Ảnh đã có trong danh sách', 'warning');
-                        return;
-                    }
-                    if (this.selectedImages.length >= this.maxImages) {
-                        this.notify('Tối đa ' + this.maxImages + ' ảnh', 'warning');
-                        return;
-                    }
-                    this.selectedImages.push({ id: Date.now(), url: url });
-                    this.$wire.setReferenceImages(
-                        this.selectedImages.map(img => ({ url: img.url }))
-                    );
-                    this.urlInput = '';
-                },
+                        this._prependStabilizeCleanup = cleanup;
+                        requestAnimationFrame(syncBoundary);
+                    },
+                    centerLatestBatch(smooth = false) {
+                        const batches = Array.from(document.querySelectorAll('#gallery-feed .group-batch'));
+                        const latest = batches[batches.length - 1];
+                        if (!latest) return false;
 
-                selectFromRecent(url) {
-                    const idx = this.selectedImages.findIndex(i => i.url === url);
-                    if (idx > -1) {
-                        this.selectedImages.splice(idx, 1);
-                    } else {
+                        const rect = latest.getBoundingClientRect();
+                        const currentY = window.scrollY || document.documentElement.scrollTop || 0;
+                        const fitsViewport = rect.height < window.innerHeight;
+                        const desiredTop = fitsViewport
+                            ? currentY + rect.top - ((window.innerHeight - rect.height) / 2)
+                            : currentY + rect.top - 24;
+
+                        const top = Math.max(0, Math.round(desiredTop));
+                        if (smooth) {
+                            window.scrollTo({ top, behavior: 'smooth' });
+                        } else {
+                            window.scrollTo(0, top);
+                        }
+                        return true;
+                    },
+                    centerLatestBatchWhenReady() {
+                        const batches = Array.from(document.querySelectorAll('#gallery-feed .group-batch'));
+                        const latest = batches[batches.length - 1];
+                        if (!latest) return false;
+
+                        const images = Array.from(latest.querySelectorAll('img'));
+                        const pending = images.filter((img) => !img.complete);
+                        if (!pending.length) {
+                            return this.centerLatestBatch(true);
+                        }
+
+                        let settled = false;
+                        let timeoutId = null;
+                        const cleanupFns = [];
+
+                        const settle = () => {
+                            if (settled) return;
+                            settled = true;
+                            if (timeoutId) {
+                                clearTimeout(timeoutId);
+                                timeoutId = null;
+                            }
+                            cleanupFns.forEach((fn) => fn());
+                            cleanupFns.length = 0;
+
+                            requestAnimationFrame(() => {
+                                const centered = this.centerLatestBatch(true);
+                                if (centered) {
+                                    // One extra frame correction to neutralize late image decode shifts.
+                                    requestAnimationFrame(() => this.centerLatestBatch(false));
+                                }
+                            });
+                        };
+
+                        pending.forEach((img) => {
+                            const onLoad = () => settle();
+                            const onError = () => settle();
+                            img.addEventListener('load', onLoad, { once: true });
+                            img.addEventListener('error', onError, { once: true });
+                            cleanupFns.push(() => {
+                                img.removeEventListener('load', onLoad);
+                                img.removeEventListener('error', onError);
+                            });
+                        });
+
+                        timeoutId = setTimeout(settle, 1500);
+                        return true;
+                    },
+                    maybeBootstrapHistory() {
+                        if (!this.hasMoreHistory || this.loadingMoreHistory) return;
+                        this.refreshScrollState();
+                        if (this.canScrollVertically) return;
+                        if (this.bootstrapLoadCount >= this.maxBootstrapLoads) return;
+
+                        this.bootstrapLoadCount += 1;
+                        this.requestLoadOlder(this.bootstrapStep, 'bootstrap');
+                    },
+                    maybeLoadOlder() {
+                        if (!this.hasMoreHistory || this.loadingMoreHistory) return;
+                        if (!this.userInitiatedUpScroll) return;
+                        if (!this.isNearTop(260)) return;
+
+                        this.requestLoadOlder(this.loadOlderStep, 'scroll');
+                    },
+                    maybeAutoLoadOlderAfterPrepend() {
+                        if (!this.hasMoreHistory || this.loadingMoreHistory) return;
+                        if (!this.isNearTop(140)) return;
+                        if (this.topAutoLoadsLeft <= 0) return;
+
+                        const now = Date.now();
+                        if (now - this.lastLoadMoreAt < 320) return;
+                        this.topAutoLoadsLeft = Math.max(0, this.topAutoLoadsLeft - 1);
+                        this.lastLoadMoreAt = now;
+                        setTimeout(() => this.requestLoadOlder(this.loadOlderStep, 'auto'), 130);
+                    },
+                    manualLoadOlder() {
+                        this.userInitiatedUpScroll = true;
+                        this.requestLoadOlder(this.loadOlderStep, 'manual');
+                    },
+                    requestLoadOlder(count = null, source = 'scroll') {
+                        if (!this.hasMoreHistory || this.loadingMoreHistory) return;
+                        const now = Date.now();
+                        if (now - this.lastLoadMoreAt < 260) return;
+                        this.lastLoadMoreAt = now;
+
+                        this.stopPrependStabilize();
+                        const shouldCenterAnchor = source !== 'bootstrap' && this.isNearTop(180);
+                        this.capturePrependAnchor(shouldCenterAnchor);
+                        this.loadingMoreHistory = true;
+                        this.isPrependingHistory = true;
+                        // Note: removed userInitiatedUpScroll=false — IntersectionObserver handles re-triggering
+                        if (source === 'scroll' || source === 'manual') {
+                            this.topAutoLoadsLeft = this.isNearTop(160) ? 1 : 0;
+                        } else if (source === 'bootstrap') {
+                            this.topAutoLoadsLeft = 0;
+                        }
+
+                        const fallbackStep = Number.isFinite(this.loadOlderStep) ? this.loadOlderStep : 1;
+                        const requested = Number.isFinite(count) ? count : fallbackStep;
+                        const batch = Math.max(1, Math.min(12, Math.trunc(requested)));
+                        this.$wire.loadMore(batch);
+
+                        clearTimeout(this._loadMoreFailSafeTimer);
+                        this._loadMoreFailSafeTimer = setTimeout(() => {
+                            this.loadingMoreHistory = false;
+                            this.isPrependingHistory = false;
+                            this.stopPrependStabilize();
+                            this.prependBeforeScrollY = 0;
+                            this.prependBeforeHeight = 0;
+                            this.prependBoundaryId = null;
+                            this.prependBoundaryTop = null;
+                            this.topAutoLoadsLeft = 0;
+                            this._loadMoreFailSafeTimer = null;
+                        }, 7000);
+                    },
+
+                    // ============================================================
+                    // Toast
+                    // ============================================================
+                    notify(msg, type = 'success') {
+                        this.toastMessage = msg;
+                        this.toastType = type;
+                        this.showToast = true;
+                        clearTimeout(this.toastTimer);
+                        this.toastTimer = setTimeout(() => this.showToast = false, 3000);
+                    },
+
+                    // ============================================================
+                    // Loading messages rotation
+                    // ============================================================
+                    startLoading() {
+                        this.stopLoading();
+                        this.currentLoadingMessage = 0;
+                        this.loadingInterval = setInterval(() => {
+                            this.currentLoadingMessage = (this.currentLoadingMessage + 1) % this.loadingMessages.length;
+                        }, 3000);
+                    },
+                    stopLoading() {
+                        clearInterval(this.loadingInterval);
+                        this.loadingInterval = null;
+                    },
+
+                    // ============================================================
+                    // Preview
+                    // ============================================================
+                    openPreview(url, index) {
+                        if (index !== null && index !== undefined && this.historyData[index]) {
+                            this.previewIndex = index;
+                            this.previewImage = this.historyData[index];
+                        } else if (url) {
+                            this.previewImage = { url: url, prompt: '' };
+                            this.previewIndex = 0;
+                        }
+                        this.showPreview = true;
+                        document.body.style.overflow = 'hidden';
+                        document.documentElement.style.overflow = 'hidden';
+                    },
+                    closePreview() {
+                        this.showPreview = false;
+                        document.body.style.overflow = '';
+                        document.documentElement.style.overflow = '';
+                    },
+                    nextImage() {
+                        if (this.previewIndex < this.historyData.length - 1) {
+                            this.previewIndex++;
+                            this.previewImage = this.historyData[this.previewIndex];
+                        }
+                    },
+                    prevImage() {
+                        if (this.previewIndex > 0) {
+                            this.previewIndex--;
+                            this.previewImage = this.historyData[this.previewIndex];
+                        }
+                    },
+                    goToImage(index) {
+                        if (index >= 0 && index < this.historyData.length) {
+                            this.previewIndex = index;
+                            this.previewImage = this.historyData[index];
+                        }
+                    },
+                    goToDot(position) {
+                        const dot = this.previewDotAt(position);
+                        if (dot) {
+                            this.goToImage(dot.idx);
+                        }
+                    },
+                    previewDotLabel(position) {
+                        const dot = this.previewDotAt(position);
+                        const index = dot && Number.isFinite(dot.idx) ? dot.idx : position;
+                        return 'Anh ' + (index + 1);
+                    },
+                    dotClassAt(position, withHover = false) {
+                        return this.dotButtonClass(this.previewDotAt(position), withHover);
+                    },
+                    previewDots() {
+                        const len = Array.isArray(this.historyData) ? this.historyData.length : 0;
+                        if (len <= 0) return [];
+
+                        if (len <= 7) {
+                            return Array.from({ length: len }, (_, i) => ({
+                                id: `dot-${i}`,
+                                idx: i,
+                                size: 'normal',
+                            }));
+                        }
+
+                        const center = Math.max(0, Math.min(this.previewIndex, len - 1));
+                        const start = Math.max(0, Math.min(center - 3, len - 7));
+                        const end = Math.min(len, start + 7);
+
+                        return Array.from({ length: end - start }, (_, i) => {
+                            const idx = start + i;
+                            const isEdge = (idx === start || idx === end - 1) && len > 7;
+                            return {
+                                id: `dot-${idx}`,
+                                idx,
+                                size: isEdge ? 'small' : 'normal',
+                            };
+                        });
+                    },
+                    previewDotAt(position) {
+                        const dots = this.previewDots();
+                        return (position >= 0 && position < dots.length) ? dots[position] : null;
+                    },
+                    dotButtonClass(dot, withHover = false) {
+                        if (!dot) return 'w-2 h-2 bg-white/30';
+
+                        const active = dot.idx === this.previewIndex;
+                        const small = dot.size === 'small';
+
+                        if (active) {
+                            return small ? 'w-1.5 h-1.5 bg-purple-400' : 'w-2.5 h-2.5 bg-purple-400';
+                        }
+
+                        if (small) {
+                            return 'w-1 h-1 bg-white/30';
+                        }
+
+                        return withHover ? 'w-2 h-2 bg-white/40 hover:bg-white/60' : 'w-2 h-2 bg-white/40';
+                    },
+
+                    // ============================================================
+                    // Keyboard
+                    // ============================================================
+                    handleKeydown(e) {
+                        if (this.showPreview) {
+                            if (e.key === 'ArrowLeft') this.prevImage();
+                            if (e.key === 'ArrowRight') this.nextImage();
+                            if (e.key === 'Escape') this.closePreview();
+                        }
+                    },
+
+                    // ============================================================
+                    // Preview Actions
+                    // ============================================================
+                    copyPrompt() {
+                        if (this.previewImage?.prompt) {
+                            navigator.clipboard.writeText(this.previewImage.prompt);
+                            this.notify('Đã copy prompt');
+                        }
+                    },
+                    async shareImage() {
+                        const url = this.previewImage?.url;
+                        if (!url) return;
+                        if (navigator.share) {
+                            try {
+                                await navigator.share({ title: 'AI Generated Image', url: url });
+                            } catch (e) { /* user cancelled */ }
+                        } else {
+                            navigator.clipboard.writeText(url);
+                            this.notify('Đã copy link ảnh');
+                        }
+                    },
+                    useAsReference() {
+                        const url = this.previewImage?.url;
+                        if (!url) return;
+                        if (this.maxImages === 0) {
+                            this.notify('Model này không hỗ trợ ảnh tham chiếu', 'warning');
+                            return;
+                        }
+                        if (this.selectedImages.some(i => i.url === url)) {
+                            this.notify('Ảnh đã có trong danh sách', 'warning');
+                            this.closePreview();
+                            return;
+                        }
                         if (this.selectedImages.length >= this.maxImages) {
                             this.notify('Tối đa ' + this.maxImages + ' ảnh', 'warning');
                             return;
                         }
                         this.selectedImages.push({ id: Date.now(), url: url });
-                    }
-                    this.$wire.setReferenceImages(
-                        this.selectedImages.map(img => ({ url: img.url }))
-                    );
-                },
+                        this.$wire.setReferenceImages(
+                            this.selectedImages.map(img => ({ url: img.url }))
+                        );
+                        this.closePreview();
+                        this.notify('Đã thêm ảnh làm tham chiếu');
+                    },
 
-                isSelected(url) {
-                    return this.selectedImages.some(i => i.url === url);
-                },
+                    // Touch swipe for mobile preview
+                    touchStartX: 0,
+                    handleTouchStart(e) {
+                        this.touchStartX = e.touches[0].clientX;
+                    },
+                    handleTouchEnd(e) {
+                        const diff = e.changedTouches[0].clientX - this.touchStartX;
+                        if (Math.abs(diff) > 50) {
+                            if (diff > 0) this.prevImage();
+                            else this.nextImage();
+                        }
+                    },
+                    async downloadImage(url) {
+                        try {
+                            const res = await fetch(url);
+                            const blob = await res.blob();
+                            // P1#2: detect correct extension from blob type
+                            const extMap = { 'image/jpeg': '.jpg', 'image/png': '.png', 'image/webp': '.webp', 'image/gif': '.gif' };
+                            const ext = extMap[blob.type] || '.png';
+                            const a = document.createElement('a');
+                            a.href = URL.createObjectURL(blob);
+                            a.download = 'zdream-' + Date.now() + ext;
+                            a.click();
+                            URL.revokeObjectURL(a.href);
+                        } catch (e) {
+                            window.open(url, '_blank');
+                        }
+                    },
 
-                removeImage(id) {
-                    this.selectedImages = this.selectedImages.filter(i => i.id !== id);
-                    this.$wire.setReferenceImages(
-                        this.selectedImages.map(img => ({ url: img.url }))
-                    );
-                },
+                    // ============================================================
+                    // Image Picker (inline in composer)
+                    // ============================================================
+                    async loadRecentImages() {
+                        this.isLoadingPicker = true;
+                        try {
+                            const res = await fetch('/api/user/recent-images');
+                            if (res.ok) this.recentImages = await res.json();
+                        } catch (e) {
+                            console.error(e);
+                            this.notify('Không tải được ảnh gần đây', 'error');
+                        }
+                        this.isLoadingPicker = false;
+                    },
 
-                clearAll() {
-                    this.selectedImages = [];
-                    this.$wire.setReferenceImages([]);
-                },
-            }));
+                    handleFileSelect(e) {
+                        const files = Array.from(e.target.files);
+                        this.processFiles(files);
+                        e.target.value = '';
+                    },
+
+                    processFiles(files) {
+                        const remaining = this.maxImages - this.selectedImages.length;
+                        const toProcess = files.slice(0, remaining);
+                        const skipped = files.length - toProcess.length;
+                        let processed = 0;
+                        const total = toProcess.length;
+
+                        if (total === 0 && skipped > 0) {
+                            this.notify(`Đã đạt giới hạn ${this.maxImages} ảnh`, 'warning');
+                            return;
+                        }
+
+                        toProcess.forEach(file => {
+                            if (file.size > 10 * 1024 * 1024) {
+                                this.notify('Ảnh quá lớn (tối đa 10MB)', 'error');
+                                processed++;
+                                return;
+                            }
+                            const reader = new FileReader();
+                            reader.onload = (ev) => {
+                                this.selectedImages.push({
+                                    id: Date.now() + Math.random(),
+                                    url: ev.target.result,
+                                    file: file
+                                });
+                                processed++;
+                                if (processed >= total) {
+                                    this.$wire.setReferenceImages(
+                                        this.selectedImages.map(img => ({ url: img.url }))
+                                    );
+                                    if (skipped > 0) {
+                                        this.notify(`Đã thêm ${total} ảnh, bỏ ${skipped} (vượt giới hạn ${this.maxImages})`, 'warning');
+                                    }
+                                }
+                            };
+                            reader.readAsDataURL(file);
+                        });
+                    },
+
+                    addFromUrl() {
+                        const url = this.urlInput.trim();
+                        if (!url) return;
+                        if (!/^https?:\/\//i.test(url)) {
+                            this.notify('URL phải bắt đầu bằng http:// hoặc https://', 'warning');
+                            return;
+                        }
+                        if (this.selectedImages.some(i => i.url === url)) {
+                            this.notify('Ảnh đã có trong danh sách', 'warning');
+                            return;
+                        }
+                        if (this.selectedImages.length >= this.maxImages) {
+                            this.notify('Tối đa ' + this.maxImages + ' ảnh', 'warning');
+                            return;
+                        }
+                        this.selectedImages.push({ id: Date.now(), url: url });
+                        this.$wire.setReferenceImages(
+                            this.selectedImages.map(img => ({ url: img.url }))
+                        );
+                        this.urlInput = '';
+                    },
+
+                    selectFromRecent(url) {
+                        const idx = this.selectedImages.findIndex(i => i.url === url);
+                        if (idx > -1) {
+                            this.selectedImages.splice(idx, 1);
+                        } else {
+                            if (this.selectedImages.length >= this.maxImages) {
+                                this.notify('Tối đa ' + this.maxImages + ' ảnh', 'warning');
+                                return;
+                            }
+                            this.selectedImages.push({ id: Date.now(), url: url });
+                        }
+                        this.$wire.setReferenceImages(
+                            this.selectedImages.map(img => ({ url: img.url }))
+                        );
+                    },
+
+                    isSelected(url) {
+                        return this.selectedImages.some(i => i.url === url);
+                    },
+
+                    removeImage(id) {
+                        this.selectedImages = this.selectedImages.filter(i => i.id !== id);
+                        this.$wire.setReferenceImages(
+                            this.selectedImages.map(img => ({ url: img.url }))
+                        );
+                    },
+
+                    clearAll() {
+                        this.selectedImages = [];
+                        this.$wire.setReferenceImages([]);
+                    },
+                }));
             };
 
             if (window.Alpine) {

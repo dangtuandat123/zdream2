@@ -33,26 +33,53 @@
             @php $absoluteIndex = 0; @endphp
 
             <div class="space-y-5 sm:space-y-6 gallery-wrapper" x-data>
-                {{-- Older history loader hint (top) --}}
-                <div x-show="hasMoreHistory || loadingMoreHistory" x-cloak class="flex justify-center py-1.5">
-                    <button type="button"
-                        @click="if (hasMoreHistory && !loadingMoreHistory) manualLoadOlder()"
-                        class="inline-flex items-center justify-center gap-2.5 text-white/85 text-sm rounded-full h-12 px-4.5 border border-white/10 bg-[#121722] transition-colors min-w-[17rem]"
-                        :class="(!loadingMoreHistory && hasMoreHistory) ? 'cursor-pointer hover:text-white hover:bg-[#172030]' : 'cursor-default'"
-                        :disabled="loadingMoreHistory || !hasMoreHistory">
-                        <span x-show="!loadingMoreHistory"
-                            class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-white/10">
-                            <i class="fa-solid fa-arrow-up text-xs"></i>
-                        </span>
-                        <span x-show="!loadingMoreHistory && canScrollVertically">Lướt lên để tải ảnh cũ hơn</span>
-                        <span x-show="!loadingMoreHistory && !canScrollVertically">Kéo lên để tải ảnh cũ hơn</span>
-                        <span x-show="loadingMoreHistory" class="inline-flex items-center justify-center relative w-9 h-9">
-                            <span class="absolute inset-0 rounded-full border-[3px] border-cyan-200/20"></span>
-                            <span class="absolute inset-0 rounded-full border-[3px] border-transparent border-t-cyan-300 border-r-cyan-300 animate-spin"></span>
-                            <span class="absolute inset-2 rounded-full bg-cyan-300/20"></span>
-                        </span>
-                        <span x-show="loadingMoreHistory" class="text-sm font-semibold text-cyan-100/95 tracking-[0.01em]">Đang tải ảnh cũ hơn...</span>
-                    </button>
+                {{-- Top Sentinel: auto-triggers loadMore when scrolled near top --}}
+                <div x-show="hasMoreHistory || loadingMoreHistory" x-cloak
+                    x-data="{
+                        observer: null,
+                        lastTrigger: 0,
+                        init() {
+                            this.$nextTick(() => {
+                                this.observer = new IntersectionObserver((entries) => {
+                                    entries.forEach(entry => {
+                                        if (!entry.isIntersecting) return;
+                                        if (this.loadingMoreHistory || !this.hasMoreHistory) return;
+                                        const now = Date.now();
+                                        if (now - this.lastTrigger < 800) return;
+                                        this.lastTrigger = now;
+                                        this.requestLoadOlder(this.loadOlderStep, 'scroll');
+                                    });
+                                }, { rootMargin: '400px 0px 0px 0px', threshold: 0 });
+                                if (this.$el) this.observer.observe(this.$el);
+                            });
+                        },
+                        destroy() {
+                            if (this.observer) { this.observer.disconnect(); this.observer = null; }
+                        }
+                    }"
+                    class="flex flex-col items-center justify-center py-6 min-h-[5rem]">
+
+                    {{-- Loading state --}}
+                    <template x-if="loadingMoreHistory">
+                        <div class="flex flex-col items-center gap-3">
+                            <div class="relative w-11 h-11">
+                                <div class="absolute inset-0 rounded-full border-[2.5px] border-purple-500/15"></div>
+                                <div class="absolute inset-0 rounded-full border-[2.5px] border-transparent border-t-purple-400 border-r-purple-400/40 animate-spin" style="animation-duration: 0.8s;"></div>
+                                <div class="absolute inset-[6px] rounded-full bg-purple-400/10 animate-pulse"></div>
+                            </div>
+                            <span class="text-white/45 text-[13px] font-medium tracking-wide">Đang tải ảnh cũ hơn…</span>
+                        </div>
+                    </template>
+
+                    {{-- Idle state --}}
+                    <template x-if="!loadingMoreHistory && hasMoreHistory">
+                        <button type="button"
+                            @click="requestLoadOlder(loadOlderStep, 'manual')"
+                            class="inline-flex items-center gap-2.5 text-white/50 hover:text-white/80 text-[13px] font-medium rounded-full px-5 py-2.5 border border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.05] transition-all duration-200 cursor-pointer active:scale-[0.97]">
+                            <i class="fa-solid fa-chevron-up text-[10px] text-purple-400/70"></i>
+                            <span>Tải ảnh cũ hơn</span>
+                        </button>
+                    </template>
                 </div>
 
                 {{-- Grouped Batches --}}
@@ -266,15 +293,7 @@
                     @endif
                 @endforelse
 
-                {{-- Bottom Infinite Scroll Sentinel --}}
-                @if(false)
-                    <div class="py-8 flex justify-center" wire:intersect.once.margin.500px="loadMore">
-                        <div class="flex items-center gap-2 text-white/40 text-sm">
-                            <i class="fa-solid fa-spinner fa-spin text-purple-400" wire:loading wire:target="loadMore"></i>
-                            <span wire:loading wire:target="loadMore">Đang tải thêm...</span>
-                        </div>
-                    </div>
-                @endif
+
             </div>
 
             {{-- Loading Skeleton (Pending Batch) --}}
