@@ -292,7 +292,7 @@
                 }
 
                 Alpine.data('textToImage', () => ({
-                    // ── UI State ──────────────────────────────────────
+                        // ── UI State ───────────────────────────────────                            ───
                     uiMode: 'idle', // idle | generating | partial_success | failed | done
                     statusMessage: '',
                     statusElapsed: 0,
@@ -382,6 +382,8 @@
                     ],
                     currentLoadingMessage: 0,
                     loadingInterval: null,
+
+                    // ── Internal refs (scroll / IO / cleanup) ─────
                     _scrollHandler: null,
                     _onNavigating: null,
                     _morphCleanup: null,
@@ -391,22 +393,17 @@
                     _resizeHandler: null,
                     _prependRestoreRaf: null,
                     _prependStabilizeCleanup: null,
+                    _sentinelObserver: null,
+
+                    // ── Infinite scroll state ─────────────────────
                     hasMoreHistory: @js($history instanceof \Illuminate\Pagination\LengthAwarePaginator ? $history->hasMorePages() : false),
                     loadingMoreHistory: false,
                     isPrependingHistory: false,
-                    prependBeforeScrollY: 0,
-                    prependBeforeHeight: 0,
                     prependBoundaryId: null,
                     prependBoundaryTop: null,
                     lastLoadMoreAt: 0,
                     lastScrollY: 0,
-                    userInitiatedUpScroll: false,
-                    canScrollVertically: false,
-                    bootstrapLoadCount: 0,
-                    maxBootstrapLoads: 2,
                     loadOlderStep: 3,
-                    bootstrapStep: 2,
-                    topAutoLoadsLeft: 0,
 
                     // Dynamic max images based on selected model
                     get maxImages() {
@@ -451,7 +448,6 @@
                             requestAnimationFrame(() => {
                                 this.scrollToBottom(false);
                                 this.lastScrollY = window.scrollY || document.documentElement.scrollTop || 0;
-                                this.refreshScrollState();
                                 this.maybeBootstrapHistory();
                             });
                         });
@@ -467,11 +463,9 @@
                         }
                         this.syncHistoryData(this.historyData);
 
+                        // Scroll handler: only manages auto-scroll + jump button
                         this._scrollHandler = () => {
                             const currentY = window.scrollY || document.documentElement.scrollTop || 0;
-                            if (currentY < this.lastScrollY - 2) {
-                                this.userInitiatedUpScroll = true;
-                            }
                             this.lastScrollY = currentY;
 
                             if (this.autoScrollEnabled && !this.isNearBottom(120)) {
@@ -480,13 +474,13 @@
                             if (this.isNearBottom(120)) {
                                 this.showScrollToBottom = false;
                             }
-                            this.refreshScrollState();
-                            // Note: maybeLoadOlder() removed — IntersectionObserver sentinel handles auto-loading
                         };
                         window.addEventListener('scroll', this._scrollHandler, { passive: true });
 
+                        // IntersectionObserver for top sentinel
+                        this._setupSentinelObserver();
+
                         this._resizeHandler = () => {
-                            this.refreshScrollState();
                             this.maybeBootstrapHistory();
                         };
                         window.addEventListener('resize', this._resizeHandler, { passive: true });
@@ -555,14 +549,12 @@
                                         cancelAnimationFrame(this._prependRestoreRaf);
                                         this._prependRestoreRaf = null;
                                     }
-                                    // Apply a single correction frame after DOM morph.
                                     this._prependRestoreRaf = requestAnimationFrame(() => {
-                                        const stabilizeBoundaryId = this.prependBoundaryId;
-                                        const stabilizeBoundaryTop = this.prependBoundaryTop;
-
+                                        const sid = this.prependBoundaryId;
+                                        const sTop = this.prependBoundaryTop;
                                         this.restorePrependAnchor();
-                                        if (stabilizeBoundaryId !== null && stabilizeBoundaryTop !== null) {
-                                            this.stabilizePrependAnchor(stabilizeBoundaryId, stabilizeBoundaryTop);
+                                        if (sid !== null && sTop !== null) {
+                                            this.stabilizePrependAnchor(sid, sTop);
                                         }
                                         this._prependRestoreRaf = null;
                                     });
@@ -570,20 +562,12 @@
 
                                 this.loadingMoreHistory = false;
                                 this.isPrependingHistory = false;
-                                this.prependBeforeScrollY = 0;
-                                this.prependBeforeHeight = 0;
                                 this.prependBoundaryId = null;
                                 this.prependBoundaryTop = null;
                                 clearTimeout(this._loadMoreFailSafeTimer);
                                 this._loadMoreFailSafeTimer = null;
-                                this.refreshScrollState();
-                                if (this.hasMoreHistory && !this.canScrollVertically && !this.loadingMoreHistory) {
-                                    this.userInitiatedUpScroll = true;
-                                    setTimeout(() => this.maybeLoadOlder(), 180);
-                                }
-                                if (!this.hasMoreHistory || !this.isNearTop(180)) {
-                                    this.topAutoLoadsLeft = 0;
-                                }
+
+                                // If content doesn't fill viewport yet, keep loading
                                 this.maybeBootstrapHistory();
                             });
                         });
@@ -651,7 +635,6 @@
                                         } catch (e) { }
                                     }
 
-                                    this.refreshScrollState();
                                     this.maybeBootstrapHistory();
                                 }
                             });
@@ -691,6 +674,10 @@
                             window.removeEventListener('resize', this._resizeHandler);
                             this._resizeHandler = null;
                         }
+                        if (this._sentinelObserver) {
+                            this._sentinelObserver.disconnect();
+                            this._sentinelObserver = null;
+                        }
                         if (this._onNavigating) {
                             document.removeEventListener('livewire:navigating', this._onNavigating);
                             this._onNavigating = null;
@@ -712,11 +699,8 @@
                         this.stopPrependStabilize();
                         this.loadingMoreHistory = false;
                         this.isPrependingHistory = false;
-                        this.prependBeforeScrollY = 0;
-                        this.prependBeforeHeight = 0;
                         this.prependBoundaryId = null;
                         this.prependBoundaryTop = null;
-                        this.topAutoLoadsLeft = 0;
                         document.body.style.overflow = '';
                         document.documentElement.style.overflow = '';
                         if (this._scrollRestoration !== null && 'scrollRestoration' in history) {
@@ -753,100 +737,76 @@
                     },
 
                     // ============================================================
-                    // Scroll
+                    // Scroll helpers
                     // ============================================================
                     scrollToBottom(smooth = true) {
                         const targetTop = document.documentElement.scrollHeight;
                         if (smooth) {
                             window.scrollTo({ top: targetTop, behavior: 'smooth' });
                         } else {
-                            // Use legacy signature to bypass global `scroll-behavior: smooth`.
                             window.scrollTo(0, targetTop);
                         }
                         this.showScrollToBottom = false;
                     },
                     isNearTop(threshold = 200) {
-                        const el = document.documentElement;
-                        return el.scrollTop < threshold;
+                        return document.documentElement.scrollTop < threshold;
                     },
                     isNearBottom(threshold = 200) {
                         const el = document.documentElement;
-                        const distanceFromBottom = el.scrollHeight - (el.scrollTop + window.innerHeight);
-                        return distanceFromBottom < threshold;
-                    },
-                    buildHistorySignature(items = this.historyData) {
-                        if (!Array.isArray(items) || items.length === 0) {
-                            return '0';
-                        }
-                        const first = items[0]?.id ?? items[0]?.url ?? 'x';
-                        const last = items[items.length - 1]?.id ?? items[items.length - 1]?.url ?? 'x';
-                        return `${items.length}:${first}:${last}`;
+                        return (el.scrollHeight - (el.scrollTop + window.innerHeight)) < threshold;
                     },
                     syncHistoryData(items) {
                         this.historyData = Array.isArray(items) ? items : [];
-                        const nextSignature = this.buildHistorySignature(this.historyData);
-                        if (nextSignature !== this.historySignature) {
-                            this.bootstrapLoadCount = 0;
-                            this.historySignature = nextSignature;
+                    },
+
+                    // ============================================================
+                    // IntersectionObserver for top sentinel
+                    // ============================================================
+                    _setupSentinelObserver() {
+                        if (this._sentinelObserver) {
+                            this._sentinelObserver.disconnect();
+                            this._sentinelObserver = null;
                         }
+                        const sentinel = document.getElementById('load-older-sentinel');
+                        if (!sentinel) return;
+
+                        this._sentinelObserver = new IntersectionObserver((entries) => {
+                            entries.forEach(entry => {
+                                if (!entry.isIntersecting) return;
+                                if (this.loadingMoreHistory || !this.hasMoreHistory) return;
+                                const now = Date.now();
+                                if (now - this.lastLoadMoreAt < 800) return;
+                                this.requestLoadOlder(this.loadOlderStep);
+                            });
+                        }, { rootMargin: '400px 0px 0px 0px', threshold: 0 });
+                        this._sentinelObserver.observe(sentinel);
                     },
-                    refreshScrollState() {
-                        const el = document.documentElement;
-                        this.canScrollVertically = (el.scrollHeight - window.innerHeight) > 8;
-                    },
-                    capturePrependAnchor(centerAnchor = false) {
-                        const doc = document.documentElement;
+
+                    // ============================================================
+                    // Scroll preservation (prepend anchor)
+                    // ============================================================
+                    capturePrependAnchor() {
                         const groups = Array.from(
                             document.querySelectorAll('#gallery-feed .group-batch[data-history-anchor-id]')
                         );
+                        // Find the first batch whose bottom edge is in or below the viewport
                         const boundary = groups.find((el) => el.getBoundingClientRect().bottom > 0) || groups[0] || null;
-
-                        if (centerAnchor && boundary) {
-                            const rect = boundary.getBoundingClientRect();
-                            const currentY = window.scrollY || doc.scrollTop || 0;
-                            const targetTop = Math.max(96, Math.round((window.innerHeight - Math.min(rect.height, window.innerHeight * 0.72)) / 2));
-                            const nextY = Math.max(0, Math.round(currentY + rect.top - targetTop));
-                            window.scrollTo(0, nextY);
-                        }
-
-                        this.prependBeforeScrollY = window.scrollY || doc.scrollTop || 0;
-                        this.prependBeforeHeight = doc.scrollHeight || 0;
                         this.prependBoundaryId = boundary?.dataset?.historyAnchorId ?? null;
                         this.prependBoundaryTop = boundary ? boundary.getBoundingClientRect().top : null;
                     },
                     restorePrependAnchor() {
-                        const doc = document.documentElement;
-                        let restored = false;
+                        if (this.prependBoundaryId === null || this.prependBoundaryTop === null) return;
 
-                        if (this.prependBoundaryId !== null && this.prependBoundaryTop !== null) {
-                            const groups = Array.from(
-                                document.querySelectorAll('#gallery-feed .group-batch[data-history-anchor-id]')
-                            );
-                            const boundary = groups.find(
-                                (el) => String(el?.dataset?.historyAnchorId ?? '') === String(this.prependBoundaryId)
-                            );
+                        const boundary = document.querySelector(
+                            `#gallery-feed .group-batch[data-history-anchor-id="${this.prependBoundaryId}"]`
+                        );
+                        if (!boundary) return;
 
-                            if (boundary) {
-                                const currentY = window.scrollY || doc.scrollTop || 0;
-                                const delta = boundary.getBoundingClientRect().top - this.prependBoundaryTop;
-                                if (Math.abs(delta) > 1) {
-                                    window.scrollTo(0, Math.max(0, Math.round(currentY + delta)));
-                                }
-                                restored = true;
-                            }
+                        const currentY = window.scrollY || document.documentElement.scrollTop || 0;
+                        const delta = boundary.getBoundingClientRect().top - this.prependBoundaryTop;
+                        if (Math.abs(delta) > 1) {
+                            window.scrollTo(0, Math.max(0, Math.round(currentY + delta)));
                         }
-
-                        if (!restored && this.prependBeforeHeight > 0) {
-                            const currentY = window.scrollY || doc.scrollTop || 0;
-                            const currentHeight = doc.scrollHeight || 0;
-                            const expectedY = this.prependBeforeScrollY + Math.max(0, currentHeight - this.prependBeforeHeight);
-                            const residual = expectedY - currentY;
-                            if (Math.abs(residual) > 1) {
-                                window.scrollTo(0, Math.max(0, Math.round(expectedY)));
-                            }
-                        }
-
-                        this.refreshScrollState();
                     },
                     stopPrependStabilize() {
                         if (typeof this._prependStabilizeCleanup === 'function') {
@@ -856,20 +816,15 @@
                     },
                     stabilizePrependAnchor(boundaryId, boundaryTop, maxDurationMs = 1800) {
                         this.stopPrependStabilize();
-
                         if (boundaryId === null || boundaryTop === null) return;
 
                         const selector = `#gallery-feed .group-batch[data-history-anchor-id="${String(boundaryId)}"]`;
                         const syncBoundary = () => {
                             const boundary = document.querySelector(selector);
                             if (!boundary) return;
-
-                            const currentTop = boundary.getBoundingClientRect().top;
-                            const delta = currentTop - boundaryTop;
+                            const delta = boundary.getBoundingClientRect().top - boundaryTop;
                             if (Math.abs(delta) <= 0.5) return;
-
-                            const doc = document.documentElement;
-                            const currentY = window.scrollY || doc.scrollTop || 0;
+                            const currentY = window.scrollY || document.documentElement.scrollTop || 0;
                             window.scrollTo(0, Math.max(0, Math.round(currentY + delta)));
                         };
 
@@ -879,7 +834,6 @@
                         const boundaryIndex = groups.findIndex(
                             (el) => String(el?.dataset?.historyAnchorId ?? '') === String(boundaryId)
                         );
-
                         const prependedGroups = boundaryIndex > 0 ? groups.slice(0, boundaryIndex) : [];
                         const pendingImages = prependedGroups
                             .flatMap((el) => Array.from(el.querySelectorAll('img')))
@@ -901,20 +855,20 @@
                             });
                         });
 
-                        const timeoutId = setTimeout(() => {
-                            cleanup();
-                        }, maxDurationMs);
-
+                        const timeoutId = setTimeout(() => cleanup(), maxDurationMs);
                         const cleanup = () => {
                             clearTimeout(timeoutId);
                             cleanupFns.forEach((fn) => fn());
                             cleanupFns.length = 0;
                             this._prependStabilizeCleanup = null;
                         };
-
                         this._prependStabilizeCleanup = cleanup;
                         requestAnimationFrame(syncBoundary);
                     },
+
+                    // ============================================================
+                    // Center latest batch (after image generation)
+                    // ============================================================
                     centerLatestBatch(smooth = false) {
                         const batches = Array.from(document.querySelectorAll('#gallery-feed .group-batch'));
                         const latest = batches[batches.length - 1];
@@ -942,9 +896,7 @@
 
                         const images = Array.from(latest.querySelectorAll('img'));
                         const pending = images.filter((img) => !img.complete);
-                        if (!pending.length) {
-                            return this.centerLatestBatch(true);
-                        }
+                        if (!pending.length) return this.centerLatestBatch(true);
 
                         let settled = false;
                         let timeoutId = null;
@@ -953,17 +905,12 @@
                         const settle = () => {
                             if (settled) return;
                             settled = true;
-                            if (timeoutId) {
-                                clearTimeout(timeoutId);
-                                timeoutId = null;
-                            }
+                            if (timeoutId) { clearTimeout(timeoutId); timeoutId = null; }
                             cleanupFns.forEach((fn) => fn());
                             cleanupFns.length = 0;
-
                             requestAnimationFrame(() => {
                                 const centered = this.centerLatestBatch(true);
                                 if (centered) {
-                                    // One extra frame correction to neutralize late image decode shifts.
                                     requestAnimationFrame(() => this.centerLatestBatch(false));
                                 }
                             });
@@ -979,62 +926,32 @@
                                 img.removeEventListener('error', onError);
                             });
                         });
-
                         timeoutId = setTimeout(settle, 1500);
                         return true;
                     },
+
+                    // ============================================================
+                    // Bootstrap & load older
+                    // ============================================================
                     maybeBootstrapHistory() {
                         if (!this.hasMoreHistory || this.loadingMoreHistory) return;
-                        this.refreshScrollState();
-                        if (this.canScrollVertically) return;
-                        if (this.bootstrapLoadCount >= this.maxBootstrapLoads) return;
-
-                        this.bootstrapLoadCount += 1;
-                        this.requestLoadOlder(this.bootstrapStep, 'bootstrap');
+                        const el = document.documentElement;
+                        const canScroll = (el.scrollHeight - window.innerHeight) > 8;
+                        if (canScroll) return;
+                        this.requestLoadOlder(2);
                     },
-                    maybeLoadOlder() {
-                        if (!this.hasMoreHistory || this.loadingMoreHistory) return;
-                        if (!this.userInitiatedUpScroll) return;
-                        if (!this.isNearTop(260)) return;
-
-                        this.requestLoadOlder(this.loadOlderStep, 'scroll');
-                    },
-                    maybeAutoLoadOlderAfterPrepend() {
-                        if (!this.hasMoreHistory || this.loadingMoreHistory) return;
-                        if (!this.isNearTop(140)) return;
-                        if (this.topAutoLoadsLeft <= 0) return;
-
-                        const now = Date.now();
-                        if (now - this.lastLoadMoreAt < 320) return;
-                        this.topAutoLoadsLeft = Math.max(0, this.topAutoLoadsLeft - 1);
-                        this.lastLoadMoreAt = now;
-                        setTimeout(() => this.requestLoadOlder(this.loadOlderStep, 'auto'), 130);
-                    },
-                    manualLoadOlder() {
-                        this.userInitiatedUpScroll = true;
-                        this.requestLoadOlder(this.loadOlderStep, 'manual');
-                    },
-                    requestLoadOlder(count = null, source = 'scroll') {
+                    requestLoadOlder(count = null) {
                         if (!this.hasMoreHistory || this.loadingMoreHistory) return;
                         const now = Date.now();
-                        if (now - this.lastLoadMoreAt < 260) return;
+                        if (now - this.lastLoadMoreAt < 300) return;
                         this.lastLoadMoreAt = now;
 
                         this.stopPrependStabilize();
-                        const shouldCenterAnchor = source !== 'bootstrap' && this.isNearTop(180);
-                        this.capturePrependAnchor(shouldCenterAnchor);
+                        this.capturePrependAnchor();
                         this.loadingMoreHistory = true;
                         this.isPrependingHistory = true;
-                        // Note: removed userInitiatedUpScroll=false — IntersectionObserver handles re-triggering
-                        if (source === 'scroll' || source === 'manual') {
-                            this.topAutoLoadsLeft = this.isNearTop(160) ? 1 : 0;
-                        } else if (source === 'bootstrap') {
-                            this.topAutoLoadsLeft = 0;
-                        }
 
-                        const fallbackStep = Number.isFinite(this.loadOlderStep) ? this.loadOlderStep : 1;
-                        const requested = Number.isFinite(count) ? count : fallbackStep;
-                        const batch = Math.max(1, Math.min(12, Math.trunc(requested)));
+                        const batch = Math.max(1, Math.min(12, Math.trunc(count || this.loadOlderStep)));
                         this.$wire.loadMore(batch);
 
                         clearTimeout(this._loadMoreFailSafeTimer);
@@ -1042,11 +959,8 @@
                             this.loadingMoreHistory = false;
                             this.isPrependingHistory = false;
                             this.stopPrependStabilize();
-                            this.prependBeforeScrollY = 0;
-                            this.prependBeforeHeight = 0;
                             this.prependBoundaryId = null;
                             this.prependBoundaryTop = null;
-                            this.topAutoLoadsLeft = 0;
                             this._loadMoreFailSafeTimer = null;
                         }, 7000);
                     },

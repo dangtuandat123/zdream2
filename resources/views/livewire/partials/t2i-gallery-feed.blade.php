@@ -1,5 +1,5 @@
 {{-- ============================================================ --}}
-{{-- GALLERY FEED — Compact batch cards with mobile-visible actions --}}
+{{-- GALLERY FEED — Clean rewrite with reliable infinite scroll --}}
 {{-- ============================================================ --}}
 <div id="gallery-scroll" class="t2i-gallery-shell">
     <div class="max-w-4xl mx-auto px-4"
@@ -26,63 +26,65 @@
         @endif
 
         {{-- Gallery Feed --}}
-        <div class="flex flex-col gap-5 sm:gap-6 px-0 sm:px-1 pt-4 sm:pt-5" id="gallery-feed" data-history='@json($flatHistoryForJs)'
+        <div class="flex flex-col gap-5 sm:gap-6 px-0 sm:px-1 pt-4 sm:pt-5" id="gallery-feed"
+            data-history='@json($flatHistoryForJs)'
             data-has-more="{{ ($history instanceof \Illuminate\Pagination\LengthAwarePaginator && $history->hasMorePages()) ? '1' : '0' }}"
             wire:key="gallery-feed">
 
             @php $absoluteIndex = 0; @endphp
 
-            <div class="space-y-5 sm:space-y-6 gallery-wrapper" x-data>
-                {{-- Top Sentinel: auto-triggers loadMore when scrolled near top --}}
-                <div x-show="hasMoreHistory || loadingMoreHistory" x-cloak
-                    x-data="{
-                        observer: null,
-                        lastTrigger: 0,
-                        init() {
-                            this.$nextTick(() => {
-                                this.observer = new IntersectionObserver((entries) => {
-                                    entries.forEach(entry => {
-                                        if (!entry.isIntersecting) return;
-                                        if (this.loadingMoreHistory || !this.hasMoreHistory) return;
-                                        const now = Date.now();
-                                        if (now - this.lastTrigger < 800) return;
-                                        this.lastTrigger = now;
-                                        this.requestLoadOlder(this.loadOlderStep, 'scroll');
-                                    });
-                                }, { rootMargin: '400px 0px 0px 0px', threshold: 0 });
-                                if (this.$el) this.observer.observe(this.$el);
-                            });
-                        },
-                        destroy() {
-                            if (this.observer) { this.observer.disconnect(); this.observer = null; }
-                        }
-                    }"
-                    class="flex flex-col items-center justify-center py-6 min-h-[5rem]">
+            <div class="space-y-5 sm:space-y-6 gallery-wrapper">
 
-                    {{-- Loading state --}}
-                    <template x-if="loadingMoreHistory">
-                        <div class="flex flex-col items-center gap-3">
-                            <div class="relative w-11 h-11">
-                                <div class="absolute inset-0 rounded-full border-[2.5px] border-purple-500/15"></div>
-                                <div class="absolute inset-0 rounded-full border-[2.5px] border-transparent border-t-purple-400 border-r-purple-400/40 animate-spin" style="animation-duration: 0.8s;"></div>
-                                <div class="absolute inset-[6px] rounded-full bg-purple-400/10 animate-pulse"></div>
+                {{-- ═══════════════════════════════════════════ --}}
+                {{-- TOP SENTINEL — auto-load older history --}}
+                {{-- ═══════════════════════════════════════════ --}}
+                @if($history instanceof \Illuminate\Pagination\LengthAwarePaginator && $history->hasMorePages())
+                    <div id="load-older-sentinel" class="flex flex-col items-center justify-center py-8 min-h-[6rem]"
+                        x-show="hasMoreHistory || loadingMoreHistory" x-cloak>
+
+                        {{-- Loading State --}}
+                        <div x-show="loadingMoreHistory" x-cloak class="flex flex-col items-center gap-3.5 py-2"
+                            x-transition:enter="transition ease-out duration-200"
+                            x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100">
+                            <div class="relative w-12 h-12">
+                                {{-- Outer ring --}}
+                                <svg class="absolute inset-0 w-full h-full animate-spin" style="animation-duration: 1s;"
+                                    viewBox="0 0 48 48" fill="none">
+                                    <circle cx="24" cy="24" r="20" stroke="rgba(168,85,247,0.15)" stroke-width="3" />
+                                    <path d="M44 24c0 11.046-8.954 20-20 20" stroke="url(#grad)" stroke-width="3"
+                                        stroke-linecap="round">
+                                        <animateTransform attributeName="transform" type="rotate" from="0 24 24"
+                                            to="360 24 24" dur="1s" repeatCount="indefinite" />
+                                    </path>
+                                    <defs>
+                                        <linearGradient id="grad" x1="0" y1="0" x2="1" y2="1">
+                                            <stop offset="0%" stop-color="rgba(168,85,247,0.9)" />
+                                            <stop offset="100%" stop-color="rgba(59,130,246,0.6)" />
+                                        </linearGradient>
+                                    </defs>
+                                </svg>
+                                {{-- Inner pulse dot --}}
+                                <div class="absolute inset-0 flex items-center justify-center">
+                                    <div class="w-3 h-3 rounded-full bg-purple-400/40 animate-pulse"></div>
+                                </div>
                             </div>
-                            <span class="text-white/45 text-[13px] font-medium tracking-wide">Đang tải ảnh cũ hơn…</span>
+                            <span class="text-white/40 text-[13px] font-medium">Đang tải ảnh cũ hơn…</span>
                         </div>
-                    </template>
 
-                    {{-- Idle state --}}
-                    <template x-if="!loadingMoreHistory && hasMoreHistory">
-                        <button type="button"
-                            @click="requestLoadOlder(loadOlderStep, 'manual')"
-                            class="inline-flex items-center gap-2.5 text-white/50 hover:text-white/80 text-[13px] font-medium rounded-full px-5 py-2.5 border border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.05] transition-all duration-200 cursor-pointer active:scale-[0.97]">
-                            <i class="fa-solid fa-chevron-up text-[10px] text-purple-400/70"></i>
-                            <span>Tải ảnh cũ hơn</span>
-                        </button>
-                    </template>
-                </div>
+                        {{-- Idle State (fallback tap button) --}}
+                        <div x-show="!loadingMoreHistory && hasMoreHistory" x-cloak>
+                            <button type="button" @click="requestLoadOlder(loadOlderStep)"
+                                class="inline-flex items-center gap-2.5 text-white/45 hover:text-white/75 text-[13px] font-medium rounded-full px-5 py-2.5 border border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.05] transition-all duration-200 cursor-pointer active:scale-[0.97]">
+                                <i class="fa-solid fa-chevron-up text-[10px] text-purple-400/60"></i>
+                                <span>Tải ảnh cũ hơn</span>
+                            </button>
+                        </div>
+                    </div>
+                @endif
 
-                {{-- Grouped Batches --}}
+                {{-- ═══════════════════════════════════════════ --}}
+                {{-- GROUPED BATCHES --}}
+                {{-- ═══════════════════════════════════════════ --}}
                 @php $totalGroups = $groupedHistory->count();
                 $groupIdx = 0; @endphp
                 @forelse($groupedHistory as $groupKey => $groupItems)
@@ -98,7 +100,6 @@
                             $modelName = $found['name'] ?? $modelId;
                         }
 
-                        // Keep a stable card height to avoid layout jumps while images stream in.
                         $aspectRatioCss = null;
                         $outW = $firstItem->generation_params['output_width'] ?? null;
                         $outH = $firstItem->generation_params['output_height'] ?? null;
@@ -114,8 +115,8 @@
                         $ratioDisplay = $ratio ?: 'Auto';
                     @endphp
 
-                    <div class="space-y-2.5 group-batch t2i-batch" x-data="{ expanded: false }" wire:key="group-{{ $wireKey }}"
-                        data-history-anchor-id="{{ $firstItem->id }}">
+                    <div class="space-y-2.5 group-batch t2i-batch" x-data="{ expanded: false }"
+                        wire:key="group-{{ $wireKey }}" data-history-anchor-id="{{ $firstItem->id }}">
 
                         {{-- Batch Header --}}
                         <div class="flex items-center gap-2">
@@ -145,13 +146,13 @@
                                         <span class="hidden sm:inline">Reuse</span>
                                     </button>
                                     @if($groupItems->count() > 1)
-                                    <button x-data
-                                        @click="(() => { const urls = @js($groupItems->pluck('image_url')->toArray()); urls.forEach((u, i) => { setTimeout(() => downloadImage(u), i * 500); }); notify('Đang tải ' + urls.length + ' ảnh...'); })()"
-                                        class="inline-flex items-center justify-center h-7 px-2 rounded-lg bg-transparent text-white/50 hover:bg-white/[0.05] hover:text-white/90 text-xs transition-all duration-200 active:scale-[0.98]"
-                                        title="Tải cả batch">
-                                        <i class="fa-solid fa-download text-xs mr-1"></i>
-                                        <span class="hidden sm:inline">All</span>
-                                    </button>
+                                        <button x-data
+                                            @click="(() => { const urls = @js($groupItems->pluck('image_url')->toArray()); urls.forEach((u, i) => { setTimeout(() => downloadImage(u), i * 500); }); notify('Đang tải ' + urls.length + ' ảnh...'); })()"
+                                            class="inline-flex items-center justify-center h-7 px-2 rounded-lg bg-transparent text-white/50 hover:bg-white/[0.05] hover:text-white/90 text-xs transition-all duration-200 active:scale-[0.98]"
+                                            title="Tải cả batch">
+                                            <i class="fa-solid fa-download text-xs mr-1"></i>
+                                            <span class="hidden sm:inline">All</span>
+                                        </button>
                                     @endif
                                 </div>
                             </div>
@@ -181,9 +182,10 @@
                                     $isNewestGroup = $groupIdx === $totalGroups - 1;
                                     $isPriorityImage = $isNewestGroup && $loop->index < 2;
                                 @endphp
-                                <div class="block group cursor-pointer" wire:key="img-{{ $image->id }}" @click="openPreview(null, {{ $absoluteIndex }})">
+                                <div class="block group cursor-pointer" wire:key="img-{{ $image->id }}"
+                                    @click="openPreview(null, {{ $absoluteIndex }})">
                                     <div class="h-full bg-white/[0.02] rounded-md">
-                                    <div class="relative overflow-hidden" {!! $aspectRatioCss ? 'style="aspect-ratio: '.$aspectRatioCss.';"' : '' !!}>
+                                        <div class="relative overflow-hidden" {!! $aspectRatioCss ? 'style="aspect-ratio: ' . $aspectRatioCss . ';"' : '' !!}>
                                             {{-- Shimmer --}}
                                             <div class="img-shimmer absolute inset-0 bg-white/[0.04]">
                                                 <div
@@ -253,26 +255,26 @@
                 @empty
                     @if(!$isGenerating)
                         <div class="py-16 sm:py-24 text-center" x-data="{
-                                    allPrompts: [
-                                        'Một chú mèo dễ thương ngủ trên mây',
-                                        'Phong cảnh núi tuyết hoàng hôn',
-                                        'Logo công nghệ gradient xanh',
-                                        'Cô gái anime với đôi cánh thiên thần',
-                                        'Thành phố cyberpunk dưới mưa neon',
-                                        'Rồng phương Đông bay trên biển mây',
-                                        'Chiếc xe cổ điển trên con đường hoa anh đào',
-                                        'Lâu đài fantasy trên ngọn núi tuyết',
-                                        'Robot dễ thương đang tưới hoa',
-                                        'Bình minh trên cánh đồng hoa lavender',
-                                        'Phi hành gia lơ lửng trong không gian đầy sao',
-                                        'Quán cà phê ấm cúng ngày mưa phong cách Ghibli'
-                                    ],
-                                    prompts: [],
-                                    init() {
-                                        const shuffled = [...this.allPrompts].sort(() => Math.random() - 0.5);
-                                        this.prompts = shuffled.slice(0, 3);
-                                    }
-                                }">
+                                            allPrompts: [
+                                                'Một chú mèo dễ thương ngủ trên mây',
+                                                'Phong cảnh núi tuyết hoàng hôn',
+                                                'Logo công nghệ gradient xanh',
+                                                'Cô gái anime với đôi cánh thiên thần',
+                                                'Thành phố cyberpunk dưới mưa neon',
+                                                'Rồng phương Đông bay trên biển mây',
+                                                'Chiếc xe cổ điển trên con đường hoa anh đào',
+                                                'Lâu đài fantasy trên ngọn núi tuyết',
+                                                'Robot dễ thương đang tưới hoa',
+                                                'Bình minh trên cánh đồng hoa lavender',
+                                                'Phi hành gia lơ lửng trong không gian đầy sao',
+                                                'Quán cà phê ấm cúng ngày mưa phong cách Ghibli'
+                                            ],
+                                            prompts: [],
+                                            init() {
+                                                const shuffled = [...this.allPrompts].sort(() => Math.random() - 0.5);
+                                                this.prompts = shuffled.slice(0, 3);
+                                            }
+                                        }">
                             <div
                                 class="w-16 h-16 mx-auto rounded-2xl bg-white/[0.05] border border-white/[0.08] flex items-center justify-center mb-4 shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]">
                                 <i class="fa-solid fa-image text-3xl text-white/20"></i>
@@ -292,27 +294,25 @@
                         </div>
                     @endif
                 @endforelse
-
-
             </div>
 
-            {{-- Loading Skeleton (Pending Batch) --}}
+            {{-- ═══════════════════════════════════════════ --}}
+            {{-- GENERATING SKELETON --}}
+            {{-- ═══════════════════════════════════════════ --}}
             @if($isGenerating && !$generatedImageUrl)
                 <div x-data="{ elapsed: 0, timer: null }" x-init="
-                        timer = setInterval(() => elapsed++, 1000);
-                        const stopTimer = () => clearInterval(timer);
-                        window.addEventListener('livewire:navigating', stopTimer, { once: true });
-                        const self = $el;
-                        const guard = setInterval(() => {
-                            if (!document.body.contains(self)) {
-                                clearInterval(timer);
-                                clearInterval(guard);
-                            }
-                        }, 1500);
-                        // Fix: Removed auto-scroll on poll
-                    ">
-                    <div
-                        class="bg-[#11141c] border border-white/[0.08] rounded-xl overflow-hidden">
+                            timer = setInterval(() => elapsed++, 1000);
+                            const stopTimer = () => clearInterval(timer);
+                            window.addEventListener('livewire:navigating', stopTimer, { once: true });
+                            const self = $el;
+                            const guard = setInterval(() => {
+                                if (!document.body.contains(self)) {
+                                    clearInterval(timer);
+                                    clearInterval(guard);
+                                }
+                            }, 1500);
+                        ">
+                    <div class="bg-[#11141c] border border-white/[0.08] rounded-xl overflow-hidden">
                         <div class="h-0.5 bg-white/[0.03] overflow-hidden">
                             <div class="h-full bg-blue-500/70 animate-pulse"
                                 style="width: 100%; animation: progress-slide 2s ease-in-out infinite;"></div>
@@ -326,7 +326,8 @@
                                 </div>
                                 <div class="flex-1">
                                     <p class="text-white/90 text-sm font-medium"
-                                        x-text="loadingMessages[currentLoadingMessage] || 'Đang tạo ảnh...'">Đang tạo ảnh...</p>
+                                        x-text="loadingMessages[currentLoadingMessage] || 'Đang tạo ảnh...'">Đang tạo ảnh...
+                                    </p>
                                     <p class="text-white/40 text-xs mt-0.5">
                                         <span
                                             x-text="Math.floor(elapsed / 60) > 0 ? Math.floor(elapsed / 60) + ' phút ' : ''"></span>
@@ -350,18 +351,15 @@
             @endif
         </div>
 
-    {{-- Floating "Jump to newest" button --}}
-    <button x-show="showScrollToBottom" x-cloak
-        @click="scrollToBottom(true); autoScrollEnabled = true"
-        x-transition:enter="transition ease-out duration-200"
-        x-transition:enter-start="opacity-0 translate-y-4"
-        x-transition:enter-end="opacity-100 translate-y-0"
-        x-transition:leave="transition ease-in duration-150"
-        x-transition:leave-end="opacity-0 translate-y-4"
-        class="t2i-jump-newest fixed right-4 z-[55] flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium active:scale-[0.95] transition-all"
-        style="bottom: calc(var(--composer-h, 10rem) + 1rem);">
-        <i class="fa-solid fa-arrow-down text-xs"></i>
-        <span>Về ảnh mới nhất</span>
-    </button>
+        {{-- Floating "Jump to newest" button --}}
+        <button x-show="showScrollToBottom" x-cloak @click="scrollToBottom(true); autoScrollEnabled = true"
+            x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-4"
+            x-transition:enter-end="opacity-100 translate-y-0" x-transition:leave="transition ease-in duration-150"
+            x-transition:leave-end="opacity-0 translate-y-4"
+            class="t2i-jump-newest fixed right-4 z-[55] flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium active:scale-[0.95] transition-all"
+            style="bottom: calc(var(--composer-h, 10rem) + 1rem);">
+            <i class="fa-solid fa-arrow-down text-xs"></i>
+            <span>Về ảnh mới nhất</span>
+        </button>
 
-</div>
+    </div>
