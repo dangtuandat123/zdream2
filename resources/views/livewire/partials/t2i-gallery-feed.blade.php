@@ -1,7 +1,7 @@
 {{-- ============================================================ --}}
 {{-- GALLERY FEED — Compact batch cards with mobile-visible actions --}}
 {{-- ============================================================ --}}
-<div id="gallery-scroll">
+<div id="gallery-scroll" class="t2i-gallery-shell">
     <div class="max-w-4xl mx-auto px-4"
         style="padding-top: calc(var(--filter-bar-h, 3.5rem) + 1.5rem); padding-bottom: calc(var(--composer-h, 10rem) + 1rem);">
 
@@ -37,7 +37,7 @@
                 <div x-show="hasMoreHistory || loadingMoreHistory" x-cloak class="flex justify-center py-1">
                     <button type="button"
                         @click="if (hasMoreHistory && !loadingMoreHistory) manualLoadOlder()"
-                        class="inline-flex items-center gap-2 text-white/40 text-xs rounded-full px-3 py-1.5 bg-white/[0.03] border border-white/[0.06] transition-colors"
+                        class="glass-chip inline-flex items-center gap-2 text-white/70 text-xs rounded-full px-3 py-1.5 transition-colors"
                         :class="(!loadingMoreHistory && hasMoreHistory && !canScrollVertically) ? 'cursor-pointer hover:text-white/70 hover:bg-white/[0.06]' : 'cursor-default'"
                         :disabled="loadingMoreHistory || !hasMoreHistory">
                         <i class="fa-solid fa-arrow-up text-[10px]"></i>
@@ -80,7 +80,7 @@
                         $ratioDisplay = $ratio ?: 'Auto';
                     @endphp
 
-                    <div class="space-y-2 group-batch" x-data="{ expanded: false }" wire:key="group-{{ $wireKey }}"
+                    <div class="space-y-2 group-batch t2i-batch" x-data="{ expanded: false }" wire:key="group-{{ $wireKey }}"
                         data-history-anchor-id="{{ $firstItem->id }}">
 
                         {{-- Batch Header --}}
@@ -332,7 +332,7 @@
         x-transition:enter-end="opacity-100 translate-y-0"
         x-transition:leave="transition ease-in duration-150"
         x-transition:leave-end="opacity-0 translate-y-4"
-        class="fixed right-4 z-[55] flex items-center gap-2 px-4 py-2.5 rounded-full bg-purple-500/90 hover:bg-purple-500 text-white text-sm font-medium shadow-xl shadow-purple-500/25 backdrop-blur-sm active:scale-[0.95] transition-all"
+        class="t2i-jump-newest fixed right-4 z-[55] flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium active:scale-[0.95] transition-all"
         style="bottom: calc(var(--composer-h, 10rem) + 1rem);">
         <i class="fa-solid fa-arrow-down text-xs"></i>
         <span>Về ảnh mới nhất</span>

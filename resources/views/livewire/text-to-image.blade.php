@@ -1,7 +1,7 @@
 {{-- ============================================================ --}}
 {{-- TEXT-TO-IMAGE — Root Orchestrator (Redesigned: Core-first) --}}
 {{-- ============================================================ --}}
-<div class="relative min-h-screen" @if($isGenerating) wire:poll.1500ms="pollImageStatus" @endif x-data="textToImage"
+<div class="relative min-h-screen t2i-shell" @if($isGenerating) wire:poll.1500ms="pollImageStatus" @endif x-data="textToImage"
     @keydown.window="handleKeydown($event)"
     x-on:show-toast.window="notify($event.detail.message, $event.detail.type || 'success')">
 
@@ -14,6 +14,13 @@
         <i
             :class="{ 'fa-solid fa-check-circle': toastType==='success', 'fa-solid fa-exclamation-circle': toastType==='error', 'fa-solid fa-triangle-exclamation': toastType==='warning' }"></i>
         <span x-text="toastMessage"></span>
+    </div>
+
+    {{-- Ambient glass background --}}
+    <div aria-hidden="true" class="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
+        <div class="absolute -top-32 left-[-8rem] h-80 w-80 rounded-full blur-3xl t2i-orb t2i-orb-a"></div>
+        <div class="absolute top-[28%] right-[-9rem] h-[26rem] w-[26rem] rounded-full blur-3xl t2i-orb t2i-orb-b"></div>
+        <div class="absolute bottom-[-10rem] left-[25%] h-96 w-96 rounded-full blur-3xl t2i-orb t2i-orb-c"></div>
     </div>
 
     @php
@@ -89,6 +96,135 @@
     {{-- STYLES --}}
     {{-- ============================================================ --}}
     <style>
+        .t2i-shell {
+            --glass-bg: rgba(255, 255, 255, 0.035);
+            --glass-bg-hover: rgba(255, 255, 255, 0.065);
+            --glass-bg-strong: rgba(255, 255, 255, 0.09);
+            --glass-border: rgba(255, 255, 255, 0.12);
+            --glass-border-soft: rgba(255, 255, 255, 0.08);
+            --glass-shadow: 0 22px 56px rgba(2, 6, 23, 0.52);
+            --glass-shadow-soft: 0 12px 32px rgba(2, 6, 23, 0.4);
+            --text-strong: rgba(255, 255, 255, 0.96);
+            --text-soft: rgba(255, 255, 255, 0.72);
+            --text-muted: rgba(255, 255, 255, 0.52);
+            isolation: isolate;
+            background:
+                radial-gradient(120% 80% at 12% -12%, rgba(56, 189, 248, 0.16), transparent 52%),
+                radial-gradient(95% 75% at 88% 4%, rgba(168, 85, 247, 0.16), transparent 54%),
+                radial-gradient(70% 65% at 50% 100%, rgba(14, 165, 233, 0.1), transparent 62%),
+                #090b13;
+            color: var(--text-strong);
+        }
+
+        .t2i-orb {
+            opacity: 0.75;
+            filter: saturate(130%);
+        }
+
+        .t2i-orb-a {
+            background: radial-gradient(circle at 30% 30%, rgba(56, 189, 248, 0.6), rgba(37, 99, 235, 0.25) 52%, transparent 75%);
+        }
+
+        .t2i-orb-b {
+            background: radial-gradient(circle at 65% 35%, rgba(236, 72, 153, 0.55), rgba(168, 85, 247, 0.25) 55%, transparent 78%);
+        }
+
+        .t2i-orb-c {
+            background: radial-gradient(circle at 50% 50%, rgba(14, 165, 233, 0.4), rgba(56, 189, 248, 0.2) 54%, transparent 78%);
+        }
+
+        .glass-popover {
+            background: linear-gradient(145deg, rgba(18, 22, 34, 0.9), rgba(10, 12, 20, 0.92));
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--glass-shadow-soft);
+            backdrop-filter: blur(22px) saturate(170%);
+            -webkit-backdrop-filter: blur(22px) saturate(170%);
+        }
+
+        .glass-chip {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border-soft);
+            color: var(--text-soft);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+        }
+
+        .glass-chip:hover {
+            background: var(--glass-bg-hover);
+            color: var(--text-strong);
+            border-color: var(--glass-border);
+        }
+
+        .glass-chip-active {
+            background: linear-gradient(135deg, rgba(56, 189, 248, 0.16), rgba(168, 85, 247, 0.2));
+            border-color: rgba(125, 211, 252, 0.4);
+            color: rgba(236, 253, 255, 0.95);
+            box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.12) inset, 0 8px 22px rgba(56, 189, 248, 0.12);
+        }
+
+        .t2i-filter-wrap .t2i-topbar {
+            background: rgba(10, 12, 19, 0.72);
+            border-bottom: 1px solid var(--glass-border-soft);
+            backdrop-filter: blur(18px) saturate(165%);
+            -webkit-backdrop-filter: blur(18px) saturate(165%);
+        }
+
+        .t2i-gallery-shell .t2i-batch {
+            padding: 0.65rem;
+            border-radius: 1rem;
+            border: 1px solid var(--glass-border-soft);
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.015));
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), var(--glass-shadow-soft);
+            backdrop-filter: blur(14px) saturate(150%);
+            -webkit-backdrop-filter: blur(14px) saturate(150%);
+        }
+
+        .t2i-jump-newest {
+            background: linear-gradient(135deg, rgba(56, 189, 248, 0.88), rgba(14, 116, 144, 0.92));
+            border: 1px solid rgba(125, 211, 252, 0.45);
+            color: #f8fdff;
+            box-shadow: 0 14px 32px rgba(2, 132, 199, 0.35);
+        }
+
+        .t2i-jump-newest:hover {
+            background: linear-gradient(135deg, rgba(14, 165, 233, 0.95), rgba(8, 145, 178, 0.98));
+        }
+
+        .t2i-composer-wrap .t2i-composer-card {
+            border: 1px solid var(--glass-border);
+            background: linear-gradient(145deg, rgba(12, 15, 25, 0.9), rgba(11, 13, 23, 0.94));
+            box-shadow: var(--glass-shadow), inset 0 1px 1px rgba(255, 255, 255, 0.06);
+            backdrop-filter: blur(24px) saturate(175%);
+            -webkit-backdrop-filter: blur(24px) saturate(175%);
+        }
+
+        .t2i-prompt-input {
+            color: var(--text-strong);
+        }
+
+        .t2i-prompt-input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .t2i-generate-btn {
+            background: linear-gradient(132deg, rgba(56, 189, 248, 0.95), rgba(14, 165, 233, 0.9) 40%, rgba(6, 182, 212, 0.85));
+            border: 1px solid rgba(125, 211, 252, 0.42);
+            box-shadow: 0 12px 30px rgba(2, 132, 199, 0.32);
+        }
+
+        .t2i-generate-btn:hover {
+            box-shadow: 0 16px 35px rgba(2, 132, 199, 0.4);
+        }
+
+        .t2i-cancel-btn {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.88), rgba(185, 28, 28, 0.88));
+            border: 1px solid rgba(252, 165, 165, 0.35);
+            box-shadow: 0 10px 24px rgba(220, 38, 38, 0.3);
+        }
+
+        .t2i-preview {
+            backdrop-filter: blur(4px);
+        }
+
         .safe-area-bottom {
             padding-bottom: env(safe-area-inset-bottom, 0px);
         }
@@ -161,6 +297,13 @@
         .gallery-img {
             opacity: 1 !important;
             transform: none !important;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .new-batch-animate,
+            .animate-shimmer {
+                animation: none !important;
+            }
         }
     </style>
 

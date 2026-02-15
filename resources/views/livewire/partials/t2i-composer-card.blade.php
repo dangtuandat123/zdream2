@@ -1,7 +1,7 @@
 {{-- ============================================================ --}}
 {{-- COMPOSER CARD — Core-first prompt + quick settings + status --}}
 {{-- ============================================================ --}}
-<div class="fixed left-0 right-0 md:left-[72px] z-[60] safe-area-bottom composer-fixed"
+<div class="fixed left-0 right-0 md:left-[72px] z-[60] safe-area-bottom composer-fixed t2i-composer-wrap"
     style="bottom: calc(60px + env(safe-area-inset-bottom, 0px));"
     @click.away="showRatioSheet = false; showModelSheet = false; showBatchSheet = false; showRefPicker = false"
     x-ref="composerCard"
@@ -75,12 +75,12 @@
             {{-- Glow --}}
             <div class="absolute -inset-0.5 sm:-inset-1 bg-gradient-to-r from-purple-600 via-pink-500 to-purple-600 rounded-2xl opacity-20 blur-md sm:blur-lg transition-opacity duration-500"></div>
 
-            <div class="relative flex flex-col gap-2.5 p-3 sm:p-4 rounded-2xl bg-black/50 backdrop-blur-2xl border border-white/15 shadow-2xl">
+            <div class="relative flex flex-col gap-2.5 p-3 sm:p-4 rounded-2xl t2i-composer-card">
 
                 {{-- Prompt textarea --}}
                 <textarea x-ref="promptInput" wire:model.live.debounce.500ms="prompt" rows="2"
                     placeholder="Mô tả ý tưởng của bạn..."
-                    class="w-full min-h-[48px] max-h-[120px] bg-transparent border-none outline-none ring-0 focus:ring-0 focus:outline-none text-white placeholder-white/40 text-sm sm:text-base resize-none focus:placeholder-white/60 transition-all overflow-y-auto"
+                    class="t2i-prompt-input w-full min-h-[48px] max-h-[120px] bg-transparent border-none outline-none ring-0 focus:ring-0 focus:outline-none text-sm sm:text-base resize-none transition-all overflow-y-auto"
                     x-init="
                         $watch('$wire.prompt', () => { $el.style.height = 'auto'; $el.style.height = Math.min($el.scrollHeight, 120) + 'px'; });
                     "
@@ -109,8 +109,8 @@
                         {{-- ===== MODEL CHIP ===== --}}
                         <div class="relative">
                             <button type="button" @click="showModelSheet = !showModelSheet; showRatioSheet = false; showBatchSheet = false"
-                                class="flex items-center gap-1.5 h-8 px-2.5 rounded-lg text-xs font-medium transition-all duration-200 cursor-pointer"
-                                :class="showModelSheet ? 'bg-purple-500/20 border border-purple-500/40 text-purple-300' : 'bg-white/[0.05] hover:bg-white/[0.08] border border-white/[0.08] text-white/70'">
+                                class="glass-chip flex items-center gap-1.5 h-8 px-2.5 rounded-lg text-xs font-medium transition-all duration-200 cursor-pointer"
+                                :class="showModelSheet ? 'glass-chip-active' : ''">
                                 <span x-text="getSelectedModel().icon" class="text-sm"></span>
                                 <span class="hidden sm:inline max-w-[100px] truncate" x-text="getSelectedModel().name"></span>
                                 <span class="sm:hidden" x-text="getSelectedModel().shortLabel || getSelectedModel().name.split(' ').pop()"></span>
@@ -121,7 +121,7 @@
                                 x-transition:enter="transition ease-out duration-200"
                                 x-transition:enter-start="opacity-0 translate-y-2"
                                 x-transition:enter-end="opacity-100 translate-y-0"
-                                class="hidden sm:block absolute bottom-full left-0 mb-2 w-72 p-2 rounded-xl bg-[#0f0f18]/95 backdrop-blur-[20px] saturate-[180%] border border-white/[0.1] shadow-2xl shadow-black/50 z-[100]"
+                                class="glass-popover hidden sm:block absolute bottom-full left-0 mb-2 w-72 p-2 rounded-xl z-[100]"
                                 @click.stop>
                                 <div class="space-y-1">
                                     <template x-for="model in models" :key="model.id">
@@ -153,7 +153,7 @@
                                     x-transition:enter="transition ease-out duration-300"
                                     x-transition:enter-start="translate-y-full"
                                     x-transition:enter-end="translate-y-0"
-                                    class="w-full max-w-lg bg-[#0f0f18]/95 backdrop-blur-[24px] saturate-[180%] border-t border-white/[0.1] rounded-t-3xl flex flex-col max-h-[85vh] shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
+                                    class="glass-popover w-full max-w-lg rounded-t-3xl flex flex-col max-h-[85vh]">
                                     <div class="flex items-center justify-between p-4 border-b border-white/5 shrink-0">
                                         <span class="text-white font-semibold text-base">Chọn Model AI</span>
                                         <button type="button" @click="showModelSheet = false"
@@ -193,8 +193,8 @@
                         {{-- ===== RATIO CHIP ===== --}}
                         <div class="relative">
                             <button type="button" @click="showRatioSheet = !showRatioSheet; showModelSheet = false; showBatchSheet = false"
-                                class="flex items-center gap-1.5 h-8 px-2.5 rounded-lg text-xs font-medium transition-all duration-200 cursor-pointer"
-                                :class="showRatioSheet ? 'bg-purple-500/20 border border-purple-500/40 text-purple-300' : 'bg-white/[0.05] hover:bg-white/[0.08] border border-white/[0.08] text-white/70'">
+                                class="glass-chip flex items-center gap-1.5 h-8 px-2.5 rounded-lg text-xs font-medium transition-all duration-200 cursor-pointer"
+                                :class="showRatioSheet ? 'glass-chip-active' : ''">
                                 <i class="fa-solid fa-crop text-[11px]"></i>
                                 <span x-text="selectedRatio === 'auto' ? 'Auto' : selectedRatio"></span>
                             </button>
@@ -204,7 +204,7 @@
                                 x-transition:enter="transition ease-out duration-200"
                                 x-transition:enter-start="opacity-0 translate-y-2"
                                 x-transition:enter-end="opacity-100 translate-y-0"
-                                class="hidden sm:block absolute bottom-full left-0 mb-2 w-80 p-3 rounded-xl bg-[#0f0f18]/95 backdrop-blur-[20px] saturate-[180%] border border-white/[0.1] shadow-2xl shadow-black/50 z-[100]"
+                                class="glass-popover hidden sm:block absolute bottom-full left-0 mb-2 w-80 p-3 rounded-xl z-[100]"
                                 @click.stop>
                                 <div class="text-white/50 text-xs font-medium mb-2">Tỉ lệ khung hình</div>
                                 <div class="grid grid-cols-5 gap-1.5">
@@ -237,7 +237,7 @@
                                     x-transition:enter="transition ease-out duration-300"
                                     x-transition:enter-start="translate-y-full"
                                     x-transition:enter-end="translate-y-0"
-                                    class="w-full max-w-lg bg-[#0f0f18]/95 backdrop-blur-[24px] saturate-[180%] border-t border-white/[0.1] rounded-t-3xl flex flex-col max-h-[85vh] shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
+                                    class="glass-popover w-full max-w-lg rounded-t-3xl flex flex-col max-h-[85vh]">
                                     <div class="flex items-center justify-between p-4 border-b border-white/5 shrink-0">
                                         <span class="text-white font-semibold text-base">Tỉ lệ khung hình</span>
                                         <button type="button" @click="showRatioSheet = false"
@@ -274,8 +274,8 @@
                         {{-- ===== BATCH CHIP ===== --}}
                         <div class="relative">
                             <button type="button" @click="showBatchSheet = !showBatchSheet; showRatioSheet = false; showModelSheet = false"
-                                class="flex items-center gap-1.5 h-8 px-2.5 rounded-lg text-xs font-medium transition-all duration-200 cursor-pointer"
-                                :class="showBatchSheet ? 'bg-purple-500/20 border border-purple-500/40 text-purple-300' : 'bg-white/[0.05] hover:bg-white/[0.08] border border-white/[0.08] text-white/70'">
+                                class="glass-chip flex items-center gap-1.5 h-8 px-2.5 rounded-lg text-xs font-medium transition-all duration-200 cursor-pointer"
+                                :class="showBatchSheet ? 'glass-chip-active' : ''">
                                 <i class="fa-solid fa-layer-group text-[11px]"></i>
                                 <span x-text="'×' + $wire.batchSize"></span>
                             </button>
@@ -285,7 +285,7 @@
                                 x-transition:enter="transition ease-out duration-200"
                                 x-transition:enter-start="opacity-0 translate-y-2"
                                 x-transition:enter-end="opacity-100 translate-y-0"
-                                class="hidden sm:block absolute bottom-full left-0 mb-2 w-36 p-1.5 rounded-xl bg-[#0f0f18]/95 backdrop-blur-[20px] saturate-[180%] border border-white/[0.1] shadow-2xl shadow-black/50 z-[100]"
+                                class="glass-popover hidden sm:block absolute bottom-full left-0 mb-2 w-36 p-1.5 rounded-xl z-[100]"
                                 @click.stop>
                                 <div class="text-white/50 text-xs font-medium mb-1.5 px-2">Số lượng ảnh</div>
                                 <div class="space-y-0.5">
@@ -309,7 +309,7 @@
                                     x-transition:enter="transition ease-out duration-300"
                                     x-transition:enter-start="translate-y-full"
                                     x-transition:enter-end="translate-y-0"
-                                    class="w-full max-w-lg bg-[#0f0f18]/95 backdrop-blur-[24px] saturate-[180%] border-t border-white/[0.1] rounded-t-3xl flex flex-col max-h-[85vh] shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
+                                    class="glass-popover w-full max-w-lg rounded-t-3xl flex flex-col max-h-[85vh]">
                                     <div class="flex items-center justify-between p-4 border-b border-white/5 shrink-0">
                                         <span class="text-white font-semibold text-base">Số lượng ảnh</span>
                                         <button type="button" @click="showBatchSheet = false"
@@ -337,12 +337,12 @@
                         <div class="relative">
                             <button type="button"
                                 @click="if (maxImages > 0) { showRefPicker = !showRefPicker; if(showRefPicker) loadRecentImages(); }"
-                                class="flex items-center gap-1.5 h-8 px-2.5 rounded-lg text-xs font-medium transition-all duration-200"
+                                class="glass-chip flex items-center gap-1.5 h-8 px-2.5 rounded-lg text-xs font-medium transition-all duration-200"
                                 :class="maxImages === 0
                                     ? 'bg-white/[0.02] border border-white/[0.05] text-white/30 cursor-not-allowed'
                                     : (selectedImages.length > 0
-                                        ? 'bg-purple-500/20 border border-purple-500/50 text-purple-300 cursor-pointer'
-                                        : 'bg-white/[0.05] hover:bg-white/[0.08] border border-white/[0.08] text-white/70 cursor-pointer')"
+                                        ? 'glass-chip-active cursor-pointer'
+                                        : 'cursor-pointer')"
                                 :title="maxImages === 0 ? 'Model này không hỗ trợ ảnh tham chiếu' : ''">
                                 <template x-if="selectedImages.length > 0">
                                     <div class="flex items-center gap-1">
@@ -373,7 +373,7 @@
                                 x-transition:enter="transition ease-out duration-200"
                                 x-transition:enter-start="opacity-0 translate-y-2"
                                 x-transition:enter-end="opacity-100 translate-y-0"
-                                class="hidden sm:block absolute bottom-full right-0 mb-2 w-80 p-3 rounded-xl bg-[#0f0f18]/95 backdrop-blur-[20px] saturate-[180%] border border-white/[0.1] shadow-2xl shadow-black/50 z-[100]"
+                                class="glass-popover hidden sm:block absolute bottom-full right-0 mb-2 w-80 p-3 rounded-xl z-[100]"
                                 @click.stop>
                                 <div class="flex items-center justify-between mb-3">
                                     <span class="text-white/50 text-xs font-medium">Ảnh tham chiếu <span x-text="selectedImages.length + '/' + maxImages" class="text-purple-300"></span></span>
@@ -432,7 +432,7 @@
                                     x-transition:enter="transition ease-out duration-300"
                                     x-transition:enter-start="translate-y-full"
                                     x-transition:enter-end="translate-y-0"
-                                    class="w-full max-w-lg bg-[#0f0f18]/95 backdrop-blur-[24px] saturate-[180%] border-t border-white/[0.1] rounded-t-3xl flex flex-col max-h-[80vh] shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
+                                    class="glass-popover w-full max-w-lg rounded-t-3xl flex flex-col max-h-[80vh]">
                                     <div class="flex items-center justify-between p-4 border-b border-white/5 shrink-0">
                                         <span class="text-white font-semibold text-base">Ảnh tham chiếu <span x-text="selectedImages.length + '/' + maxImages" class="text-purple-300 text-sm"></span></span>
                                         <button type="button" @click="showRefPicker = false"
@@ -496,14 +496,14 @@
                     {{-- Generate Button --}}
                     @if($isGenerating)
                         <button type="button" wire:click="cancelGeneration"
-                            class="shrink-0 flex items-center gap-2 px-4 sm:px-5 py-2 rounded-xl bg-red-500/80 hover:bg-red-500 text-white font-semibold text-sm shadow-lg shadow-red-500/25 active:scale-[0.98] transition-all duration-200">
+                            class="t2i-cancel-btn shrink-0 flex items-center gap-2 px-4 sm:px-5 py-2 rounded-xl text-white font-semibold text-sm active:scale-[0.98] transition-all duration-200">
                             <i class="fa-solid fa-stop text-xs"></i>
                             <span>Hủy</span>
                         </button>
                     @else
                         <button type="button"
                             @click="$wire.generate()"
-                            class="shrink-0 flex items-center gap-1.5 px-3 sm:px-5 py-2 rounded-xl bg-gradient-to-r from-purple-500 via-fuchsia-500 to-pink-500 text-white font-semibold text-sm shadow-lg shadow-purple-500/25 hover:scale-[1.02] hover:shadow-xl hover:shadow-purple-500/40 active:scale-[0.98] transition-all duration-200"
+                            class="t2i-generate-btn shrink-0 flex items-center gap-1.5 px-3 sm:px-5 py-2 rounded-xl text-white font-semibold text-sm hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
                             :disabled="!$wire.prompt?.trim() || uiMode === 'generating'" :class="{ 'opacity-40 pointer-events-none': !$wire.prompt?.trim() || uiMode === 'generating' }"
                             wire:loading.attr="disabled" wire:loading.class="opacity-50 pointer-events-none" wire:target="generate">
                             <span x-show="uiMode !== 'generating'" wire:loading.remove wire:target="generate"><i class="fa-solid fa-wand-magic-sparkles text-xs"></i></span>

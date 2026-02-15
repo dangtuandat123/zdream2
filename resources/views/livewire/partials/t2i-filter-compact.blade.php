@@ -1,7 +1,7 @@
 {{-- ============================================================ --}}
 {{-- FILTER COMPACT — Sticky filter pills with per-pill clear --}}
 {{-- ============================================================ --}}
-<div class="fixed top-14 md:top-0 left-0 right-0 md:left-[72px] z-[55]" x-data="{ openFilter: null }" x-ref="filterBar"
+<div class="fixed top-14 md:top-0 left-0 right-0 md:left-[72px] z-[55] t2i-filter-wrap" x-data="{ openFilter: null }" x-ref="filterBar"
     x-init="
         const bar = $refs.filterBar;
         const ro = new ResizeObserver(() => {
@@ -11,7 +11,7 @@
         const stop = () => ro.disconnect();
         window.addEventListener('livewire:navigating', stop, { once: true });
     ">
-    <div class="bg-[#0a0a0f]/80 backdrop-blur-[20px] saturate-[180%] border-b border-white/[0.08]">
+    <div class="t2i-topbar">
         <div class="max-w-5xl mx-auto px-4 py-2">
             <div class="flex items-center gap-1.5 flex-wrap">
                 {{-- Total count --}}
@@ -24,10 +24,7 @@
                 {{-- Date Filter --}}
                 <div class="relative">
                     <button @click="openFilter = openFilter === 'date' ? null : 'date'"
-                        class="inline-flex items-center gap-1 h-8 px-3 rounded-lg text-xs font-medium transition-all duration-200 active:scale-[0.98]
-                            {{ $filterDate !== 'all'
-    ? 'bg-purple-500/20 border border-purple-500/40 text-purple-300'
-    : 'bg-white/[0.05] border border-white/[0.08] text-white/60 hover:bg-white/[0.08] hover:text-white/80' }}">
+                        class="glass-chip inline-flex items-center gap-1 h-8 px-3 rounded-lg text-xs font-medium transition-all duration-200 active:scale-[0.98] {{ $filterDate !== 'all' ? 'glass-chip-active' : '' }}">
                         <i class="fa-regular fa-calendar text-[10px]"></i>
                         <span>{{ $filterDate === 'all' ? 'Ngày' : ['week' => 'Tuần', 'month' => 'Tháng', '3months' => '3T'][$filterDate] ?? 'Ngày' }}</span>
                         @if($filterDate !== 'all')
@@ -43,7 +40,7 @@
                         x-transition:enter="transition ease-out duration-150"
                         x-transition:enter-start="opacity-0 -translate-y-1"
                         x-transition:enter-end="opacity-100 translate-y-0"
-                        class="absolute top-full left-0 mt-1.5 w-44 p-1.5 rounded-xl bg-[#0f0f18]/95 backdrop-blur-[20px] saturate-[180%] border border-white/[0.1] shadow-2xl shadow-black/50 z-50 max-h-60 overflow-y-auto">
+                        class="glass-popover absolute top-full left-0 mt-1.5 w-44 p-1.5 rounded-xl z-50 max-h-60 overflow-y-auto">
                         @foreach(['all' => 'Tất cả', 'week' => 'Tuần qua', 'month' => 'Tháng qua', '3months' => '3 tháng qua'] as $val => $lbl)
                             <button wire:click="$set('filterDate', '{{ $val }}')" @click="openFilter = null"
                                 class="w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs transition-colors duration-150
@@ -60,10 +57,7 @@
                 {{-- Model Filter --}}
                 <div class="relative">
                     <button @click="openFilter = openFilter === 'model' ? null : 'model'"
-                        class="inline-flex items-center gap-1 h-8 px-3 rounded-lg text-xs font-medium transition-all duration-200 active:scale-[0.98]
-                            {{ $filterModel !== 'all'
-    ? 'bg-purple-500/20 border border-purple-500/40 text-purple-300'
-    : 'bg-white/[0.05] border border-white/[0.08] text-white/60 hover:bg-white/[0.08] hover:text-white/80' }}">
+                        class="glass-chip inline-flex items-center gap-1 h-8 px-3 rounded-lg text-xs font-medium transition-all duration-200 active:scale-[0.98] {{ $filterModel !== 'all' ? 'glass-chip-active' : '' }}">
                         <i class="fa-solid fa-microchip text-[10px]"></i>
                         <span
                             class="max-w-[80px] truncate">{{ $filterModel === 'all' ? 'Model' : (collect($availableModels)->firstWhere('id', $filterModel)['name'] ?? $filterModel) }}</span>
@@ -80,7 +74,7 @@
                         x-transition:enter="transition ease-out duration-150"
                         x-transition:enter-start="opacity-0 -translate-y-1"
                         x-transition:enter-end="opacity-100 translate-y-0"
-                        class="absolute top-full left-0 mt-1.5 w-52 p-1.5 rounded-xl bg-[#0f0f18]/95 backdrop-blur-[20px] saturate-[180%] border border-white/[0.1] shadow-2xl shadow-black/50 z-50 max-h-60 overflow-y-auto">
+                        class="glass-popover absolute top-full left-0 mt-1.5 w-52 p-1.5 rounded-xl z-50 max-h-60 overflow-y-auto">
                         <button wire:click="$set('filterModel', 'all')" @click="openFilter = null"
                             class="w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs transition-colors duration-150
                                 {{ $filterModel === 'all' ? 'text-white/95 bg-white/[0.06]' : 'text-white/70 hover:bg-white/[0.06] hover:text-white' }}">
@@ -105,10 +99,7 @@
                 {{-- Ratio Filter --}}
                 <div class="relative">
                     <button @click="openFilter = openFilter === 'ratio' ? null : 'ratio'"
-                        class="inline-flex items-center gap-1 h-8 px-3 rounded-lg text-xs font-medium transition-all duration-200 active:scale-[0.98]
-                            {{ $filterRatio !== 'all'
-    ? 'bg-purple-500/20 border border-purple-500/40 text-purple-300'
-    : 'bg-white/[0.05] border border-white/[0.08] text-white/60 hover:bg-white/[0.08] hover:text-white/80' }}">
+                        class="glass-chip inline-flex items-center gap-1 h-8 px-3 rounded-lg text-xs font-medium transition-all duration-200 active:scale-[0.98] {{ $filterRatio !== 'all' ? 'glass-chip-active' : '' }}">
                         <i class="fa-solid fa-crop text-[10px]"></i>
                         <span>{{ $filterRatio === 'all' ? 'Tỉ lệ' : $filterRatio }}</span>
                         @if($filterRatio !== 'all')
@@ -124,7 +115,7 @@
                         x-transition:enter="transition ease-out duration-150"
                         x-transition:enter-start="opacity-0 -translate-y-1"
                         x-transition:enter-end="opacity-100 translate-y-0"
-                        class="absolute top-full left-0 mt-1.5 w-40 p-1.5 rounded-xl bg-[#0f0f18]/95 backdrop-blur-[20px] saturate-[180%] border border-white/[0.1] shadow-2xl shadow-black/50 z-50 max-h-60 overflow-y-auto">
+                        class="glass-popover absolute top-full left-0 mt-1.5 w-40 p-1.5 rounded-xl z-50 max-h-60 overflow-y-auto">
                         @foreach(['all' => 'Tất cả', 'auto' => 'Auto', '1:1' => '1:1', '16:9' => '16:9', '9:16' => '9:16', '4:3' => '4:3', '3:4' => '3:4', '3:2' => '3:2', '2:3' => '2:3', '5:4' => '5:4', '4:5' => '4:5', '21:9' => '21:9'] as $val => $lbl)
                             <button wire:click="$set('filterRatio', '{{ $val }}')" @click="openFilter = null"
                                 class="w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs transition-colors duration-150

@@ -1,7 +1,7 @@
 {{-- ============================================================ --}}
 {{-- IMAGE PREVIEW MODAL (no x-teleport — stays in Alpine scope) --}}
 {{-- ============================================================ --}}
-<div x-show="showPreview" x-cloak class="fixed inset-0 z-[200] flex items-center justify-center" role="dialog"
+<div x-show="showPreview" x-cloak class="fixed inset-0 z-[200] flex items-center justify-center t2i-preview" role="dialog"
     aria-modal="true" aria-label="Xem trước ảnh" @keydown.escape.window="if (showPreview) closePreview()"
     @touchstart="handleTouchStart($event)" @touchend="handleTouchEnd($event)" x-ref="previewModal" @keydown.tab.prevent="
         const focusable = [...$refs.previewModal.querySelectorAll('button:not([disabled]), [href], input:not([disabled]), [tabindex]:not([tabindex=\'-1\'])')].filter(el => el.offsetParent !== null);
