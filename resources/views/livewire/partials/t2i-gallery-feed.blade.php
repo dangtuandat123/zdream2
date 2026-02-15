@@ -26,25 +26,25 @@
         @endif
 
         {{-- Gallery Feed --}}
-        <div class="flex flex-col gap-6 px-1 md:px-2 pt-6" id="gallery-feed" data-history='@json($flatHistoryForJs)'
+        <div class="flex flex-col gap-5 sm:gap-6 px-0 sm:px-1 pt-4 sm:pt-5" id="gallery-feed" data-history='@json($flatHistoryForJs)'
             data-has-more="{{ ($history instanceof \Illuminate\Pagination\LengthAwarePaginator && $history->hasMorePages()) ? '1' : '0' }}"
             wire:key="gallery-feed">
 
             @php $absoluteIndex = 0; @endphp
 
-            <div class="space-y-6 gallery-wrapper" x-data>
+            <div class="space-y-5 sm:space-y-6 gallery-wrapper" x-data>
                 {{-- Older history loader hint (top) --}}
-                <div x-show="hasMoreHistory || loadingMoreHistory" x-cloak class="flex justify-center py-1">
+                <div x-show="hasMoreHistory || loadingMoreHistory" x-cloak class="flex justify-center py-1.5">
                     <button type="button"
                         @click="if (hasMoreHistory && !loadingMoreHistory) manualLoadOlder()"
-                        class="glass-chip inline-flex items-center gap-2 text-white/70 text-xs rounded-full px-3 py-1.5 transition-colors"
-                        :class="(!loadingMoreHistory && hasMoreHistory && !canScrollVertically) ? 'cursor-pointer hover:text-white/70 hover:bg-white/[0.06]' : 'cursor-default'"
+                        class="inline-flex items-center gap-2 text-white/70 text-xs rounded-full px-3.5 py-1.5 border border-white/10 bg-[#121722] transition-colors"
+                        :class="(!loadingMoreHistory && hasMoreHistory) ? 'cursor-pointer hover:text-white hover:bg-[#172030]' : 'cursor-default'"
                         :disabled="loadingMoreHistory || !hasMoreHistory">
-                        <i class="fa-solid fa-arrow-up text-[10px]"></i>
+                        <i class="fa-solid fa-arrow-up text-[10px]" x-show="!loadingMoreHistory"></i>
                         <span x-show="!loadingMoreHistory && canScrollVertically">Lướt lên để tải ảnh cũ hơn</span>
                         <span x-show="!loadingMoreHistory && !canScrollVertically">Nhấn để tải ảnh cũ hơn</span>
                         <span x-show="loadingMoreHistory">Đang tải ảnh cũ hơn...</span>
-                        <i class="fa-solid fa-spinner fa-spin text-purple-400" x-show="loadingMoreHistory"></i>
+                        <i class="fa-solid fa-spinner fa-spin text-[10px]" x-show="loadingMoreHistory"></i>
                     </button>
                 </div>
 
@@ -80,7 +80,7 @@
                         $ratioDisplay = $ratio ?: 'Auto';
                     @endphp
 
-                    <div class="space-y-2 group-batch t2i-batch" x-data="{ expanded: false }" wire:key="group-{{ $wireKey }}"
+                    <div class="space-y-2.5 group-batch t2i-batch" x-data="{ expanded: false }" wire:key="group-{{ $wireKey }}"
                         data-history-anchor-id="{{ $firstItem->id }}">
 
                         {{-- Batch Header --}}
@@ -127,7 +127,7 @@
                         <div x-show="expanded" x-cloak x-transition:enter="transition ease-out duration-200"
                             x-transition:enter-start="opacity-0 -translate-y-1"
                             x-transition:enter-end="opacity-100 translate-y-0"
-                            class="px-3 py-2.5 rounded-xl bg-white/[0.03] backdrop-blur-[12px] border border-white/[0.08] shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] text-sm text-white/70 leading-relaxed">
+                            class="px-3 py-2.5 rounded-xl bg-white/[0.02] border border-white/[0.08] text-sm text-white/70 leading-relaxed">
                             {{ $firstItem->final_prompt }}
                             <div class="flex items-center gap-2 mt-2 text-[11px] text-white/40">
                                 <span class="text-purple-300/70">{{ $modelName }}</span>
@@ -141,14 +141,14 @@
                         </div>
 
                         {{-- Image Grid --}}
-                        <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-1 rounded-lg overflow-hidden">
+                        <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-2 rounded-lg overflow-hidden">
                             @foreach($groupItems as $image)
                                 @php
                                     $isNewestGroup = $groupIdx === $totalGroups - 1;
                                     $isPriorityImage = $isNewestGroup && $loop->index < 2;
                                 @endphp
                                 <div class="block group cursor-pointer" wire:key="img-{{ $image->id }}" @click="openPreview(null, {{ $absoluteIndex }})">
-                                    <div class="h-full bg-white/[0.02]">
+                                    <div class="h-full bg-white/[0.02] rounded-md">
                                     <div class="relative overflow-hidden" {!! $aspectRatioCss ? 'style="aspect-ratio: '.$aspectRatioCss.';"' : '' !!}>
                                             {{-- Shimmer --}}
                                             <div class="img-shimmer absolute inset-0 bg-white/[0.04]">
@@ -158,7 +158,7 @@
                                             </div>
                                             {{-- Image --}}
                                             <img src="{{ $image->image_url }}" alt="Preview"
-                                                class="gallery-img w-full h-full object-cover transition-all duration-300 ease-out group-hover:scale-[1.05]"
+                                                class="gallery-img w-full h-full object-cover transition-opacity duration-200"
                                                 draggable="false"
                                                 onload="this.previousElementSibling && (this.previousElementSibling.style.display='none')"
                                                 onerror="this.previousElementSibling && (this.previousElementSibling.style.display='none'); this.onerror=null; this.src='/images/placeholder.svg'"
@@ -166,7 +166,7 @@
 
                                             {{-- Desktop Hover Overlay --}}
                                             <div
-                                                class="hidden sm:block absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                                class="hidden sm:block absolute inset-0 bg-black/35 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                                                 <div class="absolute bottom-2 right-2 flex gap-1.5">
                                                     <button @click.stop="downloadImage('{{ $image->image_url }}')"
                                                         class="h-8 w-8 rounded-lg bg-black/50 backdrop-blur-[8px] hover:bg-white/20 text-white flex items-center justify-center transition-all duration-200 border border-white/[0.1] active:scale-[0.95]"
@@ -286,16 +286,16 @@
                         // Fix: Removed auto-scroll on poll
                     ">
                     <div
-                        class="bg-white/[0.03] backdrop-blur-[12px] border border-white/[0.08] rounded-xl overflow-hidden shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]">
+                        class="bg-[#11141c] border border-white/[0.08] rounded-xl overflow-hidden">
                         <div class="h-0.5 bg-white/[0.03] overflow-hidden">
-                            <div class="h-full bg-gradient-to-r from-purple-500 via-fuchsia-500 to-purple-500 animate-pulse"
+                            <div class="h-full bg-blue-500/70 animate-pulse"
                                 style="width: 100%; animation: progress-slide 2s ease-in-out infinite;"></div>
                         </div>
                         <div class="p-4">
                             <div class="flex items-center gap-3 mb-3">
-                                <div class="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center">
+                                <div class="w-8 h-8 rounded-lg bg-blue-500/15 flex items-center justify-center">
                                     <div
-                                        class="w-5 h-5 border-2 border-purple-400 border-t-transparent rounded-full animate-spin">
+                                        class="w-5 h-5 border-2 border-blue-300 border-t-transparent rounded-full animate-spin">
                                     </div>
                                 </div>
                                 <div class="flex-1">
@@ -308,12 +308,12 @@
                                     </p>
                                 </div>
                             </div>
-                            <div class="grid grid-cols-2 gap-1 rounded-lg overflow-hidden">
+                            <div class="grid grid-cols-2 gap-2 rounded-lg overflow-hidden">
                                 @for ($i = 0; $i < $batchSize; $i++)
-                                    <div class="bg-white/[0.03] flex items-center justify-center {{ $batchSize == 1 ? 'col-span-2 max-w-sm' : '' }}"
+                                    <div class="bg-white/[0.03] rounded-md flex items-center justify-center {{ $batchSize == 1 ? 'col-span-2 max-w-sm' : '' }}"
                                         style="aspect-ratio: {{ $aspectRatio !== 'auto' && strpos($aspectRatio, ':') !== false ? str_replace(':', ' / ', $aspectRatio) : '1 / 1' }};">
                                         <div
-                                            class="w-6 h-6 border-2 border-purple-500/40 border-t-transparent rounded-full animate-spin">
+                                            class="w-6 h-6 border-2 border-blue-300/50 border-t-transparent rounded-full animate-spin">
                                         </div>
                                     </div>
                                 @endfor

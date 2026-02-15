@@ -72,9 +72,6 @@
 
         {{-- Composer main card --}}
         <div class="relative">
-            {{-- Glow --}}
-            <div class="absolute -inset-0.5 sm:-inset-1 bg-gradient-to-r from-purple-600 via-pink-500 to-purple-600 rounded-2xl opacity-20 blur-md sm:blur-lg transition-opacity duration-500"></div>
-
             <div class="relative flex flex-col gap-2.5 p-3 sm:p-4 rounded-2xl t2i-composer-card">
 
                 {{-- Prompt textarea --}}
@@ -503,7 +500,7 @@
                     @else
                         <button type="button"
                             @click="$wire.generate()"
-                            class="t2i-generate-btn shrink-0 flex items-center gap-1.5 px-3 sm:px-5 py-2 rounded-xl text-white font-semibold text-sm hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
+                            class="t2i-generate-btn shrink-0 flex items-center gap-1.5 px-3 sm:px-5 py-2 rounded-xl text-white font-semibold text-sm active:scale-[0.98] transition-colors duration-200"
                             :disabled="!$wire.prompt?.trim() || uiMode === 'generating'" :class="{ 'opacity-40 pointer-events-none': !$wire.prompt?.trim() || uiMode === 'generating' }"
                             wire:loading.attr="disabled" wire:loading.class="opacity-50 pointer-events-none" wire:target="generate">
                             <span x-show="uiMode !== 'generating'" wire:loading.remove wire:target="generate"><i class="fa-solid fa-wand-magic-sparkles text-xs"></i></span>

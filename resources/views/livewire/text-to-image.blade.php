@@ -16,12 +16,6 @@
         <span x-text="toastMessage"></span>
     </div>
 
-    {{-- Ambient glass background --}}
-    <div aria-hidden="true" class="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
-        <div class="absolute -top-32 left-[-8rem] h-80 w-80 rounded-full blur-3xl t2i-orb t2i-orb-a"></div>
-        <div class="absolute top-[28%] right-[-9rem] h-[26rem] w-[26rem] rounded-full blur-3xl t2i-orb t2i-orb-b"></div>
-        <div class="absolute bottom-[-10rem] left-[25%] h-96 w-96 rounded-full blur-3xl t2i-orb t2i-orb-c"></div>
-    </div>
 
     @php
         // 1. Grouping Logic
@@ -97,104 +91,83 @@
     {{-- ============================================================ --}}
     <style>
         .t2i-shell {
-            --glass-bg: rgba(255, 255, 255, 0.035);
-            --glass-bg-hover: rgba(255, 255, 255, 0.065);
-            --glass-bg-strong: rgba(255, 255, 255, 0.09);
-            --glass-border: rgba(255, 255, 255, 0.12);
-            --glass-border-soft: rgba(255, 255, 255, 0.08);
-            --glass-shadow: 0 22px 56px rgba(2, 6, 23, 0.52);
-            --glass-shadow-soft: 0 12px 32px rgba(2, 6, 23, 0.4);
-            --text-strong: rgba(255, 255, 255, 0.96);
-            --text-soft: rgba(255, 255, 255, 0.72);
-            --text-muted: rgba(255, 255, 255, 0.52);
-            isolation: isolate;
-            background:
-                radial-gradient(120% 80% at 12% -12%, rgba(56, 189, 248, 0.16), transparent 52%),
-                radial-gradient(95% 75% at 88% 4%, rgba(168, 85, 247, 0.16), transparent 54%),
-                radial-gradient(70% 65% at 50% 100%, rgba(14, 165, 233, 0.1), transparent 62%),
-                #090b13;
+            --surface-1: rgba(255, 255, 255, 0.03);
+            --surface-2: rgba(255, 255, 255, 0.05);
+            --surface-3: rgba(255, 255, 255, 0.08);
+            --line-1: rgba(255, 255, 255, 0.08);
+            --line-2: rgba(255, 255, 255, 0.12);
+            --text-strong: rgba(255, 255, 255, 0.95);
+            --text-normal: rgba(255, 255, 255, 0.74);
+            --text-muted: rgba(255, 255, 255, 0.5);
+            background: #0b0d12;
             color: var(--text-strong);
-        }
-
-        .t2i-orb {
-            opacity: 0.75;
-            filter: saturate(130%);
-        }
-
-        .t2i-orb-a {
-            background: radial-gradient(circle at 30% 30%, rgba(56, 189, 248, 0.6), rgba(37, 99, 235, 0.25) 52%, transparent 75%);
-        }
-
-        .t2i-orb-b {
-            background: radial-gradient(circle at 65% 35%, rgba(236, 72, 153, 0.55), rgba(168, 85, 247, 0.25) 55%, transparent 78%);
-        }
-
-        .t2i-orb-c {
-            background: radial-gradient(circle at 50% 50%, rgba(14, 165, 233, 0.4), rgba(56, 189, 248, 0.2) 54%, transparent 78%);
         }
 
         .glass-popover {
-            background: linear-gradient(145deg, rgba(18, 22, 34, 0.9), rgba(10, 12, 20, 0.92));
-            border: 1px solid var(--glass-border);
-            box-shadow: var(--glass-shadow-soft);
-            backdrop-filter: blur(22px) saturate(170%);
-            -webkit-backdrop-filter: blur(22px) saturate(170%);
+            background: #12151d;
+            border: 1px solid var(--line-2);
+            box-shadow: 0 10px 24px rgba(0, 0, 0, 0.35);
         }
 
         .glass-chip {
-            background: var(--glass-bg);
-            border: 1px solid var(--glass-border-soft);
-            color: var(--text-soft);
-            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+            background: #141821;
+            border: 1px solid var(--line-1);
+            color: var(--text-normal);
         }
 
         .glass-chip:hover {
-            background: var(--glass-bg-hover);
+            background: #1a1f2a;
             color: var(--text-strong);
-            border-color: var(--glass-border);
+            border-color: var(--line-2);
         }
 
         .glass-chip-active {
-            background: linear-gradient(135deg, rgba(56, 189, 248, 0.16), rgba(168, 85, 247, 0.2));
-            border-color: rgba(125, 211, 252, 0.4);
-            color: rgba(236, 253, 255, 0.95);
-            box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.12) inset, 0 8px 22px rgba(56, 189, 248, 0.12);
+            background: rgba(59, 130, 246, 0.18);
+            border-color: rgba(59, 130, 246, 0.45);
+            color: rgba(219, 234, 254, 0.96);
         }
 
         .t2i-filter-wrap .t2i-topbar {
-            background: rgba(10, 12, 19, 0.72);
-            border-bottom: 1px solid var(--glass-border-soft);
-            backdrop-filter: blur(18px) saturate(165%);
-            -webkit-backdrop-filter: blur(18px) saturate(165%);
+            background: rgba(11, 13, 18, 0.94);
+            border-bottom: 1px solid var(--line-1);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+
+        .t2i-gallery-shell #gallery-feed {
+            overflow-anchor: none;
+        }
+
+        .t2i-gallery-shell .group-batch {
+            overflow-anchor: auto;
         }
 
         .t2i-gallery-shell .t2i-batch {
-            padding: 0.65rem;
-            border-radius: 1rem;
-            border: 1px solid var(--glass-border-soft);
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.015));
-            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), var(--glass-shadow-soft);
-            backdrop-filter: blur(14px) saturate(150%);
-            -webkit-backdrop-filter: blur(14px) saturate(150%);
+            padding: 0.85rem;
+            border-radius: 0.9rem;
+            border: 1px solid var(--line-1);
+            background: #11141c;
+        }
+
+        .t2i-gallery-shell .t2i-batch .gallery-img {
+            will-change: auto;
         }
 
         .t2i-jump-newest {
-            background: linear-gradient(135deg, rgba(56, 189, 248, 0.88), rgba(14, 116, 144, 0.92));
-            border: 1px solid rgba(125, 211, 252, 0.45);
-            color: #f8fdff;
-            box-shadow: 0 14px 32px rgba(2, 132, 199, 0.35);
+            background: rgba(30, 64, 175, 0.92);
+            border: 1px solid rgba(96, 165, 250, 0.5);
+            color: #eff6ff;
+            box-shadow: 0 8px 20px rgba(30, 64, 175, 0.28);
         }
 
         .t2i-jump-newest:hover {
-            background: linear-gradient(135deg, rgba(14, 165, 233, 0.95), rgba(8, 145, 178, 0.98));
+            background: rgba(37, 99, 235, 0.96);
         }
 
         .t2i-composer-wrap .t2i-composer-card {
-            border: 1px solid var(--glass-border);
-            background: linear-gradient(145deg, rgba(12, 15, 25, 0.9), rgba(11, 13, 23, 0.94));
-            box-shadow: var(--glass-shadow), inset 0 1px 1px rgba(255, 255, 255, 0.06);
-            backdrop-filter: blur(24px) saturate(175%);
-            -webkit-backdrop-filter: blur(24px) saturate(175%);
+            border: 1px solid var(--line-2);
+            background: rgba(16, 19, 27, 0.96);
+            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.32);
         }
 
         .t2i-prompt-input {
@@ -206,23 +179,27 @@
         }
 
         .t2i-generate-btn {
-            background: linear-gradient(132deg, rgba(56, 189, 248, 0.95), rgba(14, 165, 233, 0.9) 40%, rgba(6, 182, 212, 0.85));
-            border: 1px solid rgba(125, 211, 252, 0.42);
-            box-shadow: 0 12px 30px rgba(2, 132, 199, 0.32);
+            background: #2563eb;
+            border: 1px solid #3b82f6;
+            box-shadow: 0 8px 18px rgba(37, 99, 235, 0.3);
         }
 
         .t2i-generate-btn:hover {
-            box-shadow: 0 16px 35px rgba(2, 132, 199, 0.4);
+            background: #1d4ed8;
         }
 
         .t2i-cancel-btn {
-            background: linear-gradient(135deg, rgba(239, 68, 68, 0.88), rgba(185, 28, 28, 0.88));
-            border: 1px solid rgba(252, 165, 165, 0.35);
-            box-shadow: 0 10px 24px rgba(220, 38, 38, 0.3);
+            background: #b91c1c;
+            border: 1px solid #ef4444;
+            box-shadow: 0 8px 18px rgba(185, 28, 28, 0.3);
+        }
+
+        .t2i-cancel-btn:hover {
+            background: #991b1b;
         }
 
         .t2i-preview {
-            backdrop-filter: blur(4px);
+            backdrop-filter: blur(2px);
         }
 
         .safe-area-bottom {
@@ -233,29 +210,26 @@
             padding-top: env(safe-area-inset-top, 0px);
         }
 
-        /* New image entrance animation */
-
-        /* New image entrance animation */
         @keyframes image-entrance {
             from {
                 opacity: 0;
-                transform: scale(0.92) translateY(12px);
+                transform: translateY(8px);
             }
 
             to {
                 opacity: 1;
-                transform: scale(1) translateY(0);
+                transform: translateY(0);
             }
         }
 
         .new-batch-animate {
-            animation: image-entrance 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            animation: image-entrance 0.32s ease-out forwards;
         }
 
         .new-batch-glow {
-            box-shadow: 0 0 20px rgba(168, 85, 247, 0.3), 0 0 40px rgba(168, 85, 247, 0.1);
-            border-radius: 0.5rem;
-            transition: box-shadow 3s ease-out;
+            box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.28) inset;
+            border-radius: 0.55rem;
+            transition: box-shadow 0.8s ease-out;
         }
 
         @keyframes shimmer {
@@ -269,14 +243,13 @@
         }
 
         .animate-shimmer {
-            animation: shimmer 2s infinite;
+            animation: shimmer 1.8s linear infinite;
         }
 
         @keyframes progress-slide {
-
             0%,
             100% {
-                opacity: 0.4;
+                opacity: 0.45;
                 transform: translateX(-30%);
             }
 
@@ -286,14 +259,12 @@
             }
         }
 
-        /* Fix composer for md+ */
         @media (min-width: 768px) {
             .composer-fixed {
                 bottom: 0 !important;
             }
         }
 
-        /* Fix 3: Force gallery images to be visible, don't rely on JS class */
         .gallery-img {
             opacity: 1 !important;
             transform: none !important;
@@ -417,7 +388,7 @@
                 _loadMoreFailSafeTimer: null,
                 _resizeHandler: null,
                 _prependRestoreRaf: null,
-                _prependStabilizeRaf: null,
+                _prependStabilizeCleanup: null,
                 hasMoreHistory: @js($history instanceof \Illuminate\Pagination\LengthAwarePaginator ? $history->hasMorePages() : false),
                 loadingMoreHistory: false,
                 isPrependingHistory: false,
@@ -425,15 +396,14 @@
                 prependBeforeHeight: 0,
                 prependBoundaryId: null,
                 prependBoundaryTop: null,
-                centerAfterPrepend: false,
                 lastLoadMoreAt: 0,
                 lastScrollY: 0,
                 userInitiatedUpScroll: false,
                 canScrollVertically: false,
                 bootstrapLoadCount: 0,
-                maxBootstrapLoads: 4,
-                loadOlderStep: 4,
-                bootstrapStep: 3,
+                maxBootstrapLoads: 2,
+                loadOlderStep: 3,
+                bootstrapStep: 2,
 
                 // Dynamic max images based on selected model
                 get maxImages() {
@@ -584,19 +554,12 @@
                                 }
                                 // Apply a single correction frame after DOM morph.
                                 this._prependRestoreRaf = requestAnimationFrame(() => {
-                                    const stabilizeBoundaryId = !this.centerAfterPrepend ? this.prependBoundaryId : null;
-                                    const stabilizeBoundaryTop = !this.centerAfterPrepend ? this.prependBoundaryTop : null;
+                                    const stabilizeBoundaryId = this.prependBoundaryId;
+                                    const stabilizeBoundaryTop = this.prependBoundaryTop;
 
-                                    if (this.centerAfterPrepend) {
-                                        const centered = this.centerPrependedItem();
-                                        if (!centered) {
-                                            this.restorePrependAnchor();
-                                        }
-                                    } else {
-                                        this.restorePrependAnchor();
-                                        if (stabilizeBoundaryId !== null && stabilizeBoundaryTop !== null) {
-                                            this.stabilizePrependAnchor(stabilizeBoundaryId, stabilizeBoundaryTop);
-                                        }
+                                    this.restorePrependAnchor();
+                                    if (stabilizeBoundaryId !== null && stabilizeBoundaryTop !== null) {
+                                        this.stabilizePrependAnchor(stabilizeBoundaryId, stabilizeBoundaryTop);
                                     }
                                     this._prependRestoreRaf = null;
                                 });
@@ -608,7 +571,6 @@
                             this.prependBeforeHeight = 0;
                             this.prependBoundaryId = null;
                             this.prependBoundaryTop = null;
-                            this.centerAfterPrepend = false;
                             clearTimeout(this._loadMoreFailSafeTimer);
                             this._loadMoreFailSafeTimer = null;
                             this.refreshScrollState();
@@ -744,7 +706,6 @@
                     this.prependBeforeHeight = 0;
                     this.prependBoundaryId = null;
                     this.prependBoundaryTop = null;
-                    this.centerAfterPrepend = false;
                     document.body.style.overflow = '';
                     document.documentElement.style.overflow = '';
                     if (this._scrollRestoration !== null && 'scrollRestoration' in history) {
@@ -869,73 +830,71 @@
                     this.refreshScrollState();
                 },
                 stopPrependStabilize() {
-                    if (this._prependStabilizeRaf !== null) {
-                        cancelAnimationFrame(this._prependStabilizeRaf);
-                        this._prependStabilizeRaf = null;
+                    if (typeof this._prependStabilizeCleanup === 'function') {
+                        this._prependStabilizeCleanup();
                     }
+                    this._prependStabilizeCleanup = null;
                 },
-                stabilizePrependAnchor(boundaryId, boundaryTop, maxFrames = 12) {
+                stabilizePrependAnchor(boundaryId, boundaryTop, maxDurationMs = 1800) {
                     this.stopPrependStabilize();
 
                     if (boundaryId === null || boundaryTop === null) return;
 
-                    let frame = 0;
-                    const tick = () => {
-                        const boundary = document.querySelector(
-                            `#gallery-feed .group-batch[data-history-anchor-id="${String(boundaryId)}"]`
-                        );
-                        if (!boundary) {
-                            this._prependStabilizeRaf = null;
-                            return;
-                        }
+                    const selector = `#gallery-feed .group-batch[data-history-anchor-id="${String(boundaryId)}"]`;
+                    const syncBoundary = () => {
+                        const boundary = document.querySelector(selector);
+                        if (!boundary) return;
 
                         const currentTop = boundary.getBoundingClientRect().top;
                         const delta = currentTop - boundaryTop;
-                        if (Math.abs(delta) > 0.5) {
-                            const doc = document.documentElement;
-                            const currentY = window.scrollY || doc.scrollTop || 0;
-                            window.scrollTo(0, Math.max(0, Math.round(currentY + delta)));
-                        }
+                        if (Math.abs(delta) <= 0.5) return;
 
-                        frame += 1;
-                        if (frame >= maxFrames) {
-                            this._prependStabilizeRaf = null;
-                            return;
-                        }
-
-                        this._prependStabilizeRaf = requestAnimationFrame(tick);
+                        const doc = document.documentElement;
+                        const currentY = window.scrollY || doc.scrollTop || 0;
+                        window.scrollTo(0, Math.max(0, Math.round(currentY + delta)));
                     };
-
-                    this._prependStabilizeRaf = requestAnimationFrame(tick);
-                },
-                centerPrependedItem() {
-                    if (!this.centerAfterPrepend) return false;
 
                     const groups = Array.from(
                         document.querySelectorAll('#gallery-feed .group-batch[data-history-anchor-id]')
                     );
-                    if (!groups.length) return false;
+                    const boundaryIndex = groups.findIndex(
+                        (el) => String(el?.dataset?.historyAnchorId ?? '') === String(boundaryId)
+                    );
 
-                    let target = null;
-                    if (this.prependBoundaryId !== null) {
-                        const boundaryIndex = groups.findIndex(
-                            (el) => String(el?.dataset?.historyAnchorId ?? '') === String(this.prependBoundaryId)
-                        );
-                        if (boundaryIndex > 0) {
-                            // Nearest newly prepended group above previous boundary.
-                            target = groups[boundaryIndex - 1];
-                        }
-                    }
-                    if (!target) {
-                        return false;
+                    const prependedGroups = boundaryIndex > 0 ? groups.slice(0, boundaryIndex) : [];
+                    const pendingImages = prependedGroups
+                        .flatMap((el) => Array.from(el.querySelectorAll('img')))
+                        .filter((img) => !img.complete);
+
+                    if (!pendingImages.length) {
+                        requestAnimationFrame(syncBoundary);
+                        return;
                     }
 
-                    const rect = target.getBoundingClientRect();
-                    const currentY = window.scrollY || document.documentElement.scrollTop || 0;
-                    const desiredTop = currentY + rect.top - ((window.innerHeight - rect.height) / 2);
-                    window.scrollTo(0, Math.max(0, Math.round(desiredTop)));
-                    this.refreshScrollState();
-                    return true;
+                    const cleanupFns = [];
+                    const onSettled = () => requestAnimationFrame(syncBoundary);
+                    pendingImages.forEach((img) => {
+                        img.addEventListener('load', onSettled, { once: true });
+                        img.addEventListener('error', onSettled, { once: true });
+                        cleanupFns.push(() => {
+                            img.removeEventListener('load', onSettled);
+                            img.removeEventListener('error', onSettled);
+                        });
+                    });
+
+                    const timeoutId = setTimeout(() => {
+                        cleanup();
+                    }, maxDurationMs);
+
+                    const cleanup = () => {
+                        clearTimeout(timeoutId);
+                        cleanupFns.forEach((fn) => fn());
+                        cleanupFns.length = 0;
+                        this._prependStabilizeCleanup = null;
+                    };
+
+                    this._prependStabilizeCleanup = cleanup;
+                    requestAnimationFrame(syncBoundary);
                 },
                 centerLatestBatch(smooth = false) {
                     const batches = Array.from(document.querySelectorAll('#gallery-feed .group-batch'));
@@ -1012,30 +971,30 @@
                     if (this.bootstrapLoadCount >= this.maxBootstrapLoads) return;
 
                     this.bootstrapLoadCount += 1;
-                    this.requestLoadOlder(this.bootstrapStep, 'bootstrap');
+                    this.requestLoadOlder(this.bootstrapStep);
                 },
-                maybeLoadOlder(force = false) {
+                maybeLoadOlder() {
                     if (!this.hasMoreHistory || this.loadingMoreHistory) return;
-                    if (!force && !this.userInitiatedUpScroll) return;
+                    if (!this.userInitiatedUpScroll) return;
                     if (!this.isNearTop(220)) return;
 
                     const now = Date.now();
                     if (now - this.lastLoadMoreAt < 500) return;
                     this.lastLoadMoreAt = now;
-                    this.requestLoadOlder(this.loadOlderStep, force ? 'manual' : 'scroll');
+                    this.requestLoadOlder(this.loadOlderStep);
                 },
                 manualLoadOlder() {
                     this.userInitiatedUpScroll = true;
-                    this.requestLoadOlder(this.loadOlderStep, 'manual');
+                    this.requestLoadOlder(this.loadOlderStep);
                 },
-                requestLoadOlder(count = null, source = 'scroll') {
+                requestLoadOlder(count = null) {
                     if (!this.hasMoreHistory || this.loadingMoreHistory) return;
 
                     this.stopPrependStabilize();
                     this.capturePrependAnchor();
                     this.loadingMoreHistory = true;
                     this.isPrependingHistory = true;
-                    this.centerAfterPrepend = source === 'manual';
+                    this.userInitiatedUpScroll = false;
 
                     const fallbackStep = Number.isFinite(this.loadOlderStep) ? this.loadOlderStep : 1;
                     const requested = Number.isFinite(count) ? count : fallbackStep;
@@ -1051,7 +1010,6 @@
                         this.prependBeforeHeight = 0;
                         this.prependBoundaryId = null;
                         this.prependBoundaryTop = null;
-                        this.centerAfterPrepend = false;
                         this._loadMoreFailSafeTimer = null;
                     }, 7000);
                 },
