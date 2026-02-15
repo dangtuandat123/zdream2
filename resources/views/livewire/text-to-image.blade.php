@@ -469,6 +469,9 @@
                         if (currentY < this.lastScrollY - 2) {
                             this.userInitiatedUpScroll = true;
                         }
+                        if (this.isNearTop(90)) {
+                            this.userInitiatedUpScroll = true;
+                        }
                         this.lastScrollY = currentY;
 
                         if (this.autoScrollEnabled && !this.isNearBottom(120)) {
@@ -574,6 +577,10 @@
                             clearTimeout(this._loadMoreFailSafeTimer);
                             this._loadMoreFailSafeTimer = null;
                             this.refreshScrollState();
+                            if (this.hasMoreHistory && this.isNearTop(120) && !this.loadingMoreHistory) {
+                                this.userInitiatedUpScroll = true;
+                                setTimeout(() => this.maybeLoadOlder(), 320);
+                            }
                             this.maybeBootstrapHistory();
                         });
                     });
@@ -976,10 +983,10 @@
                 maybeLoadOlder() {
                     if (!this.hasMoreHistory || this.loadingMoreHistory) return;
                     if (!this.userInitiatedUpScroll) return;
-                    if (!this.isNearTop(220)) return;
+                    if (!this.isNearTop(260)) return;
 
                     const now = Date.now();
-                    if (now - this.lastLoadMoreAt < 500) return;
+                    if (now - this.lastLoadMoreAt < 280) return;
                     this.lastLoadMoreAt = now;
                     this.requestLoadOlder(this.loadOlderStep);
                 },

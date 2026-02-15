@@ -34,17 +34,25 @@
 
             <div class="space-y-5 sm:space-y-6 gallery-wrapper" x-data>
                 {{-- Older history loader hint (top) --}}
-                <div x-show="hasMoreHistory || loadingMoreHistory" x-cloak class="flex justify-center py-1.5">
+                <div x-show="hasMoreHistory || loadingMoreHistory" x-cloak
+                    class="flex justify-center py-1.5 transition-[min-height,padding] duration-200"
+                    :class="(loadingMoreHistory || isNearTop(90)) ? 'min-h-[36vh] items-center' : 'min-h-0 items-start'">
                     <button type="button"
                         @click="if (hasMoreHistory && !loadingMoreHistory) manualLoadOlder()"
-                        class="inline-flex items-center gap-2 text-white/70 text-xs rounded-full px-3.5 py-1.5 border border-white/10 bg-[#121722] transition-colors"
+                        class="inline-flex items-center gap-2 text-white/75 text-xs rounded-full h-11 px-4 border border-white/10 bg-[#121722] transition-colors"
                         :class="(!loadingMoreHistory && hasMoreHistory) ? 'cursor-pointer hover:text-white hover:bg-[#172030]' : 'cursor-default'"
                         :disabled="loadingMoreHistory || !hasMoreHistory">
-                        <i class="fa-solid fa-arrow-up text-[10px]" x-show="!loadingMoreHistory"></i>
+                        <span x-show="!loadingMoreHistory"
+                            class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-white/10">
+                            <i class="fa-solid fa-arrow-up text-[11px]"></i>
+                        </span>
                         <span x-show="!loadingMoreHistory && canScrollVertically">Lướt lên để tải ảnh cũ hơn</span>
-                        <span x-show="!loadingMoreHistory && !canScrollVertically">Nhấn để tải ảnh cũ hơn</span>
-                        <span x-show="loadingMoreHistory">Đang tải ảnh cũ hơn...</span>
-                        <i class="fa-solid fa-spinner fa-spin text-[10px]" x-show="loadingMoreHistory"></i>
+                        <span x-show="!loadingMoreHistory && !canScrollVertically">Kéo lên để tải ảnh cũ hơn</span>
+                        <span x-show="loadingMoreHistory" class="inline-flex items-center justify-center relative w-6 h-6">
+                            <span class="absolute inset-0 rounded-full border-2 border-blue-300/25"></span>
+                            <span class="absolute inset-0 rounded-full border-2 border-transparent border-t-blue-300 animate-spin"></span>
+                        </span>
+                        <span x-show="loadingMoreHistory" class="text-[13px] font-medium text-blue-100/95">Đang tải ảnh cũ hơn...</span>
                     </button>
                 </div>
 
