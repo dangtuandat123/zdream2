@@ -798,86 +798,44 @@
                      * After older images are prepended above the boundary batch,
                      * center the LAST newly loaded batch (closest to boundary, farthest from sentinel).
                      *
-                     * Layout: sentinel → img1 → img2 → img3 → [boundary] → old content
-                     * We center img3 so sentinel is far above → won't re-trigger.
-                     * User scrolls UP through img3 → img2 → img1 → reaches sentinel → triggers next load.
+                     * Layout: sentinel → batch1 → batch2 → batch3 → [boundary] → old content
+                     * We center batch3 so sentinel is far above → won't re-trigger.
+                     * User scrolls UP through batch3 → batch2 → batch1 → reaches sentinel → next load.
                      *
-                     * FIX BUG 1: Waits for images to load before calculating position.
+                     * Images use loading=lazy so they won't load off-screen, but containers
+                     * already have correct dimensions via aspect-ratio CSS. We use the
+                     * BATCH CONTAINER for positioning — no need to wait for images.
                      */
                     centerPrependedWhenReady(boundaryId, onDone) {
                         if (!boundaryId) { if (onDone) onDone(); return; }
 
-                        const allBatches = Array.from(
-                            document.querySelectorAll('#gallery-feed .group-batch[data-history-anchor-id]')
-                        );
-                        if (!allBatches.length) { if (onDone) onDone(); return; }
+                        requestAnimationFrame(() => {
+                            const allBatches = Array.from(
+                                document.querySelectorAll('#gallery-feed .group-batch[data-history-anchor-id]')
+                            );
+                            if (!allBatches.length) { if (onDone) onDone(); return; }
 
-                        const boundaryIndex = allBatches.findIndex(
-                            el => String(el.dataset?.historyAnchorId || '') === String(boundaryId)
-                        );
-                        if (boundaryIndex <= 0) { if (onDone) onDone(); return; }
+                            const boundaryIndex = allBatches.findIndex(
+                                el => String(el.dataset?.historyAnchorId || '') === String(boundaryId)
+                            );
+                            if (boundaryIndex <= 0) { if (onDone) onDone(); return; }
 
-                        // The LAST newly prepended batch = right above boundary
-                        const lastNewBatch = allBatches[boundaryIndex - 1];
-
-                        // Collect all new batches to wait for their images
-                        const newBatches = allBatches.slice(0, boundaryIndex);
-                        const allImages = [];
-                        newBatches.forEach(b => b.querySelectorAll('img').forEach(img => allImages.push(img)));
-
-                        const doCenter = () => {
-                            const firstImg = lastNewBatch.querySelector('img');
-                            const target = firstImg || lastNewBatch;
-                            const rect = target.getBoundingClientRect();
+                            // The LAST newly prepended batch = right above boundary (= "ảnh 3")
+                            const targetBatch = allBatches[boundaryIndex - 1];
+                            const rect = targetBatch.getBoundingClientRect();
                             const currentY = window.scrollY || document.documentElement.scrollTop || 0;
 
+                            // Center the batch vertically in viewport
                             const fitsViewport = rect.height < window.innerHeight;
                             const desiredTop = fitsViewport
                                 ? currentY + rect.top - ((window.innerHeight - rect.height) / 2)
                                 : currentY + rect.top - 24;
 
                             const scrollTarget = Math.max(0, Math.round(desiredTop));
-                            // UX 6: Smooth scroll then instant correction
-                            window.scrollTo({ top: scrollTarget, behavior: 'smooth' });
-                            setTimeout(() => {
-                                window.scrollTo(0, scrollTarget);
-                                if (onDone) onDone();
-                            }, 350);
-                        };
+                            window.scrollTo(0, scrollTarget);
 
-                        // Wait for pending images to load (max 2s timeout)
-                        const pending = allImages.filter(img => !img.complete);
-                        if (!pending.length) {
-                            requestAnimationFrame(doCenter);
-                            return;
-                        }
-
-                        let settled = false;
-                        let timeoutId = null;
-                        const cleanupFns = [];
-
-                        const settle = () => {
-                            if (settled) return;
-                            settled = true;
-                            if (timeoutId) { clearTimeout(timeoutId); timeoutId = null; }
-                            cleanupFns.forEach(fn => fn());
-                            cleanupFns.length = 0;
-                            requestAnimationFrame(doCenter);
-                        };
-
-                        // Wait for all images, settle on first load/error
-                        let loadedCount = 0;
-                        pending.forEach(img => {
-                            const onLoad = () => { loadedCount++; if (loadedCount >= pending.length) settle(); };
-                            const onError = () => { loadedCount++; if (loadedCount >= pending.length) settle(); };
-                            img.addEventListener('load', onLoad, { once: true });
-                            img.addEventListener('error', onError, { once: true });
-                            cleanupFns.push(() => {
-                                img.removeEventListener('load', onLoad);
-                                img.removeEventListener('error', onError);
-                            });
+                            if (onDone) onDone();
                         });
-                        timeoutId = setTimeout(settle, 2000);
                     },
 
                     // ============================================================
