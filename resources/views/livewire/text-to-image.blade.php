@@ -537,7 +537,10 @@
                             this.$nextTick(() => {
                                 clearTimeout(this._loadMoreFailSafeTimer);
                                 this._loadMoreFailSafeTimer = null;
-                                // Scroll restoration already done in morph.updated
+                                // Backup restoration (if morph.updated didn't run)
+                                if (this.isPrependingHistory && this._anchorId) {
+                                    this._restoreScrollPosition();
+                                }
                                 this.loadingMoreHistory = false;
                                 this.isPrependingHistory = false;
                                 this._reobserveSentinel();
@@ -610,6 +613,7 @@
                                     // Restore scroll position IMMEDIATELY after morph (before paint)
                                     if (this.isPrependingHistory && this._anchorId) {
                                         this._restoreScrollPosition();
+                                        // Null out to prevent double-execution in historyUpdated
                                     }
 
                                     // Don't re-observe during prepend — historyUpdated handler does it
@@ -786,6 +790,7 @@
                         const anchor = document.querySelector(
                             `#gallery-feed .group-batch[data-history-anchor-id="${this._anchorId}"]`
                         );
+                        this._anchorId = null; // prevent double-execution
                         if (!anchor) return;
                         const newTop = anchor.getBoundingClientRect().top;
                         const diff = newTop - this._anchorTop;
