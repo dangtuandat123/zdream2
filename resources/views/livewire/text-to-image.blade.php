@@ -537,11 +537,7 @@
                             this.$nextTick(() => {
                                 clearTimeout(this._loadMoreFailSafeTimer);
                                 this._loadMoreFailSafeTimer = null;
-
-                                if (this.isPrependingHistory) {
-                                    this._restoreScrollPosition();
-                                }
-
+                                // Scroll restoration already done in morph.updated
                                 this.loadingMoreHistory = false;
                                 this.isPrependingHistory = false;
                                 this._reobserveSentinel();
@@ -609,6 +605,11 @@
                                                 }
                                             }
                                         } catch (e) { }
+                                    }
+
+                                    // Restore scroll position IMMEDIATELY after morph (before paint)
+                                    if (this.isPrependingHistory && this._anchorId) {
+                                        this._restoreScrollPosition();
                                     }
 
                                     // Don't re-observe during prepend — historyUpdated handler does it
