@@ -392,8 +392,8 @@
                     _loadMoreFailSafeTimer: null,
                     _resizeHandler: null,
                     _sentinelObserver: null,
-                    _anchorId: null,
-                    _anchorTop: 0,
+                    _preScrollHeight: 0,
+                    _preScrollTop: 0,
 
                     // ── Infinite scroll state ─────────────────────
                     hasMoreHistory: @js($history instanceof \Illuminate\Pagination\LengthAwarePaginator ? $history->hasMorePages() : false),
@@ -539,33 +539,29 @@
                                 this._loadMoreFailSafeTimer = null;
 
                                 const wasPrepending = this.isPrependingHistory;
-                                const savedAnchorId = this._anchorId;
-                                const savedAnchorTop = this._anchorTop;
+                                const savedScrollHeight = this._preScrollHeight;
+                                const savedScrollTop = this._preScrollTop;
 
-                                // DON'T hide loading indicator yet — keep DOM consistent with capture
+                                // Keep loadingMoreHistory = true during restoration
+                                // (DOM must match capture state for accurate scrollHeight diff)
                                 this.isPrependingHistory = false;
-                                this._anchorId = null;
 
-                                if (wasPrepending && savedAnchorId) {
-                                    // rAF: loading indicator still visible (same as when anchor was captured)
-                                    // → positions are consistent → scrollBy is accurate
+                                if (wasPrepending && savedScrollHeight > 0) {
                                     requestAnimationFrame(() => {
-                                        const feed = document.getElementById('gallery-feed');
-                                        const anchor = feed?.querySelector(
-                                            `.group-batch[data-history-anchor-id="${savedAnchorId}"]`
-                                        );
-                                        if (anchor) {
-                                            const newTop = anchor.getBoundingClientRect().top;
-                                            const diff = newTop - savedAnchorTop;
-                                            if (Math.abs(diff) > 1) {
-                                                const html = document.documentElement;
-                                                html.style.scrollBehavior = 'auto';
-                                                window.scrollBy(0, diff);
-                                            }
+                                        // Loading indicator still visible → scrollHeight is consistent
+                                        const newScrollHeight = document.documentElement.scrollHeight;
+                                        const addedHeight = newScrollHeight - savedScrollHeight;
+
+                                        if (addedHeight > 0) {
+                                            document.documentElement.style.scrollBehavior = 'auto';
+                                            window.scrollTo(0, savedScrollTop + addedHeight);
                                         }
-                                        // NOW hide loading indicator — sentinel is above viewport
-                                        // With overflow-anchor:none, height change above viewport is invisible
+
+                                        // NOW hide loading indicator — sentinel already above viewport
+                                        // overflow-anchor:none → height change above viewport won't shift
                                         this.loadingMoreHistory = false;
+                                        this._preScrollHeight = 0;
+
                                         requestAnimationFrame(() => {
                                             document.documentElement.style.scrollBehavior = '';
                                             this._reobserveSentinel();
@@ -573,6 +569,7 @@
                                     });
                                 } else {
                                     this.loadingMoreHistory = false;
+                                    this._preScrollHeight = 0;
                                     this._reobserveSentinel();
                                 }
                             });
@@ -641,13 +638,13 @@
                                         } catch (e) { }
                                     }
 
-                                    // Scroll restoration handled by rAF in historyUpdated handler
+                                    // Scroll restoration handled by historyUpdated handler
 
-                                    // Don't re-observe during prepend — historyUpdated handler does it
+                                    // Don't re-observe or bootstrap during prepend
                                     if (!this.isPrependingHistory) {
                                         this._reobserveSentinel();
+                                        this.maybeBootstrapHistory();
                                     }
-                                    this.maybeBootstrapHistory();
                                 }
                             });
                         }
@@ -799,15 +796,8 @@
                     // Save anchor element before prepending older images
                     // ============================================================
                     capturePrependAnchor() {
-                        const feed = document.getElementById('gallery-feed');
-                        if (!feed) return;
-                        const groups = Array.from(
-                            feed.querySelectorAll('.group-batch[data-history-anchor-id]')
-                        );
-                        const anchor = groups.find(el => el.getBoundingClientRect().bottom > 0)
-                            || groups[0] || null;
-                        this._anchorId = anchor?.dataset?.historyAnchorId ?? null;
-                        this._anchorTop = anchor ? anchor.getBoundingClientRect().top : 0;
+                        this._preScrollHeight = document.documentElement.scrollHeight;
+                        this._preScrollTop = window.scrollY || document.documentElement.scrollTop || 0;
                     },
 
                     // ============================================================
@@ -1227,7 +1217,7 @@
                         this.$wire.setReferenceImages(
                             this.selectedImages.map(img => ({ url: img.url }))
                         );
-          },
+                    },
 
                     clearAll() {
                         this.selectedImages = [];
