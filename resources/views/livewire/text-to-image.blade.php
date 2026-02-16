@@ -549,7 +549,6 @@
 
                                 if (wasPrepending && savedAnchorId) {
                                     // Step 2: rAF fires AFTER Alpine DOM updates, BEFORE paint
-                                    // DOM is in final state (loading indicator hidden, new batches in place)
                                     requestAnimationFrame(() => {
                                         const feed = document.getElementById('gallery-feed');
                                         const anchor = feed?.querySelector(
@@ -558,12 +557,21 @@
                                         if (anchor) {
                                             const newTop = anchor.getBoundingClientRect().top;
                                             const diff = newTop - savedAnchorTop;
+                                            console.log('[SCROLL-FIX] rAF restore:', {
+                                                anchorId: savedAnchorId,
+                                                savedTop: savedAnchorTop,
+                                                newTop,
+                                                diff,
+                                                scrollY: window.scrollY
+                                            });
                                             if (Math.abs(diff) > 1) {
                                                 const html = document.documentElement;
                                                 html.style.scrollBehavior = 'auto';
                                                 window.scrollBy(0, diff);
                                                 requestAnimationFrame(() => { html.style.scrollBehavior = ''; });
                                             }
+                                        } else {
+                                            console.warn('[SCROLL-FIX] Anchor not found after morph:', savedAnchorId);
                                         }
                                         this._reobserveSentinel();
                                     });
@@ -703,10 +711,7 @@
                             this._sentinelObserver.disconnect();
                             this._sentinelObserver = null;
                         }
-                        if (this._prependMO) {
-                            this._prependMO.disconnect();
-                            this._prependMO = null;
-                        }
+
                         this.loadingMoreHistory = false;
                         this.isPrependingHistory = false;
                         document.body.style.overflow = '';
@@ -802,11 +807,16 @@
                         const groups = Array.from(
                             feed.querySelectorAll('.group-batch[data-history-anchor-id]')
                         );
-                        // First batch whose bottom is below viewport top = top of visible area
                         const anchor = groups.find(el => el.getBoundingClientRect().bottom > 0)
                             || groups[0] || null;
                         this._anchorId = anchor?.dataset?.historyAnchorId ?? null;
                         this._anchorTop = anchor ? anchor.getBoundingClientRect().top : 0;
+                        console.log('[SCROLL-FIX] capturePrependAnchor:', {
+                            anchorId: this._anchorId,
+                            anchorTop: this._anchorTop,
+                            totalBatches: groups.length,
+                            scrollY: window.scrollY
+                        });
                     },
 
                     // ============================================================
