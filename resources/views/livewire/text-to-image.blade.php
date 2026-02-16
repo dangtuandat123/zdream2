@@ -391,9 +391,7 @@
                     _scrollRestoration: null,
                     _loadMoreFailSafeTimer: null,
                     _resizeHandler: null,
-                    _prependRestoreRaf: null,
                     _sentinelObserver: null,
-                    _skipNextSentinel: false,
                     _preLoadScrollHeight: 0,
                     _preLoadScrollTop: 0,
 
@@ -401,7 +399,6 @@
                     hasMoreHistory: @js($history instanceof \Illuminate\Pagination\LengthAwarePaginator ? $history->hasMorePages() : false),
                     loadingMoreHistory: false,
                     isPrependingHistory: false,
-                    prependBoundaryId: null,
                     lastLoadMoreAt: 0,
                     lastScrollY: 0,
                     loadOlderStep: 3,
@@ -541,36 +538,20 @@
                                 clearTimeout(this._loadMoreFailSafeTimer);
                                 this._loadMoreFailSafeTimer = null;
 
-                                if (this.isPrependingHistory && this.prependBoundaryId) {
-                                    const savedBoundaryId = this.prependBoundaryId;
-
-                                    // Step 1: Restore scroll position instantly (prevent visible jump)
+                                if (this.isPrependingHistory) {
+                                    // Restore scroll position: user sees same content, new images above
                                     const html = document.documentElement;
-                                    const newScrollHeight = html.scrollHeight;
-                                    const addedHeight = newScrollHeight - this._preLoadScrollHeight;
+                                    const addedHeight = html.scrollHeight - this._preLoadScrollHeight;
                                     if (addedHeight > 0) {
                                         html.style.scrollBehavior = 'auto';
                                         window.scrollTo(0, this._preLoadScrollTop + addedHeight);
-                                    }
-
-                                    // Step 2: Center on ảnh 3 in next frame
-                                    requestAnimationFrame(() => {
-                                        this._centerOnBoundaryBatch(savedBoundaryId);
                                         requestAnimationFrame(() => { html.style.scrollBehavior = ''; });
-
-                                        // Step 3: Reset flags & re-observe
-                                        this.loadingMoreHistory = false;
-                                        this.isPrependingHistory = false;
-                                        this.prependBoundaryId = null;
-                                        this._skipNextSentinel = true;
-                                        this._reobserveSentinel();
-                                    });
-                                } else {
-                                    this.loadingMoreHistory = false;
-                                    this.isPrependingHistory = false;
-                                    this.prependBoundaryId = null;
-                                    this._reobserveSentinel();
+                                    }
                                 }
+
+                                this.loadingMoreHistory = false;
+                                this.isPrependingHistory = false;
+                                this._reobserveSentinel();
                             });
                         });
                         if (typeof offHistoryUpdated === 'function') this._wireListeners.push(offHistoryUpdated);
@@ -696,17 +677,12 @@
                         this.stopStatusTimer();
                         clearTimeout(this._loadMoreFailSafeTimer);
                         this._loadMoreFailSafeTimer = null;
-                        if (this._prependRestoreRaf !== null) {
-                            cancelAnimationFrame(this._prependRestoreRaf);
-                            this._prependRestoreRaf = null;
-                        }
                         if (this._sentinelObserver) {
                             this._sentinelObserver.disconnect();
                             this._sentinelObserver = null;
                         }
                         this.loadingMoreHistory = false;
                         this.isPrependingHistory = false;
-                        this.prependBoundaryId = null;
                         document.body.style.overflow = '';
                         document.documentElement.style.overflow = '';
                         if (this._scrollRestoration !== null && 'scrollRestoration' in history) {
@@ -784,11 +760,6 @@
                             entries.forEach(entry => {
                                 if (!entry.isIntersecting) return;
                                 if (this.loadingMoreHistory || !this.hasMoreHistory) return;
-                                // Skip-flag: ignore exactly one fire after centering
-                                if (this._skipNextSentinel) {
-                                    this._skipNextSentinel = false;
-                                    return;
-                                }
                                 this.requestLoadOlder(this.loadOlderStep);
                             });
                         }, { rootMargin: '400px 0px 0px 0px', threshold: 0 });
@@ -797,49 +768,11 @@
 
 
                     // ============================================================
-                    // Scroll centering after loading older images
+                    // Save scroll metrics before prepending older images
                     // ============================================================
                     capturePrependAnchor() {
-                        const groups = Array.from(
-                            document.querySelectorAll('#gallery-feed .group-batch[data-history-anchor-id]')
-                        );
-                        const boundary = groups.find((el) => el.getBoundingClientRect().bottom > 0) || groups[0] || null;
-                        this.prependBoundaryId = boundary?.dataset?.historyAnchorId ?? null;
-                        // Save scroll state for position restoration after morph
                         this._preLoadScrollHeight = document.documentElement.scrollHeight;
                         this._preLoadScrollTop = window.scrollY || document.documentElement.scrollTop || 0;
-                    },
-
-                    /**
-                     * Center on the LAST newly loaded batch (= "ảnh 3", closest to boundary).
-                     * Called AFTER scroll position has been restored via scrollHeight diff.
-                     *
-                     * Layout: sentinel → batch1 → batch2 → batch3 → [boundary] → old content
-                     * Center batch3 → sentinel is far above → user scrolls up to trigger next load.
-                     */
-                    _centerOnBoundaryBatch(boundaryId) {
-                        if (!boundaryId) return;
-                        const allBatches = Array.from(
-                            document.querySelectorAll('#gallery-feed .group-batch[data-history-anchor-id]')
-                        );
-                        if (!allBatches.length) return;
-
-                        const boundaryIndex = allBatches.findIndex(
-                            el => String(el.dataset?.historyAnchorId || '') === String(boundaryId)
-                        );
-                        if (boundaryIndex <= 0) return;
-
-                        // ảnh 3 = last new batch = right above boundary
-                        const targetBatch = allBatches[boundaryIndex - 1];
-                        const rect = targetBatch.getBoundingClientRect();
-                        const currentY = window.scrollY || document.documentElement.scrollTop || 0;
-
-                        const fitsViewport = rect.height < window.innerHeight;
-                        const desiredTop = fitsViewport
-                            ? currentY + rect.top - ((window.innerHeight - rect.height) / 2)
-                            : currentY + rect.top - 24;
-
-                        window.scrollTo(0, Math.max(0, Math.round(desiredTop)));
                     },
 
                     // ============================================================
@@ -938,7 +871,6 @@
                         this._loadMoreFailSafeTimer = setTimeout(() => {
                             this.loadingMoreHistory = false;
                             this.isPrependingHistory = false;
-                            this.prependBoundaryId = null;
                             this._loadMoreFailSafeTimer = null;
                         }, 7000);
                     },
