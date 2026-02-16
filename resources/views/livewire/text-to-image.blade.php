@@ -542,13 +542,13 @@
                                 const savedAnchorId = this._anchorId;
                                 const savedAnchorTop = this._anchorTop;
 
-                                // Step 1: Reset flags → Alpine hides loading indicator
-                                this.loadingMoreHistory = false;
+                                // DON'T hide loading indicator yet — keep DOM consistent with capture
                                 this.isPrependingHistory = false;
                                 this._anchorId = null;
 
                                 if (wasPrepending && savedAnchorId) {
-                                    // Step 2: rAF fires AFTER Alpine DOM updates, BEFORE paint
+                                    // rAF: loading indicator still visible (same as when anchor was captured)
+                                    // → positions are consistent → scrollBy is accurate
                                     requestAnimationFrame(() => {
                                         const feed = document.getElementById('gallery-feed');
                                         const anchor = feed?.querySelector(
@@ -557,25 +557,22 @@
                                         if (anchor) {
                                             const newTop = anchor.getBoundingClientRect().top;
                                             const diff = newTop - savedAnchorTop;
-                                            console.log('[SCROLL-FIX] rAF restore:', {
-                                                anchorId: savedAnchorId,
-                                                savedTop: savedAnchorTop,
-                                                newTop,
-                                                diff,
-                                                scrollY: window.scrollY
-                                            });
                                             if (Math.abs(diff) > 1) {
                                                 const html = document.documentElement;
                                                 html.style.scrollBehavior = 'auto';
                                                 window.scrollBy(0, diff);
-                                                requestAnimationFrame(() => { html.style.scrollBehavior = ''; });
                                             }
-                                        } else {
-                                            console.warn('[SCROLL-FIX] Anchor not found after morph:', savedAnchorId);
                                         }
-                                        this._reobserveSentinel();
+                                        // NOW hide loading indicator — sentinel is above viewport
+                                        // With overflow-anchor:none, height change above viewport is invisible
+                                        this.loadingMoreHistory = false;
+                                        requestAnimationFrame(() => {
+                                            document.documentElement.style.scrollBehavior = '';
+                                            this._reobserveSentinel();
+                                        });
                                     });
                                 } else {
+                                    this.loadingMoreHistory = false;
                                     this._reobserveSentinel();
                                 }
                             });
@@ -811,12 +808,6 @@
                             || groups[0] || null;
                         this._anchorId = anchor?.dataset?.historyAnchorId ?? null;
                         this._anchorTop = anchor ? anchor.getBoundingClientRect().top : 0;
-                        console.log('[SCROLL-FIX] capturePrependAnchor:', {
-                            anchorId: this._anchorId,
-                            anchorTop: this._anchorTop,
-                            totalBatches: groups.length,
-                            scrollY: window.scrollY
-                        });
                     },
 
                     // ============================================================
@@ -1236,7 +1227,7 @@
                         this.$wire.setReferenceImages(
                             this.selectedImages.map(img => ({ url: img.url }))
                         );
-                    },
+          },
 
                     clearAll() {
                         this.selectedImages = [];
