@@ -741,7 +741,11 @@
                         if (smooth) {
                             window.scrollTo({ top: targetTop, behavior: 'smooth' });
                         } else {
+                            // Override CSS scroll-behavior: smooth → instant teleport
+                            const html = document.documentElement;
+                            html.style.scrollBehavior = 'auto';
                             window.scrollTo(0, targetTop);
+                            requestAnimationFrame(() => { html.style.scrollBehavior = ''; });
                         }
                         this.showScrollToBottom = false;
                     },
@@ -832,7 +836,13 @@
                                 : currentY + rect.top - 24;
 
                             const scrollTarget = Math.max(0, Math.round(desiredTop));
+
+                            // Override CSS scroll-behavior: smooth → instant teleport
+                            const html = document.documentElement;
+                            html.style.scrollBehavior = 'auto';
                             window.scrollTo(0, scrollTarget);
+                            // Restore after a frame
+                            requestAnimationFrame(() => { html.style.scrollBehavior = ''; });
 
                             if (onDone) onDone();
                         });
