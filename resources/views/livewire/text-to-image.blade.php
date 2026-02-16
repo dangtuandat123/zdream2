@@ -139,7 +139,7 @@
         }
 
         .t2i-gallery-shell .group-batch {
-            overflow-anchor: auto;
+            overflow-anchor: none;
         }
 
         .t2i-gallery-shell .t2i-batch {
@@ -392,8 +392,8 @@
                     _loadMoreFailSafeTimer: null,
                     _resizeHandler: null,
                     _sentinelObserver: null,
-                    _preLoadScrollHeight: 0,
-                    _preLoadScrollTop: 0,
+                    _anchorId: null,
+                    _anchorTop: 0,
 
                     // ── Infinite scroll state ─────────────────────
                     hasMoreHistory: @js($history instanceof \Illuminate\Pagination\LengthAwarePaginator ? $history->hasMorePages() : false),
@@ -539,14 +539,7 @@
                                 this._loadMoreFailSafeTimer = null;
 
                                 if (this.isPrependingHistory) {
-                                    // Restore scroll position: user sees same content, new images above
-                                    const html = document.documentElement;
-                                    const addedHeight = html.scrollHeight - this._preLoadScrollHeight;
-                                    if (addedHeight > 0) {
-                                        html.style.scrollBehavior = 'auto';
-                                        window.scrollTo(0, this._preLoadScrollTop + addedHeight);
-                                        requestAnimationFrame(() => { html.style.scrollBehavior = ''; });
-                                    }
+                                    this._restoreScrollPosition();
                                 }
 
                                 this.loadingMoreHistory = false;
@@ -618,8 +611,10 @@
                                         } catch (e) { }
                                     }
 
-                                    // Re-observe sentinel after morph (scrollY guard prevents loop)
-                                    this._reobserveSentinel();
+                                    // Don't re-observe during prepend — historyUpdated handler does it
+                                    if (!this.isPrependingHistory) {
+                                        this._reobserveSentinel();
+                                    }
                                     this.maybeBootstrapHistory();
                                 }
                             });
@@ -768,11 +763,37 @@
 
 
                     // ============================================================
-                    // Save scroll metrics before prepending older images
+                    // Save anchor element before prepending older images
                     // ============================================================
                     capturePrependAnchor() {
-                        this._preLoadScrollHeight = document.documentElement.scrollHeight;
-                        this._preLoadScrollTop = window.scrollY || document.documentElement.scrollTop || 0;
+                        const groups = Array.from(
+                            document.querySelectorAll('#gallery-feed .group-batch[data-history-anchor-id]')
+                        );
+                        // Find the first batch whose bottom is visible (= top of visible area)
+                        const anchor = groups.find(el => el.getBoundingClientRect().bottom > 0)
+                            || groups[0] || null;
+                        this._anchorId = anchor?.dataset?.historyAnchorId ?? null;
+                        this._anchorTop = anchor ? anchor.getBoundingClientRect().top : 0;
+                    },
+
+                    /**
+                     * Restore scroll so the anchor element stays at the same visual position.
+                     * New content appears above — user sees no jump.
+                     */
+                    _restoreScrollPosition() {
+                        if (!this._anchorId) return;
+                        const anchor = document.querySelector(
+                            `#gallery-feed .group-batch[data-history-anchor-id="${this._anchorId}"]`
+                        );
+                        if (!anchor) return;
+                        const newTop = anchor.getBoundingClientRect().top;
+                        const diff = newTop - this._anchorTop;
+                        if (Math.abs(diff) > 1) {
+                            const html = document.documentElement;
+                            html.style.scrollBehavior = 'auto';
+                            window.scrollBy(0, diff);
+                            requestAnimationFrame(() => { html.style.scrollBehavior = ''; });
+                        }
                     },
 
                     // ============================================================
