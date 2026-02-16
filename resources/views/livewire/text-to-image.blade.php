@@ -393,7 +393,9 @@
                     _resizeHandler: null,
                     _prependRestoreRaf: null,
                     _sentinelObserver: null,
-                    _lastCenterAt: 0,
+                    _skipNextSentinel: false,
+                    _preLoadScrollHeight: 0,
+                    _preLoadScrollTop: 0,
 
                     // ── Infinite scroll state ─────────────────────
                     hasMoreHistory: @js($history instanceof \Illuminate\Pagination\LengthAwarePaginator ? $history->hasMorePages() : false),
@@ -540,20 +542,27 @@
                                 this._loadMoreFailSafeTimer = null;
 
                                 if (this.isPrependingHistory && this.prependBoundaryId) {
-                                    if (this._prependRestoreRaf !== null) {
-                                        cancelAnimationFrame(this._prependRestoreRaf);
-                                        this._prependRestoreRaf = null;
-                                    }
                                     const savedBoundaryId = this.prependBoundaryId;
 
-                                    // FIX BUG 1+8: Wait for images to load, THEN center, THEN reset flags
-                                    this.centerPrependedWhenReady(savedBoundaryId, () => {
-                                        // FIX BUG 8+3: Reset flags AFTER center completes
+                                    // Step 1: Restore scroll position instantly (prevent visible jump)
+                                    const html = document.documentElement;
+                                    const newScrollHeight = html.scrollHeight;
+                                    const addedHeight = newScrollHeight - this._preLoadScrollHeight;
+                                    if (addedHeight > 0) {
+                                        html.style.scrollBehavior = 'auto';
+                                        window.scrollTo(0, this._preLoadScrollTop + addedHeight);
+                                    }
+
+                                    // Step 2: Center on ảnh 3 in next frame
+                                    requestAnimationFrame(() => {
+                                        this._centerOnBoundaryBatch(savedBoundaryId);
+                                        requestAnimationFrame(() => { html.style.scrollBehavior = ''; });
+
+                                        // Step 3: Reset flags & re-observe
                                         this.loadingMoreHistory = false;
                                         this.isPrependingHistory = false;
                                         this.prependBoundaryId = null;
-                                        this._lastCenterAt = Date.now();
-                                        // Re-observe sentinel (time guard prevents immediate re-trigger)
+                                        this._skipNextSentinel = true;
                                         this._reobserveSentinel();
                                     });
                                 } else {
@@ -775,10 +784,11 @@
                             entries.forEach(entry => {
                                 if (!entry.isIntersecting) return;
                                 if (this.loadingMoreHistory || !this.hasMoreHistory) return;
-                                const now = Date.now();
-                                if (now - this.lastLoadMoreAt < 800) return;
-                                // FIX BUG 2: Time-based guard — block for 2s after centering
-                                if (now - this._lastCenterAt < 2000) return;
+                                // Skip-flag: ignore exactly one fire after centering
+                                if (this._skipNextSentinel) {
+                                    this._skipNextSentinel = false;
+                                    return;
+                                }
                                 this.requestLoadOlder(this.loadOlderStep);
                             });
                         }, { rootMargin: '400px 0px 0px 0px', threshold: 0 });
@@ -793,59 +803,43 @@
                         const groups = Array.from(
                             document.querySelectorAll('#gallery-feed .group-batch[data-history-anchor-id]')
                         );
-                        // The first batch whose bottom edge is visible = our boundary (was visible before load)
                         const boundary = groups.find((el) => el.getBoundingClientRect().bottom > 0) || groups[0] || null;
                         this.prependBoundaryId = boundary?.dataset?.historyAnchorId ?? null;
+                        // Save scroll state for position restoration after morph
+                        this._preLoadScrollHeight = document.documentElement.scrollHeight;
+                        this._preLoadScrollTop = window.scrollY || document.documentElement.scrollTop || 0;
                     },
 
                     /**
-                     * After older images are prepended above the boundary batch,
-                     * center the LAST newly loaded batch (closest to boundary, farthest from sentinel).
+                     * Center on the LAST newly loaded batch (= "ảnh 3", closest to boundary).
+                     * Called AFTER scroll position has been restored via scrollHeight diff.
                      *
                      * Layout: sentinel → batch1 → batch2 → batch3 → [boundary] → old content
-                     * We center batch3 so sentinel is far above → won't re-trigger.
-                     * User scrolls UP through batch3 → batch2 → batch1 → reaches sentinel → next load.
-                     *
-                     * Images use loading=lazy so they won't load off-screen, but containers
-                     * already have correct dimensions via aspect-ratio CSS. We use the
-                     * BATCH CONTAINER for positioning — no need to wait for images.
+                     * Center batch3 → sentinel is far above → user scrolls up to trigger next load.
                      */
-                    centerPrependedWhenReady(boundaryId, onDone) {
-                        if (!boundaryId) { if (onDone) onDone(); return; }
+                    _centerOnBoundaryBatch(boundaryId) {
+                        if (!boundaryId) return;
+                        const allBatches = Array.from(
+                            document.querySelectorAll('#gallery-feed .group-batch[data-history-anchor-id]')
+                        );
+                        if (!allBatches.length) return;
 
-                        requestAnimationFrame(() => {
-                            const allBatches = Array.from(
-                                document.querySelectorAll('#gallery-feed .group-batch[data-history-anchor-id]')
-                            );
-                            if (!allBatches.length) { if (onDone) onDone(); return; }
+                        const boundaryIndex = allBatches.findIndex(
+                            el => String(el.dataset?.historyAnchorId || '') === String(boundaryId)
+                        );
+                        if (boundaryIndex <= 0) return;
 
-                            const boundaryIndex = allBatches.findIndex(
-                                el => String(el.dataset?.historyAnchorId || '') === String(boundaryId)
-                            );
-                            if (boundaryIndex <= 0) { if (onDone) onDone(); return; }
+                        // ảnh 3 = last new batch = right above boundary
+                        const targetBatch = allBatches[boundaryIndex - 1];
+                        const rect = targetBatch.getBoundingClientRect();
+                        const currentY = window.scrollY || document.documentElement.scrollTop || 0;
 
-                            // The LAST newly prepended batch = right above boundary (= "ảnh 3")
-                            const targetBatch = allBatches[boundaryIndex - 1];
-                            const rect = targetBatch.getBoundingClientRect();
-                            const currentY = window.scrollY || document.documentElement.scrollTop || 0;
+                        const fitsViewport = rect.height < window.innerHeight;
+                        const desiredTop = fitsViewport
+                            ? currentY + rect.top - ((window.innerHeight - rect.height) / 2)
+                            : currentY + rect.top - 24;
 
-                            // Center the batch vertically in viewport
-                            const fitsViewport = rect.height < window.innerHeight;
-                            const desiredTop = fitsViewport
-                                ? currentY + rect.top - ((window.innerHeight - rect.height) / 2)
-                                : currentY + rect.top - 24;
-
-                            const scrollTarget = Math.max(0, Math.round(desiredTop));
-
-                            // Override CSS scroll-behavior: smooth → instant teleport
-                            const html = document.documentElement;
-                            html.style.scrollBehavior = 'auto';
-                            window.scrollTo(0, scrollTarget);
-                            // Restore after a frame
-                            requestAnimationFrame(() => { html.style.scrollBehavior = ''; });
-
-                            if (onDone) onDone();
-                        });
+                        window.scrollTo(0, Math.max(0, Math.round(desiredTop)));
                     },
 
                     // ============================================================
@@ -930,8 +924,7 @@
                     requestLoadOlder(count = null) {
                         if (!this.hasMoreHistory || this.loadingMoreHistory) return;
                         const now = Date.now();
-                        // FIX BUG 5: Increased from 300ms to 1500ms
-                        if (now - this.lastLoadMoreAt < 1500) return;
+                        if (now - this.lastLoadMoreAt < 500) return;
                         this.lastLoadMoreAt = now;
 
                         this.capturePrependAnchor();
