@@ -392,8 +392,7 @@
                     _loadMoreFailSafeTimer: null,
                     _resizeHandler: null,
                     _sentinelObserver: null,
-                    _anchorId: null,
-                    _anchorTop: 0,
+                    _prependMO: null,
 
                     // ── Infinite scroll state ─────────────────────
                     hasMoreHistory: @js($history instanceof \Illuminate\Pagination\LengthAwarePaginator ? $history->hasMorePages() : false),
@@ -537,10 +536,6 @@
                             this.$nextTick(() => {
                                 clearTimeout(this._loadMoreFailSafeTimer);
                                 this._loadMoreFailSafeTimer = null;
-                                // Backup restoration (if morph.updated didn't run)
-                                if (this.isPrependingHistory && this._anchorId) {
-                                    this._restoreScrollPosition();
-                                }
                                 this.loadingMoreHistory = false;
                                 this.isPrependingHistory = false;
                                 this._reobserveSentinel();
@@ -610,11 +605,7 @@
                                         } catch (e) { }
                                     }
 
-                                    // Restore scroll position IMMEDIATELY after morph (before paint)
-                                    if (this.isPrependingHistory && this._anchorId) {
-                                        this._restoreScrollPosition();
-                                        // Null out to prevent double-execution in historyUpdated
-                                    }
+                                    // Scroll restoration handled by MutationObserver in capturePrependAnchor
 
                                     // Don't re-observe during prepend — historyUpdated handler does it
                                     if (!this.isPrependingHistory) {
@@ -680,6 +671,10 @@
                         if (this._sentinelObserver) {
                             this._sentinelObserver.disconnect();
                             this._sentinelObserver = null;
+                        }
+                        if (this._prependMO) {
+                            this._prependMO.disconnect();
+                            this._prependMO = null;
                         }
                         this.loadingMoreHistory = false;
                         this.isPrependingHistory = false;
@@ -768,38 +763,50 @@
 
 
                     // ============================================================
-                    // Save anchor element before prepending older images
+                    // Save anchor + set up MutationObserver for instant scroll restoration
                     // ============================================================
                     capturePrependAnchor() {
+                        // Clean up any previous observer
+                        if (this._prependMO) {
+                            this._prependMO.disconnect();
+                            this._prependMO = null;
+                        }
+
+                        const feed = document.getElementById('gallery-feed');
+                        if (!feed) return;
+
                         const groups = Array.from(
-                            document.querySelectorAll('#gallery-feed .group-batch[data-history-anchor-id]')
+                            feed.querySelectorAll('.group-batch[data-history-anchor-id]')
                         );
-                        // Find the first batch whose bottom is visible (= top of visible area)
+                        // Find the first batch whose bottom is below viewport top (= first visible)
                         const anchor = groups.find(el => el.getBoundingClientRect().bottom > 0)
                             || groups[0] || null;
-                        this._anchorId = anchor?.dataset?.historyAnchorId ?? null;
-                        this._anchorTop = anchor ? anchor.getBoundingClientRect().top : 0;
-                    },
-
-                    /**
-                     * Restore scroll so the anchor element stays at the same visual position.
-                     * New content appears above — user sees no jump.
-                     */
-                    _restoreScrollPosition() {
-                        if (!this._anchorId) return;
-                        const anchor = document.querySelector(
-                            `#gallery-feed .group-batch[data-history-anchor-id="${this._anchorId}"]`
-                        );
-                        this._anchorId = null; // prevent double-execution
                         if (!anchor) return;
-                        const newTop = anchor.getBoundingClientRect().top;
-                        const diff = newTop - this._anchorTop;
-                        if (Math.abs(diff) > 1) {
-                            const html = document.documentElement;
-                            html.style.scrollBehavior = 'auto';
-                            window.scrollBy(0, diff);
-                            requestAnimationFrame(() => { html.style.scrollBehavior = ''; });
-                        }
+
+                        const anchorId = anchor.dataset.historyAnchorId;
+                        const anchorTop = anchor.getBoundingClientRect().top;
+
+                        // One-shot MutationObserver: fires synchronously when DOM children change
+                        // This runs BEFORE any browser paint → zero visual jump
+                        this._prependMO = new MutationObserver(() => {
+                            this._prependMO.disconnect();
+                            this._prependMO = null;
+
+                            const sameAnchor = feed.querySelector(
+                                `.group-batch[data-history-anchor-id="${anchorId}"]`
+                            );
+                            if (!sameAnchor) return;
+
+                            const newTop = sameAnchor.getBoundingClientRect().top;
+                            const diff = newTop - anchorTop;
+                            if (Math.abs(diff) > 1) {
+                                const html = document.documentElement;
+                                html.style.scrollBehavior = 'auto';
+                                window.scrollBy(0, diff);
+                                requestAnimationFrame(() => { html.style.scrollBehavior = ''; });
+                            }
+                        });
+                        this._prependMO.observe(feed, { childList: true, subtree: true });
                     },
 
                     // ============================================================
