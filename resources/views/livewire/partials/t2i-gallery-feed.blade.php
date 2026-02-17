@@ -2,6 +2,29 @@
 {{-- GALLERY FEED — Clean rewrite with reliable infinite scroll --}}
 {{-- ============================================================ --}}
 <div id="gallery-scroll" class="t2i-gallery-shell">
+
+    {{-- Fixed loading indicator — always visible during history load --}}
+    <div x-show="loadingMoreHistory" x-cloak
+        x-transition:enter="transition ease-out duration-200"
+        x-transition:enter-start="opacity-0 -translate-y-2"
+        x-transition:enter-end="opacity-100 translate-y-0"
+        x-transition:leave="transition ease-in duration-150"
+        x-transition:leave-start="opacity-100"
+        x-transition:leave-end="opacity-0"
+        class="fixed top-0 left-0 right-0 z-50 pointer-events-none">
+        {{-- Shimmer bar --}}
+        <div class="h-0.5 w-full bg-gradient-to-r from-transparent via-purple-500/60 to-transparent animate-pulse"></div>
+        {{-- Floating pill --}}
+        <div class="flex justify-center mt-3">
+            <div class="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-black/60 backdrop-blur-md border border-white/10 shadow-lg">
+                <svg class="w-3.5 h-3.5 animate-spin text-purple-400" viewBox="0 0 24 24" fill="none">
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2.5" opacity="0.25"/>
+                    <path d="M22 12a10 10 0 01-10 10" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+                </svg>
+                <span class="text-white/60 text-[11px] font-medium">Đang tải...</span>
+            </div>
+        </div>
+    </div>
     <div class="max-w-4xl mx-auto px-4"
         style="padding-top: calc(var(--filter-bar-h, 3.5rem) + 1.5rem); padding-bottom: calc(var(--composer-h, 10rem) + 1rem);">
 
