@@ -542,10 +542,16 @@
 
                                 // Browser scroll anchoring (overflow-anchor: auto)
                                 // automatically keeps visible content in place.
-                                // Just clean up state flags.
                                 this.isPrependingHistory = false;
                                 this.loadingMoreHistory = false;
-                                this._reobserveSentinel();
+                                this.lastLoadMoreAt = Date.now(); // throttle next load
+
+                                // Delay re-observation: if sentinel is still within
+                                // rootMargin (400px) after load, it would fire immediately
+                                // causing infinite loop. Wait so user must scroll up.
+                                setTimeout(() => {
+                                    this._reobserveSentinel();
+                                }, 800);
                             });
                         });
                         if (typeof offHistoryUpdated === 'function') this._wireListeners.push(offHistoryUpdated);
