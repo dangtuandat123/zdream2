@@ -549,11 +549,67 @@
                                 clearTimeout(this._loadMoreFailSafeTimer);
                                 this._loadMoreFailSafeTimer = null;
 
-                                // Body unlock + anchor correction is handled in
-                                // morph.updated (synchronous, no paint gap).
-                                // Here we only reset flags and re-observe.
-                                if (this._bodyLocked) {
-                                    // Failsafe: if morph.updated didn't fire for gallery-feed
+                                // ── Full scroll correction ──
+                                // This is the ONLY place scroll correction happens.
+                                // $nextTick runs after ALL morph operations complete,
+                                // but before browser paints (microtask).
+                                if (this._bodyLocked && this.isPrependingHistory) {
+                                    const savedY = this._frozenScrollY ?? 0;
+
+                                    // Unlock body in one shot
+                                    document.body.style.cssText = '';
+                                    this._bodyLocked = false;
+                                    this._frozenScrollY = undefined;
+
+                                    // Read feed height AFTER body unlock (accurate layout)
+                                    const feed = document.getElementById('gallery-feed');
+                                    const newFeedHeight = feed ? feed.scrollHeight : 0;
+                                    const heightAdded = newFeedHeight - (this._prevFeedHeight || newFeedHeight);
+                                    this._prevFeedHeight = null;
+
+                                    // Scroll = original position + height of new content
+                                    if (heightAdded > 0) {
+                                        window.scrollTo(0, savedY + heightAdded);
+                                    } else {
+                                        window.scrollTo(0, savedY);
+                                    }
+
+                                    // ResizeObserver: compensate for lazy image loads
+                                    if (feed && heightAdded > 0) {
+                                        const batches = feed.querySelectorAll('.group-batch');
+                                        const newBatches = [];
+                                        for (const b of batches) {
+                                            if (b.getBoundingClientRect().top > window.innerHeight) break;
+                                            newBatches.push(b);
+                                        }
+                                        if (newBatches.length) {
+                                            if (this._resizeObserver) {
+                                                this._resizeObserver.disconnect();
+                                            }
+                                            this._resizeObserver = new ResizeObserver((entries) => {
+                                                let total = 0;
+                                                for (const e of entries) {
+                                                    const nH = e.borderBoxSize?.[0]?.blockSize ?? e.contentRect.height;
+                                                    const oH = this._batchHeights.get(e.target) || 0;
+                                                    if (oH > 0 && nH !== oH) total += nH - oH;
+                                                    this._batchHeights.set(e.target, nH);
+                                                }
+                                                if (Math.abs(total) > 0.5) window.scrollBy(0, total);
+                                            });
+                                            newBatches.forEach(b => {
+                                                this._batchHeights.set(b, b.getBoundingClientRect().height);
+                                                this._resizeObserver.observe(b);
+                                            });
+                                            setTimeout(() => {
+                                                if (this._resizeObserver) {
+                                                    this._resizeObserver.disconnect();
+                                                    this._resizeObserver = null;
+                                                }
+                                            }, 8000);
+                                        }
+                                    }
+                                } else if (this._bodyLocked) {
+                                    // Edge case: body locked but not prepending
                                     document.body.style.cssText = '';
                                     this._bodyLocked = false;
                                     if (this._frozenScrollY !== undefined) {
@@ -627,8 +683,9 @@
                             });
 
                             this._morphCleanup = Livewire.hook('morph.updated', ({ el }) => {
-                                // ── SECTION A: Data sync ──
-                                // Fires for any gallery-related element (harmless duplicates).
+                                // Data sync only — NO scroll correction here.
+                                // morph.updated may not fire for gallery-feed itself
+                                // (only fires for elements whose attributes change).
                                 const isGalleryRelated = el.id === 'gallery-feed'
                                     || el.closest?.('#gallery-feed')
                                     || el.querySelector?.('#gallery-feed');
@@ -662,63 +719,6 @@
                                         if (!this.isPrependingHistory) {
                                             this._reobserveSentinel();
                                             this.maybeBootstrapHistory();
-                                        }
-                                    }
-                                }
-
-                                // ── SECTION B: Scroll correction ──
-                                // ONLY fires when el IS #gallery-feed itself.
-                                // At this point ALL children of gallery-feed are
-                                // fully morphed (Alpine morph is recursive: parent's
-                                // updated hook fires AFTER all children are done).
-                                if (el.id === 'gallery-feed' && this._bodyLocked && this.isPrependingHistory) {
-                                    const feed = document.getElementById('gallery-feed');
-                                    const newFeedHeight = feed ? feed.scrollHeight : 0;
-                                    const heightAdded = newFeedHeight - (this._prevFeedHeight || newFeedHeight);
-                                    const savedY = this._frozenScrollY ?? 0;
-
-                                    // Unlock body in one shot
-                                    document.body.style.cssText = '';
-                                    this._bodyLocked = false;
-                                    this._frozenScrollY = undefined;
-                                    this._prevFeedHeight = null;
-
-                                    // Scroll to: original position + height of new content
-                                    window.scrollTo(0, savedY + heightAdded);
-
-                                    // ResizeObserver for lazy-loaded images above viewport
-                                    if (feed && heightAdded > 0) {
-                                        const batches = feed.querySelectorAll('.group-batch');
-                                        const newBatches = [];
-                                        for (const b of batches) {
-                                            // New batches are at the top; stop when we hit
-                                            // the first batch that existed before the load.
-                                            if (b.getBoundingClientRect().top > window.innerHeight) break;
-                                            newBatches.push(b);
-                                        }
-                                        if (newBatches.length) {
-                                            if (!this._resizeObserver) {
-                                                this._resizeObserver = new ResizeObserver((entries) => {
-                                                    let total = 0;
-                                                    for (const e of entries) {
-                                                        const nH = e.borderBoxSize?.[0]?.blockSize ?? e.contentRect.height;
-                                                        const oH = this._batchHeights.get(e.target) || 0;
-                                                        if (oH > 0 && nH !== oH) total += nH - oH;
-                                                        this._batchHeights.set(e.target, nH);
-                                                    }
-                                                    if (Math.abs(total) > 0.5) window.scrollBy(0, total);
-                                                });
-                                            }
-                                            newBatches.forEach(b => {
-                                                this._batchHeights.set(b, b.getBoundingClientRect().height);
-                                                this._resizeObserver.observe(b);
-                                            });
-                                            setTimeout(() => {
-                                                if (this._resizeObserver) {
-                                                    this._resizeObserver.disconnect();
-                                                    this._resizeObserver = null;
-                                                }
-                                            }, 8000);
                                         }
                                     }
                                 }
