@@ -828,7 +828,7 @@
                                 if (this.loadingMoreHistory || !this.hasMoreHistory) return;
                                 this.requestLoadOlder(this.loadOlderStep);
                             });
-                        }, { rootMargin: '200px 0px 0px 0px', threshold: 0 });
+                        }, { rootMargin: '400px 0px 0px 0px', threshold: 0 });
                         this._sentinelObserver.observe(sentinel);
                     },
 
@@ -1304,7 +1304,7 @@
                     },
 
                     removeImage(id) {
-              this.selectedImages = this.selectedImages.filter(i => i.id !== id);
+                        this.selectedImages = this.selectedImages.filter(i => i.id !== id);
                         this.$wire.setReferenceImages(
                             this.selectedImages.map(img => ({ url: img.url }))
                         );
