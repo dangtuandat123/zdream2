@@ -922,10 +922,9 @@ input[type="number"] {
    TEXT-TO-IMAGE GALLERY — Component Styles
    =================================================================== */
 
-/* Shell container: smooth scroll */
+/* Shell container */
 .t2i-gallery-shell {
     -webkit-overflow-scrolling: touch;
-    scroll-behavior: smooth;
 }
 
 /* Batch group: subtle hover lift */
