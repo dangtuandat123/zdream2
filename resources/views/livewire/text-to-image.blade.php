@@ -549,29 +549,34 @@
                                 clearTimeout(this._loadMoreFailSafeTimer);
                                 this._loadMoreFailSafeTimer = null;
 
-                                // Remove scroll guard (it already corrected the flash)
-                                if (this._scrollGuard) {
-                                    window.removeEventListener('scroll', this._scrollGuard);
-                                    this._scrollGuard = null;
+                                // ── Unlock body ──
+                                document.body.style.position = '';
+                                document.body.style.top = '';
+                                document.body.style.left = '';
+                                document.body.style.right = '';
+                                document.body.style.paddingRight = '';
+
+                                // Restore scroll to saved position first
+                                if (this._frozenScrollY !== undefined) {
+                                    window.scrollTo(0, this._frozenScrollY);
+                                    this._frozenScrollY = undefined;
                                 }
 
-                                // ── Final scroll correction (accurate) ──
+                                // ── Anchor correction ──
                                 if (this._anchorId) {
                                     const feed = document.getElementById('gallery-feed');
                                     const anchor = feed?.querySelector(
                                         `.group-batch[data-history-anchor-id="${this._anchorId}"]`
                                     );
-                                    console.log('[SCROLL-DEBUG] historyUpdated: anchorId=', this._anchorId, 'found=', !!anchor, 'savedTop=', this._anchorTop, 'scrollY=', window.scrollY);
                                     if (anchor) {
                                         const newTop = anchor.getBoundingClientRect().top;
                                         const diff = newTop - this._anchorTop;
-                                        console.log('[SCROLL-DEBUG] newTop=', newTop, 'diff=', diff);
+                                        console.log('[SCROLL-DEBUG] historyUpdated: anchorId=', this._anchorId, 'newTop=', newTop, 'diff=', diff, 'scrollY=', window.scrollY);
                                         if (Math.abs(diff) > 1) {
                                             window.scrollBy(0, diff);
-                                            console.log('[SCROLL-DEBUG] scrollBy=', diff, 'newScrollY=', window.scrollY);
                                         }
 
-                                        // Attach ResizeObserver to batches ABOVE anchor
+                                        // Attach ResizeObserver to new batches above anchor
                                         if (feed) {
                                             const newBatches = [];
                                             let sib = anchor.previousElementSibling;
@@ -596,7 +601,6 @@
                                                     this._batchHeights.set(b, b.getBoundingClientRect().height);
                                                     this._resizeObserver.observe(b);
                                                 });
-                                                // Auto-disconnect ResizeObserver after 8s
                                                 setTimeout(() => {
                                                     if (this._resizeObserver) {
                                                         this._resizeObserver.disconnect();
@@ -613,7 +617,6 @@
                                 this.loadingMoreHistory = false;
                                 this.lastLoadMoreAt = Date.now();
 
-                                // Delay re-observe to prevent infinite loop
                                 setTimeout(() => this._reobserveSentinel(), 800);
                             });
                         });
@@ -861,31 +864,21 @@
                         this._anchorId = anchor.dataset.historyAnchorId;
                         this._anchorTop = anchor.getBoundingClientRect().top;
 
-                        // ── Scroll Guard ──
-                        // Livewire morph resets scrollY to 0. This listener fires
-                        // IMMEDIATELY when that happens and corrects position
-                        // BEFORE the browser paints → no visible flash.
-                        if (this._scrollGuard) {
-                            window.removeEventListener('scroll', this._scrollGuard);
-                        }
-                        let guardCorrections = 0;
-                        const anchorId = this._anchorId;
-                        const savedTop = this._anchorTop;
-                        this._scrollGuard = () => {
-                            if (guardCorrections > 10) return; // safety limit
-                            const el = document.querySelector(
-                                `.group-batch[data-history-anchor-id="${anchorId}"]`
-                            );
-                            if (!el) return;
-                            const diff = el.getBoundingClientRect().top - savedTop;
-                            if (Math.abs(diff) > 2) {
-                                guardCorrections++;
-                                window.scrollBy(0, diff);
-                            }
-                        };
-                        window.addEventListener('scroll', this._scrollGuard, { passive: true });
+                        // ── Body Lock: freeze page during Livewire morph ──
+                        // position:fixed prevents ANY scroll changes.
+                        // top:-scrollY keeps visual position identical.
+                        // Livewire morph runs, DOM changes, but scroll can't move.
+                        // Unlock in historyUpdated.$nextTick.
+                        const y = window.scrollY;
+                        const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+                        document.body.style.position = 'fixed';
+                        document.body.style.top = `-${y}px`;
+                        document.body.style.left = '0';
+                        document.body.style.right = '0';
+                        document.body.style.paddingRight = `${scrollbarWidth}px`;
+                        this._frozenScrollY = y;
 
-                        console.log('[SCROLL-DEBUG] capturePrependAnchor: anchorId=', this._anchorId, 'anchorTop=', this._anchorTop, 'scrollY=', window.scrollY, 'scrollHeight=', document.documentElement.scrollHeight);
+                        console.log('[SCROLL-DEBUG] capturePrependAnchor: anchorId=', this._anchorId, 'anchorTop=', this._anchorTop, 'frozenScrollY=', y);
                     },
 
                     // ============================================================
@@ -982,6 +975,16 @@
 
                         clearTimeout(this._loadMoreFailSafeTimer);
                         this._loadMoreFailSafeTimer = setTimeout(() => {
+                            // Unlock body if still frozen
+                            document.body.style.position = '';
+                            document.body.style.top = '';
+                            document.body.style.left = '';
+                            document.body.style.right = '';
+                            document.body.style.paddingRight = '';
+                            if (this._frozenScrollY !== undefined) {
+                                window.scrollTo(0, this._frozenScrollY);
+                                this._frozenScrollY = undefined;
+                            }
                             this.loadingMoreHistory = false;
                             this.isPrependingHistory = false;
                             this._loadMoreFailSafeTimer = null;
