@@ -463,6 +463,15 @@
                             if (this.isNearBottom(120)) {
                                 this.showScrollToBottom = false;
                             }
+
+                            // Backup trigger: if user is at top but Sentinel didn't fire
+                            if (currentY < 200 && this.hasMoreHistory && !this.loadingMoreHistory) {
+                                // Debounce check to avoid spam
+                                clearTimeout(this._backupLoadTimer);
+                                this._backupLoadTimer = setTimeout(() => {
+                                    if (window.scrollY < 200) this.requestLoadOlder(this.loadOlderStep);
+                                }, 100);
+                            }
                         };
                         window.addEventListener('scroll', this._scrollHandler, { passive: true });
 
@@ -783,10 +792,24 @@
                             this._prependMO.disconnect();
                             this._prependMO = null;
 
-                            const addedHeight = document.documentElement.scrollHeight - savedHeight;
+                            const currentScrollTop = window.scrollY || document.documentElement.scrollTop || 0;
+                            const newScrollHeight = document.documentElement.scrollHeight;
+                            const addedHeight = newScrollHeight - savedHeight;
+
+                            // Step 1: Immediate correction (before paint)
                             if (addedHeight > 0) {
                                 window.scrollTo(0, savedTop + addedHeight);
                             }
+
+                            // Step 2: Double-check next frame (catch layout reflows)
+                            requestAnimationFrame(() => {
+                                const realScrollHeight = document.documentElement.scrollHeight;
+                                const realAdded = realScrollHeight - savedHeight;
+                                const diff = Math.abs(realAdded - addedHeight);
+                                if (diff > 1) {
+                                     window.scrollBy(0, realAdded - addedHeight);
+                                }
+                            });
                         });
 
                         this._prependMO.observe(feed, { childList: true, subtree: true });
