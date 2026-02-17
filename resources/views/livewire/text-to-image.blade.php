@@ -549,15 +549,19 @@
                                 clearTimeout(this._loadMoreFailSafeTimer);
                                 this._loadMoreFailSafeTimer = null;
 
-                                // ── Scroll correction: element-based anchor ──
-                                // Find the same batch we saved before load and
-                                // scroll so it stays at the same viewport position.
+                                // Remove scroll guard (it already corrected the flash)
+                                if (this._scrollGuard) {
+                                    window.removeEventListener('scroll', this._scrollGuard);
+                                    this._scrollGuard = null;
+                                }
+
+                                // ── Final scroll correction (accurate) ──
                                 if (this._anchorId) {
                                     const feed = document.getElementById('gallery-feed');
                                     const anchor = feed?.querySelector(
                                         `.group-batch[data-history-anchor-id="${this._anchorId}"]`
                                     );
-                                    console.log('[SCROLL-DEBUG] historyUpdated: anchorId=', this._anchorId, 'found=', !!anchor, 'savedTop=', this._anchorTop, 'scrollY=', window.scrollY, 'scrollHeight=', document.documentElement.scrollHeight);
+                                    console.log('[SCROLL-DEBUG] historyUpdated: anchorId=', this._anchorId, 'found=', !!anchor, 'savedTop=', this._anchorTop, 'scrollY=', window.scrollY);
                                     if (anchor) {
                                         const newTop = anchor.getBoundingClientRect().top;
                                         const diff = newTop - this._anchorTop;
@@ -568,7 +572,6 @@
                                         }
 
                                         // Attach ResizeObserver to batches ABOVE anchor
-                                        // (they might grow when lazy images load)
                                         if (feed) {
                                             const newBatches = [];
                                             let sib = anchor.previousElementSibling;
@@ -593,6 +596,13 @@
                                                     this._batchHeights.set(b, b.getBoundingClientRect().height);
                                                     this._resizeObserver.observe(b);
                                                 });
+                                                // Auto-disconnect ResizeObserver after 8s
+                                                setTimeout(() => {
+                                                    if (this._resizeObserver) {
+                                                        this._resizeObserver.disconnect();
+                                                        this._resizeObserver = null;
+                                                    }
+                                                }, 8000);
                                             }
                                         }
                                     }
@@ -834,9 +844,6 @@
                     // 3. Scroll position is adjusted instantly to compensate
                     // ============================================================
                     capturePrependAnchor() {
-                        // Find first visible batch as our anchor element.
-                        // We save its ID + viewport position. After morph,
-                        // historyUpdated.$nextTick finds it again and scrollBy(diff).
                         const feed = document.getElementById('gallery-feed');
                         if (!feed) return;
 
@@ -848,12 +855,36 @@
                                 break;
                             }
                         }
-                        // Fallback: last batch if none visible from top
                         if (!anchor && batches.length) anchor = batches[batches.length - 1];
                         if (!anchor) return;
 
                         this._anchorId = anchor.dataset.historyAnchorId;
                         this._anchorTop = anchor.getBoundingClientRect().top;
+
+                        // ── Scroll Guard ──
+                        // Livewire morph resets scrollY to 0. This listener fires
+                        // IMMEDIATELY when that happens and corrects position
+                        // BEFORE the browser paints → no visible flash.
+                        if (this._scrollGuard) {
+                            window.removeEventListener('scroll', this._scrollGuard);
+                        }
+                        let guardCorrections = 0;
+                        const anchorId = this._anchorId;
+                        const savedTop = this._anchorTop;
+                        this._scrollGuard = () => {
+                            if (guardCorrections > 10) return; // safety limit
+                            const el = document.querySelector(
+                                `.group-batch[data-history-anchor-id="${anchorId}"]`
+                            );
+                            if (!el) return;
+                            const diff = el.getBoundingClientRect().top - savedTop;
+                            if (Math.abs(diff) > 2) {
+                                guardCorrections++;
+                                window.scrollBy(0, diff);
+                            }
+                        };
+                        window.addEventListener('scroll', this._scrollGuard, { passive: true });
+
                         console.log('[SCROLL-DEBUG] capturePrependAnchor: anchorId=', this._anchorId, 'anchorTop=', this._anchorTop, 'scrollY=', window.scrollY, 'scrollHeight=', document.documentElement.scrollHeight);
                     },
 
