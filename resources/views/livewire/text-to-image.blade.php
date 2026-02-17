@@ -556,6 +556,15 @@
                                 // and scrollHeight measurement timing.
                                 if (this.isPrependingHistory) {
                                     let corrected = false;
+                                    console.log('[SCROLL-DBG] ▶ $nextTick START', {
+                                        anchorId: this._anchorId,
+                                        anchorOffset: this._anchorOffset,
+                                        prevDocHeight: this._prevDocHeight,
+                                        savedScrollY: this._savedScrollY,
+                                        currentScrollY: window.scrollY,
+                                        currentDocH: document.documentElement.scrollHeight,
+                                        morphCaptured: this._morphCaptured,
+                                    });
 
                                     // Primary: anchor-element based correction
                                     if (this._anchorId) {
@@ -565,20 +574,42 @@
                                         if (el) {
                                             const newTop = el.getBoundingClientRect().top;
                                             const delta = newTop - (this._anchorOffset ?? 0);
+                                            console.log('[SCROLL-DBG] 🎯 Anchor found', {
+                                                anchorId: this._anchorId,
+                                                savedOffset: this._anchorOffset,
+                                                newTop,
+                                                delta,
+                                                willCorrect: Math.abs(delta) > 1,
+                                            });
                                             if (Math.abs(delta) > 1) {
                                                 window.scrollBy(0, delta);
+                                                console.log('[SCROLL-DBG] ✅ scrollBy', delta, '→ new scrollY:', window.scrollY);
+                                            } else {
+                                                console.log('[SCROLL-DBG] ⏭️ delta ≤ 1, skip correction');
                                             }
                                             corrected = true;
+                                        } else {
+                                            console.log('[SCROLL-DBG] ⚠️ Anchor element NOT FOUND in DOM:', this._anchorId);
                                         }
+                                    } else {
+                                        console.log('[SCROLL-DBG] ⚠️ No anchorId saved');
                                     }
+
 
                                     // Fallback: scrollHeight delta (Safari < 16.4)
                                     if (!corrected && this._prevDocHeight) {
                                         const newDocH = document.documentElement.scrollHeight;
                                         const heightAdded = newDocH - this._prevDocHeight;
                                         const savedY = this._savedScrollY ?? window.scrollY;
+                                        console.log('[SCROLL-DBG] 🔄 Fallback: scrollHeight delta', {
+                                            prevDocH: this._prevDocHeight,
+                                            newDocH,
+                                            heightAdded,
+                                            savedY,
+                                        });
                                         if (heightAdded > 0) {
                                             window.scrollTo(0, savedY + heightAdded);
+                                            console.log('[SCROLL-DBG] ✅ Fallback scrollTo:', savedY + heightAdded);
                                         }
                                     }
 
@@ -615,7 +646,10 @@
                                                     if (oH > 0 && nH !== oH) total += nH - oH;
                                                     this._batchHeights.set(e.target, nH);
                                                 }
-                                                if (Math.abs(total) > 0.5) window.scrollBy(0, total);
+                                                if (Math.abs(total) > 0.5) {
+                                                    console.log('[SCROLL-DBG] 📐 ResizeObserver scrollBy:', total);
+                                                    window.scrollBy(0, total);
+                                                }
                                             });
                                             aboveBatches.forEach(b => {
                                                 this._batchHeights.set(b, b.getBoundingClientRect().height);
@@ -695,6 +729,14 @@
                                 this._prevDocHeight = document.documentElement.scrollHeight;
                                 this._savedScrollY = window.scrollY;
                                 this._morphCaptured = true;
+                                console.log('[SCROLL-DBG] 🔒 morph.updating captured', {
+                                    anchorId: this._anchorId,
+                                    anchorOffset: this._anchorOffset,
+                                    prevDocHeight: this._prevDocHeight,
+                                    savedScrollY: this._savedScrollY,
+                                    elTag: el.tagName,
+                                    elId: el.id,
+                                });
                             });
 
                             this._morphCleanup = Livewire.hook('morph.updated', ({ el }) => {
@@ -888,8 +930,6 @@
                     // ============================================================
                     capturePrependAnchor() {
                         // Find the first visible batch in the viewport.
-                        // We'll track this element through the morph to
-                        // maintain its viewport position.
                         const feed = document.getElementById('gallery-feed');
                         this._anchorId = null;
                         this._anchorOffset = null;
@@ -898,7 +938,7 @@
                             const batches = feed.querySelectorAll('.group-batch[data-history-anchor-id]');
                             for (const b of batches) {
                                 const rect = b.getBoundingClientRect();
-                                if (rect.bottom > 0) { // at least partially visible
+                                if (rect.bottom > 0) {
                                     this._anchorId = b.dataset.historyAnchorId;
                                     this._anchorOffset = rect.top;
                                     break;
@@ -906,10 +946,17 @@
                             }
                         }
 
-                        // Fallback: save scrollHeight + scrollY
+                        // Fallback
                         this._prevDocHeight = document.documentElement.scrollHeight;
                         this._savedScrollY = window.scrollY;
                         this._morphCaptured = false;
+                        console.log('[SCROLL-DBG] 📌 capturePrependAnchor', {
+                            anchorId: this._anchorId,
+                            anchorOffset: this._anchorOffset,
+                            prevDocHeight: this._prevDocHeight,
+                            savedScrollY: this._savedScrollY,
+                            totalBatches: feed?.querySelectorAll('.group-batch').length,
+                        });
                     },
 
                     // ============================================================
@@ -1253,7 +1300,7 @@
                         const toProcess = files.slice(0, remaining);
                         const skipped = files.length - toProcess.length;
                         let processed = 0;
-                        const total = toProcess.length;
+              const total = toProcess.length;
 
                         if (total === 0 && skipped > 0) {
                             this.notify(`Đã đạt giới hạn ${this.maxImages} ảnh`, 'warning');
