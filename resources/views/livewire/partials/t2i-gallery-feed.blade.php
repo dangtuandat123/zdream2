@@ -39,11 +39,11 @@
                 {{-- TOP SENTINEL — auto-load older history --}}
                 {{-- ═══════════════════════════════════════════ --}}
                 @if($history instanceof \Illuminate\Pagination\LengthAwarePaginator && $history->hasMorePages())
-                    <div id="load-older-sentinel" class="flex flex-col items-center justify-center py-8 min-h-[6rem]"
+                    <div id="load-older-sentinel" class="flex flex-col items-center justify-center h-[9.5rem]"
                         x-show="hasMoreHistory || loadingMoreHistory" x-cloak>
 
                         {{-- Loading State --}}
-                        <div x-show="loadingMoreHistory" x-cloak class="flex flex-col items-center gap-3.5 py-2"
+                        <div x-show="loadingMoreHistory" x-cloak class="flex flex-col items-center gap-3.5"
                             x-transition:enter="transition ease-out duration-200"
                             x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100">
                             <div class="relative w-12 h-12">
@@ -73,7 +73,7 @@
 
                         {{-- Idle State (auto-loads when scrolled near) --}}
                         <div x-show="!loadingMoreHistory && hasMoreHistory" x-cloak
-                            class="flex items-center justify-center py-2">
+                            class="flex items-center justify-center">
                             <span class="text-white/25 text-xs">Cuộn để tải thêm ảnh</span>
                         </div>
                     </div>

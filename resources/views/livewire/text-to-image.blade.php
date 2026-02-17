@@ -135,14 +135,10 @@
         }
 
         .t2i-gallery-shell #gallery-feed {
-            overflow-anchor: auto;
+            overflow-anchor: none;
         }
 
         .t2i-gallery-shell .group-batch {
-            overflow-anchor: auto;
-        }
-
-        .t2i-gallery-shell #load-older-sentinel {
             overflow-anchor: none;
         }
 
@@ -396,6 +392,7 @@
                     _loadMoreFailSafeTimer: null,
                     _resizeHandler: null,
                     _sentinelObserver: null,
+                    _prependMO: null,
 
                     // ── Infinite scroll state ─────────────────────
                     hasMoreHistory: @js($history instanceof \Illuminate\Pagination\LengthAwarePaginator ? $history->hasMorePages() : false),
@@ -764,13 +761,35 @@
 
 
                     // ============================================================
-                    // Capture state before prepending older images
-                    // Browser scroll anchoring handles position automatically
+                    // Set up scroll correction before prepending older images.
+                    // Sentinel has FIXED height (h-[9.5rem]) so scrollHeight diff
+                    // is purely the new-content height, regardless of loading state.
+                    // MutationObserver fires synchronously during Livewire morph,
+                    // BEFORE the browser paints → zero visual jump.
                     // ============================================================
                     capturePrependAnchor() {
-                        // No-op: browser overflow-anchor: auto handles scroll
-                        // position preservation. Sentinel has overflow-anchor: none
-                        // so it's excluded from anchor selection.
+                        if (this._prependMO) {
+                            this._prependMO.disconnect();
+                            this._prependMO = null;
+                        }
+
+                        const savedHeight = document.documentElement.scrollHeight;
+                        const savedTop = window.scrollY || document.documentElement.scrollTop || 0;
+
+                        const feed = document.getElementById('gallery-feed');
+                        if (!feed) return;
+
+                        this._prependMO = new MutationObserver(() => {
+                            this._prependMO.disconnect();
+                            this._prependMO = null;
+
+                            const addedHeight = document.documentElement.scrollHeight - savedHeight;
+                            if (addedHeight > 0) {
+                                window.scrollTo(0, savedTop + addedHeight);
+                            }
+                        });
+
+                        this._prependMO.observe(feed, { childList: true, subtree: true });
                     },
 
                     // ============================================================
