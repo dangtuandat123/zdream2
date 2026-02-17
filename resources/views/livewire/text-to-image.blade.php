@@ -135,10 +135,14 @@
         }
 
         .t2i-gallery-shell #gallery-feed {
-            overflow-anchor: none;
+            overflow-anchor: auto;
         }
 
         .t2i-gallery-shell .group-batch {
+            overflow-anchor: auto;
+        }
+
+        .t2i-gallery-shell #load-older-sentinel {
             overflow-anchor: none;
         }
 
@@ -392,9 +396,6 @@
                     _loadMoreFailSafeTimer: null,
                     _resizeHandler: null,
                     _sentinelObserver: null,
-                    _prependMO: null,
-                    _savedScrollHeight: 0,
-                    _savedScrollTop: 0,
 
                     // ── Infinite scroll state ─────────────────────
                     hasMoreHistory: @js($history instanceof \Illuminate\Pagination\LengthAwarePaginator ? $history->hasMorePages() : false),
@@ -539,11 +540,11 @@
                                 clearTimeout(this._loadMoreFailSafeTimer);
                                 this._loadMoreFailSafeTimer = null;
 
-                                // MutationObserver already corrected scroll position
-                                // synchronously during DOM morph. Just clean up flags.
+                                // Browser scroll anchoring (overflow-anchor: auto)
+                                // automatically keeps visible content in place.
+                                // Just clean up state flags.
                                 this.isPrependingHistory = false;
                                 this.loadingMoreHistory = false;
-                                this._savedScrollHeight = 0;
                                 this._reobserveSentinel();
                             });
                         });
@@ -659,10 +660,6 @@
                             this._sentinelObserver.disconnect();
                             this._sentinelObserver = null;
                         }
-                        if (this._prependMO) {
-                            this._prependMO.disconnect();
-                            this._prependMO = null;
-                        }
                         if (this._onNavigating) {
                             document.removeEventListener('livewire:navigating', this._onNavigating);
                             this._onNavigating = null;
@@ -761,42 +758,13 @@
 
 
                     // ============================================================
-                    // Save scroll state + set up MutationObserver before prepend
-                    // MO fires SYNCHRONOUSLY during DOM morph (before paint)
+                    // Capture state before prepending older images
+                    // Browser scroll anchoring handles position automatically
                     // ============================================================
                     capturePrependAnchor() {
-                        // Disconnect any stale observer
-                        if (this._prependMO) {
-                            this._prependMO.disconnect();
-                            this._prependMO = null;
-                        }
-
-                        this._savedScrollHeight = document.documentElement.scrollHeight;
-                        this._savedScrollTop = window.scrollY || document.documentElement.scrollTop || 0;
-
-                        const feed = document.getElementById('gallery-feed');
-                        if (!feed) return;
-
-                        // MutationObserver fires synchronously when Livewire morphs
-                        // the DOM — BEFORE the browser paints. This is the only way
-                        // to correct scroll position with zero visual jump.
-                        this._prependMO = new MutationObserver(() => {
-                            // One-shot: disconnect immediately
-                            this._prependMO.disconnect();
-                            this._prependMO = null;
-
-                            const newScrollHeight = document.documentElement.scrollHeight;
-                            const addedHeight = newScrollHeight - this._savedScrollHeight;
-
-                            if (addedHeight > 0) {
-                                window.scrollTo(0, this._savedScrollTop + addedHeight);
-                            }
-                        });
-
-                        this._prependMO.observe(feed, {
-                            childList: true,
-                            subtree: true
-                        });
+                        // No-op: browser overflow-anchor: auto handles scroll
+                        // position preservation. Sentinel has overflow-anchor: none
+                        // so it's excluded from anchor selection.
                     },
 
                     // ============================================================
