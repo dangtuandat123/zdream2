@@ -555,6 +555,7 @@
                                 document.body.style.left = '';
                                 document.body.style.right = '';
                                 document.body.style.paddingRight = '';
+                                this._bodyLocked = false;
 
                                 // Restore scroll to saved position first
                                 if (this._frozenScrollY !== undefined) {
@@ -571,7 +572,6 @@
                                     if (anchor) {
                                         const newTop = anchor.getBoundingClientRect().top;
                                         const diff = newTop - this._anchorTop;
-                                        console.log('[SCROLL-DEBUG] historyUpdated: anchorId=', this._anchorId, 'newTop=', newTop, 'diff=', diff, 'scrollY=', window.scrollY);
                                         if (Math.abs(diff) > 1) {
                                             window.scrollBy(0, diff);
                                         }
@@ -652,8 +652,35 @@
                             }
                         });
 
-                        // Update historyData after Livewire re-renders
                         if (window.Livewire?.hook) {
+                            // Lock body just before Livewire morphs gallery-feed
+                            // (only during history prepend). This keeps the lock
+                            // window to ~50ms instead of the full XHR duration.
+                            this._morphUpdatingCleanup = Livewire.hook('morph.updating', ({ el }) => {
+                                if (!this.isPrependingHistory || !this._anchorId) return;
+                                if (el.id !== 'gallery-feed' && !el.querySelector?.('#gallery-feed')) return;
+                                if (this._bodyLocked) return; // only lock once per morph
+
+                                // Re-capture anchor position right before morph (fresh)
+                                const anchor = document.querySelector(
+                                    `.group-batch[data-history-anchor-id="${this._anchorId}"]`
+                                );
+                                if (anchor) {
+                                    this._anchorTop = anchor.getBoundingClientRect().top;
+                                }
+
+                                // Body lock: freeze page during morph
+                                const y = window.scrollY;
+                                const sbw = window.innerWidth - document.documentElement.clientWidth;
+                                document.body.style.position = 'fixed';
+                                document.body.style.top = `-${y}px`;
+                                document.body.style.left = '0';
+                                document.body.style.right = '0';
+                                document.body.style.paddingRight = `${sbw}px`;
+                                this._frozenScrollY = y;
+                                this._bodyLocked = true;
+                            });
+
                             this._morphCleanup = Livewire.hook('morph.updated', ({ el }) => {
                                 if (el.id === 'gallery-feed' || el.querySelector?.('#gallery-feed')) {
                                     const dataEl = document.getElementById('gallery-feed');
@@ -684,8 +711,6 @@
                                         } catch (e) { }
                                     }
 
-                                    // Scroll restoration handled by MutationObserver
-                                    // Don't re-observe or bootstrap during prepend
                                     if (!this.isPrependingHistory) {
                                         this._reobserveSentinel();
                                         this.maybeBootstrapHistory();
@@ -716,6 +741,10 @@
 
                     // Centralized cleanup
                     _cleanup() {
+                        if (typeof this._morphUpdatingCleanup === 'function') {
+                            this._morphUpdatingCleanup();
+                            this._morphUpdatingCleanup = null;
+                        }
                         if (typeof this._morphCleanup === 'function') {
                             this._morphCleanup();
                             this._morphCleanup = null;
@@ -834,17 +863,9 @@
 
 
                     // ============================================================
-                    // Set up scroll correction before prepending older images.
-                    // Sentinel has FIXED height (h-[9.5rem]) so scrollHeight diff
-                    // is purely the new-content height, regardless of loading state.
-                    // MutationObserver fires synchronously during Livewire morph,
-                    // BEFORE the browser paints → zero visual jump.
-                    // ============================================================
-                    // Advanced Scroll Stabilization (ResizeObserver)
-                    // 1. MutationObserver catches newly inserted batches
-                    // 2. ResizeObserver watches them for distinct height changes
-                    //    (lazy loaded images, text expansion, etc.)
-                    // 3. Scroll position is adjusted instantly to compensate
+                    // Save anchor element before prepending older images.
+                    // Body lock is applied later in morph.updating hook
+                    // (just ~50ms during morph, not during XHR wait).
                     // ============================================================
                     capturePrependAnchor() {
                         const feed = document.getElementById('gallery-feed');
@@ -863,22 +884,7 @@
 
                         this._anchorId = anchor.dataset.historyAnchorId;
                         this._anchorTop = anchor.getBoundingClientRect().top;
-
-                        // ── Body Lock: freeze page during Livewire morph ──
-                        // position:fixed prevents ANY scroll changes.
-                        // top:-scrollY keeps visual position identical.
-                        // Livewire morph runs, DOM changes, but scroll can't move.
-                        // Unlock in historyUpdated.$nextTick.
-                        const y = window.scrollY;
-                        const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
-                        document.body.style.position = 'fixed';
-                        document.body.style.top = `-${y}px`;
-                        document.body.style.left = '0';
-                        document.body.style.right = '0';
-                        document.body.style.paddingRight = `${scrollbarWidth}px`;
-                        this._frozenScrollY = y;
-
-                        console.log('[SCROLL-DEBUG] capturePrependAnchor: anchorId=', this._anchorId, 'anchorTop=', this._anchorTop, 'frozenScrollY=', y);
+                        this._bodyLocked = false;
                     },
 
                     // ============================================================
@@ -981,6 +987,7 @@
                             document.body.style.left = '';
                             document.body.style.right = '';
                             document.body.style.paddingRight = '';
+                            this._bodyLocked = false;
                             if (this._frozenScrollY !== undefined) {
                                 window.scrollTo(0, this._frozenScrollY);
                                 this._frozenScrollY = undefined;

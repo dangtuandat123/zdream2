@@ -11,7 +11,7 @@
         x-transition:leave="transition ease-in duration-150"
         x-transition:leave-start="opacity-100"
         x-transition:leave-end="opacity-0"
-        class="fixed top-0 left-0 right-0 z-50 pointer-events-none">
+        class="fixed top-0 left-0 right-0 z-40 pointer-events-none">
         {{-- Shimmer bar --}}
         <div class="h-0.5 w-full bg-gradient-to-r from-transparent via-purple-500/60 to-transparent animate-pulse"></div>
         {{-- Floating pill --}}
@@ -62,43 +62,8 @@
                 {{-- TOP SENTINEL — auto-load older history --}}
                 {{-- ═══════════════════════════════════════════ --}}
                 @if($history instanceof \Illuminate\Pagination\LengthAwarePaginator && $history->hasMorePages())
-                    <div id="load-older-sentinel" class="flex flex-col items-center justify-center h-[9.5rem]"
+                    <div id="load-older-sentinel" class="h-px"
                         x-show="hasMoreHistory || loadingMoreHistory" x-cloak>
-
-                        {{-- Loading State --}}
-                        <div x-show="loadingMoreHistory" x-cloak class="flex flex-col items-center gap-3.5"
-                            x-transition:enter="transition ease-out duration-200"
-                            x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100">
-                            <div class="relative w-12 h-12">
-                                {{-- Outer ring --}}
-                                <svg class="absolute inset-0 w-full h-full animate-spin" style="animation-duration: 1s;"
-                                    viewBox="0 0 48 48" fill="none">
-                                    <circle cx="24" cy="24" r="20" stroke="rgba(168,85,247,0.15)" stroke-width="3" />
-                                    <path d="M44 24c0 11.046-8.954 20-20 20" stroke="url(#grad)" stroke-width="3"
-                                        stroke-linecap="round">
-                                        <animateTransform attributeName="transform" type="rotate" from="0 24 24"
-                                            to="360 24 24" dur="1s" repeatCount="indefinite" />
-                                    </path>
-                                    <defs>
-                                        <linearGradient id="grad" x1="0" y1="0" x2="1" y2="1">
-                                            <stop offset="0%" stop-color="rgba(168,85,247,0.9)" />
-                                            <stop offset="100%" stop-color="rgba(59,130,246,0.6)" />
-                                        </linearGradient>
-                                    </defs>
-                                </svg>
-                                {{-- Inner pulse dot --}}
-                                <div class="absolute inset-0 flex items-center justify-center">
-                                    <div class="w-3 h-3 rounded-full bg-purple-400/40 animate-pulse"></div>
-                                </div>
-                            </div>
-                            <span class="text-white/40 text-[13px] font-medium">Đang tải ảnh cũ hơn…</span>
-                        </div>
-
-                        {{-- Idle State (auto-loads when scrolled near) --}}
-                        <div x-show="!loadingMoreHistory && hasMoreHistory" x-cloak
-                            class="flex items-center justify-center">
-                            <span class="text-white/25 text-xs">Cuộn để tải thêm ảnh</span>
-                        </div>
                     </div>
                 @endif
 
@@ -209,7 +174,7 @@
                                             {{-- Shimmer --}}
                                             <div class="img-shimmer absolute inset-0 bg-white/[0.04]">
                                                 <div
-                                                    class="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.06] to-transparent animate-shimmer">
+                                                    class="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.06] to-transparent animate-pulse">
                                                 </div>
                                             </div>
                                             {{-- Image --}}
@@ -260,7 +225,8 @@
                         </div>
 
                         {{-- Batch Metadata Footer --}}
-                        <div class="flex items-center gap-2 mt-1.5 px-0.5 text-[11px] text-white/35">
+                        <div x-show="!expanded"
+                            class="flex items-center gap-2 mt-1.5 px-0.5 text-[11px] text-white/35">
                             <span class="text-purple-300/60">{{ $modelName }}</span>
                             <span class="text-white/15">•</span>
                             <span>{{ $ratioDisplay }}</span>
