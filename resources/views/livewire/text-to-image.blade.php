@@ -468,12 +468,12 @@
                             }
 
                             // Backup trigger: if user is at top but Sentinel didn't fire
-                            const topThreshold = Math.min(200, window.innerHeight * 0.3);
+                            const topThreshold = Math.min(400, window.innerHeight * 0.5);
                             if (currentY < topThreshold && this.hasMoreHistory && !this.loadingMoreHistory) {
                                 clearTimeout(this._backupLoadTimer);
                                 this._backupLoadTimer = setTimeout(() => {
                                     if (window.scrollY < topThreshold) this.requestLoadOlder(this.loadOlderStep);
-                                }, 100);
+                                }, 50);
                             }
                         };
                         window.addEventListener('scroll', this._scrollHandler, { passive: true });
@@ -556,8 +556,13 @@
                                 if (this._bodyLocked && this.isPrependingHistory) {
                                     const savedY = this._frozenScrollY ?? 0;
 
-                                    // Unlock body in one shot
-                                    document.body.style.cssText = '';
+                                    // Unlock body — remove ONLY lock-specific properties
+                                    document.body.style.position = '';
+                                    document.body.style.top = '';
+                                    document.body.style.left = '';
+                                    document.body.style.right = '';
+                                    document.body.style.overflow = '';
+                                    document.body.style.paddingRight = '';
                                     this._bodyLocked = false;
                                     this._frozenScrollY = undefined;
 
@@ -573,6 +578,9 @@
                                     } else {
                                         window.scrollTo(0, savedY);
                                     }
+
+                                    // Immediately re-observe sentinel (don't wait)
+                                    this._reobserveSentinel();
 
                                     // ResizeObserver: compensate for lazy image loads
                                     if (feed && heightAdded > 0) {
@@ -610,7 +618,12 @@
                                     }
                                 } else if (this._bodyLocked) {
                                     // Edge case: body locked but not prepending
-                                    document.body.style.cssText = '';
+                                    document.body.style.position = '';
+                                    document.body.style.top = '';
+                                    document.body.style.left = '';
+                                    document.body.style.right = '';
+                                    document.body.style.overflow = '';
+                                    document.body.style.paddingRight = '';
                                     this._bodyLocked = false;
                                     if (this._frozenScrollY !== undefined) {
                                         window.scrollTo(0, this._frozenScrollY);
@@ -622,7 +635,7 @@
                                 this.loadingMoreHistory = false;
                                 this.lastLoadMoreAt = Date.now();
 
-                                setTimeout(() => this._reobserveSentinel(), 400);
+                                setTimeout(() => this._reobserveSentinel(), 50);
                             });
                         });
                         if (typeof offHistoryUpdated === 'function') this._wireListeners.push(offHistoryUpdated);
@@ -668,6 +681,14 @@
                                     || el.querySelector?.('#gallery-feed');
                                 if (!isGallery) return;
                                 if (this._bodyLocked) return; // only lock once per morph
+
+                                // Capture feed height RIGHT BEFORE morph (most accurate!)
+                                // This avoids the stale-delta issue from capturing at
+                                // request time (lazy images may have loaded since then).
+                                const feed = document.getElementById('gallery-feed');
+                                if (feed) {
+                                    this._prevFeedHeight = feed.scrollHeight;
+                                }
 
                                 // Body lock: freeze page during morph
                                 const y = window.scrollY;
@@ -863,7 +884,7 @@
                                 if (this.loadingMoreHistory || !this.hasMoreHistory) return;
                                 this.requestLoadOlder(this.loadOlderStep);
                             });
-                        }, { rootMargin: '400px 0px 0px 0px', threshold: 0 });
+                        }, { rootMargin: '600px 0px 0px 0px', threshold: 0 });
                         this._sentinelObserver.observe(sentinel);
                     },
 
@@ -982,7 +1003,12 @@
                         clearTimeout(this._loadMoreFailSafeTimer);
                         this._loadMoreFailSafeTimer = setTimeout(() => {
                             // Unlock body if still frozen
-                            document.body.style.cssText = '';
+                            document.body.style.position = '';
+                            document.body.style.top = '';
+                            document.body.style.left = '';
+                            document.body.style.right = '';
+                            document.body.style.overflow = '';
+                            document.body.style.paddingRight = '';
                             this._bodyLocked = false;
                             if (this._frozenScrollY !== undefined) {
                                 window.scrollTo(0, this._frozenScrollY);
