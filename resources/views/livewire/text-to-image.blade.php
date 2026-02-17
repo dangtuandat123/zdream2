@@ -392,7 +392,8 @@
                     _loadMoreFailSafeTimer: null,
                     _resizeHandler: null,
                     _sentinelObserver: null,
-                    _prependMO: null,
+                    _anchorId: null,
+                    _anchorTop: 0,
                     _resizeObserver: null,
                     _batchHeights: new WeakMap(),
 
@@ -548,18 +549,59 @@
                                 clearTimeout(this._loadMoreFailSafeTimer);
                                 this._loadMoreFailSafeTimer = null;
 
-                                // Browser scroll anchoring (overflow-anchor: auto)
-                                // automatically keeps visible content in place.
+                                // ── Scroll correction: element-based anchor ──
+                                // Find the same batch we saved before load and
+                                // scroll so it stays at the same viewport position.
+                                if (this._anchorId) {
+                                    const feed = document.getElementById('gallery-feed');
+                                    const anchor = feed?.querySelector(
+                                        `.group-batch[data-history-anchor-id="${this._anchorId}"]`
+                                    );
+                                    if (anchor) {
+                                        const newTop = anchor.getBoundingClientRect().top;
+                                        const diff = newTop - this._anchorTop;
+                                        if (Math.abs(diff) > 1) {
+                                            window.scrollBy(0, diff);
+                                        }
+
+                                        // Attach ResizeObserver to batches ABOVE anchor
+                                        // (they might grow when lazy images load)
+                                        if (feed) {
+                                            const newBatches = [];
+                                            let sib = anchor.previousElementSibling;
+                                            while (sib) {
+                                                if (sib.classList.contains('group-batch')) newBatches.push(sib);
+                                                sib = sib.previousElementSibling;
+                                            }
+                                            if (newBatches.length) {
+                                                if (!this._resizeObserver) {
+                                                    this._resizeObserver = new ResizeObserver((entries) => {
+                                                        let total = 0;
+                                                        for (const e of entries) {
+                                                            const nH = e.borderBoxSize?.[0]?.blockSize ?? e.contentRect.height;
+                                                            const oH = this._batchHeights.get(e.target) || 0;
+                                                            if (oH > 0 && nH !== oH) total += nH - oH;
+                                                            this._batchHeights.set(e.target, nH);
+                                                        }
+                                                        if (Math.abs(total) > 0.5) window.scrollBy(0, total);
+                                                    });
+                                                }
+                                                newBatches.forEach(b => {
+                                                    this._batchHeights.set(b, b.getBoundingClientRect().height);
+                                                    this._resizeObserver.observe(b);
+                                                });
+                                            }
+                                        }
+                                    }
+                                    this._anchorId = null;
+                                }
+
                                 this.isPrependingHistory = false;
                                 this.loadingMoreHistory = false;
-                                this.lastLoadMoreAt = Date.now(); // throttle next load
+                                this.lastLoadMoreAt = Date.now();
 
-                                // Delay re-observation: if sentinel is still within
-                                // rootMargin (400px) after load, it would fire immediately
-                                // causing infinite loop. Wait so user must scroll up.
-                                setTimeout(() => {
-                                    this._reobserveSentinel();
-                                }, 800);
+                                // Delay re-observe to prevent infinite loop
+                                setTimeout(() => this._reobserveSentinel(), 800);
                             });
                         });
                         if (typeof offHistoryUpdated === 'function') this._wireListeners.push(offHistoryUpdated);
@@ -770,7 +812,7 @@
                                 if (this.loadingMoreHistory || !this.hasMoreHistory) return;
                                 this.requestLoadOlder(this.loadOlderStep);
                             });
-                        }, { rootMargin: '400px 0px 0px 0px', threshold: 0 });
+                        }, { rootMargin: '200px 0px 0px 0px', threshold: 0 });
                         this._sentinelObserver.observe(sentinel);
                     },
 
@@ -789,83 +831,26 @@
                     // 3. Scroll position is adjusted instantly to compensate
                     // ============================================================
                     capturePrependAnchor() {
-                        // Cleanup previous observers
-                        if (this._prependMO) {
-                            this._prependMO.disconnect();
-                            this._prependMO = null;
-                        }
-                        // Keep _resizeObserver active for 10s then disconnect?
-                        // For now keep it active for the newly added batch until cleanup
-
-                        const savedHeight = document.documentElement.scrollHeight;
-                        const savedTop = window.scrollY || document.documentElement.scrollTop || 0;
+                        // Find first visible batch as our anchor element.
+                        // We save its ID + viewport position. After morph,
+                        // historyUpdated.$nextTick finds it again and scrollBy(diff).
                         const feed = document.getElementById('gallery-feed');
                         if (!feed) return;
 
-                        // Snapshot existing batches to identify NEW ones later
-                        const oldFirstBatch = feed.querySelector('.group-batch');
-
-                        // 1. MutationObserver: Detect insertion of new batches
-                        this._prependMO = new MutationObserver(() => {
-                            this._prependMO.disconnect();
-                            this._prependMO = null;
-
-                            // Immediate correct for DOM insertion
-                            const addedHeight = document.documentElement.scrollHeight - savedHeight;
-                            if (addedHeight > 0) {
-                                window.scrollTo(0, savedTop + addedHeight);
+                        const batches = feed.querySelectorAll('.group-batch[data-history-anchor-id]');
+                        let anchor = null;
+                        for (const b of batches) {
+                            if (b.getBoundingClientRect().bottom > 0) {
+                                anchor = b;
+                                break;
                             }
+                        }
+                        // Fallback: last batch if none visible from top
+                        if (!anchor && batches.length) anchor = batches[batches.length - 1];
+                        if (!anchor) return;
 
-                            // 2. Find NEW batches (all siblings before oldFirstBatch)
-                            const newBatches = [];
-                            if (oldFirstBatch && oldFirstBatch.parentElement === feed) {
-                                let sibling = oldFirstBatch.previousElementSibling;
-                                while (sibling) {
-                                    if (sibling.classList.contains('group-batch')) {
-                                        newBatches.push(sibling);
-                                    }
-                                    sibling = sibling.previousElementSibling;
-                                }
-                            } else {
-                                // Fallback: all batches are new (if feed was empty)
-                                newBatches.push(...feed.querySelectorAll('.group-batch'));
-                            }
-
-                            // 3. Attach ResizeObserver to NEW batches
-                            if (newBatches.length > 0) {
-                                if (!this._resizeObserver) {
-                                    this._resizeObserver = new ResizeObserver((entries) => {
-                                        let totalDiff = 0;
-                                        for (const entry of entries) {
-                                            const newH = entry.borderBoxSize?.[0]?.blockSize ?? entry.contentRect.height;
-                                            const oldH = this._batchHeights.get(entry.target) || 0;
-                                            
-                                            // Only compensate if element is ABOVE viewport
-                                            // For prepended items, they are above current view.
-                                            // If diff > 0 (expanded), we scroll DOWN (positive) to keep view stable
-                                            if (oldH > 0 && newH !== oldH) {
-                                                const diff = newH - oldH;
-                                                totalDiff += diff;
-                                            }
-                                            this._batchHeights.set(entry.target, newH);
-                                        }
-
-                                        if (Math.abs(totalDiff) > 0.5) {
-                                            window.scrollBy(0, totalDiff);
-                                        }
-                                    });
-                                }
-
-                                newBatches.forEach(batch => {
-                                    // Init height first so we have a baseline
-                                    const rect = batch.getBoundingClientRect();
-                                    this._batchHeights.set(batch, rect.height);
-                                    this._resizeObserver.observe(batch);
-                                });
-                            }
-                        });
-
-                        this._prependMO.observe(feed, { childList: true, subtree: false });
+                        this._anchorId = anchor.dataset.historyAnchorId;
+                        this._anchorTop = anchor.getBoundingClientRect().top;
                     },
 
                     // ============================================================
