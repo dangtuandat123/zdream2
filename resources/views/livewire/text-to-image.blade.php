@@ -392,8 +392,9 @@
                     _loadMoreFailSafeTimer: null,
                     _resizeHandler: null,
                     _sentinelObserver: null,
-                    _preScrollHeight: 0,
-                    _preScrollTop: 0,
+                    _prependMO: null,
+                    _savedScrollHeight: 0,
+                    _savedScrollTop: 0,
 
                     // ── Infinite scroll state ─────────────────────
                     hasMoreHistory: @js($history instanceof \Illuminate\Pagination\LengthAwarePaginator ? $history->hasMorePages() : false),
@@ -538,40 +539,12 @@
                                 clearTimeout(this._loadMoreFailSafeTimer);
                                 this._loadMoreFailSafeTimer = null;
 
-                                const wasPrepending = this.isPrependingHistory;
-                                const savedScrollHeight = this._preScrollHeight;
-                                const savedScrollTop = this._preScrollTop;
-
-                                // Keep loadingMoreHistory = true during restoration
-                                // (DOM must match capture state for accurate scrollHeight diff)
+                                // MutationObserver already corrected scroll position
+                                // synchronously during DOM morph. Just clean up flags.
                                 this.isPrependingHistory = false;
-
-                                if (wasPrepending && savedScrollHeight > 0) {
-                                    requestAnimationFrame(() => {
-                                        // Loading indicator still visible → scrollHeight is consistent
-                                        const newScrollHeight = document.documentElement.scrollHeight;
-                                        const addedHeight = newScrollHeight - savedScrollHeight;
-
-                                        if (addedHeight > 0) {
-                                            document.documentElement.style.scrollBehavior = 'auto';
-                                            window.scrollTo(0, savedScrollTop + addedHeight);
-                                        }
-
-                                        // NOW hide loading indicator — sentinel already above viewport
-                                        // overflow-anchor:none → height change above viewport won't shift
-                                        this.loadingMoreHistory = false;
-                                        this._preScrollHeight = 0;
-
-                                        requestAnimationFrame(() => {
-                                            document.documentElement.style.scrollBehavior = '';
-                                            this._reobserveSentinel();
-                                        });
-                                    });
-                                } else {
-                                    this.loadingMoreHistory = false;
-                                    this._preScrollHeight = 0;
-                                    this._reobserveSentinel();
-                                }
+                                this.loadingMoreHistory = false;
+                                this._savedScrollHeight = 0;
+                                this._reobserveSentinel();
                             });
                         });
                         if (typeof offHistoryUpdated === 'function') this._wireListeners.push(offHistoryUpdated);
@@ -638,8 +611,7 @@
                                         } catch (e) { }
                                     }
 
-                                    // Scroll restoration handled by historyUpdated handler
-
+                                    // Scroll restoration handled by MutationObserver
                                     // Don't re-observe or bootstrap during prepend
                                     if (!this.isPrependingHistory) {
                                         this._reobserveSentinel();
@@ -687,6 +659,10 @@
                             this._sentinelObserver.disconnect();
                             this._sentinelObserver = null;
                         }
+                        if (this._prependMO) {
+                            this._prependMO.disconnect();
+                            this._prependMO = null;
+                        }
                         if (this._onNavigating) {
                             document.removeEventListener('livewire:navigating', this._onNavigating);
                             this._onNavigating = null;
@@ -701,10 +677,6 @@
                         this.stopStatusTimer();
                         clearTimeout(this._loadMoreFailSafeTimer);
                         this._loadMoreFailSafeTimer = null;
-                        if (this._sentinelObserver) {
-                            this._sentinelObserver.disconnect();
-                            this._sentinelObserver = null;
-                        }
 
                         this.loadingMoreHistory = false;
                         this.isPrependingHistory = false;
@@ -751,11 +723,7 @@
                         if (smooth) {
                             window.scrollTo({ top: targetTop, behavior: 'smooth' });
                         } else {
-                            // Override CSS scroll-behavior: smooth → instant teleport
-                            const html = document.documentElement;
-                            html.style.scrollBehavior = 'auto';
                             window.scrollTo(0, targetTop);
-                            requestAnimationFrame(() => { html.style.scrollBehavior = ''; });
                         }
                         this.showScrollToBottom = false;
                     },
@@ -793,11 +761,42 @@
 
 
                     // ============================================================
-                    // Save anchor element before prepending older images
+                    // Save scroll state + set up MutationObserver before prepend
+                    // MO fires SYNCHRONOUSLY during DOM morph (before paint)
                     // ============================================================
                     capturePrependAnchor() {
-                        this._preScrollHeight = document.documentElement.scrollHeight;
-                        this._preScrollTop = window.scrollY || document.documentElement.scrollTop || 0;
+                        // Disconnect any stale observer
+                        if (this._prependMO) {
+                            this._prependMO.disconnect();
+                            this._prependMO = null;
+                        }
+
+                        this._savedScrollHeight = document.documentElement.scrollHeight;
+                        this._savedScrollTop = window.scrollY || document.documentElement.scrollTop || 0;
+
+                        const feed = document.getElementById('gallery-feed');
+                        if (!feed) return;
+
+                        // MutationObserver fires synchronously when Livewire morphs
+                        // the DOM — BEFORE the browser paints. This is the only way
+                        // to correct scroll position with zero visual jump.
+                        this._prependMO = new MutationObserver(() => {
+                            // One-shot: disconnect immediately
+                            this._prependMO.disconnect();
+                            this._prependMO = null;
+
+                            const newScrollHeight = document.documentElement.scrollHeight;
+                            const addedHeight = newScrollHeight - this._savedScrollHeight;
+
+                            if (addedHeight > 0) {
+                                window.scrollTo(0, this._savedScrollTop + addedHeight);
+                            }
+                        });
+
+                        this._prependMO.observe(feed, {
+                            childList: true,
+                            subtree: true
+                        });
                     },
 
                     // ============================================================
