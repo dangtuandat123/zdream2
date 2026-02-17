@@ -549,38 +549,61 @@
                                 clearTimeout(this._loadMoreFailSafeTimer);
                                 this._loadMoreFailSafeTimer = null;
 
-                                // ── Scroll correction ──
-                                // No body lock → no scrollbar flash → clean delta.
-                                // CSS overflow-anchor handles most cases natively;
-                                // this JS fallback covers Safari < 16.4 and edge cases.
+                                // ── Scroll correction (element-anchor based) ──
+                                // Find the SAME batch we saved before morph and
+                                // calculate how far it moved. This is immune to
+                                // scrollbar-width changes, overflow-anchor conflicts,
+                                // and scrollHeight measurement timing.
                                 if (this.isPrependingHistory) {
-                                    const newDocH = document.documentElement.scrollHeight;
-                                    const prevDocH = this._prevDocHeight || newDocH;
-                                    const savedY = this._savedScrollY ?? window.scrollY;
-                                    const heightAdded = newDocH - prevDocH;
+                                    let corrected = false;
 
+                                    // Primary: anchor-element based correction
+                                    if (this._anchorId) {
+                                        const el = document.querySelector(
+                                            `.group-batch[data-history-anchor-id="${this._anchorId}"]`
+                                        );
+                                        if (el) {
+                                            const newTop = el.getBoundingClientRect().top;
+                                            const delta = newTop - (this._anchorOffset ?? 0);
+                                            if (Math.abs(delta) > 1) {
+                                                window.scrollBy(0, delta);
+                                            }
+                                            corrected = true;
+                                        }
+                                    }
+
+                                    // Fallback: scrollHeight delta (Safari < 16.4)
+                                    if (!corrected && this._prevDocHeight) {
+                                        const newDocH = document.documentElement.scrollHeight;
+                                        const heightAdded = newDocH - this._prevDocHeight;
+                                        const savedY = this._savedScrollY ?? window.scrollY;
+                                        if (heightAdded > 0) {
+                                            window.scrollTo(0, savedY + heightAdded);
+                                        }
+                                    }
+
+                                    // Reset state
+                                    this._anchorId = null;
+                                    this._anchorOffset = null;
                                     this._prevDocHeight = null;
                                     this._savedScrollY = undefined;
-
-                                    if (heightAdded > 0) {
-                                        window.scrollTo(0, savedY + heightAdded);
-                                    }
 
                                     // Re-observe sentinel immediately
                                     this._reobserveSentinel();
 
                                     // ResizeObserver: compensate for lazy-loaded images
-                                    // above the viewport (their height changes after load).
+                                    // above the viewport (height changes after load).
                                     const feed = document.getElementById('gallery-feed');
-                                    if (feed && heightAdded > 0) {
+                                    if (feed) {
                                         const batches = feed.querySelectorAll('.group-batch');
-                                        const newBatches = [];
+                                        const aboveBatches = [];
                                         for (const b of batches) {
-                                            // Collect batches from top until past viewport
-                                            if (b.getBoundingClientRect().top > window.innerHeight) break;
-                                            newBatches.push(b);
+                                            const r = b.getBoundingClientRect();
+                                            // Collect batches that are above or partially in viewport
+                                            if (r.top > window.innerHeight) break;
+                                            aboveBatches.push(b);
                                         }
-                                        if (newBatches.length) {
+                                        if (aboveBatches.length) {
                                             if (this._resizeObserver) {
                                                 this._resizeObserver.disconnect();
                                             }
@@ -594,7 +617,7 @@
                                                 }
                                                 if (Math.abs(total) > 0.5) window.scrollBy(0, total);
                                             });
-                                            newBatches.forEach(b => {
+                                            aboveBatches.forEach(b => {
                                                 this._batchHeights.set(b, b.getBoundingClientRect().height);
                                                 this._resizeObserver.observe(b);
                                             });
@@ -657,10 +680,18 @@
                                     || el.closest?.('#gallery-feed')
                                     || el.querySelector?.('#gallery-feed');
                                 if (!isGallery) return;
-                                if (this._morphCaptured) return; // only capture once per morph
+                                if (this._morphCaptured) return;
 
-                                // Capture DOCUMENT scrollHeight (not feed — avoids
-                                // any interference from scrollbar width changes).
+                                // Re-capture anchor position RIGHT BEFORE morph
+                                // (more accurate than at request time).
+                                if (this._anchorId) {
+                                    const anchor = document.querySelector(
+                                        `.group-batch[data-history-anchor-id="${this._anchorId}"]`
+                                    );
+                                    if (anchor) {
+                                        this._anchorOffset = anchor.getBoundingClientRect().top;
+                                    }
+                                }
                                 this._prevDocHeight = document.documentElement.scrollHeight;
                                 this._savedScrollY = window.scrollY;
                                 this._morphCaptured = true;
@@ -856,9 +887,26 @@
                     // (just ~50ms during morph, not during XHR wait).
                     // ============================================================
                     capturePrependAnchor() {
-                        // Save document-level scrollHeight as initial fallback.
-                        // morph.updating will re-capture right before morph
-                        // for maximum accuracy.
+                        // Find the first visible batch in the viewport.
+                        // We'll track this element through the morph to
+                        // maintain its viewport position.
+                        const feed = document.getElementById('gallery-feed');
+                        this._anchorId = null;
+                        this._anchorOffset = null;
+
+                        if (feed) {
+                            const batches = feed.querySelectorAll('.group-batch[data-history-anchor-id]');
+                            for (const b of batches) {
+                                const rect = b.getBoundingClientRect();
+                                if (rect.bottom > 0) { // at least partially visible
+                                    this._anchorId = b.dataset.historyAnchorId;
+                                    this._anchorOffset = rect.top;
+                                    break;
+                                }
+                            }
+                        }
+
+                        // Fallback: save scrollHeight + scrollY
                         this._prevDocHeight = document.documentElement.scrollHeight;
                         this._savedScrollY = window.scrollY;
                         this._morphCaptured = false;
