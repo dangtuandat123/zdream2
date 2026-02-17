@@ -684,6 +684,15 @@
                                 if (!isGallery) return;
                                 if (this._morphCaptured) return;
 
+                                // Kill any stale ResizeObserver from a previous load.
+                                // Without this, the old observer fires AFTER our
+                                // correction and shifts scroll by ±17–67px.
+                                if (this._resizeObserver) {
+                                    this._resizeObserver.disconnect();
+                                    this._resizeObserver = null;
+                                    console.log('[SCROLL-DBG] 🧹 Disconnected stale ResizeObserver');
+                                }
+
                                 // Re-capture anchor position RIGHT BEFORE morph
                                 if (this._anchorId) {
                                     const anchor = document.querySelector(
