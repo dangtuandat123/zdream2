@@ -557,11 +557,14 @@
                                     const anchor = feed?.querySelector(
                                         `.group-batch[data-history-anchor-id="${this._anchorId}"]`
                                     );
+                                    console.log('[SCROLL-DEBUG] historyUpdated: anchorId=', this._anchorId, 'found=', !!anchor, 'savedTop=', this._anchorTop, 'scrollY=', window.scrollY, 'scrollHeight=', document.documentElement.scrollHeight);
                                     if (anchor) {
                                         const newTop = anchor.getBoundingClientRect().top;
                                         const diff = newTop - this._anchorTop;
+                                        console.log('[SCROLL-DEBUG] newTop=', newTop, 'diff=', diff);
                                         if (Math.abs(diff) > 1) {
                                             window.scrollBy(0, diff);
+                                            console.log('[SCROLL-DEBUG] scrollBy=', diff, 'newScrollY=', window.scrollY);
                                         }
 
                                         // Attach ResizeObserver to batches ABOVE anchor
@@ -851,6 +854,7 @@
 
                         this._anchorId = anchor.dataset.historyAnchorId;
                         this._anchorTop = anchor.getBoundingClientRect().top;
+                        console.log('[SCROLL-DEBUG] capturePrependAnchor: anchorId=', this._anchorId, 'anchorTop=', this._anchorTop, 'scrollY=', window.scrollY, 'scrollHeight=', document.documentElement.scrollHeight);
                     },
 
                     // ============================================================
@@ -1266,7 +1270,7 @@
                     },
 
                     removeImage(id) {
-                        this.selectedImages = this.selectedImages.filter(i => i.id !== id);
+              this.selectedImages = this.selectedImages.filter(i => i.id !== id);
                         this.$wire.setReferenceImages(
                             this.selectedImages.map(img => ({ url: img.url }))
                         );
