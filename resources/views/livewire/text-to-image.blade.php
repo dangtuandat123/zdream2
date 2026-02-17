@@ -605,21 +605,13 @@
                             // Lock body just before Livewire morphs gallery-feed
                             // (only during history prepend). Morph takes ~50ms.
                             this._morphUpdatingCleanup = Livewire.hook('morph.updating', ({ el }) => {
-                                if (!this.isPrependingHistory || !this._anchorId) return;
+                                if (!this.isPrependingHistory) return;
                                 // Match ANY element that is or is inside #gallery-feed
                                 const isGallery = el.id === 'gallery-feed'
                                     || el.closest?.('#gallery-feed')
                                     || el.querySelector?.('#gallery-feed');
                                 if (!isGallery) return;
                                 if (this._bodyLocked) return; // only lock once per morph
-
-                                // Re-capture anchor position right before morph (fresh)
-                                const anchor = document.querySelector(
-                                    `.group-batch[data-history-anchor-id="${this._anchorId}"]`
-                                );
-                                if (anchor) {
-                                    this._anchorTop = anchor.getBoundingClientRect().top;
-                                }
 
                                 // Body lock: freeze page during morph
                                 const y = window.scrollY;
@@ -635,103 +627,98 @@
                             });
 
                             this._morphCleanup = Livewire.hook('morph.updated', ({ el }) => {
-                                const isGallery = el.id === 'gallery-feed'
+                                // ── SECTION A: Data sync ──
+                                // Fires for any gallery-related element (harmless duplicates).
+                                const isGalleryRelated = el.id === 'gallery-feed'
                                     || el.closest?.('#gallery-feed')
                                     || el.querySelector?.('#gallery-feed');
 
-                                if (isGallery) {
+                                if (isGalleryRelated) {
                                     const dataEl = document.getElementById('gallery-feed');
-                                    if (!dataEl) return;
-
-                                    if (dataEl.dataset?.hasMore !== undefined) {
-                                        this.hasMoreHistory = dataEl.dataset.hasMore === '1';
-                                    }
-
-                                    if (dataEl?.dataset?.history) {
-                                        try {
-                                            this.syncHistoryData(JSON.parse(dataEl.dataset.history));
-                                            if (this.showPreview && this.previewImage) {
-                                                const currentId = this.previewImage.id ?? null;
-                                                let nextIndex = -1;
-                                                if (currentId !== null) {
-                                                    nextIndex = this.historyData.findIndex((img) => img.id === currentId);
-                                                } else if (this.previewImage.url) {
-                                                    nextIndex = this.historyData.findIndex((img) => img.url === this.previewImage.url);
-                                                }
-                                                if (nextIndex === -1) {
-                                                    this.closePreview();
-                                                } else {
-                                                    this.previewIndex = nextIndex;
-                                                    this.previewImage = this.historyData[nextIndex];
-                                                }
-                                            }
-                                        } catch (e) { }
-                                    }
-
-                                    if (!this.isPrependingHistory) {
-                                        this._reobserveSentinel();
-                                        this.maybeBootstrapHistory();
-                                    }
-
-                                    // ── Unlock body + anchor correction RIGHT HERE ──
-                                    // Must happen synchronously after morph, before any
-                                    // paint, to prevent the 1-frame flash.
-                                    if (this._bodyLocked && this.isPrependingHistory) {
-                                        const savedY = this._frozenScrollY;
-
-                                        // Unlock body in one shot
-                                        document.body.style.cssText = '';
-                                        this._bodyLocked = false;
-                                        this._frozenScrollY = undefined;
-
-                                        // Restore scroll position
-                                        window.scrollTo(0, savedY);
-
-                                        // Anchor correction
-                                        if (this._anchorId) {
-                                            const anchor = dataEl.querySelector(
-                                                `.group-batch[data-history-anchor-id="${this._anchorId}"]`
-                                            );
-                                            if (anchor) {
-                                                const newTop = anchor.getBoundingClientRect().top;
-                                                const diff = newTop - this._anchorTop;
-                                                if (Math.abs(diff) > 1) {
-                                                    window.scrollBy(0, diff);
-                                                }
-
-                                                // ResizeObserver for lazy-loaded images
-                                                const newBatches = [];
-                                                let sib = anchor.previousElementSibling;
-                                                while (sib) {
-                                                    if (sib.classList.contains('group-batch')) newBatches.push(sib);
-                                                    sib = sib.previousElementSibling;
-                                                }
-                                                if (newBatches.length) {
-                                                    if (!this._resizeObserver) {
-                                                        this._resizeObserver = new ResizeObserver((entries) => {
-                                                            let total = 0;
-                                                            for (const e of entries) {
-                                                                const nH = e.borderBoxSize?.[0]?.blockSize ?? e.contentRect.height;
-                                                                const oH = this._batchHeights.get(e.target) || 0;
-                                                                if (oH > 0 && nH !== oH) total += nH - oH;
-                                                                this._batchHeights.set(e.target, nH);
-                                                            }
-                                                            if (Math.abs(total) > 0.5) window.scrollBy(0, total);
-                                                        });
+                                    if (dataEl) {
+                                        if (dataEl.dataset?.hasMore !== undefined) {
+                                            this.hasMoreHistory = dataEl.dataset.hasMore === '1';
+                                        }
+                                        if (dataEl.dataset?.history) {
+                                            try {
+                                                this.syncHistoryData(JSON.parse(dataEl.dataset.history));
+                                                if (this.showPreview && this.previewImage) {
+                                                    const currentId = this.previewImage.id ?? null;
+                                                    let nextIndex = -1;
+                                                    if (currentId !== null) {
+                                                        nextIndex = this.historyData.findIndex((img) => img.id === currentId);
+                                                    } else if (this.previewImage.url) {
+                                                        nextIndex = this.historyData.findIndex((img) => img.url === this.previewImage.url);
                                                     }
-                                                    newBatches.forEach(b => {
-                                                        this._batchHeights.set(b, b.getBoundingClientRect().height);
-                                                        this._resizeObserver.observe(b);
-                                                    });
-                                                    setTimeout(() => {
-                                                        if (this._resizeObserver) {
-                                                            this._resizeObserver.disconnect();
-                                                            this._resizeObserver = null;
-                                                        }
-                                                    }, 8000);
+                                                    if (nextIndex === -1) {
+                                                        this.closePreview();
+                                                    } else {
+                                                        this.previewIndex = nextIndex;
+                                                        this.previewImage = this.historyData[nextIndex];
+                                                    }
                                                 }
+                                            } catch (e) { }
+                                        }
+                                        if (!this.isPrependingHistory) {
+                                            this._reobserveSentinel();
+                                            this.maybeBootstrapHistory();
+                                        }
+                                    }
+                                }
+
+                                // ── SECTION B: Scroll correction ──
+                                // ONLY fires when el IS #gallery-feed itself.
+                                // At this point ALL children of gallery-feed are
+                                // fully morphed (Alpine morph is recursive: parent's
+                                // updated hook fires AFTER all children are done).
+                                if (el.id === 'gallery-feed' && this._bodyLocked && this.isPrependingHistory) {
+                                    const feed = document.getElementById('gallery-feed');
+                                    const newFeedHeight = feed ? feed.scrollHeight : 0;
+                                    const heightAdded = newFeedHeight - (this._prevFeedHeight || newFeedHeight);
+                                    const savedY = this._frozenScrollY ?? 0;
+
+                                    // Unlock body in one shot
+                                    document.body.style.cssText = '';
+                                    this._bodyLocked = false;
+                                    this._frozenScrollY = undefined;
+                                    this._prevFeedHeight = null;
+
+                                    // Scroll to: original position + height of new content
+                                    window.scrollTo(0, savedY + heightAdded);
+
+                                    // ResizeObserver for lazy-loaded images above viewport
+                                    if (feed && heightAdded > 0) {
+                                        const batches = feed.querySelectorAll('.group-batch');
+                                        const newBatches = [];
+                                        for (const b of batches) {
+                                            // New batches are at the top; stop when we hit
+                                            // the first batch that existed before the load.
+                                            if (b.getBoundingClientRect().top > window.innerHeight) break;
+                                            newBatches.push(b);
+                                        }
+                                        if (newBatches.length) {
+                                            if (!this._resizeObserver) {
+                                                this._resizeObserver = new ResizeObserver((entries) => {
+                                                    let total = 0;
+                                                    for (const e of entries) {
+                                                        const nH = e.borderBoxSize?.[0]?.blockSize ?? e.contentRect.height;
+                                                        const oH = this._batchHeights.get(e.target) || 0;
+                                                        if (oH > 0 && nH !== oH) total += nH - oH;
+                                                        this._batchHeights.set(e.target, nH);
+                                                    }
+                                                    if (Math.abs(total) > 0.5) window.scrollBy(0, total);
+                                                });
                                             }
-                                            this._anchorId = null;
+                                            newBatches.forEach(b => {
+                                                this._batchHeights.set(b, b.getBoundingClientRect().height);
+                                                this._resizeObserver.observe(b);
+                                            });
+                                            setTimeout(() => {
+                                                if (this._resizeObserver) {
+                                                    this._resizeObserver.disconnect();
+                                                    this._resizeObserver = null;
+                                                }
+                                            }, 8000);
                                         }
                                     }
                                 }
@@ -889,20 +876,9 @@
                     capturePrependAnchor() {
                         const feed = document.getElementById('gallery-feed');
                         if (!feed) return;
-
-                        const batches = feed.querySelectorAll('.group-batch[data-history-anchor-id]');
-                        let anchor = null;
-                        for (const b of batches) {
-                            if (b.getBoundingClientRect().bottom > 0) {
-                                anchor = b;
-                                break;
-                            }
-                        }
-                        if (!anchor && batches.length) anchor = batches[batches.length - 1];
-                        if (!anchor) return;
-
-                        this._anchorId = anchor.dataset.historyAnchorId;
-                        this._anchorTop = anchor.getBoundingClientRect().top;
+                        // Save the current feed height. After morph, the delta
+                        // (new height − old height) = exact pixels of content added.
+                        this._prevFeedHeight = feed.scrollHeight;
                         this._bodyLocked = false;
                     },
 
