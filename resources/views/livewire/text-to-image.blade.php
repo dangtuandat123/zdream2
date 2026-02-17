@@ -549,44 +549,34 @@
                                 clearTimeout(this._loadMoreFailSafeTimer);
                                 this._loadMoreFailSafeTimer = null;
 
-                                // ── Full scroll correction ──
-                                // This is the ONLY place scroll correction happens.
-                                // $nextTick runs after ALL morph operations complete,
-                                // but before browser paints (microtask).
-                                if (this._bodyLocked && this.isPrependingHistory) {
-                                    const savedY = this._frozenScrollY ?? 0;
+                                // ── Scroll correction ──
+                                // No body lock → no scrollbar flash → clean delta.
+                                // CSS overflow-anchor handles most cases natively;
+                                // this JS fallback covers Safari < 16.4 and edge cases.
+                                if (this.isPrependingHistory) {
+                                    const newDocH = document.documentElement.scrollHeight;
+                                    const prevDocH = this._prevDocHeight || newDocH;
+                                    const savedY = this._savedScrollY ?? window.scrollY;
+                                    const heightAdded = newDocH - prevDocH;
 
-                                    // Unlock body — remove ONLY lock-specific properties
-                                    document.body.style.position = '';
-                                    document.body.style.top = '';
-                                    document.body.style.left = '';
-                                    document.body.style.right = '';
-                                    document.body.style.overflow = '';
-                                    document.body.style.paddingRight = '';
-                                    this._bodyLocked = false;
-                                    this._frozenScrollY = undefined;
+                                    this._prevDocHeight = null;
+                                    this._savedScrollY = undefined;
 
-                                    // Read feed height AFTER body unlock (accurate layout)
-                                    const feed = document.getElementById('gallery-feed');
-                                    const newFeedHeight = feed ? feed.scrollHeight : 0;
-                                    const heightAdded = newFeedHeight - (this._prevFeedHeight || newFeedHeight);
-                                    this._prevFeedHeight = null;
-
-                                    // Scroll = original position + height of new content
                                     if (heightAdded > 0) {
                                         window.scrollTo(0, savedY + heightAdded);
-                                    } else {
-                                        window.scrollTo(0, savedY);
                                     }
 
-                                    // Immediately re-observe sentinel (don't wait)
+                                    // Re-observe sentinel immediately
                                     this._reobserveSentinel();
 
-                                    // ResizeObserver: compensate for lazy image loads
+                                    // ResizeObserver: compensate for lazy-loaded images
+                                    // above the viewport (their height changes after load).
+                                    const feed = document.getElementById('gallery-feed');
                                     if (feed && heightAdded > 0) {
                                         const batches = feed.querySelectorAll('.group-batch');
                                         const newBatches = [];
                                         for (const b of batches) {
+                                            // Collect batches from top until past viewport
                                             if (b.getBoundingClientRect().top > window.innerHeight) break;
                                             newBatches.push(b);
                                         }
@@ -615,19 +605,6 @@
                                                 }
                                             }, 8000);
                                         }
-                                    }
-                                } else if (this._bodyLocked) {
-                                    // Edge case: body locked but not prepending
-                                    document.body.style.position = '';
-                                    document.body.style.top = '';
-                                    document.body.style.left = '';
-                                    document.body.style.right = '';
-                                    document.body.style.overflow = '';
-                                    document.body.style.paddingRight = '';
-                                    this._bodyLocked = false;
-                                    if (this._frozenScrollY !== undefined) {
-                                        window.scrollTo(0, this._frozenScrollY);
-                                        this._frozenScrollY = undefined;
                                     }
                                 }
 
@@ -671,36 +648,22 @@
                         });
 
                         if (window.Livewire?.hook) {
-                            // Lock body just before Livewire morphs gallery-feed
-                            // (only during history prepend). Morph takes ~50ms.
+                            // Capture document height + scroll position right
+                            // before Livewire morphs gallery-feed.
+                            // NO body lock — CSS overflow-anchor handles stability.
                             this._morphUpdatingCleanup = Livewire.hook('morph.updating', ({ el }) => {
                                 if (!this.isPrependingHistory) return;
-                                // Match ANY element that is or is inside #gallery-feed
                                 const isGallery = el.id === 'gallery-feed'
                                     || el.closest?.('#gallery-feed')
                                     || el.querySelector?.('#gallery-feed');
                                 if (!isGallery) return;
-                                if (this._bodyLocked) return; // only lock once per morph
+                                if (this._morphCaptured) return; // only capture once per morph
 
-                                // Capture feed height RIGHT BEFORE morph (most accurate!)
-                                // This avoids the stale-delta issue from capturing at
-                                // request time (lazy images may have loaded since then).
-                                const feed = document.getElementById('gallery-feed');
-                                if (feed) {
-                                    this._prevFeedHeight = feed.scrollHeight;
-                                }
-
-                                // Body lock: freeze page during morph
-                                const y = window.scrollY;
-                                const sbw = window.innerWidth - document.documentElement.clientWidth;
-                                document.body.style.position = 'fixed';
-                                document.body.style.top = `-${y}px`;
-                                document.body.style.left = '0';
-                                document.body.style.right = '0';
-                                document.body.style.overflow = 'hidden';
-                                document.body.style.paddingRight = `${sbw}px`;
-                                this._frozenScrollY = y;
-                                this._bodyLocked = true;
+                                // Capture DOCUMENT scrollHeight (not feed — avoids
+                                // any interference from scrollbar width changes).
+                                this._prevDocHeight = document.documentElement.scrollHeight;
+                                this._savedScrollY = window.scrollY;
+                                this._morphCaptured = true;
                             });
 
                             this._morphCleanup = Livewire.hook('morph.updated', ({ el }) => {
@@ -809,8 +772,6 @@
 
                         this.loadingMoreHistory = false;
                         this.isPrependingHistory = false;
-                        document.body.style.overflow = '';
-                        document.documentElement.style.overflow = '';
                         if (this._scrollRestoration !== null && 'scrollRestoration' in history) {
                             history.scrollRestoration = this._scrollRestoration;
                             this._scrollRestoration = null;
@@ -895,12 +856,12 @@
                     // (just ~50ms during morph, not during XHR wait).
                     // ============================================================
                     capturePrependAnchor() {
-                        const feed = document.getElementById('gallery-feed');
-                        if (!feed) return;
-                        // Save the current feed height. After morph, the delta
-                        // (new height − old height) = exact pixels of content added.
-                        this._prevFeedHeight = feed.scrollHeight;
-                        this._bodyLocked = false;
+                        // Save document-level scrollHeight as initial fallback.
+                        // morph.updating will re-capture right before morph
+                        // for maximum accuracy.
+                        this._prevDocHeight = document.documentElement.scrollHeight;
+                        this._savedScrollY = window.scrollY;
+                        this._morphCaptured = false;
                     },
 
                     // ============================================================
@@ -981,7 +942,6 @@
                     // ============================================================
                     maybeBootstrapHistory() {
                         if (!this.hasMoreHistory || this.loadingMoreHistory) return;
-                        if (this._bodyLocked) return;
                         const el = document.documentElement;
                         const canScroll = (el.scrollHeight - window.innerHeight) > 8;
                         if (canScroll) return;
@@ -1002,20 +962,9 @@
 
                         clearTimeout(this._loadMoreFailSafeTimer);
                         this._loadMoreFailSafeTimer = setTimeout(() => {
-                            // Unlock body if still frozen
-                            document.body.style.position = '';
-                            document.body.style.top = '';
-                            document.body.style.left = '';
-                            document.body.style.right = '';
-                            document.body.style.overflow = '';
-                            document.body.style.paddingRight = '';
-                            this._bodyLocked = false;
-                            if (this._frozenScrollY !== undefined) {
-                                window.scrollTo(0, this._frozenScrollY);
-                                this._frozenScrollY = undefined;
-                            }
                             this.loadingMoreHistory = false;
                             this.isPrependingHistory = false;
+                            this._morphCaptured = false;
                             this._loadMoreFailSafeTimer = null;
                         }, 7000);
                     },

@@ -928,6 +928,17 @@ input[type="number"] {
     scroll-behavior: smooth;
 }
 
+/* ── Scroll Anchoring ──
+   Browser natively holds scroll position when content
+   is prepended above the viewport. */
+#gallery-feed {
+    overflow-anchor: none;
+}
+
+#gallery-feed .group-batch {
+    overflow-anchor: auto;
+}
+
 /* Batch group: subtle hover lift */
 .t2i-batch {
     transition: transform 0.2s ease, box-shadow 0.2s ease;
