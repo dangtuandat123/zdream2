@@ -549,67 +549,36 @@
                                 clearTimeout(this._loadMoreFailSafeTimer);
                                 this._loadMoreFailSafeTimer = null;
 
-                                // ── Scroll correction (element-anchor based) ──
-                                // Find the SAME batch we saved before morph and
-                                // calculate how far it moved. This is immune to
-                                // scrollbar-width changes, overflow-anchor conflicts,
-                                // and scrollHeight measurement timing.
+                                // Scroll correction already happened in morph.updating
+                                // via queueMicrotask (before paint). Here we just
+                                // clean up state and set up lazy-image compensation.
                                 if (this.isPrependingHistory) {
-                                    let corrected = false;
-                                    console.log('[SCROLL-DBG] ▶ $nextTick START', {
-                                        anchorId: this._anchorId,
-                                        anchorOffset: this._anchorOffset,
-                                        prevDocHeight: this._prevDocHeight,
-                                        savedScrollY: this._savedScrollY,
+                                    console.log('[SCROLL-DBG] ▶ $nextTick (cleanup only)', {
+                                        scrollCorrected: this._scrollCorrected,
                                         currentScrollY: window.scrollY,
-                                        currentDocH: document.documentElement.scrollHeight,
-                                        morphCaptured: this._morphCaptured,
                                     });
 
-                                    // Primary: anchor-element based correction
-                                    if (this._anchorId) {
+                                    // Fallback: if morph.updating never fired
+                                    // (rare edge case), correct here.
+                                    if (!this._scrollCorrected && this._anchorId) {
                                         const el = document.querySelector(
                                             `.group-batch[data-history-anchor-id="${this._anchorId}"]`
                                         );
                                         if (el) {
                                             const newTop = el.getBoundingClientRect().top;
                                             const delta = newTop - (this._anchorOffset ?? 0);
-                                            console.log('[SCROLL-DBG] 🎯 Anchor found', {
-                                                anchorId: this._anchorId,
-                                                savedOffset: this._anchorOffset,
-                                                newTop,
-                                                delta,
-                                                willCorrect: Math.abs(delta) > 1,
-                                            });
                                             if (Math.abs(delta) > 1) {
                                                 window.scrollBy(0, delta);
-                                                console.log('[SCROLL-DBG] ✅ scrollBy', delta, '→ new scrollY:', window.scrollY);
-                                            } else {
-                                                console.log('[SCROLL-DBG] ⏭️ delta ≤ 1, skip correction');
+                                                console.log('[SCROLL-DBG] ✅ $nextTick fallback scrollBy', delta);
                                             }
-                                            corrected = true;
-                                        } else {
-                                            console.log('[SCROLL-DBG] ⚠️ Anchor element NOT FOUND in DOM:', this._anchorId);
-                                        }
-                                    } else {
-                                        console.log('[SCROLL-DBG] ⚠️ No anchorId saved');
-                                    }
-
-
-                                    // Fallback: scrollHeight delta (Safari < 16.4)
-                                    if (!corrected && this._prevDocHeight) {
-                                        const newDocH = document.documentElement.scrollHeight;
-                                        const heightAdded = newDocH - this._prevDocHeight;
-                                        const savedY = this._savedScrollY ?? window.scrollY;
-                                        console.log('[SCROLL-DBG] 🔄 Fallback: scrollHeight delta', {
-                                            prevDocH: this._prevDocHeight,
-                                            newDocH,
-                                            heightAdded,
-                                            savedY,
-                                        });
-                                        if (heightAdded > 0) {
-                                            window.scrollTo(0, savedY + heightAdded);
-                                            console.log('[SCROLL-DBG] ✅ Fallback scrollTo:', savedY + heightAdded);
+                                        } else if (this._prevDocHeight) {
+                                            const newDocH = document.documentElement.scrollHeight;
+                                            const heightAdded = newDocH - this._prevDocHeight;
+                                            const savedY = this._savedScrollY ?? window.scrollY;
+                                            if (heightAdded > 0) {
+                                                window.scrollTo(0, savedY + heightAdded);
+                                                console.log('[SCROLL-DBG] ✅ $nextTick fallback scrollTo', savedY + heightAdded);
+                                            }
                                         }
                                     }
 
@@ -618,19 +587,18 @@
                                     this._anchorOffset = null;
                                     this._prevDocHeight = null;
                                     this._savedScrollY = undefined;
+                                    this._scrollCorrected = false;
 
-                                    // Re-observe sentinel immediately
+                                    // Re-observe sentinel
                                     this._reobserveSentinel();
 
                                     // ResizeObserver: compensate for lazy-loaded images
-                                    // above the viewport (height changes after load).
                                     const feed = document.getElementById('gallery-feed');
                                     if (feed) {
                                         const batches = feed.querySelectorAll('.group-batch');
                                         const aboveBatches = [];
                                         for (const b of batches) {
                                             const r = b.getBoundingClientRect();
-                                            // Collect batches that are above or partially in viewport
                                             if (r.top > window.innerHeight) break;
                                             aboveBatches.push(b);
                                         }
@@ -717,7 +685,6 @@
                                 if (this._morphCaptured) return;
 
                                 // Re-capture anchor position RIGHT BEFORE morph
-                                // (more accurate than at request time).
                                 if (this._anchorId) {
                                     const anchor = document.querySelector(
                                         `.group-batch[data-history-anchor-id="${this._anchorId}"]`
@@ -732,10 +699,47 @@
                                 console.log('[SCROLL-DBG] 🔒 morph.updating captured', {
                                     anchorId: this._anchorId,
                                     anchorOffset: this._anchorOffset,
-                                    prevDocHeight: this._prevDocHeight,
                                     savedScrollY: this._savedScrollY,
-                                    elTag: el.tagName,
-                                    elId: el.id,
+                                });
+
+                                // ── CRITICAL: schedule scroll correction as microtask ──
+                                // queueMicrotask runs AFTER the synchronous morph completes
+                                // but BEFORE the browser's rendering pipeline (rAF,
+                                // ResizeObserver, paint). This guarantees zero-frame jitter.
+                                queueMicrotask(() => {
+                                    if (this._scrollCorrected) return;
+                                    this._scrollCorrected = true;
+
+                                    if (this._anchorId) {
+                                        const el = document.querySelector(
+                                            `.group-batch[data-history-anchor-id="${this._anchorId}"]`
+                                        );
+                                        if (el) {
+                                            const newTop = el.getBoundingClientRect().top;
+                                            const delta = newTop - (this._anchorOffset ?? 0);
+                                            console.log('[SCROLL-DBG] 🎯 queueMicrotask anchor correction', {
+                                                anchorId: this._anchorId,
+                                                savedOffset: this._anchorOffset,
+                                                newTop,
+                                                delta,
+                                            });
+                                            if (Math.abs(delta) > 1) {
+                                                window.scrollBy(0, delta);
+                                                console.log('[SCROLL-DBG] ✅ scrollBy', delta, '→ scrollY:', window.scrollY);
+                                            }
+                                            return;
+                                        }
+                                    }
+
+                                    // Fallback: scrollHeight delta
+                                    if (this._prevDocHeight) {
+                                        const newDocH = document.documentElement.scrollHeight;
+                                        const heightAdded = newDocH - this._prevDocHeight;
+                                        if (heightAdded > 0) {
+                                            window.scrollTo(0, (this._savedScrollY ?? 0) + heightAdded);
+                                            console.log('[SCROLL-DBG] ✅ queueMicrotask fallback scrollTo', (this._savedScrollY ?? 0) + heightAdded);
+                                        }
+                                    }
                                 });
                             });
 
@@ -1300,7 +1304,7 @@
                         const toProcess = files.slice(0, remaining);
                         const skipped = files.length - toProcess.length;
                         let processed = 0;
-              const total = toProcess.length;
+                        const total = toProcess.length;
 
                         if (total === 0 && skipped > 0) {
                             this.notify(`Đã đạt giới hạn ${this.maxImages} ảnh`, 'warning');
