@@ -468,11 +468,11 @@
                             }
 
                             // Backup trigger: if user is at top but Sentinel didn't fire
-                            if (currentY < 200 && this.hasMoreHistory && !this.loadingMoreHistory) {
-                                // Debounce check to avoid spam
+                            const topThreshold = Math.min(200, window.innerHeight * 0.3);
+                            if (currentY < topThreshold && this.hasMoreHistory && !this.loadingMoreHistory) {
                                 clearTimeout(this._backupLoadTimer);
                                 this._backupLoadTimer = setTimeout(() => {
-                                    if (window.scrollY < 200) this.requestLoadOlder(this.loadOlderStep);
+                                    if (window.scrollY < topThreshold) this.requestLoadOlder(this.loadOlderStep);
                                 }, 100);
                             }
                         };
@@ -617,7 +617,7 @@
                                 this.loadingMoreHistory = false;
                                 this.lastLoadMoreAt = Date.now();
 
-                                setTimeout(() => this._reobserveSentinel(), 800);
+                                setTimeout(() => this._reobserveSentinel(), 400);
                             });
                         });
                         if (typeof offHistoryUpdated === 'function') this._wireListeners.push(offHistoryUpdated);
@@ -925,6 +925,7 @@
                         if (!pending.length) return this.centerLatestBatch(true);
 
                         let settled = false;
+                        let remaining = pending.length;
                         let timeoutId = null;
                         const cleanupFns = [];
 
@@ -942,17 +943,20 @@
                             });
                         };
 
+                        const onReady = () => {
+                            remaining--;
+                            if (remaining <= 0) settle();
+                        };
+
                         pending.forEach((img) => {
-                            const onLoad = () => settle();
-                            const onError = () => settle();
-                            img.addEventListener('load', onLoad, { once: true });
-                            img.addEventListener('error', onError, { once: true });
+                            img.addEventListener('load', onReady, { once: true });
+                            img.addEventListener('error', onReady, { once: true });
                             cleanupFns.push(() => {
-                                img.removeEventListener('load', onLoad);
-                                img.removeEventListener('error', onError);
+                                img.removeEventListener('load', onReady);
+                                img.removeEventListener('error', onReady);
                             });
                         });
-                        timeoutId = setTimeout(settle, 1500);
+                        timeoutId = setTimeout(settle, 3000);
                         return true;
                     },
 
@@ -961,6 +965,7 @@
                     // ============================================================
                     maybeBootstrapHistory() {
                         if (!this.hasMoreHistory || this.loadingMoreHistory) return;
+                        if (this._bodyLocked) return;
                         const el = document.documentElement;
                         const canScroll = (el.scrollHeight - window.innerHeight) > 8;
                         if (canScroll) return;

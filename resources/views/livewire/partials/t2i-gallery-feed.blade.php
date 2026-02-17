@@ -65,6 +65,11 @@
                     <div id="load-older-sentinel" class="h-px"
                         x-show="hasMoreHistory || loadingMoreHistory" x-cloak>
                     </div>
+                    {{-- End of history indicator --}}
+                    <div x-show="!hasMoreHistory && !loadingMoreHistory" x-cloak
+                        class="flex items-center justify-center py-3">
+                        <span class="text-white/25 text-xs">Đã hiển thị tất cả ảnh</span>
+                    </div>
                 @endif
 
                 {{-- ═══════════════════════════════════════════ --}}
@@ -172,9 +177,9 @@
                                     <div class="h-full bg-white/[0.02] rounded-md">
                                         <div class="relative overflow-hidden" {!! $aspectRatioCss ? 'style="aspect-ratio: ' . $aspectRatioCss . ';"' : '' !!}>
                                             {{-- Shimmer --}}
-                                            <div class="img-shimmer absolute inset-0 bg-white/[0.04]">
+                                            <div class="img-shimmer absolute inset-0 bg-white/[0.04] overflow-hidden">
                                                 <div
-                                                    class="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.06] to-transparent animate-pulse">
+                                                    class="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.06] to-transparent">
                                                 </div>
                                             </div>
                                             {{-- Image --}}
@@ -300,7 +305,7 @@
                         ">
                     <div class="bg-[#11141c] border border-white/[0.08] rounded-xl overflow-hidden">
                         <div class="h-0.5 bg-white/[0.03] overflow-hidden">
-                            <div class="h-full bg-blue-500/70 animate-pulse"
+                            <div class="h-full bg-blue-500/70"
                                 style="width: 100%; animation: progress-slide 2s ease-in-out infinite;"></div>
                         </div>
                         <div class="p-4">
