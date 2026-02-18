@@ -167,7 +167,7 @@
                                             </div>
                                             {{-- Image --}}
                                             <img src="{{ $image->image_url }}" alt="Preview"
-                                                class="gallery-img w-full h-full object-cover transition-all duration-500 group-hover/img:scale-[1.05]"
+                                                class="gallery-img w-full h-full object-contain transition-all duration-500 group-hover/img:scale-[1.05]"
                                                 draggable="false"
                                                 onload="this.previousElementSibling && (this.previousElementSibling.style.display='none')"
                                                 onerror="this.previousElementSibling && (this.previousElementSibling.style.display='none'); this.onerror=null; this.src='/images/placeholder.svg'"
