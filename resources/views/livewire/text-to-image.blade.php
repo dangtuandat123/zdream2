@@ -568,7 +568,7 @@
                                             const newTop = el.getBoundingClientRect().top;
                                             const delta = newTop - (this._anchorOffset ?? 0);
                                             if (Math.abs(delta) > 1) {
-                                                window.scrollBy(0, delta);
+                                                window.scrollBy({ top: delta, behavior: 'instant' });
                                                 console.log('[SCROLL-DBG] ✅ $nextTick fallback scrollBy', delta);
                                             }
                                         } else if (this._prevDocHeight) {
@@ -576,7 +576,7 @@
                                             const heightAdded = newDocH - this._prevDocHeight;
                                             const savedY = this._savedScrollY ?? window.scrollY;
                                             if (heightAdded > 0) {
-                                                window.scrollTo(0, savedY + heightAdded);
+                                                window.scrollTo({ top: savedY + heightAdded, behavior: 'instant' });
                                                 console.log('[SCROLL-DBG] ✅ $nextTick fallback scrollTo', savedY + heightAdded);
                                             }
                                         }
@@ -616,7 +616,7 @@
                                                 }
                                                 if (Math.abs(total) > 0.5) {
                                                     console.log('[SCROLL-DBG] 📐 ResizeObserver scrollBy:', total);
-                                                    window.scrollBy(0, total);
+                                                    window.scrollBy({ top: total, behavior: 'instant' });
                                                 }
                                             });
                                             aboveBatches.forEach(b => {
@@ -733,7 +733,7 @@
                                                 delta,
                                             });
                                             if (Math.abs(delta) > 1) {
-                                                window.scrollBy(0, delta);
+                                                window.scrollBy({ top: delta, behavior: 'instant' });
                                                 console.log('[SCROLL-DBG] ✅ scrollBy', delta, '→ scrollY:', window.scrollY);
                                             }
                                             return;
@@ -745,7 +745,7 @@
                                         const newDocH = document.documentElement.scrollHeight;
                                         const heightAdded = newDocH - this._prevDocHeight;
                                         if (heightAdded > 0) {
-                                            window.scrollTo(0, (this._savedScrollY ?? 0) + heightAdded);
+                                            window.scrollTo({ top: (this._savedScrollY ?? 0) + heightAdded, behavior: 'instant' });
                                             console.log('[SCROLL-DBG] ✅ queueMicrotask fallback scrollTo', (this._savedScrollY ?? 0) + heightAdded);
                                         }
                                     }
