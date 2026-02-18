@@ -298,8 +298,9 @@
                     statusElapsed: 0,
                     statusTimer: null,
                     autoScrollEnabled: true, // Auto-follow newest content (bottom)
+                    autoScrollEnabled: true, // Auto-follow newest content (bottom)
                     showScrollToBottom: false, // Floating jump-to-newest button
-                    isScrollingDown: false,
+                    isScrollingUp: false,
                     isFocused: false,
 
                     // Toast
@@ -462,7 +463,8 @@
                             const currentY = window.scrollY || document.documentElement.scrollTop || 0;
                             const diff = currentY - this.lastScrollY;
                             if (Math.abs(diff) > 20) {
-                                this.isScrollingDown = diff > 0 && currentY > 100;
+                                // User wants to shrink when scrolling UP (viewing older history)
+                                this.isScrollingUp = diff < 0 && currentY > 50;
                             }
                             this.lastScrollY = currentY;
 
