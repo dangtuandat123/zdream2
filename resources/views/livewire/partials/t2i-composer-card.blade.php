@@ -15,7 +15,6 @@
         window.addEventListener('livewire:navigating', stop, { once: true });
     ">
 
-    ">
 
     <div class="max-w-4xl mx-auto px-3 sm:px-4 pb-3 sm:pb-4 pt-2">
         {{-- Status Strip (above prompt, visible when not idle) --}}
