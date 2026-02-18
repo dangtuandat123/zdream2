@@ -83,7 +83,7 @@
                     <textarea x-ref="promptInput" wire:model.live.debounce.500ms="prompt" rows="1"
                         @focus="isFocused = true" @blur="isFocused = false" placeholder="Mô tả ý tưởng của bạn..."
                         class="t2i-prompt-input flex-1 bg-transparent border-none outline-none ring-0 focus:ring-0 focus:outline-none text-sm sm:text-base resize-none transition-all overflow-y-auto leading-[24px]"
-                        :class="!isAtBottom && !isFocused && !($wire.prompt?.length > 0) ? 'min-h-[44px] px-3 py-2.5 text-white/70 placeholder:text-white/40' : 'min-h-[48px] max-h-[120px] px-0'"
+                        :class="!isAtBottom && !isFocused && !($wire.prompt?.length > 0) ? 'min-h-[36px] h-[36px] px-3 py-1.5 text-white/70 placeholder:text-white/40' : 'min-h-[48px] max-h-[120px] px-0'"
                         x-init="
                             $watch('$wire.prompt', () => { $el.style.height = 'auto'; $el.style.height = Math.min($el.scrollHeight, 120) + 'px'; });
                         " @keydown.ctrl.enter.prevent="$wire.generate()" @keydown.meta.enter.prevent="$wire.generate()"
