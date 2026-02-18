@@ -468,6 +468,14 @@
                             this.isAtBottom = this.isNearBottom(100);
                             this.lastScrollY = currentY;
 
+                            // Auto-blur prompt when scrolling up (User Request: "Scroll shrinks it")
+                            if (!this.isAtBottom && this.isFocused) {
+                                this.isFocused = false;
+                                if (document.activeElement && document.activeElement.tagName === 'TEXTAREA') {
+                                    document.activeElement.blur();
+                                }
+                            }
+
                             if (this.autoScrollEnabled && !this.isNearBottom(120)) {
                                 this.autoScrollEnabled = false;
                             }
