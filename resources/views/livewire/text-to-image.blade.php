@@ -550,10 +550,7 @@
                                 this._loadMoreFailSafeTimer = null;
 
                                 if (this.isPrependingHistory) {
-                                    console.log('[SCROLL-DBG] ▶ $nextTick (cleanup)', {
-                                        scrollCorrected: this._scrollCorrected,
-                                        currentScrollY: window.scrollY,
-                                    });
+
 
                                     // Fallback: if morph.updating never fired
                                     if (!this._scrollCorrected && this._anchorId) {
@@ -565,7 +562,7 @@
                                             const delta = newTop - (this._anchorOffset ?? 0);
                                             if (Math.abs(delta) > 1) {
                                                 window.scrollBy({ top: delta, behavior: 'instant' });
-                                                console.log('[SCROLL-DBG] ✅ $nextTick fallback scrollBy', delta);
+
                                             }
                                         } else if (this._prevDocHeight) {
                                             const newDocH = document.documentElement.scrollHeight;
@@ -586,7 +583,7 @@
                                 }
 
                                 this.isPrependingHistory = false;
-                                console.log('[SCROLL-DBG] ⬛ loadingMoreHistory = FALSE', { time: performance.now() });
+
                                 this.loadingMoreHistory = false;
                                 this.lastLoadMoreAt = Date.now();
 
@@ -643,7 +640,7 @@
                                 if (this._resizeObserver) {
                                     this._resizeObserver.disconnect();
                                     this._resizeObserver = null;
-                                    console.log('[SCROLL-DBG] 🧹 Disconnected stale ResizeObserver');
+
                                 }
 
                                 // Re-capture anchor position RIGHT BEFORE morph
@@ -658,11 +655,7 @@
                                 this._prevDocHeight = document.documentElement.scrollHeight;
                                 this._savedScrollY = window.scrollY;
                                 this._morphCaptured = true;
-                                console.log('[SCROLL-DBG] 🔒 morph.updating captured', {
-                                    anchorId: this._anchorId,
-                                    anchorOffset: this._anchorOffset,
-                                    savedScrollY: this._savedScrollY,
-                                });
+
 
                                 // ── CRITICAL: schedule scroll correction as microtask ──
                                 // queueMicrotask runs AFTER the synchronous morph completes
@@ -680,15 +673,10 @@
                                         if (el) {
                                             const newTop = el.getBoundingClientRect().top;
                                             const delta = newTop - (this._anchorOffset ?? 0);
-                                            console.log('[SCROLL-DBG] 🎯 queueMicrotask anchor', {
-                                                anchorId: this._anchorId,
-                                                savedOffset: this._anchorOffset,
-                                                newTop,
-                                                delta,
-                                            });
+
                                             if (Math.abs(delta) > 1) {
                                                 window.scrollBy({ top: delta, behavior: 'instant' });
-                                                console.log('[SCROLL-DBG] ✅ scrollBy', delta, '→ scrollY:', window.scrollY);
+
                                             }
                                         }
                                     } else if (this._prevDocHeight) {
@@ -722,7 +710,7 @@
                                                     this._batchHeights.set(e.target, nH);
                                                 }
                                                 if (Math.abs(total) > 0.5) {
-                                                    console.log('[SCROLL-DBG] 📐 ResizeObserver scrollBy:', total);
+
                                                     window.scrollBy({ top: total, behavior: 'instant' });
                                                 }
                                             });
@@ -955,13 +943,7 @@
                         this._prevDocHeight = document.documentElement.scrollHeight;
                         this._savedScrollY = window.scrollY;
                         this._morphCaptured = false;
-                        console.log('[SCROLL-DBG] 📌 capturePrependAnchor', {
-                            anchorId: this._anchorId,
-                            anchorOffset: this._anchorOffset,
-                            prevDocHeight: this._prevDocHeight,
-                            savedScrollY: this._savedScrollY,
-                            totalBatches: feed?.querySelectorAll('.group-batch').length,
-                        });
+
                     },
 
                     // ============================================================
@@ -1056,7 +1038,7 @@
                         this.capturePrependAnchor();
                         this.loadingMoreHistory = true;
                         this.isPrependingHistory = true;
-                        console.log('[SCROLL-DBG] 🔄 loadingMoreHistory = TRUE', { time: performance.now() });
+
 
                         const batch = Math.max(1, Math.min(12, Math.trunc(count || this.loadOlderStep)));
                         this.$wire.loadMore(batch);
