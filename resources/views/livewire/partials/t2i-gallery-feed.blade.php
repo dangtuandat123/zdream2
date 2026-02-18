@@ -106,61 +106,34 @@
                         $ratioDisplay = $ratio ?: 'Auto';
                     @endphp
 
-                    <div class="group-batch t2i-batch relative rounded-[20px] bg-gradient-to-b from-white/[0.04] to-transparent backdrop-blur-xl border border-white/[0.08] shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_20px_40px_-12px_rgba(0,0,0,0.5)] overflow-hidden transition-all duration-300 hover:border-white/[0.12] hover:-translate-y-0.5 hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_24px_48px_-12px_rgba(0,0,0,0.6)]"
+                    <div class="group-batch t2i-batch relative mb-6"
                         x-data="{ expanded: false }"
                         wire:key="group-{{ $wireKey }}" data-history-anchor-id="{{ $firstItem->id }}">
 
                         {{-- ── Card Header ── --}}
-                        <div class="px-4 pt-4 pb-2">
-                            {{-- Row 1: Prompt + Time --}}
-                            <div class="flex items-start justify-between gap-3 mb-2">
+                        <div class="px-1 pb-3">
+                            <div class="flex flex-col sm:flex-row sm:items-baseline gap-2 sm:gap-4">
+                                {{-- Prompt --}}
                                 <button
-                                    class="text-[15px] font-medium leading-normal text-left text-white/90 hover:text-white transition-colors duration-200 cursor-pointer line-clamp-2"
+                                    class="text-[15px] font-semibold leading-normal text-left text-white/90 hover:text-white transition-colors duration-200 cursor-pointer line-clamp-1 break-all"
                                     @click="expanded = !expanded" title="Nhấn để xem prompt đầy đủ">
                                     {{ $firstItem->final_prompt }}
                                 </button>
-                                <span class="text-white/30 text-[10px] font-medium shrink-0 pt-1">
-                                    {{ $firstItem->created_at->diffForHumans() }}
-                                </span>
-                            </div>
-
-                            {{-- Row 2: Metadata + Actions --}}
-                            <div class="flex items-center justify-between gap-2">
-                                {{-- Left: Pills --}}
-                                <div class="flex items-center gap-1.5 flex-wrap">
-                                    <span class="inline-flex items-center gap-1.5 h-5 pl-2 pr-2.5 rounded-full bg-gradient-to-r from-purple-500/10 to-blue-500/10 border border-purple-500/20 text-purple-200 text-[10px] font-medium">
-                                        <i class="fa-solid fa-bolt text-[8px] opacity-70"></i>
-                                        {{ $modelName }}
-                                    </span>
-                                    <span class="inline-flex items-center gap-1.5 h-5 px-2 rounded-full bg-white/[0.04] border border-white/[0.05] text-white/50 text-[10px] font-medium">
-                                        {{ $ratioDisplay }}
-                                    </span>
-                                </div>
-
-                                {{-- Right: Actions --}}
-                                <div class="flex items-center gap-1">
-                                    <button x-data="{ copied: false }"
-                                        @click="navigator.clipboard.writeText(@js($firstItem->final_prompt)); copied = true; notify('Đã copy prompt'); setTimeout(() => copied = false, 2000)"
-                                        class="inline-flex items-center justify-center h-7 w-7 rounded-lg bg-white/[0.03] hover:bg-white/[0.08] hover:text-white border border-transparent hover:border-white/[0.1] text-white/40 transition-all duration-200 active:scale-[0.95]"
-                                        title="Copy prompt">
-                                        <i :class="copied ? 'fa-solid fa-check text-green-400' : 'fa-regular fa-copy'"
-                                            class="text-[10px]"></i>
-                                    </button>
+                                
+                                {{-- Metadata --}}
+                                <div class="flex items-center gap-3 text-[12px] text-white/40 font-medium shrink-0">
+                                    <span>{{ $modelName }}</span>
+                                    <span class="w-[1px] h-3 bg-white/10"></span>
+                                    <span>{{ $ratioDisplay }}</span>
+                                    <span class="w-[1px] h-3 bg-white/10"></span>
+                                    <span>{{ $groupItems->count() }} ảnh</span>
+                                    <span class="w-[1px] h-3 bg-white/10"></span>
+                                    <span>{{ $firstItem->created_at->diffForHumans() }}</span>
                                     
-                                    <button wire:click="reusePrompt({{ $firstItem->id }})"
-                                        class="inline-flex items-center justify-center h-7 w-7 rounded-lg bg-white/[0.03] hover:bg-white/[0.08] hover:text-white border border-transparent hover:border-white/[0.1] text-white/40 transition-all duration-200 active:scale-[0.95]"
-                                        title="Dùng lại prompt">
-                                        <i class="fa-solid fa-arrow-rotate-left text-[10px]"></i>
+                                    {{-- Actions (Contextual) --}}
+                                    <button wire:click="reusePrompt({{ $firstItem->id }})" class="ml-2 hover:text-white/80 transition-colors" title="Reuse">
+                                        <i class="fa-solid fa-arrow-rotate-left"></i>
                                     </button>
-                                    
-                                    @if($groupItems->count() > 1)
-                                        <button x-data
-                                            @click="(() => { const urls = @js($groupItems->pluck('image_url')->toArray()); urls.forEach((u, i) => { setTimeout(() => downloadImage(u), i * 500); }); notify('Đang tải ' + urls.length + ' ảnh...'); })()"
-                                            class="inline-flex items-center justify-center h-7 w-7 rounded-lg bg-white/[0.03] hover:bg-white/[0.08] hover:text-white border border-transparent hover:border-white/[0.1] text-white/40 transition-all duration-200 active:scale-[0.95]"
-                                            title="Tải tất cả">
-                                            <i class="fa-solid fa-download text-[10px]"></i>
-                                        </button>
-                                    @endif
                                 </div>
                             </div>
                         </div>
@@ -170,16 +143,16 @@
                             x-transition:enter="transition ease-out duration-300"
                             x-transition:enter-start="opacity-0 -translate-y-2 max-h-0"
                             x-transition:enter-end="opacity-100 translate-y-0 max-h-[500px]"
-                            class="px-4 pb-3">
-                            <div class="p-3 rounded-lg bg-black/20 border border-white/[0.06] text-[13px] text-white/70 leading-relaxed shadow-inner">
+                            class="px-1 pb-3">
+                            <div class="p-3 rounded-lg bg-white/[0.03] border border-white/[0.06] text-[13px] text-white/70 leading-relaxed">
                                 {{ $firstItem->final_prompt }}
                             </div>
                         </div>
 
                         {{-- ── Image Grid ── --}}
                         {{-- ── Image Grid ── --}}
-                        <div class="px-4 pb-4">
-                            <div class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-1.5 rounded-xl overflow-hidden">
+                        <div class="px-0">
+                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
                                 @foreach($groupItems as $image)
                                     @php
                                         $isNewestGroup = $groupIdx === $totalGroups - 1;
@@ -187,7 +160,7 @@
                                     @endphp
                                     <div class="block group/img cursor-pointer relative" wire:key="img-{{ $image->id }}"
                                         @click="openPreview(null, {{ $absoluteIndex }})">
-                                        <div class="relative overflow-hidden bg-white/[0.02] rounded-lg" {!! $aspectRatioCss ? 'style="aspect-ratio: ' . $aspectRatioCss . ';"' : '' !!}>
+                                        <div class="relative overflow-hidden bg-[#222] rounded-lg aspect-square">
                                             {{-- Shimmer --}}
                                             <div class="img-shimmer absolute inset-0 bg-white/[0.04] overflow-hidden">
                                                 <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.06] to-transparent"></div>
