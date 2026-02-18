@@ -4,7 +4,7 @@
 <div id="gallery-scroll" class="t2i-gallery-shell">
 
     {{-- Fixed loading indicator — always visible during history load --}}
-    <div x-show="loadingMoreHistory" x-cloak
+    <div x-show="loadingMoreHistory" wire:ignore
         x-transition:enter="transition ease-out duration-200"
         x-transition:enter-start="opacity-0 -translate-y-2"
         x-transition:enter-end="opacity-100 translate-y-0"
@@ -12,7 +12,7 @@
         x-transition:leave-start="opacity-100"
         x-transition:leave-end="opacity-0"
         class="fixed left-0 right-0 z-[60] pointer-events-none"
-        style="top: calc(var(--filter-bar-h, 3.5rem) + 3.5rem);">
+        style="display:none; top: calc(var(--filter-bar-h, 3.5rem) + 3.5rem);">
         {{-- Shimmer bar --}}
         <div class="h-1 w-full bg-gradient-to-r from-transparent via-purple-500/80 to-transparent animate-pulse"></div>
         {{-- Floating pill --}}
