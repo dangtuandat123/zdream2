@@ -541,6 +541,9 @@ class TextToImage extends Component
         $this->loadingMore = true;
         try {
             $this->perPage = min($this->perPage + $count, $total);
+            // CRITICAL: Clear cached computed property so render() re-queries
+            // with the new perPage. Without this, the template gets stale data.
+            unset($this->history);
             $hasMoreAfterUpdate = $this->perPage < $total;
             $this->dispatch('historyUpdated', hasMore: $hasMoreAfterUpdate);
         } finally {
