@@ -86,9 +86,9 @@
         </template>
 
         {{-- Composer main card --}}
-        <div class="relative transition-all duration-300 ease-in-out" :class="!isAtBottom && !isFocused && !($wire.prompt?.length > 0) ? 'px-4 mb-2' : ''">
+        <div class="relative transition-all duration-300 ease-in-out" :class="!isAtBottom && !isFocused && !($wire.prompt?.length > 0) ? 'px-2 mb-2' : ''">
             <div class="relative flex flex-col gap-2.5 t2i-composer-card transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]"
-                :class="!isAtBottom && !isFocused && !($wire.prompt?.length > 0) ? 'mx-auto w-full max-w-[500px] rounded-[32px] p-1.5 gap-0 bg-black/30 backdrop-blur-2xl border border-white/10 shadow-2xl' : 'w-full rounded-2xl p-3 sm:p-4 bg-[#151515]/90 backdrop-blur-md border border-white/10'">
+                :class="!isAtBottom && !isFocused && !($wire.prompt?.length > 0) ? 'mx-auto w-full max-w-3xl rounded-2xl p-2 gap-0 bg-black/50 backdrop-blur-[50px] border border-white/10 shadow-2xl' : 'w-full rounded-2xl p-3 sm:p-4 bg-[#151515]/90 backdrop-blur-md border border-white/10'">
 
                 {{-- Prompt textarea --}}
                 <textarea x-ref="promptInput" wire:model.live.debounce.500ms="prompt" rows="1"
