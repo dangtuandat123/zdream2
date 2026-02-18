@@ -15,6 +15,21 @@
         window.addEventListener('livewire:navigating', stop, { once: true });
     ">
 
+    {{-- Scroll To Bottom Button (absolute to wrapper) --}}
+    <div class="relative max-w-4xl mx-auto pointer-events-none">
+        <button x-show="showScrollToBottom" x-cloak
+            x-transition:enter="transition ease-out duration-300"
+            x-transition:enter-start="opacity-0 translate-y-4"
+            x-transition:enter-end="opacity-100 translate-y-0"
+            x-transition:leave="transition ease-in duration-200"
+            x-transition:leave-end="opacity-0 translate-y-4"
+            @click="scrollToBottom(true)"
+            class="pointer-events-auto absolute -top-14 right-3 sm:right-4 z-[40] w-10 h-10 rounded-full bg-blue-600/90 hover:bg-blue-500 text-white shadow-lg shadow-blue-900/40 flex items-center justify-center transition-all active:scale-95 backdrop-blur-sm border border-white/10"
+            title="Cuộn xuống mới nhất">
+            <i class="fa-solid fa-arrow-down"></i>
+        </button>
+    </div>
+
     <div class="max-w-4xl mx-auto px-3 sm:px-4 pb-3 sm:pb-4 pt-2">
         {{-- Status Strip (above prompt, visible when not idle) --}}
         <template x-if="uiMode !== 'idle'">

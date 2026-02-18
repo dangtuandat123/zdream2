@@ -477,6 +477,11 @@
 
                             // Backup trigger: if user is at top but Sentinel didn't fire
                             const topThreshold = Math.min(400, window.innerHeight * 0.5);
+
+                            // Show/Hide Scroll-to-Bottom button
+                            const distToBottom = document.documentElement.scrollHeight - (currentY + window.innerHeight);
+                            this.showScrollToBottom = distToBottom > 400;
+
                             if (currentY < topThreshold && this.hasMoreHistory && !this.loadingMoreHistory) {
                                 clearTimeout(this._backupLoadTimer);
                                 this._backupLoadTimer = setTimeout(() => {
