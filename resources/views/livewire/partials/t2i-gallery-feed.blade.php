@@ -106,60 +106,66 @@
                         $ratioDisplay = $ratio ?: 'Auto';
                     @endphp
 
-                    <div class="group-batch t2i-batch rounded-2xl bg-white/[0.025] border border-white/[0.06] shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] overflow-hidden"
+                    <div class="group-batch t2i-batch relative rounded-[20px] bg-gradient-to-b from-white/[0.04] to-transparent backdrop-blur-xl border border-white/[0.08] shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_20px_40px_-12px_rgba(0,0,0,0.5)] overflow-hidden transition-all duration-300 hover:border-white/[0.12] hover:-translate-y-0.5 hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_24px_48px_-12px_rgba(0,0,0,0.6)]"
                         x-data="{ expanded: false }"
                         wire:key="group-{{ $wireKey }}" data-history-anchor-id="{{ $firstItem->id }}">
 
                         {{-- ── Card Header ── --}}
-                        <div class="px-3 sm:px-4 pt-3 pb-2.5">
+                        <div class="px-5 pt-5 pb-3">
                             {{-- Row 1: Metadata pills --}}
-                            <div class="flex items-center gap-1.5 mb-2 flex-wrap">
-                                <span class="inline-flex items-center gap-1 h-5 px-2 rounded-md bg-purple-500/10 text-purple-300/90 text-[10px] font-medium">
-                                    <i class="fa-solid fa-microchip text-[8px]"></i>
+                            <div class="flex items-center gap-2 mb-3 flex-wrap">
+                                {{-- Premium Model Badge --}}
+                                <span class="inline-flex items-center gap-1.5 h-6 pl-2.5 pr-3 rounded-full bg-gradient-to-r from-purple-500/20 to-blue-500/20 border border-purple-500/30 text-purple-100 text-[11px] font-medium shadow-[0_0_10px_rgba(168,85,247,0.1)]">
+                                    <i class="fa-solid fa-microchip text-[9px] opacity-70"></i>
                                     {{ $modelName }}
                                 </span>
-                                <span class="inline-flex items-center gap-1 h-5 px-2 rounded-md bg-white/[0.04] text-white/50 text-[10px] font-medium">
-                                    <i class="fa-solid fa-crop text-[8px]"></i>
+                                
+                                {{-- Standard Pills --}}
+                                <span class="inline-flex items-center gap-1.5 h-6 px-3 rounded-full bg-white/[0.04] border border-white/[0.05] text-white/60 text-[11px] font-medium">
+                                    <i class="fa-solid fa-crop text-[9px] opacity-70"></i>
                                     {{ $ratioDisplay }}
                                 </span>
-                                <span class="inline-flex items-center gap-1 h-5 px-2 rounded-md bg-white/[0.04] text-white/50 text-[10px] font-medium">
-                                    <i class="fa-regular fa-images text-[8px]"></i>
+                                <span class="inline-flex items-center gap-1.5 h-6 px-3 rounded-full bg-white/[0.04] border border-white/[0.05] text-white/60 text-[11px] font-medium">
+                                    <i class="fa-regular fa-images text-[9px] opacity-70"></i>
                                     {{ $groupItems->count() }}
                                 </span>
-                                <span class="text-white/30 text-[10px] ml-auto shrink-0">
+                                <span class="text-white/30 text-[11px] font-medium ml-auto shrink-0 tracking-wide">
                                     {{ $firstItem->created_at->diffForHumans() }}
                                 </span>
                             </div>
 
                             {{-- Row 2: Prompt + Actions --}}
-                            <div class="flex items-start gap-2">
+                            <div class="flex items-start gap-3">
                                 <button
-                                    class="min-w-0 flex-1 text-[13px] leading-snug text-left text-white/60 hover:text-white/90 transition-colors duration-200 cursor-pointer line-clamp-2"
+                                    class="min-w-0 flex-1 text-[15px] leading-relaxed text-left text-white/80 hover:text-white transition-colors duration-200 cursor-pointer line-clamp-2"
                                     @click="expanded = !expanded" title="Nhấn để xem prompt đầy đủ">
                                     {{ $firstItem->final_prompt }}
                                 </button>
-                                <div class="flex items-center gap-0.5 shrink-0 -mt-0.5">
+                                
+                                <div class="flex items-center gap-1 shrink-0 -mt-0.5">
                                     <button x-data="{ copied: false }"
                                         @click="navigator.clipboard.writeText(@js($firstItem->final_prompt)); copied = true; notify('Đã copy prompt'); setTimeout(() => copied = false, 2000)"
-                                        class="inline-flex items-center justify-center h-7 w-7 sm:w-auto sm:px-2 rounded-lg text-white/40 hover:bg-white/[0.06] hover:text-white/80 text-xs transition-all duration-200 active:scale-[0.95]"
+                                        class="inline-flex items-center justify-center h-8 w-8 sm:w-auto sm:px-3 rounded-xl bg-white/[0.03] hover:bg-white/[0.08] hover:text-white border border-transparent hover:border-white/[0.1] text-white/40 transition-all duration-200 active:scale-[0.95]"
                                         title="Copy prompt">
                                         <i :class="copied ? 'fa-solid fa-check text-green-400' : 'fa-regular fa-copy'"
-                                            class="text-[11px]"></i>
-                                        <span class="hidden sm:inline ml-1" x-text="copied ? 'Copied' : 'Copy'"></span>
+                                            class="text-[12px]"></i>
+                                        <span class="hidden sm:inline ml-1.5 text-xs font-medium" x-text="copied ? 'Copied' : 'Copy'"></span>
                                     </button>
+                                    
                                     <button wire:click="reusePrompt({{ $firstItem->id }})"
-                                        class="inline-flex items-center justify-center h-7 w-7 sm:w-auto sm:px-2 rounded-lg text-white/40 hover:bg-white/[0.06] hover:text-white/80 text-xs transition-all duration-200 active:scale-[0.95]"
+                                        class="inline-flex items-center justify-center h-8 w-8 sm:w-auto sm:px-3 rounded-xl bg-white/[0.03] hover:bg-white/[0.08] hover:text-white border border-transparent hover:border-white/[0.1] text-white/40 transition-all duration-200 active:scale-[0.95]"
                                         title="Dùng lại prompt + cài đặt">
-                                        <i class="fa-solid fa-arrow-rotate-left text-[11px]"></i>
-                                        <span class="hidden sm:inline ml-1">Reuse</span>
+                                        <i class="fa-solid fa-arrow-rotate-left text-[12px]"></i>
+                                        <span class="hidden sm:inline ml-1.5 text-xs font-medium">Reuse</span>
                                     </button>
+                                    
                                     @if($groupItems->count() > 1)
                                         <button x-data
                                             @click="(() => { const urls = @js($groupItems->pluck('image_url')->toArray()); urls.forEach((u, i) => { setTimeout(() => downloadImage(u), i * 500); }); notify('Đang tải ' + urls.length + ' ảnh...'); })()"
-                                            class="inline-flex items-center justify-center h-7 w-7 sm:w-auto sm:px-2 rounded-lg text-white/40 hover:bg-white/[0.06] hover:text-white/80 text-xs transition-all duration-200 active:scale-[0.95]"
+                                            class="inline-flex items-center justify-center h-8 w-8 sm:w-auto sm:px-3 rounded-xl bg-white/[0.03] hover:bg-white/[0.08] hover:text-white border border-transparent hover:border-white/[0.1] text-white/40 transition-all duration-200 active:scale-[0.95]"
                                             title="Tải cả batch">
-                                            <i class="fa-solid fa-download text-[11px]"></i>
-                                            <span class="hidden sm:inline ml-1">All</span>
+                                            <i class="fa-solid fa-download text-[12px]"></i>
+                                            <span class="hidden sm:inline ml-1.5 text-xs font-medium">All</span>
                                         </button>
                                     @endif
                                 </div>
@@ -167,70 +173,75 @@
                         </div>
 
                         {{-- ── Expanded Prompt Detail ── --}}
-                        <div x-show="expanded" x-cloak x-transition:enter="transition ease-out duration-200"
-                            x-transition:enter-start="opacity-0 -translate-y-1"
-                            x-transition:enter-end="opacity-100 translate-y-0"
-                            class="mx-3 sm:mx-4 mb-2.5 px-3 py-2.5 rounded-xl bg-white/[0.03] border border-white/[0.06] text-[13px] text-white/70 leading-relaxed">
-                            {{ $firstItem->final_prompt }}
+                        <div x-show="expanded" x-cloak 
+                            x-transition:enter="transition ease-out duration-300"
+                            x-transition:enter-start="opacity-0 -translate-y-2 max-h-0"
+                            x-transition:enter-end="opacity-100 translate-y-0 max-h-[500px]"
+                            class="px-5 pb-4">
+                            <div class="p-4 rounded-xl bg-black/20 border border-white/[0.06] text-[14px] text-white/70 leading-relaxed shadow-inner">
+                                {{ $firstItem->final_prompt }}
+                            </div>
                         </div>
 
                         {{-- ── Image Grid ── --}}
-                        <div class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-[3px] sm:gap-1">
-                            @foreach($groupItems as $image)
-                                @php
-                                    $isNewestGroup = $groupIdx === $totalGroups - 1;
-                                    $isPriorityImage = $isNewestGroup && $loop->index < 2;
-                                @endphp
-                                <div class="block group cursor-pointer" wire:key="img-{{ $image->id }}"
-                                    @click="openPreview(null, {{ $absoluteIndex }})">
-                                    <div class="relative overflow-hidden bg-white/[0.02]" {!! $aspectRatioCss ? 'style="aspect-ratio: ' . $aspectRatioCss . ';"' : '' !!}>
-                                        {{-- Shimmer --}}
-                                        <div class="img-shimmer absolute inset-0 bg-white/[0.04] overflow-hidden">
-                                            <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.06] to-transparent"></div>
-                                        </div>
-                                        {{-- Image --}}
-                                        <img src="{{ $image->image_url }}" alt="Preview"
-                                            class="gallery-img w-full h-full object-cover transition-all duration-200 group-hover:scale-[1.03]"
-                                            draggable="false"
-                                            onload="this.previousElementSibling && (this.previousElementSibling.style.display='none')"
-                                            onerror="this.previousElementSibling && (this.previousElementSibling.style.display='none'); this.onerror=null; this.src='/images/placeholder.svg'"
-                                            {{ $isPriorityImage ? 'loading=eager fetchpriority=high decoding=async' : 'loading=lazy fetchpriority=low decoding=async' }}>
+                        <div class="px-5 pb-5">
+                            <div class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-1.5 rounded-xl overflow-hidden">
+                                @foreach($groupItems as $image)
+                                    @php
+                                        $isNewestGroup = $groupIdx === $totalGroups - 1;
+                                        $isPriorityImage = $isNewestGroup && $loop->index < 2;
+                                    @endphp
+                                    <div class="block group/img cursor-pointer relative" wire:key="img-{{ $image->id }}"
+                                        @click="openPreview(null, {{ $absoluteIndex }})">
+                                        <div class="relative overflow-hidden bg-white/[0.02] rounded-lg" {!! $aspectRatioCss ? 'style="aspect-ratio: ' . $aspectRatioCss . ';"' : '' !!}>
+                                            {{-- Shimmer --}}
+                                            <div class="img-shimmer absolute inset-0 bg-white/[0.04] overflow-hidden">
+                                                <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.06] to-transparent"></div>
+                                            </div>
+                                            {{-- Image --}}
+                                            <img src="{{ $image->image_url }}" alt="Preview"
+                                                class="gallery-img w-full h-full object-cover transition-all duration-500 group-hover/img:scale-[1.05]"
+                                                draggable="false"
+                                                onload="this.previousElementSibling && (this.previousElementSibling.style.display='none')"
+                                                onerror="this.previousElementSibling && (this.previousElementSibling.style.display='none'); this.onerror=null; this.src='/images/placeholder.svg'"
+                                                {{ $isPriorityImage ? 'loading=eager fetchpriority=high decoding=async' : 'loading=lazy fetchpriority=low decoding=async' }}>
 
-                                        {{-- Desktop Hover Overlay --}}
-                                        <div class="hidden sm:flex absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 items-end justify-end p-2">
-                                            <div class="flex gap-1.5">
+                                            {{-- Desktop Hover Overlay --}}
+                                            <div class="hidden sm:flex absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover/img:opacity-100 transition-all duration-300 items-end justify-end p-2.5">
+                                                <div class="flex gap-2 translate-y-4 group-hover/img:translate-y-0 transition-transform duration-300">
+                                                    <button @click.stop="downloadImage('{{ $image->image_url }}')"
+                                                        class="h-9 w-9 rounded-xl bg-white/10 backdrop-blur-md hover:bg-white/20 text-white flex items-center justify-center transition-all duration-200 border border-white/10 active:scale-[0.95]"
+                                                        aria-label="Tải xuống">
+                                                        <i class="fa-solid fa-download text-[12px]"></i>
+                                                    </button>
+                                                    <button wire:click="deleteImage({{ $image->id }})" @click.stop
+                                                        wire:confirm="Bạn có chắc muốn xóa ảnh này?"
+                                                        class="h-9 w-9 rounded-xl bg-white/10 backdrop-blur-md hover:bg-red-500/80 text-white flex items-center justify-center transition-all duration-200 border border-white/10 active:scale-[0.95]"
+                                                        aria-label="Xóa">
+                                                        <i class="fa-solid fa-trash text-[12px]"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            {{-- Mobile Always-visible Mini Actions --}}
+                                            <div class="sm:hidden absolute bottom-1.5 right-1.5 flex gap-1.5">
                                                 <button @click.stop="downloadImage('{{ $image->image_url }}')"
-                                                    class="h-8 w-8 rounded-lg bg-black/50 backdrop-blur-sm hover:bg-white/20 text-white flex items-center justify-center transition-all duration-200 border border-white/[0.1] active:scale-[0.95]"
+                                                    class="h-7 w-7 rounded-lg bg-black/60 backdrop-blur-sm text-white flex items-center justify-center active:scale-[0.9] transition-all border border-white/10"
                                                     aria-label="Tải xuống">
-                                                    <i class="fa-solid fa-download text-[11px]"></i>
+                                                    <i class="fa-solid fa-download text-[10px]"></i>
                                                 </button>
                                                 <button wire:click="deleteImage({{ $image->id }})" @click.stop
                                                     wire:confirm="Bạn có chắc muốn xóa ảnh này?"
-                                                    class="h-8 w-8 rounded-lg bg-black/50 backdrop-blur-sm hover:bg-red-500/80 text-white flex items-center justify-center transition-all duration-200 border border-white/[0.1] active:scale-[0.95]"
+                                                    class="h-7 w-7 rounded-lg bg-black/60 backdrop-blur-sm text-white flex items-center justify-center active:scale-[0.9] transition-all border border-white/10"
                                                     aria-label="Xóa">
-                                                    <i class="fa-solid fa-trash text-[11px]"></i>
+                                                    <i class="fa-solid fa-trash text-[10px]"></i>
                                                 </button>
                                             </div>
                                         </div>
-
-                                        {{-- Mobile Mini Actions --}}
-                                        <div class="sm:hidden absolute bottom-1 right-1 flex gap-1">
-                                            <button @click.stop="downloadImage('{{ $image->image_url }}')"
-                                                class="h-6 w-6 rounded-md bg-black/60 backdrop-blur-sm text-white flex items-center justify-center active:scale-[0.9] transition-all"
-                                                aria-label="Tải xuống">
-                                                <i class="fa-solid fa-download text-[9px]"></i>
-                                            </button>
-                                            <button wire:click="deleteImage({{ $image->id }})" @click.stop
-                                                wire:confirm="Bạn có chắc muốn xóa ảnh này?"
-                                                class="h-6 w-6 rounded-md bg-black/60 backdrop-blur-sm text-white flex items-center justify-center active:scale-[0.9] transition-all"
-                                                aria-label="Xóa">
-                                                <i class="fa-solid fa-trash text-[9px]"></i>
-                                            </button>
-                                        </div>
                                     </div>
-                                </div>
-                                @php $absoluteIndex++; @endphp
-                            @endforeach
+                                    @php $absoluteIndex++; @endphp
+                                @endforeach
+                            </div>
                         </div>
                     </div>
                     @php $groupIdx++; @endphp
