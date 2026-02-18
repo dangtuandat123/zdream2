@@ -345,15 +345,4 @@
             @endif
         </div>
 
-        {{-- Floating "Jump to newest" button --}}
-        <button x-show="showScrollToBottom" x-cloak @click="scrollToBottom(true); autoScrollEnabled = true"
-            x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-4"
-            x-transition:enter-end="opacity-100 translate-y-0" x-transition:leave="transition ease-in duration-150"
-            x-transition:leave-end="opacity-0 translate-y-4"
-            class="t2i-jump-newest fixed right-4 z-[55] flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium active:scale-[0.95] transition-all"
-            style="bottom: calc(var(--composer-h, 10rem) + 1rem);">
-            <i class="fa-solid fa-arrow-down text-xs"></i>
-            <span>Về ảnh mới nhất</span>
-        </button>
-
     </div>

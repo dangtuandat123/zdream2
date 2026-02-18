@@ -298,10 +298,10 @@
                     statusElapsed: 0,
                     statusTimer: null,
                     autoScrollEnabled: true, // Auto-follow newest content (bottom)
-                    autoScrollEnabled: true, // Auto-follow newest content (bottom)
                     showScrollToBottom: false, // Floating jump-to-newest button
                     isScrollingUp: false,
                     isFocused: false,
+                    isHovered: false,
 
                     // Toast
                     showToast: false,
