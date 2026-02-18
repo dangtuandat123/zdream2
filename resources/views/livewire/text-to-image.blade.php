@@ -299,6 +299,8 @@
                     statusTimer: null,
                     autoScrollEnabled: true, // Auto-follow newest content (bottom)
                     showScrollToBottom: false, // Floating jump-to-newest button
+                    isScrollingDown: false,
+                    isFocused: false,
 
                     // Toast
                     showToast: false,
@@ -458,6 +460,10 @@
                         // Scroll handler: manages auto-scroll + jump button
                         this._scrollHandler = () => {
                             const currentY = window.scrollY || document.documentElement.scrollTop || 0;
+                            const diff = currentY - this.lastScrollY;
+                            if (Math.abs(diff) > 20) {
+                                this.isScrollingDown = diff > 0 && currentY > 100;
+                            }
                             this.lastScrollY = currentY;
 
                             if (this.autoScrollEnabled && !this.isNearBottom(120)) {

@@ -72,10 +72,12 @@
 
         {{-- Composer main card --}}
         <div class="relative">
-            <div class="relative flex flex-col gap-2.5 p-3 sm:p-4 rounded-2xl t2i-composer-card">
+            <div class="relative flex flex-col gap-2.5 rounded-2xl t2i-composer-card transition-all duration-300"
+                :class="isScrollingDown && !isFocused && !($wire.prompt?.length > 0) ? 'p-2 gap-1 bg-opacity-90 backdrop-blur-md' : 'p-3 sm:p-4'">
 
                 {{-- Prompt textarea --}}
                 <textarea x-ref="promptInput" wire:model.live.debounce.500ms="prompt" rows="2"
+                    @focus="isFocused = true" @blur="isFocused = false"
                     placeholder="Mô tả ý tưởng của bạn..."
                     class="t2i-prompt-input w-full min-h-[48px] max-h-[120px] bg-transparent border-none outline-none ring-0 focus:ring-0 focus:outline-none text-sm sm:text-base resize-none transition-all overflow-y-auto"
                     x-init="
@@ -99,7 +101,8 @@
                 </div>
 
                 {{-- Quick Settings Row + Generate --}}
-                <div class="flex items-center justify-between gap-2">
+                <div class="flex items-center justify-between gap-2 overflow-hidden transition-all duration-300"
+                    :class="isScrollingDown && !isFocused && !($wire.prompt?.length > 0) ? 'max-h-0 opacity-0 -mt-1' : 'max-h-[60px] opacity-100'">
                     <div class="flex items-center gap-1.5 flex-wrap"
                         @click.away="showRatioSheet = false; showModelSheet = false; showBatchSheet = false">
 
