@@ -549,17 +549,13 @@
                                 clearTimeout(this._loadMoreFailSafeTimer);
                                 this._loadMoreFailSafeTimer = null;
 
-                                // Scroll correction already happened in morph.updating
-                                // via queueMicrotask (before paint). Here we just
-                                // clean up state and set up lazy-image compensation.
                                 if (this.isPrependingHistory) {
-                                    console.log('[SCROLL-DBG] ▶ $nextTick (cleanup only)', {
+                                    console.log('[SCROLL-DBG] ▶ $nextTick (cleanup)', {
                                         scrollCorrected: this._scrollCorrected,
                                         currentScrollY: window.scrollY,
                                     });
 
                                     // Fallback: if morph.updating never fired
-                                    // (rare edge case), correct here.
                                     if (!this._scrollCorrected && this._anchorId) {
                                         const el = document.querySelector(
                                             `.group-batch[data-history-anchor-id="${this._anchorId}"]`
@@ -577,7 +573,6 @@
                                             const savedY = this._savedScrollY ?? window.scrollY;
                                             if (heightAdded > 0) {
                                                 window.scrollTo({ top: savedY + heightAdded, behavior: 'instant' });
-                                                console.log('[SCROLL-DBG] ✅ $nextTick fallback scrollTo', savedY + heightAdded);
                                             }
                                         }
                                     }
@@ -588,52 +583,10 @@
                                     this._prevDocHeight = null;
                                     this._savedScrollY = undefined;
                                     this._scrollCorrected = false;
-
-                                    // Re-observe sentinel
-                                    this._reobserveSentinel();
-
-                                    // ResizeObserver: compensate for lazy-loaded images
-                                    const feed = document.getElementById('gallery-feed');
-                                    if (feed) {
-                                        const batches = feed.querySelectorAll('.group-batch');
-                                        const aboveBatches = [];
-                                        for (const b of batches) {
-                                            const r = b.getBoundingClientRect();
-                                            if (r.top > window.innerHeight) break;
-                                            aboveBatches.push(b);
-                                        }
-                                        if (aboveBatches.length) {
-                                            if (this._resizeObserver) {
-                                                this._resizeObserver.disconnect();
-                                            }
-                                            this._resizeObserver = new ResizeObserver((entries) => {
-                                                let total = 0;
-                                                for (const e of entries) {
-                                                    const nH = e.borderBoxSize?.[0]?.blockSize ?? e.contentRect.height;
-                                                    const oH = this._batchHeights.get(e.target) || 0;
-                                                    if (oH > 0 && nH !== oH) total += nH - oH;
-                                                    this._batchHeights.set(e.target, nH);
-                                                }
-                                                if (Math.abs(total) > 0.5) {
-                                                    console.log('[SCROLL-DBG] 📐 ResizeObserver scrollBy:', total);
-                                                    window.scrollBy({ top: total, behavior: 'instant' });
-                                                }
-                                            });
-                                            aboveBatches.forEach(b => {
-                                                this._batchHeights.set(b, b.getBoundingClientRect().height);
-                                                this._resizeObserver.observe(b);
-                                            });
-                                            setTimeout(() => {
-                                                if (this._resizeObserver) {
-                                                    this._resizeObserver.disconnect();
-                                                    this._resizeObserver = null;
-                                                }
-                                            }, 8000);
-                                        }
-                                    }
                                 }
 
                                 this.isPrependingHistory = false;
+                                console.log('[SCROLL-DBG] ⬛ loadingMoreHistory = FALSE', { time: performance.now() });
                                 this.loadingMoreHistory = false;
                                 this.lastLoadMoreAt = Date.now();
 
@@ -719,6 +672,7 @@
                                     if (this._scrollCorrected) return;
                                     this._scrollCorrected = true;
 
+                                    // ── Scroll correction ──
                                     if (this._anchorId) {
                                         const el = document.querySelector(
                                             `.group-batch[data-history-anchor-id="${this._anchorId}"]`
@@ -726,7 +680,7 @@
                                         if (el) {
                                             const newTop = el.getBoundingClientRect().top;
                                             const delta = newTop - (this._anchorOffset ?? 0);
-                                            console.log('[SCROLL-DBG] 🎯 queueMicrotask anchor correction', {
+                                            console.log('[SCROLL-DBG] 🎯 queueMicrotask anchor', {
                                                 anchorId: this._anchorId,
                                                 savedOffset: this._anchorOffset,
                                                 newTop,
@@ -736,19 +690,57 @@
                                                 window.scrollBy({ top: delta, behavior: 'instant' });
                                                 console.log('[SCROLL-DBG] ✅ scrollBy', delta, '→ scrollY:', window.scrollY);
                                             }
-                                            return;
                                         }
-                                    }
-
-                                    // Fallback: scrollHeight delta
-                                    if (this._prevDocHeight) {
+                                    } else if (this._prevDocHeight) {
+                                        // Fallback: scrollHeight
                                         const newDocH = document.documentElement.scrollHeight;
                                         const heightAdded = newDocH - this._prevDocHeight;
                                         if (heightAdded > 0) {
                                             window.scrollTo({ top: (this._savedScrollY ?? 0) + heightAdded, behavior: 'instant' });
-                                            console.log('[SCROLL-DBG] ✅ queueMicrotask fallback scrollTo', (this._savedScrollY ?? 0) + heightAdded);
                                         }
                                     }
+
+                                    // ── ResizeObserver for lazy-loaded images ──
+                                    // Set up IMMEDIATELY after correction (before paint)
+                                    // so image loads are compensated from frame 1.
+                                    const feed = document.getElementById('gallery-feed');
+                                    if (feed) {
+                                        const batches = feed.querySelectorAll('.group-batch');
+                                        const aboveBatches = [];
+                                        for (const b of batches) {
+                                            const r = b.getBoundingClientRect();
+                                            if (r.top > window.innerHeight) break;
+                                            aboveBatches.push(b);
+                                        }
+                                        if (aboveBatches.length) {
+                                            this._resizeObserver = new ResizeObserver((entries) => {
+                                                let total = 0;
+                                                for (const e of entries) {
+                                                    const nH = e.borderBoxSize?.[0]?.blockSize ?? e.contentRect.height;
+                                                    const oH = this._batchHeights.get(e.target) || 0;
+                                                    if (oH > 0 && nH !== oH) total += nH - oH;
+                                                    this._batchHeights.set(e.target, nH);
+                                                }
+                                                if (Math.abs(total) > 0.5) {
+                                                    console.log('[SCROLL-DBG] 📐 ResizeObserver scrollBy:', total);
+                                                    window.scrollBy({ top: total, behavior: 'instant' });
+                                                }
+                                            });
+                                            aboveBatches.forEach(b => {
+                                                this._batchHeights.set(b, b.getBoundingClientRect().height);
+                                                this._resizeObserver.observe(b);
+                                            });
+                                            setTimeout(() => {
+                                                if (this._resizeObserver) {
+                                                    this._resizeObserver.disconnect();
+                                                    this._resizeObserver = null;
+                                                }
+                                            }, 8000);
+                                        }
+                                    }
+
+                                    // Re-observe sentinel immediately
+                                    this._reobserveSentinel();
                                 });
                             });
 
@@ -1064,6 +1056,7 @@
                         this.capturePrependAnchor();
                         this.loadingMoreHistory = true;
                         this.isPrependingHistory = true;
+                        console.log('[SCROLL-DBG] 🔄 loadingMoreHistory = TRUE', { time: performance.now() });
 
                         const batch = Math.max(1, Math.min(12, Math.trunc(count || this.loadOlderStep)));
                         this.$wire.loadMore(batch);
