@@ -106,68 +106,76 @@
                         $ratioDisplay = $ratio ?: 'Auto';
                     @endphp
 
-                    <div class="space-y-2.5 group-batch t2i-batch" x-data="{ expanded: false }"
+                    <div class="group-batch t2i-batch rounded-2xl bg-white/[0.025] border border-white/[0.06] shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] overflow-hidden"
+                        x-data="{ expanded: false }"
                         wire:key="group-{{ $wireKey }}" data-history-anchor-id="{{ $firstItem->id }}">
 
-                        {{-- Batch Header --}}
-                        <div class="flex items-center gap-2">
-                            <div class="flex items-center justify-between gap-2 flex-1 text-sm min-w-0">
-                                <div class="flex items-center gap-1.5 min-w-0">
-                                    <span class="text-white/70 text-xs font-medium shrink-0">Tạo ảnh</span>
-                                    <i class="fa-solid fa-chevron-right text-white/30 text-[9px] shrink-0"></i>
-                                    <button
-                                        class="min-w-0 flex-1 text-sm text-left text-white/50 first-letter:capitalize hover:text-white/80 transition-colors duration-200 cursor-pointer truncate overflow-hidden"
-                                        @click="expanded = !expanded" title="Nhấn để xem prompt đầy đủ">
-                                        {{ $firstItem->final_prompt }}
-                                    </button>
-                                </div>
-                                <div class="flex items-center gap-0.5 shrink-0">
+                        {{-- ── Card Header ── --}}
+                        <div class="px-3 sm:px-4 pt-3 pb-2.5">
+                            {{-- Row 1: Metadata pills --}}
+                            <div class="flex items-center gap-1.5 mb-2 flex-wrap">
+                                <span class="inline-flex items-center gap-1 h-5 px-2 rounded-md bg-purple-500/10 text-purple-300/90 text-[10px] font-medium">
+                                    <i class="fa-solid fa-microchip text-[8px]"></i>
+                                    {{ $modelName }}
+                                </span>
+                                <span class="inline-flex items-center gap-1 h-5 px-2 rounded-md bg-white/[0.04] text-white/50 text-[10px] font-medium">
+                                    <i class="fa-solid fa-crop text-[8px]"></i>
+                                    {{ $ratioDisplay }}
+                                </span>
+                                <span class="inline-flex items-center gap-1 h-5 px-2 rounded-md bg-white/[0.04] text-white/50 text-[10px] font-medium">
+                                    <i class="fa-regular fa-images text-[8px]"></i>
+                                    {{ $groupItems->count() }}
+                                </span>
+                                <span class="text-white/30 text-[10px] ml-auto shrink-0">
+                                    {{ $firstItem->created_at->diffForHumans() }}
+                                </span>
+                            </div>
+
+                            {{-- Row 2: Prompt + Actions --}}
+                            <div class="flex items-start gap-2">
+                                <button
+                                    class="min-w-0 flex-1 text-[13px] leading-snug text-left text-white/60 hover:text-white/90 transition-colors duration-200 cursor-pointer line-clamp-2"
+                                    @click="expanded = !expanded" title="Nhấn để xem prompt đầy đủ">
+                                    {{ $firstItem->final_prompt }}
+                                </button>
+                                <div class="flex items-center gap-0.5 shrink-0 -mt-0.5">
                                     <button x-data="{ copied: false }"
                                         @click="navigator.clipboard.writeText(@js($firstItem->final_prompt)); copied = true; notify('Đã copy prompt'); setTimeout(() => copied = false, 2000)"
-                                        class="inline-flex items-center justify-center h-7 px-2 rounded-lg bg-transparent text-white/50 hover:bg-white/[0.05] hover:text-white/90 text-xs transition-all duration-200 active:scale-[0.98]"
+                                        class="inline-flex items-center justify-center h-7 w-7 sm:w-auto sm:px-2 rounded-lg text-white/40 hover:bg-white/[0.06] hover:text-white/80 text-xs transition-all duration-200 active:scale-[0.95]"
                                         title="Copy prompt">
                                         <i :class="copied ? 'fa-solid fa-check text-green-400' : 'fa-regular fa-copy'"
-                                            class="text-[11px] mr-1"></i>
-                                        <span class="hidden sm:inline" x-text="copied ? 'Copied!' : 'Copy'"></span>
+                                            class="text-[11px]"></i>
+                                        <span class="hidden sm:inline ml-1" x-text="copied ? 'Copied' : 'Copy'"></span>
                                     </button>
                                     <button wire:click="reusePrompt({{ $firstItem->id }})"
-                                        class="inline-flex items-center justify-center h-7 px-2 rounded-lg bg-transparent text-white/50 hover:bg-white/[0.05] hover:text-white/90 text-xs transition-all duration-200 active:scale-[0.98]"
+                                        class="inline-flex items-center justify-center h-7 w-7 sm:w-auto sm:px-2 rounded-lg text-white/40 hover:bg-white/[0.06] hover:text-white/80 text-xs transition-all duration-200 active:scale-[0.95]"
                                         title="Dùng lại prompt + cài đặt">
-                                        <i class="fa-solid fa-arrow-rotate-left text-xs mr-1"></i>
-                                        <span class="hidden sm:inline">Reuse</span>
+                                        <i class="fa-solid fa-arrow-rotate-left text-[11px]"></i>
+                                        <span class="hidden sm:inline ml-1">Reuse</span>
                                     </button>
                                     @if($groupItems->count() > 1)
                                         <button x-data
                                             @click="(() => { const urls = @js($groupItems->pluck('image_url')->toArray()); urls.forEach((u, i) => { setTimeout(() => downloadImage(u), i * 500); }); notify('Đang tải ' + urls.length + ' ảnh...'); })()"
-                                            class="inline-flex items-center justify-center h-7 px-2 rounded-lg bg-transparent text-white/50 hover:bg-white/[0.05] hover:text-white/90 text-xs transition-all duration-200 active:scale-[0.98]"
+                                            class="inline-flex items-center justify-center h-7 w-7 sm:w-auto sm:px-2 rounded-lg text-white/40 hover:bg-white/[0.06] hover:text-white/80 text-xs transition-all duration-200 active:scale-[0.95]"
                                             title="Tải cả batch">
-                                            <i class="fa-solid fa-download text-xs mr-1"></i>
-                                            <span class="hidden sm:inline">All</span>
+                                            <i class="fa-solid fa-download text-[11px]"></i>
+                                            <span class="hidden sm:inline ml-1">All</span>
                                         </button>
                                     @endif
                                 </div>
                             </div>
                         </div>
 
-                        {{-- Expanded Prompt Detail --}}
+                        {{-- ── Expanded Prompt Detail ── --}}
                         <div x-show="expanded" x-cloak x-transition:enter="transition ease-out duration-200"
                             x-transition:enter-start="opacity-0 -translate-y-1"
                             x-transition:enter-end="opacity-100 translate-y-0"
-                            class="px-3 py-2.5 rounded-xl bg-white/[0.02] border border-white/[0.08] text-sm text-white/70 leading-relaxed">
+                            class="mx-3 sm:mx-4 mb-2.5 px-3 py-2.5 rounded-xl bg-white/[0.03] border border-white/[0.06] text-[13px] text-white/70 leading-relaxed">
                             {{ $firstItem->final_prompt }}
-                            <div class="flex items-center gap-2 mt-2 text-[11px] text-white/40">
-                                <span class="text-purple-300/70">{{ $modelName }}</span>
-                                <span class="text-white/20">•</span>
-                                <span>{{ $ratioDisplay }}</span>
-                                <span class="text-white/20">•</span>
-                                <span>{{ $groupItems->count() }} ảnh</span>
-                                <span class="text-white/20">•</span>
-                                <span>{{ $firstItem->created_at->diffForHumans() }}</span>
-                            </div>
                         </div>
 
-                        {{-- Image Grid --}}
-                        <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-2 rounded-lg overflow-hidden">
+                        {{-- ── Image Grid ── --}}
+                        <div class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-[3px] sm:gap-1">
                             @foreach($groupItems as $image)
                                 @php
                                     $isNewestGroup = $groupIdx === $totalGroups - 1;
@@ -175,71 +183,54 @@
                                 @endphp
                                 <div class="block group cursor-pointer" wire:key="img-{{ $image->id }}"
                                     @click="openPreview(null, {{ $absoluteIndex }})">
-                                    <div class="h-full bg-white/[0.02] rounded-md">
-                                        <div class="relative overflow-hidden" {!! $aspectRatioCss ? 'style="aspect-ratio: ' . $aspectRatioCss . ';"' : '' !!}>
-                                            {{-- Shimmer --}}
-                                            <div class="img-shimmer absolute inset-0 bg-white/[0.04] overflow-hidden">
-                                                <div
-                                                    class="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.06] to-transparent">
-                                                </div>
-                                            </div>
-                                            {{-- Image --}}
-                                            <img src="{{ $image->image_url }}" alt="Preview"
-                                                class="gallery-img w-full h-full object-cover transition-opacity duration-200"
-                                                draggable="false"
-                                                onload="this.previousElementSibling && (this.previousElementSibling.style.display='none')"
-                                                onerror="this.previousElementSibling && (this.previousElementSibling.style.display='none'); this.onerror=null; this.src='/images/placeholder.svg'"
-                                                {{ $isPriorityImage ? 'loading=eager fetchpriority=high decoding=async' : 'loading=lazy fetchpriority=low decoding=async' }}>
+                                    <div class="relative overflow-hidden bg-white/[0.02]" {!! $aspectRatioCss ? 'style="aspect-ratio: ' . $aspectRatioCss . ';"' : '' !!}>
+                                        {{-- Shimmer --}}
+                                        <div class="img-shimmer absolute inset-0 bg-white/[0.04] overflow-hidden">
+                                            <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.06] to-transparent"></div>
+                                        </div>
+                                        {{-- Image --}}
+                                        <img src="{{ $image->image_url }}" alt="Preview"
+                                            class="gallery-img w-full h-full object-cover transition-all duration-200 group-hover:scale-[1.03]"
+                                            draggable="false"
+                                            onload="this.previousElementSibling && (this.previousElementSibling.style.display='none')"
+                                            onerror="this.previousElementSibling && (this.previousElementSibling.style.display='none'); this.onerror=null; this.src='/images/placeholder.svg'"
+                                            {{ $isPriorityImage ? 'loading=eager fetchpriority=high decoding=async' : 'loading=lazy fetchpriority=low decoding=async' }}>
 
-                                            {{-- Desktop Hover Overlay --}}
-                                            <div
-                                                class="hidden sm:block absolute inset-0 bg-black/35 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                                                <div class="absolute bottom-2 right-2 flex gap-1.5">
-                                                    <button @click.stop="downloadImage('{{ $image->image_url }}')"
-                                                        class="h-8 w-8 rounded-lg bg-black/50 backdrop-blur-[8px] hover:bg-white/20 text-white flex items-center justify-center transition-all duration-200 border border-white/[0.1] active:scale-[0.95]"
-                                                        aria-label="Tải xuống">
-                                                        <i class="fa-solid fa-download text-[11px]"></i>
-                                                    </button>
-                                                    <button wire:click="deleteImage({{ $image->id }})" @click.stop
-                                                        wire:confirm="Bạn có chắc muốn xóa ảnh này?"
-                                                        class="h-8 w-8 rounded-lg bg-black/50 backdrop-blur-[8px] hover:bg-red-500/80 text-white flex items-center justify-center transition-all duration-200 border border-white/[0.1] active:scale-[0.95]"
-                                                        aria-label="Xóa">
-                                                        <i class="fa-solid fa-trash text-[11px]"></i>
-                                                    </button>
-                                                </div>
-                                            </div>
-
-                                            {{-- Mobile Always-visible Mini Actions --}}
-                                            <div class="sm:hidden absolute bottom-1 right-1 flex gap-1">
+                                        {{-- Desktop Hover Overlay --}}
+                                        <div class="hidden sm:flex absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 items-end justify-end p-2">
+                                            <div class="flex gap-1.5">
                                                 <button @click.stop="downloadImage('{{ $image->image_url }}')"
-                                                    class="h-6 w-6 rounded-md bg-black/60 backdrop-blur-sm text-white flex items-center justify-center active:scale-[0.9] transition-all"
+                                                    class="h-8 w-8 rounded-lg bg-black/50 backdrop-blur-sm hover:bg-white/20 text-white flex items-center justify-center transition-all duration-200 border border-white/[0.1] active:scale-[0.95]"
                                                     aria-label="Tải xuống">
-                                                    <i class="fa-solid fa-download text-[9px]"></i>
+                                                    <i class="fa-solid fa-download text-[11px]"></i>
                                                 </button>
                                                 <button wire:click="deleteImage({{ $image->id }})" @click.stop
                                                     wire:confirm="Bạn có chắc muốn xóa ảnh này?"
-                                                    class="h-6 w-6 rounded-md bg-black/60 backdrop-blur-sm text-white flex items-center justify-center active:scale-[0.9] transition-all"
+                                                    class="h-8 w-8 rounded-lg bg-black/50 backdrop-blur-sm hover:bg-red-500/80 text-white flex items-center justify-center transition-all duration-200 border border-white/[0.1] active:scale-[0.95]"
                                                     aria-label="Xóa">
-                                                    <i class="fa-solid fa-trash text-[9px]"></i>
+                                                    <i class="fa-solid fa-trash text-[11px]"></i>
                                                 </button>
                                             </div>
+                                        </div>
+
+                                        {{-- Mobile Mini Actions --}}
+                                        <div class="sm:hidden absolute bottom-1 right-1 flex gap-1">
+                                            <button @click.stop="downloadImage('{{ $image->image_url }}')"
+                                                class="h-6 w-6 rounded-md bg-black/60 backdrop-blur-sm text-white flex items-center justify-center active:scale-[0.9] transition-all"
+                                                aria-label="Tải xuống">
+                                                <i class="fa-solid fa-download text-[9px]"></i>
+                                            </button>
+                                            <button wire:click="deleteImage({{ $image->id }})" @click.stop
+                                                wire:confirm="Bạn có chắc muốn xóa ảnh này?"
+                                                class="h-6 w-6 rounded-md bg-black/60 backdrop-blur-sm text-white flex items-center justify-center active:scale-[0.9] transition-all"
+                                                aria-label="Xóa">
+                                                <i class="fa-solid fa-trash text-[9px]"></i>
+                                            </button>
                                         </div>
                                     </div>
                                 </div>
                                 @php $absoluteIndex++; @endphp
                             @endforeach
-                        </div>
-
-                        {{-- Batch Metadata Footer --}}
-                        <div x-show="!expanded"
-                            class="flex items-center gap-2 mt-1.5 px-0.5 text-[11px] text-white/35">
-                            <span class="text-purple-300/60">{{ $modelName }}</span>
-                            <span class="text-white/15">•</span>
-                            <span>{{ $ratioDisplay }}</span>
-                            <span class="text-white/15">•</span>
-                            <span>{{ $groupItems->count() }} ảnh</span>
-                            <span class="text-white/15">•</span>
-                            <span>{{ $firstItem->created_at->diffForHumans() }}</span>
                         </div>
                     </div>
                     @php $groupIdx++; @endphp
