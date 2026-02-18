@@ -299,7 +299,7 @@
                     statusTimer: null,
                     autoScrollEnabled: true, // Auto-follow newest content (bottom)
                     showScrollToBottom: false, // Floating jump-to-newest button
-                    isScrollingUp: false,
+                    isAtBottom: true,
                     isFocused: false,
                     isHovered: false,
 
@@ -461,11 +461,8 @@
                         // Scroll handler: manages auto-scroll + jump button
                         this._scrollHandler = () => {
                             const currentY = window.scrollY || document.documentElement.scrollTop || 0;
-                            const diff = currentY - this.lastScrollY;
-                            if (Math.abs(diff) > 20) {
-                                // User wants to shrink when scrolling UP (viewing older history)
-                                this.isScrollingUp = diff < 0 && currentY > 50;
-                            }
+                            // Update isAtBottom state
+                            this.isAtBottom = this.isNearBottom(100);
                             this.lastScrollY = currentY;
 
                             if (this.autoScrollEnabled && !this.isNearBottom(120)) {

@@ -88,8 +88,7 @@
         {{-- Composer main card --}}
         <div class="relative">
             <div class="relative flex flex-col gap-2.5 rounded-2xl t2i-composer-card transition-all duration-300"
-                @mouseenter="isHovered = true" @mouseleave="isHovered = false"
-                :class="isScrollingUp && !isFocused && !isHovered && !($wire.prompt?.length > 0) ? 'p-2 gap-1 bg-opacity-90 backdrop-blur-md' : 'p-3 sm:p-4'">
+                :class="!isAtBottom && !isFocused && !($wire.prompt?.length > 0) ? 'p-2 gap-1 bg-opacity-90 backdrop-blur-md' : 'p-3 sm:p-4'">
 
                 {{-- Prompt textarea --}}
                 <textarea x-ref="promptInput" wire:model.live.debounce.500ms="prompt" rows="2"
@@ -118,7 +117,7 @@
 
                 {{-- Quick Settings Row + Generate --}}
                 <div class="flex items-center justify-between gap-2 overflow-hidden transition-all duration-300"
-                    :class="isScrollingUp && !isFocused && !isHovered && !($wire.prompt?.length > 0) ? 'max-h-0 opacity-0 -mt-1' : 'max-h-[60px] opacity-100'">
+                    :class="!isAtBottom && !isFocused && !($wire.prompt?.length > 0) ? 'max-h-0 opacity-0 -mt-1' : 'max-h-[60px] opacity-100'">
                     <div class="flex items-center gap-1.5 flex-wrap"
                         @click.away="showRatioSheet = false; showModelSheet = false; showBatchSheet = false">
 
