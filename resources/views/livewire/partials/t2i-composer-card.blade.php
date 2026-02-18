@@ -15,7 +15,18 @@
     ">
 
 
-    <div class="max-w-4xl mx-auto px-3 sm:px-4 pb-3 sm:pb-4 pt-2">
+
+    <div class="max-w-4xl mx-auto px-3 sm:px-4 pb-3 sm:pb-4 pt-2 relative">
+        {{-- Scroll To Bottom Button (Docked above prompt) --}}
+        <button x-show="showScrollToBottom && !isFocused" x-cloak x-transition:enter="transition ease-out duration-300"
+            x-transition:enter-start="opacity-0 translate-y-4" x-transition:enter-end="opacity-100 translate-y-0"
+            x-transition:leave="transition ease-in duration-200" x-transition:leave-end="opacity-0 translate-y-4"
+            @click="scrollToBottom(true)"
+            class="absolute -top-10 right-3 sm:right-4 z-[50] w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-blue-600/90 hover:bg-blue-500 text-white shadow-lg shadow-blue-900/40 flex items-center justify-center transition-all active:scale-95 backdrop-blur-sm border border-white/10"
+            title="Cuộn xuống mới nhất">
+            <i class="fa-solid fa-arrow-down"></i>
+        </button>
+
         {{-- Status Strip (above prompt, visible when not idle) --}}
         <template x-if="uiMode !== 'idle'">
             <div class="mb-2 rounded-xl overflow-hidden" x-transition:enter="transition ease-out duration-300"

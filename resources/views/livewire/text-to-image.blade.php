@@ -82,15 +82,7 @@
     @include('livewire.partials.t2i-filter-compact')
     @include('livewire.partials.t2i-gallery-feed')
 
-    {{-- Scroll To Bottom Button (Fixed on screen, independent of composer) --}}
-    <button x-show="showScrollToBottom && !isFocused" x-cloak x-transition:enter="transition ease-out duration-300"
-        x-transition:enter-start="opacity-0 translate-y-4" x-transition:enter-end="opacity-100 translate-y-0"
-        x-transition:leave="transition ease-in duration-200" x-transition:leave-end="opacity-0 translate-y-4"
-        @click="scrollToBottom(true)"
-        class="fixed bottom-32 sm:bottom-28 right-4 sm:right-5 z-[100] w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-blue-600/90 hover:bg-blue-500 text-white shadow-lg shadow-blue-900/40 flex items-center justify-center transition-all active:scale-95 backdrop-blur-sm border border-white/10"
-        title="Cuộn xuống mới nhất">
-        <i class="fa-solid fa-arrow-down"></i>
-    </button>
+
 
     @include('livewire.partials.t2i-composer-card')
 
