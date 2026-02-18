@@ -115,8 +115,8 @@
                             <div class="flex flex-col sm:flex-row sm:items-baseline gap-2 sm:gap-4">
                                 {{-- Prompt --}}
                                 <button
-                                    class="text-[15px] font-semibold leading-normal text-left text-white/90 hover:text-white transition-colors duration-200 cursor-pointer line-clamp-1 break-all"
-                                    @click="expanded = !expanded" title="Nhấn để xem prompt đầy đủ">
+                                    class="text-[15px] font-semibold leading-snug text-left text-white/90 hover:text-white transition-colors duration-200 cursor-pointer line-clamp-2 break-words"
+                                    @click="expanded = !expanded" title="Nhấn xem chi tiết">
                                     {{ $firstItem->final_prompt }}
                                 </button>
                                 
