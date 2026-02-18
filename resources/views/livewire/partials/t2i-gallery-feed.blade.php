@@ -11,9 +11,10 @@
         x-transition:leave="transition ease-in duration-150"
         x-transition:leave-start="opacity-100"
         x-transition:leave-end="opacity-0"
-        class="fixed top-0 left-0 right-0 z-40 pointer-events-none">
+        class="fixed left-0 right-0 z-[60] pointer-events-none"
+        style="top: calc(var(--filter-bar-h, 3.5rem) + 3.5rem);">
         {{-- Shimmer bar --}}
-        <div class="h-0.5 w-full bg-gradient-to-r from-transparent via-purple-500/60 to-transparent animate-pulse"></div>
+        <div class="h-1 w-full bg-gradient-to-r from-transparent via-purple-500/80 to-transparent animate-pulse"></div>
         {{-- Floating pill --}}
         <div class="flex justify-center mt-3">
             <div class="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-black/60 backdrop-blur-md border border-white/10 shadow-lg">
