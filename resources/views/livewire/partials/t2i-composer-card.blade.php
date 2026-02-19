@@ -88,21 +88,20 @@
             :class="!isAtBottom && !isFocused ? 'px-2 mb-2' : ''">
             <div class="glass-panel relative flex flex-col gap-2.5 t2i-composer-card transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]"
                 :class="!isAtBottom && !isFocused ? 'mx-auto w-full max-w-3xl rounded-2xl p-2 gap-0' : 'w-full rounded-2xl p-3 sm:p-4'">
-                {{-- Prompt textarea --}} <div class="relative flex items-center gap-2 w-full">
-                    {{-- Shrunk State Overlay (Div with Ellipsis) --}}
+                {{-- Prompt textarea --}} <div class="relative flex items-center gap-2 w-full z-20">
+                    {{-- Shrunk State Overlay (Visual Only - Pointer Events None) --}}
                     <div x-show="!isAtBottom && !isFocused"
-                        @click="isFocused = true; focusLock = true; setTimeout(() => focusLock = false, 600); $nextTick(() => $refs.promptInput.focus())"
-                        class="absolute inset-0 z-10 flex items-center px-3 text-white/70 text-sm sm:text-base cursor-text truncate select-none">
+                        class="absolute inset-0 z-0 flex items-center px-3 py-2 text-white/70 text-sm sm:text-base pointer-events-none truncate select-none border border-transparent">
                         <span x-text="$wire.prompt || 'Mô tả ý tưởng của bạn...'"
                             :class="!$wire.prompt ? 'text-white/40' : ''"></span>
                     </div>
 
-                    {{-- Prompt textarea --}}
+                    {{-- Prompt textarea (Always interactive) --}}
                     <textarea x-ref="promptInput" wire:model.live.debounce.500ms="prompt" rows="1"
                         @focus="isFocused = true; focusLock = true; setTimeout(() => focusLock = false, 600)"
                         @blur="isFocused = false" @input="resize()" placeholder="Mô tả ý tưởng của bạn..."
-                        class="t2i-prompt-input flex-1 bg-transparent border-none outline-none ring-0 focus:ring-0 focus:outline-none text-sm sm:text-base resize-none transition-all leading-relaxed"
-                        :class="!isAtBottom && !isFocused ? 'opacity-0 h-[40px] px-3 py-2 overflow-hidden' : 'opacity-100 min-h-[48px] max-h-[144px] px-0 py-3 text-white overflow-y-auto whitespace-pre-wrap break-all'"
+                        class="t2i-prompt-input relative z-10 flex-1 bg-transparent border-none outline-none ring-0 focus:ring-0 focus:outline-none text-sm sm:text-base resize-none transition-all leading-relaxed"
+                        :class="!isAtBottom && !isFocused ? 'h-[40px] px-3 py-2 text-transparent placeholder:text-transparent caret-transparent overflow-hidden' : 'min-h-[48px] max-h-[144px] px-3 py-3 text-white placeholder:text-white/40 caret-white overflow-y-auto whitespace-pre-wrap break-words'"
                         x-init="
                             resize = () => {
                                 if (!isAtBottom && !isFocused) {
