@@ -90,11 +90,22 @@
                 :class="!isAtBottom && !isFocused ? 'mx-auto w-full max-w-3xl rounded-2xl p-2 gap-0 bg-black/40 backdrop-blur-[80px] border border-white/10 shadow-2xl' : 'w-full rounded-2xl p-3 sm:p-4 bg-black/30 backdrop-blur-[100px] border border-white/20 shadow-2xl shadow-black/50'">
                 {{-- Prompt textarea --}} <div class="relative flex items-center gap-2 w-full">
                     <textarea x-ref="promptInput" wire:model.live.debounce.500ms="prompt" rows="1"
-                        @focus="isFocused = true" @blur="isFocused = false" placeholder="Mô tả ý tưởng của bạn..."
-                        class="t2i-prompt-input flex-1 bg-transparent border-none outline-none ring-0 focus:ring-0 focus:outline-none text-sm sm:text-base resize-none transition-all overflow-y-auto leading-[24px]"
-                        :class="!isAtBottom && !isFocused ? 'min-h-[40px] h-[40px] px-3 py-2 text-white/70 placeholder:text-white/40' : 'min-h-[48px] max-h-[120px] px-0'"
+                        @focus="isFocused = true" @blur="isFocused = false" @input="resize()"
+                        placeholder="Mô tả ý tưởng của bạn..."
+                        class="t2i-prompt-input flex-1 bg-transparent border-none outline-none ring-0 focus:ring-0 focus:outline-none text-sm sm:text-base resize-none transition-all leading-relaxed"
+                        :class="!isAtBottom && !isFocused ? 'h-[40px] px-3 py-2 text-white/70 placeholder:text-white/40 overflow-hidden' : 'min-h-[48px] max-h-[144px] px-0 py-3 text-white overflow-y-auto'"
                         x-init="
-                            $watch('$wire.prompt', () => { $el.style.height = 'auto'; $el.style.height = Math.min($el.scrollHeight, 120) + 'px'; });
+                            resize = () => {
+                                if (!isAtBottom && !isFocused) {
+                                    $el.style.height = '40px';
+                                    return;
+                                }
+                                $el.style.height = 'auto'; 
+                                $el.style.height = Math.min($el.scrollHeight, 144) + 'px';
+                            };
+                            $watch('isFocused', () => resize());
+                            $watch('isAtBottom', () => resize());
+                            $watch('$wire.prompt', () => $nextTick(() => resize()));
                         " @keydown.ctrl.enter.prevent="$wire.generate()" @keydown.meta.enter.prevent="$wire.generate()"
                         {{ $isGenerating ? 'disabled' : '' }}></textarea>
 
