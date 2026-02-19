@@ -427,6 +427,13 @@
                     // INIT
                     // ============================================================
                     init() {
+                        console.log('Alpine INIT called');
+                        // Restore focus if re-initializing while user is typing
+                        if (document.activeElement && document.activeElement.classList.contains('t2i-prompt-input')) {
+                             console.log('Restoring focus from active element');
+                             this.isFocused = true;
+                        }
+
                         // Keep Alpine state in sync with Livewire without entangle() (safe across wire:navigate remounts).
                         if (this.$wire?.aspectRatio !== undefined) {
                             this.selectedRatio = this.$wire.aspectRatio;
