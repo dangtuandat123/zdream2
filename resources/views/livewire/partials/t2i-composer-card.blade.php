@@ -17,14 +17,14 @@
 
 
     <div class="max-w-4xl mx-auto px-3 sm:px-4 pb-3 sm:pb-4 pt-2 relative">
-        {{-- Scroll To Bottom Button (Docked above prompt) --}}
+        {{-- Scroll To Bottom Button (Mobile: Docked Top-Right / Desktop: Fixed Bottom-Right) --}}
         <button x-show="showScrollToBottom && !isFocused" x-cloak x-transition:enter="transition ease-out duration-300"
             x-transition:enter-start="opacity-0 translate-y-4" x-transition:enter-end="opacity-100 translate-y-0"
             x-transition:leave="transition ease-in duration-200" x-transition:leave-end="opacity-0 translate-y-4"
             @click="scrollToBottom(true)"
-            class="absolute -top-10 right-3 sm:right-4 z-[50] w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-blue-600/90 hover:bg-blue-500 text-white shadow-lg shadow-blue-900/40 flex items-center justify-center transition-all active:scale-95 backdrop-blur-sm border border-white/10"
+            class="absolute -top-14 right-2 sm:fixed sm:top-auto sm:bottom-8 sm:right-8 z-[50] w-10 h-10 rounded-full bg-black/40 hover:bg-white/10 text-white/80 hover:text-white shadow-lg backdrop-blur-md border border-white/10 flex items-center justify-center transition-all active:scale-95 group"
             title="Cuộn xuống mới nhất">
-            <i class="fa-solid fa-arrow-down"></i>
+            <i class="fa-solid fa-arrow-down group-hover:animate-bounce"></i>
         </button>
 
         {{-- Status Strip (above prompt, visible when not idle) --}}
