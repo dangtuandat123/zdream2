@@ -408,7 +408,7 @@
                     _batchHeights: new WeakMap(),
                     _systemScrollTimer: null,
                     _systemScrollUnlockTime: 0,
-                    
+
                     // ── Infinite scroll state ─────────────────────
                     hasMoreHistory: @js($history instanceof \Illuminate\Pagination\LengthAwarePaginator ? $history->hasMorePages() : false),
                     loadingMoreHistory: false,
@@ -430,8 +430,8 @@
                         console.log('Alpine INIT called');
                         // Restore focus if re-initializing while user is typing
                         if (document.activeElement && document.activeElement.classList.contains('t2i-prompt-input')) {
-                             console.log('Restoring focus from active element');
-                             this.isFocused = true;
+                            console.log('Restoring focus from active element');
+                            this.isFocused = true;
                         }
 
                         // Keep Alpine state in sync with Livewire without entangle() (safe across wire:navigate remounts).
@@ -759,7 +759,8 @@
                                                     this._batchHeights.set(e.target, nH);
                                                 }
                                                 if (Math.abs(total) > 0.5) {
-
+                                                    // Protect scroll detection from native browser correction
+                                                    this.lockSystemScrolling(200);
                                                     window.scrollBy({ top: total, behavior: 'instant' });
                                                 }
                                             });
@@ -926,13 +927,13 @@
                     lockSystemScrolling(duration = 1000) {
                         const now = Date.now();
                         const currentRemaining = this._systemScrollUnlockTime ? (this._systemScrollUnlockTime - now) : 0;
-                        
+
                         if (duration > currentRemaining) {
                             this.isSystemScrolling = true;
                             this._systemScrollUnlockTime = now + duration;
-                            
+
                             if (this._systemScrollTimer) clearTimeout(this._systemScrollTimer);
-                            
+
                             this._systemScrollTimer = setTimeout(() => {
                                 this.isSystemScrolling = false;
                                 this._systemScrollUnlockTime = null;
@@ -1071,10 +1072,7 @@
                             cleanupFns.forEach((fn) => fn());
                             cleanupFns.length = 0;
                             requestAnimationFrame(() => {
-                                const centered = this.centerLatestBatch(true);
-                                if (centered) {
-                                    requestAnimationFrame(() => this.centerLatestBatch(false));
-                                }
+                                this.centerLatestBatch(true);
                             });
                         };
 
