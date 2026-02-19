@@ -407,7 +407,8 @@
                     _resizeObserver: null,
                     _batchHeights: new WeakMap(),
                     _systemScrollTimer: null,
-
+                    _systemScrollUnlockTime: 0,
+                    
                     // ── Infinite scroll state ─────────────────────
                     hasMoreHistory: @js($history instanceof \Illuminate\Pagination\LengthAwarePaginator ? $history->hasMorePages() : false),
                     loadingMoreHistory: false,
@@ -916,12 +917,24 @@
                     // Scroll helpers
                     // ============================================================
                     lockSystemScrolling(duration = 1000) {
-                        this.isSystemScrolling = true;
-                        if (this._systemScrollTimer) clearTimeout(this._systemScrollTimer);
-                        this._systemScrollTimer = setTimeout(() => {
-                            this.isSystemScrolling = false;
-                            console.log('System scrolling lock RELEASED');
-                        }, duration);
+                        const now = Date.now();
+                        const currentRemaining = this._systemScrollUnlockTime ? (this._systemScrollUnlockTime - now) : 0;
+                        
+                        if (duration > currentRemaining) {
+                            this.isSystemScrolling = true;
+                            this._systemScrollUnlockTime = now + duration;
+                            
+                            if (this._systemScrollTimer) clearTimeout(this._systemScrollTimer);
+                            
+                            this._systemScrollTimer = setTimeout(() => {
+                                this.isSystemScrolling = false;
+                                this._systemScrollUnlockTime = null;
+                                console.log('System scrolling lock RELEASED');
+                            }, duration);
+                            console.log(`System scroll locked for ${duration}ms (extended from ${currentRemaining}ms)`);
+                        } else {
+                            // console.log(`Ignored shorter lock (${duration}ms), keeping remaining ${currentRemaining}ms`);
+                        }
                     },
 
                     scrollToBottom(smooth = true) {
