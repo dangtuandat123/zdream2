@@ -87,7 +87,7 @@
         <div class="relative transition-all duration-300 ease-in-out"
             :class="!isAtBottom && !isFocused ? 'px-2 mb-2' : ''">
             <div class="relative flex flex-col gap-2.5 t2i-composer-card transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]"
-                :class="!isAtBottom && !isFocused ? 'mx-auto w-full max-w-3xl rounded-2xl p-2 gap-0 bg-black/40 backdrop-blur-[80px] border border-white/10 shadow-2xl' : 'w-full rounded-2xl p-3 sm:p-4 bg-black/70 backdrop-blur-xl border border-white/15 shadow-2xl shadow-black/50'">
+                :class="!isAtBottom && !isFocused ? 'mx-auto w-full max-w-3xl rounded-2xl p-2 gap-0 bg-black/40 backdrop-blur-[80px] border border-white/10 shadow-2xl' : 'w-full rounded-2xl p-3 sm:p-4 bg-black/30 backdrop-blur-[100px] border border-white/20 shadow-2xl shadow-black/50'">
                 {{-- Prompt textarea --}} <div class="relative flex items-center gap-2 w-full">
                     <textarea x-ref="promptInput" wire:model.live.debounce.500ms="prompt" rows="1"
                         @focus="isFocused = true" @blur="isFocused = false" placeholder="Mô tả ý tưởng của bạn..."
