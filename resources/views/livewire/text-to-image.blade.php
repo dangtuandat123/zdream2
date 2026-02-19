@@ -465,7 +465,7 @@
                         this._scrollHandler = () => {
                             const currentY = window.scrollY || document.documentElement.scrollTop || 0;
                             // Update isAtBottom state
-                            this.isAtBottom = this.isNearBottom(100);
+                            this.isAtBottom = this.isNearBottom(300);
                             this.lastScrollY = currentY;
 
                             // Auto-blur prompt when scrolling up (User Request: "Scroll shrinks it")

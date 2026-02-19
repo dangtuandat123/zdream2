@@ -93,7 +93,7 @@
                         @focus="isFocused = true" @blur="isFocused = false" @input="resize()"
                         placeholder="Mô tả ý tưởng của bạn..."
                         class="t2i-prompt-input flex-1 bg-transparent border-none outline-none ring-0 focus:ring-0 focus:outline-none text-sm sm:text-base resize-none transition-all leading-relaxed"
-                        :class="!isAtBottom && !isFocused ? 'h-[40px] px-3 py-2 text-white/70 placeholder:text-white/40 overflow-hidden' : 'min-h-[48px] max-h-[144px] px-0 py-3 text-white overflow-y-auto'"
+                        :class="!isAtBottom && !isFocused ? 'h-[40px] px-3 py-2 text-white/70 placeholder:text-white/40 overflow-hidden truncate whitespace-nowrap' : 'min-h-[48px] max-h-[144px] px-0 py-3 text-white overflow-y-auto whitespace-normal'"
                         x-init="
                             resize = () => {
                                 if (!isAtBottom && !isFocused) {
