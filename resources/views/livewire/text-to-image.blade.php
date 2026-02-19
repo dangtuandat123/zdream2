@@ -470,10 +470,11 @@
                             this.isAtBottom = this.isNearBottom(300);
 
                             // Auto-blur prompt when scrolling up
-                            // FIX: Added focusLock and delta check
+                            // FIX: Added focusLock and DIRECTION check (only blur on UP scroll)
                             if (!this.isAtBottom && this.isFocused && !this.focusLock) {
-                                // Only blur if meaningful scroll happened since LAST check
-                                if (Math.abs(currentY - this.lastScrollY) > 5) {
+                                // Only blur if user is scrolling UP significantly (>10px)
+                                // Ignoring downward scroll (new content loading)
+                                if (currentY < this.lastScrollY - 10) {
                                     this.isFocused = false;
                                     if (document.activeElement && document.activeElement.tagName === 'TEXTAREA') {
                                         document.activeElement.blur();
