@@ -472,11 +472,16 @@
                             this.isAtBottom = this.isNearBottom(300);
 
                             // Auto-blur prompt logic
+                            // DEBUG: Trace scroll events
+                            // console.log(`Scroll: Y=${currentY} Last=${this.lastScrollY} Delta=${currentY - this.lastScrollY} System=${this.isSystemScrolling} Focused=${this.isFocused}`);
+
                             // FIX: Added focusLock and isSystemScrolling check
                             if (!this.isAtBottom && this.isFocused && !this.focusLock && !this.isSystemScrolling) {
                                 // Blur if user scrolled significantly (>10px) in EITHER direction
                                 // But ignore system-initiated scrolls (isSystemScrolling)
-                                if (Math.abs(currentY - this.lastScrollY) > 10) {
+                                const delta = currentY - this.lastScrollY;
+                                if (Math.abs(delta) > 10) {
+                                    console.log('BLUR TRIGGERED:', { delta, isSystemScrolling: this.isSystemScrolling });
                                     this.isFocused = false;
                                     if (document.activeElement && document.activeElement.tagName === 'TEXTAREA') {
                                         document.activeElement.blur();
@@ -527,6 +532,10 @@
                         // Image generated → scroll + celebrate
                         const offGenerated = this.$wire.$on('imageGenerated', (params) => {
                             const { successCount, failedCount } = Array.isArray(params) ? params[0] || {} : params || {};
+                            // Protect focus during new image insertion
+                            this.isSystemScrolling = true;
+                            setTimeout(() => this.isSystemScrolling = false, 2000); 
+
                             this.$nextTick(() => {
                                 setTimeout(() => {
                                     // Always center the first image of the new batch
@@ -906,6 +915,7 @@
                     // Scroll helpers
                     // ============================================================
                     scrollToBottom(smooth = true) {
+                        console.log('scrollToBottom called');
                         this.isSystemScrolling = true;
                         const targetTop = document.documentElement.scrollHeight;
                         if (smooth) {
@@ -914,7 +924,10 @@
                             window.scrollTo(0, targetTop);
                         }
                         this.showScrollToBottom = false;
-                        setTimeout(() => this.isSystemScrolling = false, 1000); // Reset after scroll animation
+                        setTimeout(() => {
+                             console.log('scrollToBottom: system scrolling RESET');
+                             this.isSystemScrolling = false;
+                        }, 1000); // Reset after scroll animation
                     },
                     isNearTop(threshold = 200) {
                         return document.documentElement.scrollTop < threshold;
@@ -983,8 +996,12 @@
                     // Center latest batch (after image generation)
                     // ============================================================
                     centerLatestBatch(smooth = false) {
+                        console.log('centerLatestBatch called');
                         this.isSystemScrolling = true;
-                        setTimeout(() => this.isSystemScrolling = false, 1000);
+                        setTimeout(() => {
+                             console.log('centerLatestBatch: system scrolling RESET');
+                             this.isSystemScrolling = false;
+                        }, 1000);
                         const batches = Array.from(document.querySelectorAll('#gallery-feed .group-batch'));
                         const latest = batches[batches.length - 1];
                         if (!latest) return false;
@@ -1010,6 +1027,9 @@
                         return true;
                     },
                     centerLatestBatchWhenReady() {
+                        this.isSystemScrolling = true; // Protect against scroll events during load
+                        setTimeout(() => this.isSystemScrolling = false, 2000);
+
                         const batches = Array.from(document.querySelectorAll('#gallery-feed .group-batch'));
                         const latest = batches[batches.length - 1];
                         if (!latest) return false;
@@ -1376,7 +1396,7 @@
                         this.$wire.setReferenceImages(
                             this.selectedImages.map(img => ({ url: img.url }))
                         );
-                        this.urlInput = '';
+              this.urlInput = '';
                     },
 
                     selectFromRecent(url) {
