@@ -106,12 +106,12 @@
                         $ratioDisplay = $ratio ?: 'Auto';
                     @endphp
 
-                    <div class="group-batch t2i-batch relative mb-6"
+                    <div class="group-batch t2i-batch relative mb-5"
                         x-data="{ expanded: false }"
                         wire:key="group-{{ $wireKey }}" data-history-anchor-id="{{ $firstItem->id }}">
 
                         {{-- ── Card Header ── --}}
-                        <div class="px-1 pb-3">
+                        <div class="px-0 pb-2">
                             <div class="flex flex-col sm:flex-row sm:items-baseline gap-2 sm:gap-4">
                                 {{-- Prompt --}}
                                 <!-- Prompt (Truncated) -->
@@ -143,7 +143,8 @@
                             x-transition:enter="transition ease-out duration-300"
                             x-transition:enter-start="opacity-0 -translate-y-2 max-h-0"
                             x-transition:enter-end="opacity-100 translate-y-0 max-h-[500px]"
-                            class="px-1 pb-3">
+                            x-transition:enter-end="opacity-100 translate-y-0 max-h-[500px]"
+                            class="px-0 pb-2">
                             <div class="p-3 rounded-lg bg-white/[0.03] border border-white/[0.06] text-[13px] text-white/70 leading-relaxed break-words break-all">
                                 {{ $prompt }}
                             </div>
