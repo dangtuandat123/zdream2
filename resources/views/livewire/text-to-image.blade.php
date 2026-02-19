@@ -305,7 +305,9 @@
                     isAtBottom: true,
                     isFocused: false,
                     isHovered: false,
+                    isHovered: false,
                     focusLock: false,
+                    isSystemScrolling: false,
 
                     // Toast
                     showToast: false,
@@ -469,12 +471,12 @@
                             // Update isAtBottom state
                             this.isAtBottom = this.isNearBottom(300);
 
-                            // Auto-blur prompt when scrolling up
-                            // FIX: Added focusLock and DIRECTION check (only blur on UP scroll)
-                            if (!this.isAtBottom && this.isFocused && !this.focusLock) {
-                                // Only blur if user is scrolling UP significantly (>10px)
-                                // Ignoring downward scroll (new content loading)
-                                if (currentY < this.lastScrollY - 10) {
+                            // Auto-blur prompt logic
+                            // FIX: Added focusLock and isSystemScrolling check
+                            if (!this.isAtBottom && this.isFocused && !this.focusLock && !this.isSystemScrolling) {
+                                // Blur if user scrolled significantly (>10px) in EITHER direction
+                                // But ignore system-initiated scrolls (isSystemScrolling)
+                                if (Math.abs(currentY - this.lastScrollY) > 10) {
                                     this.isFocused = false;
                                     if (document.activeElement && document.activeElement.tagName === 'TEXTAREA') {
                                         document.activeElement.blur();
@@ -904,6 +906,7 @@
                     // Scroll helpers
                     // ============================================================
                     scrollToBottom(smooth = true) {
+                        this.isSystemScrolling = true;
                         const targetTop = document.documentElement.scrollHeight;
                         if (smooth) {
                             window.scrollTo({ top: targetTop, behavior: 'smooth' });
@@ -911,6 +914,7 @@
                             window.scrollTo(0, targetTop);
                         }
                         this.showScrollToBottom = false;
+                        setTimeout(() => this.isSystemScrolling = false, 1000); // Reset after scroll animation
                     },
                     isNearTop(threshold = 200) {
                         return document.documentElement.scrollTop < threshold;
@@ -979,6 +983,8 @@
                     // Center latest batch (after image generation)
                     // ============================================================
                     centerLatestBatch(smooth = false) {
+                        this.isSystemScrolling = true;
+                        setTimeout(() => this.isSystemScrolling = false, 1000);
                         const batches = Array.from(document.querySelectorAll('#gallery-feed .group-batch'));
                         const latest = batches[batches.length - 1];
                         if (!latest) return false;
