@@ -21,8 +21,8 @@
         <button x-show="showScrollToBottom && !isFocused" x-cloak x-transition:enter="transition ease-out duration-300"
             x-transition:enter-start="opacity-0 translate-y-4" x-transition:enter-end="opacity-100 translate-y-0"
             x-transition:leave="transition ease-in duration-200" x-transition:leave-end="opacity-0 translate-y-4"
-            @click="scrollToBottom(true)"
-            class="absolute -top-14 right-2 sm:fixed sm:top-auto sm:bottom-8 sm:right-8 z-[50] w-10 h-10 rounded-full bg-black/40 hover:bg-white/10 text-white/80 hover:text-white shadow-lg backdrop-blur-md border border-white/10 flex items-center justify-center transition-all active:scale-95 group"
+            @click="scrollToBottom(true)" @click="scrollToBottom(true)"
+            class="absolute -top-14 right-2 sm:fixed sm:top-auto sm:bottom-8 sm:right-8 z-[50] w-10 h-10 rounded-full glass-panel hover:bg-white/10 text-white/80 hover:text-white flex items-center justify-center transition-all active:scale-95 group"
             title="Cuộn xuống mới nhất">
             <i class="fa-solid fa-arrow-down group-hover:animate-bounce"></i>
         </button>
@@ -84,10 +84,10 @@
         </template>
 
         {{-- Composer main card --}}
-        <div class="relative transition-all duration-300 ease-in-out"
+        <div class="relative transition-all duration-500 ease-in-out"
             :class="!isAtBottom && !isFocused ? 'px-2 mb-2' : ''">
-            <div class="relative flex flex-col gap-2.5 t2i-composer-card transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]"
-                :class="!isAtBottom && !isFocused ? 'mx-auto w-full max-w-3xl rounded-2xl p-2 gap-0 bg-black/40 backdrop-blur-[80px] border border-white/10 shadow-2xl' : 'w-full rounded-2xl p-3 sm:p-4 bg-black/30 backdrop-blur-[100px] border border-white/20 shadow-2xl shadow-black/50'">
+            <div class="glass-panel relative flex flex-col gap-2.5 t2i-composer-card transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]"
+                :class="!isAtBottom && !isFocused ? 'mx-auto w-full max-w-3xl rounded-2xl p-2 gap-0' : 'w-full rounded-2xl p-3 sm:p-4'">
                 {{-- Prompt textarea --}} <div class="relative flex items-center gap-2 w-full">
                     <textarea x-ref="promptInput" wire:model.live.debounce.500ms="prompt" rows="1"
                         @focus="isFocused = true" @blur="isFocused = false" @input="resize()"
@@ -133,7 +133,7 @@
                 </div>
 
                 {{-- Quick Settings Row + Generate --}}
-                <div class="flex items-center justify-between gap-2 transition-all duration-300 relative z-20"
+                <div class="flex items-center justify-between gap-2 transition-all duration-500 relative z-20"
                     :class="!isAtBottom && !isFocused ? 'max-h-0 opacity-0 -mt-1 overflow-hidden' : 'max-h-[60px] opacity-100 overflow-visible'">
                     <div class="flex items-center gap-1.5 flex-wrap"
                         @click.away="showRatioSheet = false; showModelSheet = false; showBatchSheet = false; showRefPicker = false">
