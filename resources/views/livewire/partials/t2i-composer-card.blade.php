@@ -124,8 +124,8 @@
                 </div>
 
                 {{-- Quick Settings Row + Generate --}}
-                <div class="flex items-center justify-between gap-2 overflow-hidden transition-all duration-300"
-                    :class="!isAtBottom && !isFocused ? 'max-h-0 opacity-0 -mt-1' : 'max-h-[60px] opacity-100'">
+                <div class="flex items-center justify-between gap-2 transition-all duration-300 relative z-20"
+                    :class="!isAtBottom && !isFocused ? 'max-h-0 opacity-0 -mt-1 overflow-hidden' : 'max-h-[60px] opacity-100 overflow-visible'">
                     <div class="flex items-center gap-1.5 flex-wrap"
                         @click.away="showRatioSheet = false; showModelSheet = false; showBatchSheet = false">
 
