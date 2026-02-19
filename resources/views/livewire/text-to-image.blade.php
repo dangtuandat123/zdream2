@@ -401,10 +401,12 @@
                     _loadMoreFailSafeTimer: null,
                     _resizeHandler: null,
                     _sentinelObserver: null,
+                    _sentinelObserver: null,
                     _anchorId: null,
                     _anchorTop: 0,
                     _resizeObserver: null,
                     _batchHeights: new WeakMap(),
+                    _systemScrollTimer: null,
 
                     // ── Infinite scroll state ─────────────────────
                     hasMoreHistory: @js($history instanceof \Illuminate\Pagination\LengthAwarePaginator ? $history->hasMorePages() : false),
@@ -488,7 +490,7 @@
                                     }
                                 }
                             }
-                            
+
                             this.lastScrollY = currentY;
 
                             if (this.autoScrollEnabled && !this.isNearBottom(120)) {
@@ -532,9 +534,8 @@
                         // Image generated → scroll + celebrate
                         const offGenerated = this.$wire.$on('imageGenerated', (params) => {
                             const { successCount, failedCount } = Array.isArray(params) ? params[0] || {} : params || {};
-                            // Protect focus during new image insertion
-                            this.isSystemScrolling = true;
-                            setTimeout(() => this.isSystemScrolling = false, 2000); 
+                            // Protect focus during new image insertion (Long lock for safety)
+                            this.lockSystemScrolling(5000);
 
                             this.$nextTick(() => {
                                 setTimeout(() => {
@@ -914,9 +915,18 @@
                     // ============================================================
                     // Scroll helpers
                     // ============================================================
+                    lockSystemScrolling(duration = 1000) {
+                        this.isSystemScrolling = true;
+                        if (this._systemScrollTimer) clearTimeout(this._systemScrollTimer);
+                        this._systemScrollTimer = setTimeout(() => {
+                            this.isSystemScrolling = false;
+                            console.log('System scrolling lock RELEASED');
+                        }, duration);
+                    },
+
                     scrollToBottom(smooth = true) {
                         console.log('scrollToBottom called');
-                        this.isSystemScrolling = true;
+                        this.lockSystemScrolling(1500); // 1.5s for smooth scroll to finish
                         const targetTop = document.documentElement.scrollHeight;
                         if (smooth) {
                             window.scrollTo({ top: targetTop, behavior: 'smooth' });
@@ -924,10 +934,6 @@
                             window.scrollTo(0, targetTop);
                         }
                         this.showScrollToBottom = false;
-                        setTimeout(() => {
-                             console.log('scrollToBottom: system scrolling RESET');
-                             this.isSystemScrolling = false;
-                        }, 1000); // Reset after scroll animation
                     },
                     isNearTop(threshold = 200) {
                         return document.documentElement.scrollTop < threshold;
@@ -997,11 +1003,7 @@
                     // ============================================================
                     centerLatestBatch(smooth = false) {
                         console.log('centerLatestBatch called');
-                        this.isSystemScrolling = true;
-                        setTimeout(() => {
-                             console.log('centerLatestBatch: system scrolling RESET');
-                             this.isSystemScrolling = false;
-                        }, 1000);
+                        this.lockSystemScrolling(1500);
                         const batches = Array.from(document.querySelectorAll('#gallery-feed .group-batch'));
                         const latest = batches[batches.length - 1];
                         if (!latest) return false;
@@ -1027,8 +1029,7 @@
                         return true;
                     },
                     centerLatestBatchWhenReady() {
-                        this.isSystemScrolling = true; // Protect against scroll events during load
-                        setTimeout(() => this.isSystemScrolling = false, 2000);
+                        this.lockSystemScrolling(5000); // Hold lock while waiting for images
 
                         const batches = Array.from(document.querySelectorAll('#gallery-feed .group-batch'));
                         const latest = batches[batches.length - 1];
@@ -1396,7 +1397,7 @@
                         this.$wire.setReferenceImages(
                             this.selectedImages.map(img => ({ url: img.url }))
                         );
-              this.urlInput = '';
+                        this.urlInput = '';
                     },
 
                     selectFromRecent(url) {
