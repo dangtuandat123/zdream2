@@ -114,10 +114,10 @@
                         <div class="px-1 pb-3">
                             <div class="flex flex-col sm:flex-row sm:items-baseline gap-2 sm:gap-4">
                                 {{-- Prompt --}}
-                                <button
-                                    class="text-[15px] font-semibold leading-snug text-left text-white/90 hover:text-white transition-colors duration-200 cursor-pointer line-clamp-2 break-words"
+                                <!-- Prompt (Truncated) -->
+                                <button class="text-[15px] font-semibold leading-snug text-left text-white/90 hover:text-white transition-colors duration-200 cursor-pointer line-clamp-2 break-words break-all"
                                     @click="expanded = !expanded" title="Nhấn xem chi tiết">
-                                    {{ $firstItem->final_prompt }}
+                                    {{ $prompt }}
                                 </button>
                                 
                                 {{-- Metadata --}}
@@ -144,8 +144,8 @@
                             x-transition:enter-start="opacity-0 -translate-y-2 max-h-0"
                             x-transition:enter-end="opacity-100 translate-y-0 max-h-[500px]"
                             class="px-1 pb-3">
-                            <div class="p-3 rounded-lg bg-white/[0.03] border border-white/[0.06] text-[13px] text-white/70 leading-relaxed">
-                                {{ $firstItem->final_prompt }}
+                            <div class="p-3 rounded-lg bg-white/[0.03] border border-white/[0.06] text-[13px] text-white/70 leading-relaxed break-words break-all">
+                                {{ $prompt }}
                             </div>
                         </div>
 
@@ -176,36 +176,18 @@
                                             {{-- Actions Overlay (Desktop: Hover / Mobile: Tap or Always visible?) --}}
                                             {{-- Decision: Top-Right for better standard. Mobile: Always visible but subtle. Desktop: Hover. --}}
                                             
-                                            {{-- Desktop Hover Overlay --}}
-                                            <div class="hidden sm:flex absolute inset-0 bg-black/40 opacity-0 group-hover/img:opacity-100 transition-all duration-300 items-start justify-end p-2 pointer-events-none">
-                                                <div class="flex gap-1.5 pointer-events-auto translate-y-[-10px] opacity-0 group-hover/img:translate-y-0 group-hover/img:opacity-100 transition-all duration-300">
-                                                    <button @click.stop="downloadImage('{{ $image->url }}')" 
-                                                        class="h-8 w-8 rounded-full bg-black/60 backdrop-blur-md hover:bg-white/20 text-white/90 hover:text-white flex items-center justify-center transition-all duration-200 border border-white/10 active:scale-90" 
-                                                        title="Tải xuống">
-                                                        <i class="fa-solid fa-download text-[13px]"></i>
-                                                    </button>
-                                                    <button wire:click="deleteImage({{ $image->id }})" @click.stop 
-                                                        wire:confirm="Bạn có chắc muốn xóa ảnh này?"
-                                                        class="h-8 w-8 rounded-full bg-black/60 backdrop-blur-md hover:bg-red-500/80 text-white/90 hover:text-white flex items-center justify-center transition-all duration-200 border border-white/10 active:scale-90" 
-                                                        title="Xóa">
-                                                        <i class="fa-solid fa-trash text-[13px]"></i>
-                                                    </button>
-                                                </div>
-                                            </div>
-
-                                            {{-- Mobile Actions (Always visible, Top-Right) --}}
-                                            <div class="sm:hidden absolute top-2 right-2 flex gap-2">
-                                                <button @click.stop="downloadImage('{{ $image->url }}')" 
-                                                    class="h-8 w-8 rounded-full bg-black/50 backdrop-blur-md text-white/90 flex items-center justify-center active:scale-90 transition-all border border-white/10 shadow-sm" 
-                                                    aria-label="Tải xuống">
-                                                    <i class="fa-solid fa-download text-[12px]"></i>
+                                            {{-- Unified Actions Overlay --}}
+                                            <div class="absolute top-2 right-2 flex gap-1.5 z-10 sm:opacity-0 sm:group-hover/img:opacity-100 transition-all duration-200">
+                                                <button @click.stop="downloadImage('{{ $image->image_url }}')" 
+                                                    class="h-8 w-8 rounded-full bg-black/60 backdrop-blur-md text-white/90 hover:text-white hover:bg-white/20 flex items-center justify-center transition-all duration-200 border border-white/10 active:scale-90 shadow-sm" 
+                                                    title="Tải xuống">
+                                                    <i class="fa-solid fa-download text-[13px]"></i>
                                                 </button>
-                                                {{-- Optional: Hide delete on mobile to prevent accidents, or keep it consistent? User said "Good on mobile", implies availability. --}}
                                                 <button wire:click="deleteImage({{ $image->id }})" @click.stop 
                                                     wire:confirm="Bạn có chắc muốn xóa ảnh này?"
-                                                    class="h-8 w-8 rounded-full bg-black/50 backdrop-blur-md text-white/90 flex items-center justify-center active:scale-90 transition-all border border-white/10 shadow-sm" 
-                                                    aria-label="Xóa">
-                                                    <i class="fa-solid fa-trash text-[12px]"></i>
+                                                    class="h-8 w-8 rounded-full bg-black/60 backdrop-blur-md text-white/90 hover:text-white hover:bg-red-500/80 flex items-center justify-center transition-all duration-200 border border-white/10 active:scale-90 shadow-sm" 
+                                                    title="Xóa">
+                                                    <i class="fa-solid fa-trash text-[13px]"></i>
                                                 </button>
                                             </div>
                                         </div>
