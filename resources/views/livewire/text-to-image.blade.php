@@ -305,6 +305,7 @@
                     isAtBottom: true,
                     isFocused: false,
                     isHovered: false,
+                    focusLock: false,
 
                     // Toast
                     showToast: false,
@@ -465,16 +466,22 @@
                         this._scrollHandler = () => {
                             const currentY = window.scrollY || document.documentElement.scrollTop || 0;
                             // Update isAtBottom state
+                            // Update isAtBottom state
                             this.isAtBottom = this.isNearBottom(300);
-                            this.lastScrollY = currentY;
 
-                            // Auto-blur prompt when scrolling up (User Request: "Scroll shrinks it")
-                            if (!this.isAtBottom && this.isFocused) {
-                                this.isFocused = false;
-                                if (document.activeElement && document.activeElement.tagName === 'TEXTAREA') {
-                                    document.activeElement.blur();
+                            // Auto-blur prompt when scrolling up
+                            // FIX: Added focusLock and delta check
+                            if (!this.isAtBottom && this.isFocused && !this.focusLock) {
+                                // Only blur if meaningful scroll happened since LAST check
+                                if (Math.abs(currentY - this.lastScrollY) > 5) {
+                                    this.isFocused = false;
+                                    if (document.activeElement && document.activeElement.tagName === 'TEXTAREA') {
+                                        document.activeElement.blur();
+                                    }
                                 }
                             }
+                            
+                            this.lastScrollY = currentY;
 
                             if (this.autoScrollEnabled && !this.isNearBottom(120)) {
                                 this.autoScrollEnabled = false;
