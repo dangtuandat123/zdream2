@@ -131,7 +131,7 @@
         }
 
         .t2i-filter-wrap .t2i-topbar {
-            background: #0b0d12;
+            background: #0a0a0f;
             border-bottom: 1px solid var(--line-1);
         }
 
