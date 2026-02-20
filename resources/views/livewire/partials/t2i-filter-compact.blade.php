@@ -1,7 +1,7 @@
 {{-- ============================================================ --}}
 {{-- FILTER COMPACT — Sticky filter pills with per-pill clear --}}
 {{-- ============================================================ --}}
-<div class="fixed top-[57px] md:top-0 left-0 right-0 md:left-[72px] z-[55] t2i-filter-wrap"
+<div class="fixed mobile-filter-top md:top-0 left-0 right-0 md:left-[72px] z-[55] t2i-filter-wrap"
     x-data="{ openFilter: null }" x-ref="filterBar" x-init="
         const bar = $refs.filterBar;
         const ro = new ResizeObserver(() => {
@@ -44,7 +44,7 @@
                         @foreach(['all' => 'Tất cả', 'week' => 'Tuần qua', 'month' => 'Tháng qua', '3months' => '3 tháng qua'] as $val => $lbl)
                             <button wire:click="$set('filterDate', '{{ $val }}')" @click="openFilter = null"
                                 class="w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs transition-colors duration-150
-                                            {{ $filterDate === $val ? 'text-white/95 bg-white/[0.06]' : 'text-white/70 hover:bg-white/[0.06] hover:text-white' }}">
+                                                {{ $filterDate === $val ? 'text-white/95 bg-white/[0.06]' : 'text-white/70 hover:bg-white/[0.06] hover:text-white' }}">
                                 <span>{{ $lbl }}</span>
                                 @if($filterDate === $val)
                                     <i class="fa-solid fa-check text-purple-400 text-[10px]"></i>
@@ -86,7 +86,7 @@
                         @foreach($availableModels as $model)
                             <button wire:click="$set('filterModel', '{{ $model['id'] }}')" @click="openFilter = null"
                                 class="w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs transition-colors duration-150
-                                            {{ $filterModel === $model['id'] ? 'text-white/95 bg-white/[0.06]' : 'text-white/70 hover:bg-white/[0.06] hover:text-white' }}">
+                                                {{ $filterModel === $model['id'] ? 'text-white/95 bg-white/[0.06]' : 'text-white/70 hover:bg-white/[0.06] hover:text-white' }}">
                                 <span>{{ $model['name'] }}</span>
                                 @if($filterModel === $model['id'])
                                     <i class="fa-solid fa-check text-purple-400 text-[10px]"></i>
@@ -119,7 +119,7 @@
                         @foreach(['all' => 'Tất cả', 'auto' => 'Auto', '1:1' => '1:1', '16:9' => '16:9', '9:16' => '9:16', '4:3' => '4:3', '3:4' => '3:4', '3:2' => '3:2', '2:3' => '2:3', '5:4' => '5:4', '4:5' => '4:5', '21:9' => '21:9'] as $val => $lbl)
                             <button wire:click="$set('filterRatio', '{{ $val }}')" @click="openFilter = null"
                                 class="w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs transition-colors duration-150
-                                            {{ $filterRatio === $val ? 'text-white/95 bg-white/[0.06]' : 'text-white/70 hover:bg-white/[0.06] hover:text-white' }}">
+                                                {{ $filterRatio === $val ? 'text-white/95 bg-white/[0.06]' : 'text-white/70 hover:bg-white/[0.06] hover:text-white' }}">
                                 <span>{{ $lbl }}</span>
                                 @if($filterRatio === $val)
                                     <i class="fa-solid fa-check text-purple-400 text-[10px]"></i>

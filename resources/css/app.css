@@ -218,6 +218,13 @@
         border-radius: 1.5rem;
     }
 
+    /* ===== MOBILE FILTER FIX ===== */
+    @media (max-width: 767px) {
+        .mobile-filter-top {
+            top: 57px !important;
+        }
+    }
+
     /* ===== BUTTONS WITH PROPER ICON ALIGNMENT ===== */
     .btn-primary {
         display: inline-flex;
