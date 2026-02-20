@@ -151,9 +151,8 @@
                         </div>
 
                         {{-- ── Image Grid ── --}}
-                        {{-- ── Image Grid ── --}}
                         <div class="px-0">
-                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-1.5 sm:gap-2">
                                 @foreach($groupItems as $image)
                                     @php
                                         $isNewestGroup = $groupIdx === $totalGroups - 1;
@@ -161,14 +160,14 @@
                                     @endphp
                                     <div class="block group/img cursor-pointer relative" wire:key="img-{{ $image->id }}"
                                         @click="openPreview(null, {{ $absoluteIndex }})">
-                                        <div class="relative overflow-hidden bg-[#222] rounded-lg aspect-square">
+                                        <div class="relative overflow-hidden bg-[#222] rounded-md sm:rounded-lg aspect-square ring-1 ring-white/5 hover:ring-purple-500/40 hover:shadow-[0_0_15px_rgba(147,51,234,0.3)] transition-all duration-300">
                                             {{-- Shimmer --}}
                                             <div class="img-shimmer absolute inset-0 bg-white/[0.04] overflow-hidden">
                                                 <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.06] to-transparent"></div>
                                             </div>
                                             {{-- Image --}}
                                             <img src="{{ $image->image_url }}" alt="Preview"
-                                                class="gallery-img w-full h-full object-contain transition-all duration-500 group-hover/img:scale-[1.05]"
+                                                class="gallery-img w-full h-full object-contain transition-transform duration-500 group-hover/img:scale-[1.03]"
                                                 draggable="false"
                                                 onload="this.previousElementSibling && (this.previousElementSibling.style.display='none')"
                                                 onerror="this.previousElementSibling && (this.previousElementSibling.style.display='none'); this.onerror=null; this.src='/images/placeholder.svg'"
