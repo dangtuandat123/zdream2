@@ -687,11 +687,17 @@
 
 /* Header Scroll State */
 #header.scrolled {
-    background-color: rgba(10, 10, 15, 0.6) !important;
-    backdrop-filter: blur(12px) !important;
-    -webkit-backdrop-filter: blur(12px) !important;
+    background-color: #0a0a0f !important;
     border-color: rgba(139, 92, 246, 0.2) !important;
     box-shadow: 0 4px 30px rgba(139, 92, 246, 0.15);
+}
+
+@media (min-width: 768px) {
+    #header.scrolled {
+        background-color: rgba(10, 10, 15, 0.6) !important;
+        backdrop-filter: blur(12px) !important;
+        -webkit-backdrop-filter: blur(12px) !important;
+    }
 }
 
 /* Spinner */
