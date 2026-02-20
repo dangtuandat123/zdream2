@@ -327,6 +327,7 @@
                     showBatchSheet: false,
                     showRefPicker: false,
                     showSettingsSheet: false,
+                    isUploadingRefs: false,
 
                     selectedRatio: @js($aspectRatio),
                     selectedModel: @js($modelId),
@@ -1367,6 +1368,7 @@
                     },
 
                     processFiles(files) {
+                        this.isUploadingRefs = true;
                         const remaining = this.maxImages - this.selectedImages.length;
                         const toProcess = files.slice(0, remaining);
                         const skipped = files.length - toProcess.length;
@@ -1375,6 +1377,7 @@
 
                         if (total === 0 && skipped > 0) {
                             this.notify(`Đã đạt giới hạn ${this.maxImages} ảnh`, 'warning');
+                            this.isUploadingRefs = false;
                             return;
                         }
 
@@ -1382,6 +1385,7 @@
                             if (file.size > 10 * 1024 * 1024) {
                                 this.notify('Ảnh quá lớn (tối đa 10MB)', 'error');
                                 processed++;
+                                if (processed >= total) this.isUploadingRefs = false;
                                 return;
                             }
                             const reader = new FileReader();
@@ -1399,10 +1403,15 @@
                                     if (skipped > 0) {
                                         this.notify(`Đã thêm ${total} ảnh, bỏ ${skipped} (vượt giới hạn ${this.maxImages})`, 'warning');
                                     }
+                                    setTimeout(() => this.isUploadingRefs = false, 300); // Thêm delay nhỏ để UI không chớp
                                 }
                             };
                             reader.readAsDataURL(file);
                         });
+
+                        if (total === 0) {
+                            this.isUploadingRefs = false;
+                        }
                     },
 
                     addFromUrl() {

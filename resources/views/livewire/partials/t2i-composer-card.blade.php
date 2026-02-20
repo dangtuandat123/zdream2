@@ -569,11 +569,17 @@
 
                                 {{-- Upload zone --}}
                                 <label
-                                    class="flex items-center justify-center gap-2 p-3 rounded-lg border-2 border-dashed border-white/[0.1] hover:border-purple-500/40 text-white/50 hover:text-purple-300 text-xs cursor-pointer transition-all mb-2">
-                                    <i class="fa-solid fa-cloud-arrow-up"></i>
-                                    <span>Chọn hoặc kéo thả ảnh</span>
+                                    class="flex items-center justify-center gap-2 p-3 rounded-lg border-2 border-dashed border-white/[0.1] text-white/50 text-xs transition-all mb-2"
+                                    :class="isUploadingRefs ? 'cursor-not-allowed opacity-70' : 'cursor-pointer hover:border-purple-500/40 hover:text-purple-300'">
+                                    <template x-if="isUploadingRefs">
+                                        <i class="fa-solid fa-spinner fa-spin text-purple-400"></i>
+                                    </template>
+                                    <template x-if="!isUploadingRefs">
+                                        <i class="fa-solid fa-cloud-arrow-up"></i>
+                                    </template>
+                                    <span x-text="isUploadingRefs ? 'Đang xử lý ảnh...' : 'Chọn hoặc kéo thả ảnh'"></span>
                                     <input type="file" accept="image/*" multiple class="hidden"
-                                        @change="handleFileSelect($event)">
+                                        @change="handleFileSelect($event)" :disabled="isUploadingRefs">
                                 </label>
 
                                 {{-- URL input --}}
@@ -604,16 +610,26 @@
                                 </div>
 
                                 {{-- Selected preview --}}
-                                <div x-show="selectedImages.length > 0" class="mt-2 flex gap-1.5 flex-wrap">
-                                    <template x-for="img in selectedImages" :key="img.id">
-                                        <div class="relative w-10 h-10 rounded-lg overflow-hidden group">
-                                            <img :src="img.url" class="w-full h-full object-cover">
-                                            <button @click="removeImage(img.id)"
-                                                class="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                                <i class="fa-solid fa-xmark text-white text-xs"></i>
-                                            </button>
-                                        </div>
-                                    </template>
+                                <div x-show="selectedImages.length > 0" class="mt-2 text-left">
+                                    <div class="flex items-center justify-between mb-1.5">
+                                        <div class="text-white/40 text-[10px] font-medium">Đã chọn</div>
+                                        <button @click.stop="clearAll()"
+                                            class="text-red-400 hover:text-red-300 text-[10px] transition-colors">
+                                            Xóa tất cả
+                                        </button>
+                                    </div>
+                                    <div class="flex gap-1.5 flex-wrap">
+                                        <template x-for="img in selectedImages" :key="img.id">
+                                            <div
+                                                class="relative w-10 h-10 rounded-lg overflow-hidden group border border-purple-500/30">
+                                                <img :src="img.url" class="w-full h-full object-cover">
+                                                <button @click="removeImage(img.id)"
+                                                    class="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                                    <i class="fa-solid fa-xmark text-white text-xs"></i>
+                                                </button>
+                                            </div>
+                                        </template>
+                                    </div>
                                 </div>
                             </div>
 
@@ -642,11 +658,17 @@
                                         <div class="p-4 overflow-y-auto">
                                             {{-- Upload --}}
                                             <label
-                                                class="flex items-center justify-center gap-2 p-4 rounded-xl border-2 border-dashed border-white/[0.1] active:border-purple-500/40 text-white/50 text-sm cursor-pointer transition-all mb-3">
-                                                <i class="fa-solid fa-cloud-arrow-up text-lg"></i>
-                                                <span>Chọn ảnh từ thiết bị</span>
+                                                class="flex items-center justify-center gap-2 p-4 rounded-xl border-2 border-dashed border-white/[0.1] text-white/50 text-sm transition-all mb-3"
+                                                :class="isUploadingRefs ? 'cursor-not-allowed opacity-70 bg-white/[0.02]' : 'cursor-pointer active:border-purple-500/40'">
+                                                <template x-if="isUploadingRefs">
+                                                    <i class="fa-solid fa-spinner fa-spin text-purple-400 text-lg"></i>
+                                                </template>
+                                                <template x-if="!isUploadingRefs">
+                                                    <i class="fa-solid fa-cloud-arrow-up text-lg"></i>
+                                                </template>
+                                                <span x-text="isUploadingRefs ? 'Đang xử lý ảnh...' : 'Chọn ảnh từ thiết bị'"></span>
                                                 <input type="file" accept="image/*" multiple class="hidden"
-                                                    @change="handleFileSelect($event)">
+                                                    @change="handleFileSelect($event)" :disabled="isUploadingRefs">
                                             </label>
 
                                             {{-- URL --}}
@@ -679,13 +701,20 @@
 
                                             {{-- Selected --}}
                                             <div x-show="selectedImages.length > 0" class="mt-3">
-                                                <div class="text-white/40 text-xs font-medium mb-2">Đã chọn</div>
-                                                <div class="flex gap-2 flex-wrap">
+                                                <div class="flex items-center justify-between mb-2">
+                                                    <div class="text-white/40 text-xs font-medium">Đã chọn</div>
+                                                    <button @click.stop="clearAll()"
+                                                        class="text-red-400 hover:text-red-300 text-xs transition-colors py-1">
+                                                        Xóa tất cả
+                                                    </button>
+                                                </div>
+                                                <div class="flex gap-2 flex-wrap max-h-48 overflow-y-auto">
                                                     <template x-for="img in selectedImages" :key="img.id">
-                                                        <div class="relative w-14 h-14 rounded-xl overflow-hidden">
+                                                        <div
+                                                            class="relative w-14 h-14 rounded-xl overflow-hidden border border-purple-500/30">
                                                             <img :src="img.url" class="w-full h-full object-cover">
                                                             <button @click="removeImage(img.id)"
-                                                                class="absolute top-0.5 right-0.5 w-5 h-5 rounded-full bg-black/70 flex items-center justify-center">
+                                                                class="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/70 flex items-center justify-center hover:bg-black/90 active:scale-95 transition-all">
                                                                 <i class="fa-solid fa-xmark text-white text-[10px]"></i>
                                                             </button>
                                                         </div>
