@@ -320,6 +320,7 @@
                     showModelSheet: false,
                     showBatchSheet: false,
                     showRefPicker: false,
+                    showSettingsSheet: false,
 
                     selectedRatio: @js($aspectRatio),
                     selectedModel: @js($modelId),
