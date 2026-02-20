@@ -465,7 +465,7 @@
 
                         // Watchers to lock document scroll when any mobile bottom sheet is open
                         const toggleBodyOverflow = () => {
-                            if (window.innerWidth < 640 && (this.showModelSheet || this.showRatioSheet || this.showBatchSheet || this.showRefPicker)) {
+                            if (window.innerWidth < 640 && (this.showModelSheet || this.showRatioSheet || this.showBatchSheet || this.showRefPicker || this.showSettingsSheet)) {
                                 document.body.style.overflow = 'hidden';
                                 document.documentElement.style.overflow = 'hidden';
                             } else {
@@ -477,6 +477,7 @@
                         this.$watch('showRatioSheet', toggleBodyOverflow);
                         this.$watch('showBatchSheet', toggleBodyOverflow);
                         this.$watch('showRefPicker', toggleBodyOverflow);
+                        this.$watch('showSettingsSheet', toggleBodyOverflow);
 
                         if ('scrollRestoration' in history) {
                             this._scrollRestoration = history.scrollRestoration;
