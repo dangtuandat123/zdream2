@@ -150,14 +150,14 @@
                 {{-- Quick Settings Row + Generate --}}
                 <div class="flex items-end justify-between gap-2 relative z-20 transition-all duration-300"
                     :class="!isAtBottom && !isFocused && uiMode === 'idle' ? 'max-h-0 opacity-0 mt-0 pt-0 overflow-hidden' : 'max-h-[80px] opacity-100 mt-1 overflow-visible'">
-                    <div class="flex items-center gap-1.5 flex-wrap"
+                    <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar whitespace-nowrap w-full pb-1"
                         @click.away="showRatioSheet = false; showModelSheet = false; showBatchSheet = false; showRefPicker = false">
 
                         {{-- ===== MODEL CHIP ===== --}}
                         <div class="relative">
                             <button type="button"
                                 @click="showModelSheet = !showModelSheet; showRatioSheet = false; showBatchSheet = false; showRefPicker = false"
-                                class="glass-chip flex items-center gap-1.5 h-8 px-2.5 rounded-lg text-xs font-medium transition-all duration-200 cursor-pointer"
+                                class="glass-chip shrink-0 flex items-center gap-1.5 h-8 px-2.5 rounded-lg text-xs font-medium transition-all duration-200 cursor-pointer"
                                 :class="showModelSheet ? 'glass-chip-active' : ''">
                                 <span x-text="getSelectedModel().icon" class="text-sm"></span>
                                 <span class="hidden sm:inline max-w-[100px] truncate"
@@ -259,7 +259,7 @@
                         <div class="relative">
                             <button type="button"
                                 @click="showRatioSheet = !showRatioSheet; showModelSheet = false; showBatchSheet = false; showRefPicker = false"
-                                class="glass-chip flex items-center gap-1.5 h-8 px-2.5 rounded-lg text-xs font-medium transition-all duration-200 cursor-pointer"
+                                class="glass-chip shrink-0 flex items-center gap-1.5 h-8 px-2.5 rounded-lg text-xs font-medium transition-all duration-200 cursor-pointer"
                                 :class="showRatioSheet ? 'glass-chip-active' : ''">
                                 <i class="fa-solid fa-crop text-[11px]"></i>
                                 <span x-text="selectedRatio === 'auto' ? 'Auto' : selectedRatio"></span>
@@ -351,7 +351,7 @@
                         <div class="relative">
                             <button type="button"
                                 @click="showBatchSheet = !showBatchSheet; showRatioSheet = false; showModelSheet = false; showRefPicker = false"
-                                class="glass-chip flex items-center gap-1.5 h-8 px-2.5 rounded-lg text-xs font-medium transition-all duration-200 cursor-pointer"
+                                class="glass-chip shrink-0 flex items-center gap-1.5 h-8 px-2.5 rounded-lg text-xs font-medium transition-all duration-200 cursor-pointer"
                                 :class="showBatchSheet ? 'glass-chip-active' : ''">
                                 <i class="fa-solid fa-layer-group text-[11px]"></i>
                                 <span x-text="'×' + $wire.batchSize"></span>
@@ -421,7 +421,7 @@
                         <div class="relative">
                             <button type="button"
                                 @click="if (maxImages > 0) { showRefPicker = !showRefPicker; showModelSheet = false; showRatioSheet = false; showBatchSheet = false; if(showRefPicker) loadRecentImages(); }"
-                                class="glass-chip flex items-center gap-1.5 h-8 px-2.5 rounded-lg text-xs font-medium transition-all duration-200"
+                                class="glass-chip shrink-0 flex items-center gap-1.5 h-8 px-2.5 rounded-lg text-xs font-medium transition-all duration-200"
                                 :class="maxImages === 0
                                     ? 'bg-white/[0.02] border border-white/[0.05] text-white/30 cursor-not-allowed'
                                     : (selectedImages.length > 0
