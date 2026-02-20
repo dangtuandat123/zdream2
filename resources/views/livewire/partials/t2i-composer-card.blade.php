@@ -332,16 +332,17 @@
                                         <div
                                             class="flex items-center justify-between p-4 border-b border-white/5 shrink-0">
                                             <span class="text-white font-semibold text-base">Chọn Model AI</span>
-                                            <button type="button" @click="showModelSheet = false"
+                                            <button type="button"
+                                                @click="showModelSheet = false; setTimeout(() => showSettingsSheet = true, 150)"
                                                 class="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 text-white/60 active:scale-95 transition-transform">
-                                                <i class="fa-solid fa-xmark"></i>
+                                                <i class="fa-solid fa-chevron-left"></i>
                                             </button>
                                         </div>
                                         <div class="p-4 overflow-y-auto">
                                             <div class="space-y-1">
                                                 <template x-for="model in models" :key="model.id">
                                                     <button type="button"
-                                                        @click="selectModel(model.id); showModelSheet = false"
+                                                        @click="selectModel(model.id); showModelSheet = false; setTimeout(() => showSettingsSheet = true, 150)"
                                                         class="w-full flex items-center gap-3 p-3 rounded-xl transition-all text-left"
                                                         :class="selectedModel === model.id ? 'bg-purple-500/30 border border-purple-500/50' : 'bg-white/5 active:bg-white/10 border border-transparent'">
                                                         <span class="text-2xl" x-text="model.icon"></span>
@@ -430,16 +431,17 @@
                                         <div
                                             class="flex items-center justify-between p-4 border-b border-white/5 shrink-0">
                                             <span class="text-white font-semibold text-base">Tỉ lệ khung hình</span>
-                                            <button type="button" @click="showRatioSheet = false"
+                                            <button type="button"
+                                                @click="showRatioSheet = false; setTimeout(() => showSettingsSheet = true, 150)"
                                                 class="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 text-white/60 active:scale-95 transition-transform">
-                                                <i class="fa-solid fa-xmark"></i>
+                                                <i class="fa-solid fa-chevron-left"></i>
                                             </button>
                                         </div>
                                         <div class="p-4 overflow-y-auto">
                                             <div class="grid grid-cols-4 gap-2">
                                                 <template x-for="ratio in ratios" :key="ratio.id">
                                                     <button type="button"
-                                                        @click="selectRatio(ratio.id); showRatioSheet = false"
+                                                        @click="selectRatio(ratio.id); showRatioSheet = false; setTimeout(() => showSettingsSheet = true, 150)"
                                                         class="flex flex-col items-center gap-1.5 p-3 rounded-xl transition-all"
                                                         :class="selectedRatio === ratio.id ? 'bg-purple-500/30 border border-purple-500/50' : 'bg-white/5 active:bg-white/10 border border-transparent'">
                                                         <div class="w-8 h-8 flex items-center justify-center">
@@ -512,16 +514,17 @@
                                         <div
                                             class="flex items-center justify-between p-4 border-b border-white/5 shrink-0">
                                             <span class="text-white font-semibold text-base">Số lượng ảnh</span>
-                                            <button type="button" @click="showBatchSheet = false"
+                                            <button type="button"
+                                                @click="showBatchSheet = false; setTimeout(() => showSettingsSheet = true, 150)"
                                                 class="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 text-white/60 active:scale-95 transition-transform">
-                                                <i class="fa-solid fa-xmark"></i>
+                                                <i class="fa-solid fa-chevron-left"></i>
                                             </button>
                                         </div>
                                         <div class="p-4">
                                             <div class="grid grid-cols-4 gap-2">
                                                 @foreach([1, 2, 3, 4] as $n)
                                                     <button type="button"
-                                                        @click="$wire.$set('batchSize', {{ $n }}); showBatchSheet = false"
+                                                        @click="$wire.$set('batchSize', {{ $n }}); showBatchSheet = false; setTimeout(() => showSettingsSheet = true, 150)"
                                                         class="flex flex-col items-center gap-1.5 p-4 rounded-xl transition-all"
                                                         :class="$wire.batchSize === {{ $n }} ? 'bg-purple-500/30 border border-purple-500/50' : 'bg-white/5 active:bg-white/10 border border-transparent'">
                                                         <span class="text-white text-2xl font-bold">{{ $n }}</span>
