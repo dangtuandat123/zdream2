@@ -150,8 +150,7 @@
                 {{-- Quick Settings Row + Generate --}}
                 <div class="flex items-end justify-between gap-2 relative z-20 transition-all duration-300"
                     :class="!isAtBottom && !isFocused && uiMode === 'idle' ? 'max-h-0 opacity-0 mt-0 pt-0 overflow-hidden' : 'max-h-[80px] opacity-100 mt-1 overflow-visible'">
-                    <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar whitespace-nowrap w-full pb-1"
-                        @click.away="showRatioSheet = false; showModelSheet = false; showBatchSheet = false; showRefPicker = false; showSettingsSheet = false">
+                    <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar whitespace-nowrap w-full pb-1">
 
                         {{-- ===== UNIFIED SETTINGS CHIP (MOBILE ONLY) ===== --}}
                         <div class="relative sm:hidden">
@@ -272,6 +271,7 @@
                                 </div>
                             </template>
                         </div>
+                        {{-- ===== MODEL CHIP (DESKTOP) ===== --}}
                         <div class="relative hidden sm:block">
                             <button type="button"
                                 @click="showModelSheet = !showModelSheet; showRatioSheet = false; showBatchSheet = false; showRefPicker = false"
@@ -286,7 +286,7 @@
 
                             {{-- Model Dropdown Desktop --}}
                             <div x-show="showModelSheet" x-cloak x-transition:enter="transition ease-out duration-200"
-                                x-transition:enter-start="opacity-0 translate-y-2"
+                                @click.away="showModelSheet = false" x-transition:enter-start="opacity-0 translate-y-2"
                                 x-transition:enter-end="opacity-100 translate-y-0"
                                 class="glass-popover hidden sm:block absolute bottom-full left-0 mb-2 w-72 p-2 rounded-xl z-[100]"
                                 @click.stop>
@@ -386,7 +386,7 @@
 
                             {{-- Ratio Dropdown Desktop --}}
                             <div x-show="showRatioSheet" x-cloak x-transition:enter="transition ease-out duration-200"
-                                x-transition:enter-start="opacity-0 translate-y-2"
+                                @click.away="showRatioSheet = false" x-transition:enter-start="opacity-0 translate-y-2"
                                 x-transition:enter-end="opacity-100 translate-y-0"
                                 class="glass-popover hidden sm:block absolute bottom-full left-0 mb-2 w-80 p-3 rounded-xl z-[100]"
                                 @click.stop>
@@ -478,9 +478,8 @@
                             </button>
 
                             {{-- Batch Dropdown Desktop --}}
-                            <div x-show="showBatchSheet" x-cloak @click.away="showBatchSheet = false"
-                                x-transition:enter="transition ease-out duration-200"
-                                x-transition:enter-start="opacity-0 translate-y-2"
+                            <div x-show="showBatchSheet" x-cloak x-transition:enter="transition ease-out duration-200"
+                                @click.away="showBatchSheet = false" x-transition:enter-start="opacity-0 translate-y-2"
                                 x-transition:enter-end="opacity-100 translate-y-0"
                                 class="glass-popover hidden sm:block absolute bottom-full left-0 mb-2 w-36 p-1.5 rounded-xl z-[100]"
                                 @click.stop>
@@ -575,7 +574,7 @@
 
                             {{-- Inline Ref Picker (desktop dropdown / mobile sheet) --}}
                             {{-- Desktop --}}
-                            <div x-show="showRefPicker && maxImages > 0" x-cloak
+                            <div x-show="showRefPicker && maxImages > 0" x-cloak @click.away="showRefPicker = false"
                                 x-transition:enter="transition ease-out duration-200"
                                 x-transition:enter-start="opacity-0 translate-y-2"
                                 x-transition:enter-end="opacity-100 translate-y-0"
