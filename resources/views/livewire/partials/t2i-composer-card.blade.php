@@ -517,77 +517,84 @@
                             </div>
 
                             {{-- Mobile Ref Sheet --}}
-                            <div x-show="showRefPicker && maxImages > 0" x-cloak
-                                class="sm:hidden fixed inset-0 z-[9999] flex items-end justify-center bg-black/80 backdrop-blur-md"
-                                @click.self="showRefPicker = false" @click.stop>
-                                <div x-show="showRefPicker" x-transition:enter="transition ease-out duration-300"
-                                    x-transition:enter-start="translate-y-full" x-transition:enter-end="translate-y-0"
-                                    class="glass-popover w-full max-w-lg rounded-t-3xl flex flex-col max-h-[80vh]">
-                                    <div class="flex items-center justify-between p-4 border-b border-white/5 shrink-0">
-                                        <span class="text-white font-semibold text-base">Ảnh tham chiếu <span
-                                                x-text="selectedImages.length + '/' + maxImages"
-                                                class="text-purple-300 text-sm"></span></span>
-                                        <button type="button" @click="showRefPicker = false"
-                                            class="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 text-white/60 active:scale-95 transition-transform">
-                                            <i class="fa-solid fa-xmark"></i>
-                                        </button>
-                                    </div>
-                                    <div class="p-4 overflow-y-auto">
-                                        {{-- Upload --}}
-                                        <label
-                                            class="flex items-center justify-center gap-2 p-4 rounded-xl border-2 border-dashed border-white/[0.1] active:border-purple-500/40 text-white/50 text-sm cursor-pointer transition-all mb-3">
-                                            <i class="fa-solid fa-cloud-arrow-up text-lg"></i>
-                                            <span>Chọn ảnh từ thiết bị</span>
-                                            <input type="file" accept="image/*" multiple class="hidden"
-                                                @change="handleFileSelect($event)">
-                                        </label>
-
-                                        {{-- URL --}}
-                                        <div class="flex gap-2 mb-3">
-                                            <input type="text" x-model="urlInput" placeholder="Dán URL ảnh..."
-                                                class="flex-1 h-10 px-3 rounded-xl bg-white/[0.05] border border-white/[0.08] text-white text-sm focus:outline-none focus:border-purple-500/40"
-                                                @keydown.enter.prevent="addFromUrl()">
-                                            <button @click="addFromUrl()"
-                                                class="h-10 px-4 rounded-xl bg-purple-500/20 text-purple-300 text-sm hover:bg-purple-500/30 transition-colors">Thêm</button>
+                            <template x-teleport="body">
+                                <div x-show="showRefPicker && maxImages > 0" x-cloak
+                                    class="sm:hidden fixed inset-0 z-[9999] flex items-end justify-center bg-black/80 backdrop-blur-md"
+                                    @click.self="showRefPicker = false" @click.stop>
+                                    <div x-show="showRefPicker" x-transition:enter="transition ease-out duration-300"
+                                        x-transition:enter-start="translate-y-full"
+                                        x-transition:enter-end="translate-y-0"
+                                        x-transition:leave="transition ease-in duration-200"
+                                        x-transition:leave-start="translate-y-0"
+                                        x-transition:leave-end="translate-y-full"
+                                        class="glass-popover w-full max-w-lg rounded-t-3xl flex flex-col max-h-[80vh]">
+                                        <div
+                                            class="flex items-center justify-between p-4 border-b border-white/5 shrink-0">
+                                            <span class="text-white font-semibold text-base">Ảnh tham chiếu <span
+                                                    x-text="selectedImages.length + '/' + maxImages"
+                                                    class="text-purple-300 text-sm"></span></span>
+                                            <button type="button" @click="showRefPicker = false"
+                                                class="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 text-white/60 active:scale-95 transition-transform">
+                                                <i class="fa-solid fa-xmark"></i>
+                                            </button>
                                         </div>
+                                        <div class="p-4 overflow-y-auto">
+                                            {{-- Upload --}}
+                                            <label
+                                                class="flex items-center justify-center gap-2 p-4 rounded-xl border-2 border-dashed border-white/[0.1] active:border-purple-500/40 text-white/50 text-sm cursor-pointer transition-all mb-3">
+                                                <i class="fa-solid fa-cloud-arrow-up text-lg"></i>
+                                                <span>Chọn ảnh từ thiết bị</span>
+                                                <input type="file" accept="image/*" multiple class="hidden"
+                                                    @change="handleFileSelect($event)">
+                                            </label>
 
-                                        {{-- Recent --}}
-                                        <div x-show="recentImages.length > 0">
-                                            <div class="text-white/40 text-xs font-medium mb-2">Ảnh gần đây</div>
-                                            <div class="grid grid-cols-4 gap-1.5 max-h-40 overflow-y-auto">
-                                                <template x-for="img in recentImages.slice(0, 16)"
-                                                    :key="img.id || img.url">
-                                                    <button @click="selectFromRecent(img.url)"
-                                                        class="relative aspect-square rounded-xl overflow-hidden border-2 transition-all"
-                                                        :class="isSelected(img.url) ? 'border-purple-500' : 'border-transparent'">
-                                                        <img :src="img.url" class="w-full h-full object-cover">
-                                                        <div x-show="isSelected(img.url)"
-                                                            class="absolute inset-0 bg-purple-500/30 flex items-center justify-center">
-                                                            <i class="fa-solid fa-check text-white"></i>
-                                                        </div>
-                                                    </button>
-                                                </template>
+                                            {{-- URL --}}
+                                            <div class="flex gap-2 mb-3">
+                                                <input type="text" x-model="urlInput" placeholder="Dán URL ảnh..."
+                                                    class="flex-1 h-10 px-3 rounded-xl bg-white/[0.05] border border-white/[0.08] text-white text-sm focus:outline-none focus:border-purple-500/40"
+                                                    @keydown.enter.prevent="addFromUrl()">
+                                                <button @click="addFromUrl()"
+                                                    class="h-10 px-4 rounded-xl bg-purple-500/20 text-purple-300 text-sm hover:bg-purple-500/30 transition-colors">Thêm</button>
                                             </div>
-                                        </div>
 
-                                        {{-- Selected --}}
-                                        <div x-show="selectedImages.length > 0" class="mt-3">
-                                            <div class="text-white/40 text-xs font-medium mb-2">Đã chọn</div>
-                                            <div class="flex gap-2 flex-wrap">
-                                                <template x-for="img in selectedImages" :key="img.id">
-                                                    <div class="relative w-14 h-14 rounded-xl overflow-hidden">
-                                                        <img :src="img.url" class="w-full h-full object-cover">
-                                                        <button @click="removeImage(img.id)"
-                                                            class="absolute top-0.5 right-0.5 w-5 h-5 rounded-full bg-black/70 flex items-center justify-center">
-                                                            <i class="fa-solid fa-xmark text-white text-[10px]"></i>
+                                            {{-- Recent --}}
+                                            <div x-show="recentImages.length > 0">
+                                                <div class="text-white/40 text-xs font-medium mb-2">Ảnh gần đây</div>
+                                                <div class="grid grid-cols-4 gap-1.5 max-h-40 overflow-y-auto">
+                                                    <template x-for="img in recentImages.slice(0, 16)"
+                                                        :key="img.id || img.url">
+                                                        <button @click="selectFromRecent(img.url)"
+                                                            class="relative aspect-square rounded-xl overflow-hidden border-2 transition-all"
+                                                            :class="isSelected(img.url) ? 'border-purple-500' : 'border-transparent'">
+                                                            <img :src="img.url" class="w-full h-full object-cover">
+                                                            <div x-show="isSelected(img.url)"
+                                                                class="absolute inset-0 bg-purple-500/30 flex items-center justify-center">
+                                                                <i class="fa-solid fa-check text-white"></i>
+                                                            </div>
                                                         </button>
-                                                    </div>
-                                                </template>
+                                                    </template>
+                                                </div>
+                                            </div>
+
+                                            {{-- Selected --}}
+                                            <div x-show="selectedImages.length > 0" class="mt-3">
+                                                <div class="text-white/40 text-xs font-medium mb-2">Đã chọn</div>
+                                                <div class="flex gap-2 flex-wrap">
+                                                    <template x-for="img in selectedImages" :key="img.id">
+                                                        <div class="relative w-14 h-14 rounded-xl overflow-hidden">
+                                                            <img :src="img.url" class="w-full h-full object-cover">
+                                                            <button @click="removeImage(img.id)"
+                                                                class="absolute top-0.5 right-0.5 w-5 h-5 rounded-full bg-black/70 flex items-center justify-center">
+                                                                <i class="fa-solid fa-xmark text-white text-[10px]"></i>
+                                                            </button>
+                                                        </div>
+                                                    </template>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
+                            </template>
                         </div>
                     </div>
 
