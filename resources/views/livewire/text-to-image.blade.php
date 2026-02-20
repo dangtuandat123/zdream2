@@ -850,8 +850,10 @@
                         this.statusTimer = setInterval(() => this.statusElapsed++, 1000);
                     },
                     stopStatusTimer() {
-                        clearInterval(this.statusTimer);
-                        this.statusTimer = null;
+                        if (this.statusTimer) {
+                            clearInterval(this.statusTimer);
+                            this.statusTimer = null;
+                        }
                     },
 
                     // Centralized cleanup
@@ -892,8 +894,11 @@
                         }
                         this.stopLoading();
                         this.stopStatusTimer();
-                        clearTimeout(this._loadMoreFailSafeTimer);
-                        this._loadMoreFailSafeTimer = null;
+
+                        if (this._loadMoreFailSafeTimer) {
+                            clearTimeout(this._loadMoreFailSafeTimer);
+                            this._loadMoreFailSafeTimer = null;
+                        }
 
                         this.loadingMoreHistory = false;
                         this.isPrependingHistory = false;
@@ -1132,7 +1137,8 @@
                             this.isPrependingHistory = false;
                             this._morphCaptured = false;
                             this._loadMoreFailSafeTimer = null;
-                        }, 7000);
+                            this.notify('Quá trình tải lịch sử bị gián đoạn do mạng chậm', 'error');
+                        }, 12000); // Tăng timeout lên 12s và thêm thông báo
                     },
 
                     // ============================================================
@@ -1420,11 +1426,20 @@
                             this.notify('Tối đa ' + this.maxImages + ' ảnh', 'warning');
                             return;
                         }
-                        this.selectedImages.push({ id: Date.now(), url: url });
-                        this.$wire.setReferenceImages(
-                            this.selectedImages.map(img => ({ url: img.url }))
-                        );
-                        this.urlInput = '';
+
+                        // Kiểm tra tính hợp lệ của ảnh trước khi đưa vào danh sách hiển thị
+                        const img = new Image();
+                        img.onload = () => {
+                            this.selectedImages.push({ id: Date.now(), url: url });
+                            this.$wire.setReferenceImages(
+                                this.selectedImages.map(img => ({ url: img.url }))
+                            );
+                            this.urlInput = '';
+                        };
+                        img.onerror = () => {
+                            this.notify('URL không hợp lệ hoặc không phải định dạng ảnh', 'error');
+                        };
+                        img.src = url;
                     },
 
                     selectFromRecent(url) {

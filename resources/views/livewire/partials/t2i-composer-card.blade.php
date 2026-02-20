@@ -87,17 +87,34 @@
         <div class="relative transition-all duration-300 ease-in-out z-50 flex justify-center w-full"
             :class="isFocused ? 'px-0 sm:px-4 mb-0 sm:mb-4' : (isAtBottom ? 'px-2 sm:px-4 mb-2 sm:mb-4' : 'px-4 mb-4')">
 
-            <div class="relative flex flex-col w-full transition-all duration-300 shadow-2xl glass-popover bg-[#0a0a0c]/95 backdrop-blur-3xl border border-white/10"
+            <div class="relative flex flex-col w-full transition-all duration-300 shadow-2xl glass-popover bg-[#0a0a0c]/95 backdrop-blur-3xl"
                 :class="[
                      isFocused 
                         ? 'p-2.5 sm:p-3.5 rounded-t-3xl sm:rounded-2xl' 
                         : (isAtBottom ? 'p-2.5 sm:p-3.5 rounded-[1.5rem] max-w-4xl mx-auto' : 'p-2 rounded-[2rem] max-w-2xl mx-auto'),
-                     (!isFocused && !isAtBottom) ? 'opacity-85 hover:opacity-100' : 'opacity-100'
+                     (!isFocused && !isAtBottom) ? 'opacity-85 hover:opacity-100' : 'opacity-100',
+                     uiMode === 'generating' ? 'ring-2 ring-purple-500/60 shadow-[0_0_40px_rgba(168,85,247,0.3)] border-purple-500/50' : 'border border-white/10'
                  ]">
 
                 {{-- Prompt textarea --}}
                 <div class="relative flex items-end gap-2 w-full z-20"
-                    x-data="{ promptHeight: 'auto', resize() { this.$refs.promptInput.style.height = 'auto'; let h = Math.min(this.$refs.promptInput.scrollHeight, 144) + 'px'; this.$refs.promptInput.style.height = h; this.promptHeight = h; } }">
+                    x-data="{ 
+                        promptHeight: 'auto', 
+                        bannedWords: ['nude', 'naked', 'nsfw', 'porn', 'sex', 'blood', 'gore', 'kill', 'murder', 'rape', 'pedophile', 'loli'],
+                        isBanned: false,
+                        resize() { 
+                            this.$refs.promptInput.style.height = 'auto'; 
+                            let h = Math.min(this.$refs.promptInput.scrollHeight, 400) + 'px'; 
+                            this.$refs.promptInput.style.height = h; 
+                            this.promptHeight = h; 
+                        } 
+                    }"
+                    x-init="
+                        $watch('$wire.prompt', val => { 
+                            const lower = (val || '').toLowerCase(); 
+                            isBanned = bannedWords.some(w => lower.includes(w)); 
+                        })
+                    ">
                     {{-- Shrunk State View (Read-only, Truncated text) --}}
                     <div x-show="!isAtBottom && !isFocused && !$wire.isGenerating"
                         @click="isFocused = true; $nextTick(() => $refs.promptInput.focus())"
@@ -114,7 +131,7 @@
                         @focus="isFocused = true; focusLock = true; setTimeout(() => focusLock = false, 600)"
                         @blur="setTimeout(() => { if (!document.activeElement?.closest('.t2i-composer-wrap')) { isFocused = false; } }, 150)"
                         @input="resize()" placeholder="Mô tả ý tưởng của bạn..." :style="{ height: promptHeight }"
-                        class="t2i-prompt-input relative z-10 flex-1 bg-transparent border-none outline-none ring-0 focus:ring-0 focus:outline-none text-sm sm:text-base resize-none transition-all leading-relaxed min-h-[44px] max-h-[144px] px-2 py-1.5 text-white placeholder:text-white/40 caret-white overflow-y-auto whitespace-pre-wrap break-words"
+                        class="t2i-prompt-input relative z-10 flex-1 bg-transparent border-none outline-none ring-0 focus:ring-0 focus:outline-none text-sm sm:text-base resize-none transition-all leading-relaxed min-h-[44px] max-h-[50vh] px-2 py-1.5 text-white placeholder:text-white/40 caret-white overflow-y-auto whitespace-pre-wrap break-words"
                         x-init="
                             $watch('isFocused', () => { if (isFocused || isAtBottom || uiMode !== 'idle') resize() });
                             $watch('isAtBottom', () => { if (isFocused || isAtBottom || uiMode !== 'idle') resize() });
@@ -132,20 +149,31 @@
                         x-transition:enter="transition ease-out duration-200"
                         x-transition:enter-start="opacity-0 scale-75" x-transition:enter-end="opacity-100 scale-100">
                         <button type="button" @click="$wire.generate()"
-                            :disabled="!$wire.prompt || $wire.prompt.length === 0"
-                            class="w-9 h-9 rounded-full bg-gradient-to-tr from-purple-600 to-indigo-600 shadow-lg shadow-purple-900/40 text-white flex items-center justify-center hover:shadow-purple-500/50 hover:brightness-110 active:scale-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                            :disabled="!$wire.prompt || $wire.prompt.length === 0 || isBanned"
+                            class="w-9 h-9 rounded-full bg-gradient-to-tr from-purple-600 to-indigo-600 shadow-lg shadow-purple-900/40 text-white flex items-center justify-center hover:shadow-purple-500/50 hover:brightness-110 active:scale-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer">
                             <i class="fa-solid fa-paper-plane text-xs relative -top-[0.5px] -ml-[0.5px]"></i>
                         </button>
                     </div>
+
+                    {{-- Counter + Banned Words Warning (Attached to the textarea wrapper) --}}
+                    <div class="absolute right-2 -bottom-5 flex items-center justify-end gap-3 transition-all duration-300 z-30 pointer-events-none"
+                        x-show="(isAtBottom || isFocused || uiMode !== 'idle') && $wire.prompt?.length > 0" x-cloak>
+                        
+                        <div x-show="uiMode === 'generating'" class="text-purple-400 text-[10px] font-bold tracking-widest uppercase flex items-center gap-1.5 animate-pulse" x-cloak>
+                            <i class="fa-solid fa-wand-magic-sparkles"></i> AI Đang vẽ...
+                        </div>
+                        
+                        <div x-show="isBanned" class="text-red-400 text-[10px] font-bold tracking-widest uppercase flex items-center gap-1" x-cloak>
+                            <i class="fa-solid fa-triangle-exclamation"></i> Có từ khóa cấm
+                        </div>
+
+                        <span class="text-[10px] uppercase font-bold tracking-widest"
+                            :class="$wire.prompt?.length > 1800 ? 'text-amber-400' : 'text-white/20'"
+                            x-text="($wire.prompt?.length || 0) + ' / 2000'"></span>
+                    </div>
                 </div>
 
-                {{-- Counter (Minimal) --}}
-                <div class="flex items-center justify-end px-2 pt-1 transition-all duration-300 relative z-30"
-                    x-show="(isAtBottom || isFocused || uiMode !== 'idle') && $wire.prompt?.length > 0" x-cloak>
-                    <span class="text-[10px] uppercase font-bold tracking-widest"
-                        :class="$wire.prompt?.length > 1800 ? 'text-amber-400' : 'text-white/20'"
-                        x-text="($wire.prompt?.length || 0) + ' / 2000'"></span>
-                </div>
+                <div class="h-4 sm:hidden"></div> {{-- Spacer for absolute mobile counter --}}
 
                 {{-- Quick Settings Row + Generate --}}
                 <div class="flex items-end justify-between gap-2 relative z-20 transition-all duration-300"
@@ -609,8 +637,8 @@
                                         <div class="relative w-10 h-10 rounded-lg overflow-hidden group">
                                             <img :src="img.url" class="w-full h-full object-cover">
                                             <button @click="removeImage(img.id)"
-                                                class="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                                <i class="fa-solid fa-xmark text-white text-xs"></i>
+                                                class="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity p-2">
+                                                <i class="fa-solid fa-xmark text-white text-sm"></i>
                                             </button>
                                         </div>
                                     </template>
@@ -685,8 +713,12 @@
                                                         <div class="relative w-14 h-14 rounded-xl overflow-hidden">
                                                             <img :src="img.url" class="w-full h-full object-cover">
                                                             <button @click="removeImage(img.id)"
-                                                                class="absolute top-0.5 right-0.5 w-5 h-5 rounded-full bg-black/70 flex items-center justify-center">
-                                                                <i class="fa-solid fa-xmark text-white text-[10px]"></i>
+                                                                class="absolute top-0 right-0 w-8 h-8 flex items-start justify-end p-1">
+                                                                <div
+                                                                    class="w-5 h-5 rounded-full bg-black/70 flex items-center justify-center">
+                                                                    <i
+                                                                        class="fa-solid fa-xmark text-white text-[10px]"></i>
+                                                                </div>
                                                             </button>
                                                         </div>
                                                     </template>
