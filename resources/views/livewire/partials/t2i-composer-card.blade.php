@@ -539,7 +539,7 @@
                         </div>
 
                         {{-- ===== REFS CHIP ===== --}}
-                        <div class="relative">
+                        <div class="relative hidden sm:block">
                             <button type="button"
                                 @click="if (maxImages > 0) { showRefPicker = !showRefPicker; showModelSheet = false; showRatioSheet = false; showBatchSheet = false; if(showRefPicker) loadRecentImages(); }"
                                 class="glass-chip shrink-0 flex items-center gap-1.5 h-8 px-2.5 rounded-lg text-xs font-medium transition-all duration-200"
@@ -654,9 +654,10 @@
                                             <span class="text-white font-semibold text-base">Ảnh tham chiếu <span
                                                     x-text="selectedImages.length + '/' + maxImages"
                                                     class="text-purple-300 text-sm"></span></span>
-                                            <button type="button" @click="showRefPicker = false"
+                                            <button type="button"
+                                                @click="showRefPicker = false; setTimeout(() => showSettingsSheet = true, 150)"
                                                 class="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 text-white/60 active:scale-95 transition-transform">
-                                                <i class="fa-solid fa-xmark"></i>
+                                                <i class="fa-solid fa-chevron-left"></i>
                                             </button>
                                         </div>
                                         <div class="p-4 overflow-y-auto">
