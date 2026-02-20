@@ -85,14 +85,14 @@
 
         {{-- Composer main card --}}
         <div class="relative transition-all duration-300 ease-in-out z-50 flex justify-center w-full"
-            :class="isFocused ? 'px-0 sm:px-4 mb-0 sm:mb-4' : (isAtBottom ? 'px-3 sm:px-4 mb-3 sm:mb-4' : 'px-4 mb-4')">
+            :class="isFocused ? 'px-0 sm:px-4 mb-0 sm:mb-4' : (isAtBottom ? 'px-2 sm:px-4 mb-2 sm:mb-4' : 'px-4 mb-4')">
 
-            <div class="relative flex flex-col w-full transition-all duration-300 shadow-2xl glass-popover bg-[#0f0f13]/95 backdrop-blur-3xl border border-white/10"
+            <div class="relative flex flex-col w-full transition-all duration-300 shadow-2xl glass-popover bg-[#0a0a0c]/95 backdrop-blur-3xl border border-white/10"
                 :class="[
                      isFocused 
-                        ? 'p-3 sm:p-4 rounded-t-3xl sm:rounded-2xl' 
-                        : (isAtBottom ? 'p-3 sm:p-4 rounded-3xl max-w-4xl mx-auto' : 'p-2 rounded-[2rem] max-w-2xl mx-auto'),
-                     (!isFocused && !isAtBottom) ? 'opacity-80 hover:opacity-100' : 'opacity-100'
+                        ? 'p-2.5 sm:p-3.5 rounded-t-3xl sm:rounded-2xl' 
+                        : (isAtBottom ? 'p-2.5 sm:p-3.5 rounded-[1.5rem] max-w-4xl mx-auto' : 'p-2 rounded-[2rem] max-w-2xl mx-auto'),
+                     (!isFocused && !isAtBottom) ? 'opacity-85 hover:opacity-100' : 'opacity-100'
                  ]">
 
                 {{-- Prompt textarea --}}
@@ -108,26 +108,28 @@
                     </div>
 
                     {{-- Expanded textarea (Interactive) --}}
-                    <textarea x-show="isAtBottom || isFocused || $wire.isGenerating" x-ref="promptInput"
+                    <textarea x-show="isAtBottom || isFocused || uiMode !== 'idle'" x-ref="promptInput"
                         wire:model.live.debounce.500ms="prompt" rows="1"
                         @focus="isFocused = true; focusLock = true; setTimeout(() => focusLock = false, 600)"
-                        @blur="isFocused = false" @input="resize()" placeholder="Mô tả ý tưởng của bạn..."
-                        class="t2i-prompt-input relative z-10 flex-1 bg-transparent border-none outline-none ring-0 focus:ring-0 focus:outline-none text-sm sm:text-base resize-none transition-all leading-relaxed min-h-[48px] max-h-[144px] px-2 py-3 text-white placeholder:text-white/40 caret-white overflow-y-auto whitespace-pre-wrap break-words"
+                        @blur="setTimeout(() => { if (!document.activeElement?.closest('.t2i-composer-wrap')) { isFocused = false; } }, 150)"
+                        @input="resize()" placeholder="Mô tả ý tưởng của bạn..."
+                        class="t2i-prompt-input relative z-10 flex-1 bg-transparent border-none outline-none ring-0 focus:ring-0 focus:outline-none text-sm sm:text-base resize-none transition-all leading-relaxed min-h-[44px] max-h-[144px] px-2 py-2.5 text-white placeholder:text-white/40 caret-white overflow-y-auto whitespace-pre-wrap break-words"
                         x-init="
                             resize = () => {
                                 $el.style.height = 'auto'; 
                                 $el.style.height = Math.min($el.scrollHeight, 144) + 'px';
                             };
-                            $watch('isFocused', () => { if (isFocused || isAtBottom || $wire.isGenerating) $nextTick(() => resize()) });
-                            $watch('isAtBottom', () => { if (isFocused || isAtBottom || $wire.isGenerating) $nextTick(() => resize()) });
-                            $watch('$wire.prompt', () => { if (isFocused || isAtBottom || $wire.isGenerating) $nextTick(() => resize()) });
+                            $watch('isFocused', () => { if (isFocused || isAtBottom || uiMode !== 'idle') $nextTick(() => resize()) });
+                            $watch('isAtBottom', () => { if (isFocused || isAtBottom || uiMode !== 'idle') $nextTick(() => resize()) });
+                            $watch('uiMode', () => { if (isFocused || isAtBottom || uiMode !== 'idle') $nextTick(() => resize()) });
+                            $watch('$wire.prompt', () => { if (isFocused || isAtBottom || uiMode !== 'idle') $nextTick(() => resize()) });
                             setTimeout(() => resize(), 100);
                         "
                         @keydown.enter.prevent="if(!$event.shiftKey) { $wire.generate(); } else { $el.value += '\n'; $el.dispatchEvent(new Event('input')) }"
-                        :disabled="$wire.isGenerating"></textarea>
+                        :disabled="uiMode === 'generating'"></textarea>
 
                     {{-- Mini Send Button (Shrunk only) --}}
-                    <div x-show="!isAtBottom && !isFocused && !$wire.isGenerating"
+                    <div x-show="!isAtBottom && !isFocused && uiMode === 'idle'"
                         class="absolute right-2 top-1/2 -translate-y-1/2 z-20"
                         x-transition:enter="transition ease-out duration-200"
                         x-transition:enter-start="opacity-0 scale-75" x-transition:enter-end="opacity-100 scale-100">
@@ -141,7 +143,7 @@
 
                 {{-- Counter (Minimal) --}}
                 <div class="flex items-center justify-end -mt-1 px-2 mb-1 transition-all duration-300"
-                    x-show="(isAtBottom || isFocused || $wire.isGenerating) && $wire.prompt?.length > 0" x-cloak>
+                    x-show="(isAtBottom || isFocused || uiMode !== 'idle') && $wire.prompt?.length > 0" x-cloak>
                     <span class="text-[11px] font-medium"
                         :class="$wire.prompt?.length > 1800 ? 'text-amber-400' : 'text-white/30'"
                         x-text="($wire.prompt?.length || 0) + ' / 2000'"></span>
@@ -571,13 +573,13 @@
                     {{-- Generate Button --}}
                     @if($isGenerating)
                         <button type="button" wire:click="cancelGeneration"
-                            class="t2i-cancel-btn shrink-0 flex items-center justify-center gap-2 h-[42px] px-4 sm:px-5 rounded-xl bg-white/5 hover:bg-red-500/20 border border-white/10 text-white font-semibold text-sm active:scale-95 transition-all outline-none">
+                            class="t2i-cancel-btn shrink-0 flex items-center justify-center gap-2 h-10 px-4 sm:px-5 rounded-xl bg-white/5 hover:bg-red-500/20 border border-white/10 text-white font-medium text-sm active:scale-95 transition-all outline-none">
                             <i class="fa-solid fa-stop text-xs"></i>
                             <span class="hidden sm:inline">Hủy</span>
                         </button>
                     @else
                         <button type="button" @click="$wire.generate()"
-                            class="t2i-generate-btn shrink-0 flex items-center justify-center gap-1.5 h-[42px] px-4 sm:px-6 rounded-xl text-white font-bold text-sm shadow-[0_0_20px_rgba(147,51,234,0.4)] hover:shadow-[0_0_25px_rgba(147,51,234,0.6)] active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-gradient-to-r from-purple-600 to-indigo-600 relative overflow-hidden group outline-none"
+                            class="t2i-generate-btn shrink-0 flex items-center justify-center gap-1.5 h-10 px-4 sm:px-6 rounded-xl text-white font-semibold text-sm shadow-[0_0_20px_rgba(147,51,234,0.3)] hover:shadow-[0_0_25px_rgba(147,51,234,0.5)] active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-gradient-to-r from-purple-600 to-indigo-600 relative overflow-hidden group outline-none"
                             :disabled="!$wire.prompt?.trim() || uiMode === 'generating'" wire:loading.attr="disabled"
                             wire:loading.class="opacity-50 pointer-events-none" wire:target="generate">
 
