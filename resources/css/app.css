@@ -230,7 +230,7 @@
     /* ===== MOBILE FILTER FIX ===== */
     @media (max-width: 767px) {
         .mobile-filter-top {
-            top: 57px !important;
+            top: 56px !important;
         }
     }
 
