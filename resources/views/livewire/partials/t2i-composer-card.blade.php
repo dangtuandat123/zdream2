@@ -199,52 +199,60 @@
                             </div>
 
                             {{-- Model Bottom Sheet Mobile --}}
-                            <div x-show="showModelSheet" x-cloak
-                                class="sm:hidden fixed inset-0 z-[9999] flex items-end justify-center bg-black/80 backdrop-blur-md"
-                                @click.self="showModelSheet = false">
-                                <div x-show="showModelSheet" @click.stop
-                                    x-transition:enter="transition ease-out duration-300"
-                                    x-transition:enter-start="translate-y-full" x-transition:enter-end="translate-y-0"
-                                    class="glass-popover w-full max-w-lg rounded-t-3xl flex flex-col max-h-[85vh]">
-                                    <div class="flex items-center justify-between p-4 border-b border-white/5 shrink-0">
-                                        <span class="text-white font-semibold text-base">Chọn Model AI</span>
-                                        <button type="button" @click="showModelSheet = false"
-                                            class="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 text-white/60 active:scale-95 transition-transform">
-                                            <i class="fa-solid fa-xmark"></i>
-                                        </button>
-                                    </div>
-                                    <div class="p-4 overflow-y-auto">
-                                        <div class="space-y-1">
-                                            <template x-for="model in models" :key="model.id">
-                                                <button type="button" @click="selectModel(model.id)"
-                                                    class="w-full flex items-center gap-3 p-3 rounded-xl transition-all text-left"
-                                                    :class="selectedModel === model.id ? 'bg-purple-500/30 border border-purple-500/50' : 'bg-white/5 active:bg-white/10 border border-transparent'">
-                                                    <span class="text-2xl" x-text="model.icon"></span>
-                                                    <div class="flex-1 min-w-0">
-                                                        <div class="text-white font-semibold text-base"
-                                                            x-text="model.name">
+                            <template x-teleport="body">
+                                <div x-show="showModelSheet" x-cloak
+                                    class="sm:hidden fixed inset-0 z-[9999] flex items-end justify-center bg-black/80 backdrop-blur-md"
+                                    @click.self="showModelSheet = false">
+                                    <div x-show="showModelSheet" @click.stop
+                                        x-transition:enter="transition ease-out duration-300"
+                                        x-transition:enter-start="translate-y-full"
+                                        x-transition:enter-end="translate-y-0"
+                                        x-transition:leave="transition ease-in duration-200"
+                                        x-transition:leave-start="translate-y-0"
+                                        x-transition:leave-end="translate-y-full"
+                                        class="glass-popover w-full max-w-lg rounded-t-3xl flex flex-col max-h-[85vh]">
+                                        <div
+                                            class="flex items-center justify-between p-4 border-b border-white/5 shrink-0">
+                                            <span class="text-white font-semibold text-base">Chọn Model AI</span>
+                                            <button type="button" @click="showModelSheet = false"
+                                                class="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 text-white/60 active:scale-95 transition-transform">
+                                                <i class="fa-solid fa-xmark"></i>
+                                            </button>
+                                        </div>
+                                        <div class="p-4 overflow-y-auto">
+                                            <div class="space-y-1">
+                                                <template x-for="model in models" :key="model.id">
+                                                    <button type="button"
+                                                        @click="selectModel(model.id); showModelSheet = false"
+                                                        class="w-full flex items-center gap-3 p-3 rounded-xl transition-all text-left"
+                                                        :class="selectedModel === model.id ? 'bg-purple-500/30 border border-purple-500/50' : 'bg-white/5 active:bg-white/10 border border-transparent'">
+                                                        <span class="text-2xl" x-text="model.icon"></span>
+                                                        <div class="flex-1 min-w-0">
+                                                            <div class="text-white font-semibold text-base"
+                                                                x-text="model.name">
+                                                            </div>
+                                                            <div class="flex items-center gap-2 mt-0.5">
+                                                                <span class="text-white/50 text-sm"
+                                                                    x-text="model.desc"></span>
+                                                                <template x-if="model.supportsImageInput">
+                                                                    <span
+                                                                        class="text-[10px] px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-300 font-medium"
+                                                                        x-text="'Ref ×' + model.maxImages"></span>
+                                                                </template>
+                                                            </div>
                                                         </div>
-                                                        <div class="flex items-center gap-2 mt-0.5">
-                                                            <span class="text-white/50 text-sm"
-                                                                x-text="model.desc"></span>
-                                                            <template x-if="model.supportsImageInput">
-                                                                <span
-                                                                    class="text-[10px] px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-300 font-medium"
-                                                                    x-text="'Ref ×' + model.maxImages"></span>
-                                                            </template>
+                                                        <div class="w-6 h-6 rounded-full border-2 flex items-center justify-center"
+                                                            :class="selectedModel === model.id ? 'border-purple-500 bg-purple-500' : 'border-white/20'">
+                                                            <i x-show="selectedModel === model.id"
+                                                                class="fa-solid fa-check text-white text-xs"></i>
                                                         </div>
-                                                    </div>
-                                                    <div class="w-6 h-6 rounded-full border-2 flex items-center justify-center"
-                                                        :class="selectedModel === model.id ? 'border-purple-500 bg-purple-500' : 'border-white/20'">
-                                                        <i x-show="selectedModel === model.id"
-                                                            class="fa-solid fa-check text-white text-xs"></i>
-                                                    </div>
-                                                </button>
-                                            </template>
+                                                    </button>
+                                                </template>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
+                            </template>
                         </div>
 
                         {{-- ===== RATIO CHIP ===== --}}
@@ -289,46 +297,54 @@
                             </div>
 
                             {{-- Ratio Bottom Sheet Mobile --}}
-                            <div x-show="showRatioSheet" x-cloak
-                                class="sm:hidden fixed inset-0 z-[9999] flex items-end justify-center bg-black/80 backdrop-blur-md"
-                                @click.self="showRatioSheet = false">
-                                <div x-show="showRatioSheet" @click.stop
-                                    x-transition:enter="transition ease-out duration-300"
-                                    x-transition:enter-start="translate-y-full" x-transition:enter-end="translate-y-0"
-                                    class="glass-popover w-full max-w-lg rounded-t-3xl flex flex-col max-h-[85vh]">
-                                    <div class="flex items-center justify-between p-4 border-b border-white/5 shrink-0">
-                                        <span class="text-white font-semibold text-base">Tỉ lệ khung hình</span>
-                                        <button type="button" @click="showRatioSheet = false"
-                                            class="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 text-white/60 active:scale-95 transition-transform">
-                                            <i class="fa-solid fa-xmark"></i>
-                                        </button>
-                                    </div>
-                                    <div class="p-4 overflow-y-auto">
-                                        <div class="grid grid-cols-4 gap-2">
-                                            <template x-for="ratio in ratios" :key="ratio.id">
-                                                <button type="button" @click="selectRatio(ratio.id)"
-                                                    class="flex flex-col items-center gap-1.5 p-3 rounded-xl transition-all"
-                                                    :class="selectedRatio === ratio.id ? 'bg-purple-500/30 border border-purple-500/50' : 'bg-white/5 active:bg-white/10 border border-transparent'">
-                                                    <div class="w-8 h-8 flex items-center justify-center">
-                                                        <template x-if="ratio.icon">
-                                                            <i :class="'fa-solid ' + ratio.icon"
-                                                                class="text-white/60 text-lg"></i>
-                                                        </template>
-                                                        <template x-if="!ratio.icon">
-                                                            <div class="border-2 border-white/40 rounded-sm" :style="{
-                                                                width: ratio.id.split(':')[0] > ratio.id.split(':')[1] ? '28px' : (ratio.id.split(':')[0] == ratio.id.split(':')[1] ? '24px' : '16px'),
-                                                                height: ratio.id.split(':')[1] > ratio.id.split(':')[0] ? '28px' : (ratio.id.split(':')[0] == ratio.id.split(':')[1] ? '24px' : '16px')
-                                                            }"></div>
-                                                        </template>
-                                                    </div>
-                                                    <span class="text-white/70 text-xs font-medium"
-                                                        x-text="ratio.label"></span>
-                                                </button>
-                                            </template>
+                            <template x-teleport="body">
+                                <div x-show="showRatioSheet" x-cloak
+                                    class="sm:hidden fixed inset-0 z-[9999] flex items-end justify-center bg-black/80 backdrop-blur-md"
+                                    @click.self="showRatioSheet = false">
+                                    <div x-show="showRatioSheet" @click.stop
+                                        x-transition:enter="transition ease-out duration-300"
+                                        x-transition:enter-start="translate-y-full"
+                                        x-transition:enter-end="translate-y-0"
+                                        x-transition:leave="transition ease-in duration-200"
+                                        x-transition:leave-start="translate-y-0"
+                                        x-transition:leave-end="translate-y-full"
+                                        class="glass-popover w-full max-w-lg rounded-t-3xl flex flex-col max-h-[85vh]">
+                                        <div
+                                            class="flex items-center justify-between p-4 border-b border-white/5 shrink-0">
+                                            <span class="text-white font-semibold text-base">Tỉ lệ khung hình</span>
+                                            <button type="button" @click="showRatioSheet = false"
+                                                class="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 text-white/60 active:scale-95 transition-transform">
+                                                <i class="fa-solid fa-xmark"></i>
+                                            </button>
+                                        </div>
+                                        <div class="p-4 overflow-y-auto">
+                                            <div class="grid grid-cols-4 gap-2">
+                                                <template x-for="ratio in ratios" :key="ratio.id">
+                                                    <button type="button"
+                                                        @click="selectRatio(ratio.id); showRatioSheet = false"
+                                                        class="flex flex-col items-center gap-1.5 p-3 rounded-xl transition-all"
+                                                        :class="selectedRatio === ratio.id ? 'bg-purple-500/30 border border-purple-500/50' : 'bg-white/5 active:bg-white/10 border border-transparent'">
+                                                        <div class="w-8 h-8 flex items-center justify-center">
+                                                            <template x-if="ratio.icon">
+                                                                <i :class="'fa-solid ' + ratio.icon"
+                                                                    class="text-white/60 text-lg"></i>
+                                                            </template>
+                                                            <template x-if="!ratio.icon">
+                                                                <div class="border-2 border-white/40 rounded-sm" :style="{
+                                                                    width: ratio.id.split(':')[0] > ratio.id.split(':')[1] ? '28px' : (ratio.id.split(':')[0] == ratio.id.split(':')[1] ? '24px' : '16px'),
+                                                                    height: ratio.id.split(':')[1] > ratio.id.split(':')[0] ? '28px' : (ratio.id.split(':')[0] == ratio.id.split(':')[1] ? '24px' : '16px')
+                                                                }"></div>
+                                                            </template>
+                                                        </div>
+                                                        <span class="text-white/70 text-xs font-medium"
+                                                            x-text="ratio.label"></span>
+                                                    </button>
+                                                </template>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
+                            </template>
                         </div>
 
                         {{-- ===== BATCH CHIP ===== --}}
@@ -364,34 +380,41 @@
                             </div>
 
                             {{-- Batch Bottom Sheet Mobile --}}
-                            <div x-show="showBatchSheet" x-cloak
-                                class="sm:hidden fixed inset-0 z-[9999] flex items-end justify-center bg-black/80 backdrop-blur-md"
-                                @click.self="showBatchSheet = false" @click.stop>
-                                <div x-show="showBatchSheet" x-transition:enter="transition ease-out duration-300"
-                                    x-transition:enter-start="translate-y-full" x-transition:enter-end="translate-y-0"
-                                    class="glass-popover w-full max-w-lg rounded-t-3xl flex flex-col max-h-[85vh]">
-                                    <div class="flex items-center justify-between p-4 border-b border-white/5 shrink-0">
-                                        <span class="text-white font-semibold text-base">Số lượng ảnh</span>
-                                        <button type="button" @click="showBatchSheet = false"
-                                            class="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 text-white/60 active:scale-95 transition-transform">
-                                            <i class="fa-solid fa-xmark"></i>
-                                        </button>
-                                    </div>
-                                    <div class="p-4">
-                                        <div class="grid grid-cols-4 gap-2">
-                                            @foreach([1, 2, 3, 4] as $n)
-                                                <button type="button"
-                                                    @click="$wire.$set('batchSize', {{ $n }}); showBatchSheet = false"
-                                                    class="flex flex-col items-center gap-1.5 p-4 rounded-xl transition-all"
-                                                    :class="$wire.batchSize === {{ $n }} ? 'bg-purple-500/30 border border-purple-500/50' : 'bg-white/5 active:bg-white/10 border border-transparent'">
-                                                    <span class="text-white text-2xl font-bold">{{ $n }}</span>
-                                                    <span class="text-white/60 text-xs">ảnh</span>
-                                                </button>
-                                            @endforeach
+                            <template x-teleport="body">
+                                <div x-show="showBatchSheet" x-cloak
+                                    class="sm:hidden fixed inset-0 z-[9999] flex items-end justify-center bg-black/80 backdrop-blur-md"
+                                    @click.self="showBatchSheet = false" @click.stop>
+                                    <div x-show="showBatchSheet" x-transition:enter="transition ease-out duration-300"
+                                        x-transition:enter-start="translate-y-full"
+                                        x-transition:enter-end="translate-y-0"
+                                        x-transition:leave="transition ease-in duration-200"
+                                        x-transition:leave-start="translate-y-0"
+                                        x-transition:leave-end="translate-y-full"
+                                        class="glass-popover w-full max-w-lg rounded-t-3xl flex flex-col max-h-[85vh]">
+                                        <div
+                                            class="flex items-center justify-between p-4 border-b border-white/5 shrink-0">
+                                            <span class="text-white font-semibold text-base">Số lượng ảnh</span>
+                                            <button type="button" @click="showBatchSheet = false"
+                                                class="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 text-white/60 active:scale-95 transition-transform">
+                                                <i class="fa-solid fa-xmark"></i>
+                                            </button>
+                                        </div>
+                                        <div class="p-4">
+                                            <div class="grid grid-cols-4 gap-2">
+                                                @foreach([1, 2, 3, 4] as $n)
+                                                    <button type="button"
+                                                        @click="$wire.$set('batchSize', {{ $n }}); showBatchSheet = false"
+                                                        class="flex flex-col items-center gap-1.5 p-4 rounded-xl transition-all"
+                                                        :class="$wire.batchSize === {{ $n }} ? 'bg-purple-500/30 border border-purple-500/50' : 'bg-white/5 active:bg-white/10 border border-transparent'">
+                                                        <span class="text-white text-2xl font-bold">{{ $n }}</span>
+                                                        <span class="text-white/60 text-xs">ảnh</span>
+                                                    </button>
+                                                @endforeach
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
+                            </template>
                         </div>
 
                         {{-- ===== REFS CHIP ===== --}}
