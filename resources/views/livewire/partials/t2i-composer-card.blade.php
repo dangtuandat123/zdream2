@@ -87,24 +87,34 @@
         <div class="relative transition-all duration-300 ease-in-out z-50 flex justify-center w-full"
             :class="isFocused ? 'px-0 sm:px-4 mb-0 sm:mb-4' : (isAtBottom ? 'px-2 sm:px-4 mb-2 sm:mb-4' : 'px-4 mb-4')">
 
-            <div class="relative flex flex-col w-full transition-all duration-300 shadow-2xl glass-popover bg-[#0a0a0c]/90 backdrop-blur-3xl border border-white/10"
+            <div class="relative flex flex-col w-full transition-all duration-300 shadow-2xl glass-popover bg-[#0a0a0c]/95 backdrop-blur-3xl border border-white/10"
                 :class="[
                      isFocused 
-                        ? 'p-2 sm:p-3 rounded-t-3xl sm:rounded-2xl' 
-                        : (isAtBottom ? 'p-2 sm:p-3 rounded-[1.5rem] max-w-4xl mx-auto' : 'p-2 rounded-[2rem] max-w-2xl mx-auto'),
+                        ? 'p-2.5 sm:p-3.5 rounded-t-3xl sm:rounded-2xl' 
+                        : (isAtBottom ? 'p-2.5 sm:p-3.5 rounded-[1.5rem] max-w-4xl mx-auto' : 'p-2 rounded-[2rem] max-w-2xl mx-auto'),
                      (!isFocused && !isAtBottom) ? 'opacity-85 hover:opacity-100' : 'opacity-100'
                  ]">
 
                 {{-- Prompt textarea --}}
-                <div class="relative flex items-end gap-2 w-full z-20 bg-white/[0.03] hover:bg-white/[0.05] rounded-[1.25rem] border border-white/5 transition-colors focus-within:bg-white/[0.05] focus-within:border-white/10"
+                <div class="relative flex items-end gap-2 w-full z-20"
                     x-data="{ promptHeight: 'auto', resize() { this.$refs.promptInput.style.height = 'auto'; let h = Math.min(this.$refs.promptInput.scrollHeight, 144) + 'px'; this.$refs.promptInput.style.height = h; this.promptHeight = h; } }">
+                    {{-- Shrunk State View (Read-only, Truncated text) --}}
+                    <div x-show="!isAtBottom && !isFocused && !$wire.isGenerating"
+                        @click="isFocused = true; $nextTick(() => $refs.promptInput.focus())"
+                        class="flex-1 h-[44px] px-2 py-2.5 text-white/70 text-sm sm:text-base truncate cursor-text transition-colors flex items-center group">
+                        <div class="w-full truncate pr-10 group-hover:text-white transition-colors">
+                            <span x-text="$wire.prompt || 'Mô tả ý tưởng...'"
+                                :class="!$wire.prompt ? 'text-white/40' : ''"></span>
+                        </div>
+                    </div>
 
                     {{-- Expanded textarea (Interactive) --}}
-                    <textarea x-ref="promptInput" wire:model.live.debounce.500ms="prompt" rows="1"
+                    <textarea x-show="isAtBottom || isFocused || uiMode !== 'idle'" x-ref="promptInput"
+                        wire:model.live.debounce.500ms="prompt" rows="1"
                         @focus="isFocused = true; focusLock = true; setTimeout(() => focusLock = false, 600)"
                         @blur="setTimeout(() => { if (!document.activeElement?.closest('.t2i-composer-wrap')) { isFocused = false; } }, 150)"
                         @input="resize()" placeholder="Mô tả ý tưởng của bạn..." :style="{ height: promptHeight }"
-                        class="t2i-prompt-input relative z-10 flex-1 bg-transparent border-none outline-none ring-0 focus:ring-0 focus:outline-none text-sm sm:text-base resize-none transition-all duration-100 leading-relaxed min-h-[38px] max-h-[144px] px-3.5 py-2 text-white placeholder:text-white/30 caret-white overflow-y-auto whitespace-pre-wrap break-words"
+                        class="t2i-prompt-input relative z-10 flex-1 bg-transparent border-none outline-none ring-0 focus:ring-0 focus:outline-none text-sm sm:text-base resize-none transition-all leading-relaxed min-h-[44px] max-h-[144px] px-2 py-1.5 text-white placeholder:text-white/40 caret-white overflow-y-auto whitespace-pre-wrap break-words"
                         x-init="
                             $watch('isFocused', () => { if (isFocused || isAtBottom || uiMode !== 'idle') resize() });
                             $watch('isAtBottom', () => { if (isFocused || isAtBottom || uiMode !== 'idle') resize() });
@@ -116,14 +126,15 @@
                         @keydown.enter.prevent="if(!$event.shiftKey) { $wire.generate(); } else { $el.value += '\n'; $el.dispatchEvent(new Event('input')) }"
                         :disabled="uiMode === 'generating'"></textarea>
 
-                    {{-- Mini Send Button (Inside Textarea box, when unfocused) --}}
-                    <div x-show="!isAtBottom && !isFocused && uiMode === 'idle'" class="absolute right-1 bottom-1 z-20"
+                    {{-- Mini Send Button (Shrunk only) --}}
+                    <div x-show="!isAtBottom && !isFocused && uiMode === 'idle'"
+                        class="absolute right-2 top-1/2 -translate-y-1/2 z-20"
                         x-transition:enter="transition ease-out duration-200"
                         x-transition:enter-start="opacity-0 scale-75" x-transition:enter-end="opacity-100 scale-100">
                         <button type="button" @click="$wire.generate()"
                             :disabled="!$wire.prompt || $wire.prompt.length === 0"
-                            class="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-all disabled:opacity-30 disabled:cursor-not-allowed border border-white/5">
-                            <i class="fa-solid fa-arrow-up text-[10px]"></i>
+                            class="w-9 h-9 rounded-full bg-gradient-to-tr from-purple-600 to-indigo-600 shadow-lg shadow-purple-900/40 text-white flex items-center justify-center hover:shadow-purple-500/50 hover:brightness-110 active:scale-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                            <i class="fa-solid fa-paper-plane text-xs relative -top-[0.5px] -ml-[0.5px]"></i>
                         </button>
                     </div>
                 </div>
@@ -146,10 +157,12 @@
                         <div class="relative">
                             <button type="button"
                                 @click="showModelSheet = !showModelSheet; showRatioSheet = false; showBatchSheet = false; showRefPicker = false"
-                                class="glass-chip flex items-center justify-center gap-1.5 h-[30px] px-3 rounded-full text-[11px] font-semibold transition-all duration-200 cursor-pointer border border-white/5 bg-white/5 hover:bg-white/15 text-white/90"
-                                :class="showModelSheet ? 'glass-chip-active ring-1 ring-purple-500/50 bg-white/15' : ''">
-                                <span x-text="getSelectedModel().icon" class="text-xs"></span>
-                                <span class="max-w-[80px] truncate tracking-wide"
+                                class="glass-chip flex items-center gap-1.5 h-8 px-2.5 rounded-lg text-xs font-medium transition-all duration-200 cursor-pointer"
+                                :class="showModelSheet ? 'glass-chip-active' : ''">
+                                <span x-text="getSelectedModel().icon" class="text-sm"></span>
+                                <span class="hidden sm:inline max-w-[100px] truncate"
+                                    x-text="getSelectedModel().name"></span>
+                                <span class="sm:hidden"
                                     x-text="getSelectedModel().shortLabel || getSelectedModel().name.split(' ').pop()"></span>
                             </button>
 
@@ -238,11 +251,10 @@
                         <div class="relative">
                             <button type="button"
                                 @click="showRatioSheet = !showRatioSheet; showModelSheet = false; showBatchSheet = false; showRefPicker = false"
-                                class="glass-chip flex items-center justify-center gap-1.5 h-[30px] px-3 rounded-full text-[11px] font-semibold transition-all duration-200 cursor-pointer border border-white/5 bg-white/5 hover:bg-white/15 text-white/90"
-                                :class="showRatioSheet ? 'glass-chip-active ring-1 ring-blue-500/50 bg-white/15' : ''">
-                                <i class="fa-solid fa-crop-simple text-[10px] text-blue-400"></i>
-                                <span class="tracking-wide"
-                                    x-text="selectedRatio === 'auto' ? 'Auto' : selectedRatio"></span>
+                                class="glass-chip flex items-center gap-1.5 h-8 px-2.5 rounded-lg text-xs font-medium transition-all duration-200 cursor-pointer"
+                                :class="showRatioSheet ? 'glass-chip-active' : ''">
+                                <i class="fa-solid fa-crop text-[11px]"></i>
+                                <span x-text="selectedRatio === 'auto' ? 'Auto' : selectedRatio"></span>
                             </button>
 
                             {{-- Ratio Dropdown Desktop --}}
@@ -323,10 +335,10 @@
                         <div class="relative">
                             <button type="button"
                                 @click="showBatchSheet = !showBatchSheet; showRatioSheet = false; showModelSheet = false; showRefPicker = false"
-                                class="glass-chip flex items-center justify-center gap-1.5 h-[30px] px-3 rounded-full text-[11px] font-semibold transition-all duration-200 cursor-pointer border border-white/5 bg-white/5 hover:bg-white/15 text-white/90"
-                                :class="showBatchSheet ? 'glass-chip-active ring-1 ring-green-500/50 bg-white/15' : ''">
-                                <i class="fa-solid fa-layer-group text-[10px] text-green-400"></i>
-                                <span class="tracking-wide" x-text="'×' + $wire.batchSize"></span>
+                                class="glass-chip flex items-center gap-1.5 h-8 px-2.5 rounded-lg text-xs font-medium transition-all duration-200 cursor-pointer"
+                                :class="showBatchSheet ? 'glass-chip-active' : ''">
+                                <i class="fa-solid fa-layer-group text-[11px]"></i>
+                                <span x-text="'×' + $wire.batchSize"></span>
                             </button>
 
                             {{-- Batch Dropdown Desktop --}}
@@ -386,32 +398,28 @@
                         <div class="relative">
                             <button type="button"
                                 @click="if (maxImages > 0) { showRefPicker = !showRefPicker; showModelSheet = false; showRatioSheet = false; showBatchSheet = false; if(showRefPicker) loadRecentImages(); }"
-                                class="glass-chip flex items-center justify-center gap-1.5 h-[30px] px-3 rounded-full text-[11px] font-semibold transition-all duration-200 cursor-pointer border border-white/5 bg-white/5 hover:bg-white/15 text-white/90"
+                                class="glass-chip flex items-center gap-1.5 h-8 px-2.5 rounded-lg text-xs font-medium transition-all duration-200"
                                 :class="maxImages === 0
-                                    ? 'opacity-30 cursor-not-allowed grayscale'
+                                    ? 'bg-white/[0.02] border border-white/[0.05] text-white/30 cursor-not-allowed'
                                     : (selectedImages.length > 0
-                                        ? 'glass-chip-active ring-1 ring-pink-500/50 bg-white/15 cursor-pointer'
+                                        ? 'glass-chip-active cursor-pointer'
                                         : 'cursor-pointer')"
                                 :title="maxImages === 0 ? 'Model này không hỗ trợ ảnh tham chiếu' : ''">
                                 <template x-if="selectedImages.length > 0">
                                     <div class="flex items-center gap-1">
-                                        <div class="flex -space-x-1.5 border-r border-white/20 pr-1">
+                                        <div class="flex -space-x-1">
                                             <template x-for="(img, idx) in selectedImages.slice(0, 3)" :key="img.id">
-                                                <div
-                                                    class="w-4 h-4 rounded-full overflow-hidden border border-gray-800 ring-1 ring-white/10 shadow-sm relative z-10">
-                                                    <img :src="img.url" class="w-full h-full object-cover">
-                                                </div>
+                                                <img :src="img.url"
+                                                    class="w-5 h-5 rounded border border-purple-500/50 object-cover">
                                             </template>
                                         </div>
-                                        <span class="text-[10px] tracking-wide"
-                                            x-text="selectedImages.length + '/' + maxImages"></span>
+                                        <span x-text="selectedImages.length"></span>
                                     </div>
                                 </template>
                                 <template x-if="selectedImages.length === 0">
-                                    <span class="flex items-center gap-1.5">
-                                        <i class="fa-solid fa-image text-[10px]"
-                                            :class="selectedImages.length > 0 ? 'text-pink-400' : 'text-white/60'"></i>
-                                        <span class="hidden sm:inline tracking-wide">Ảnh nền</span>
+                                    <span class="flex items-center gap-1">
+                                        <i class="fa-solid fa-image text-[11px]"></i>
+                                        <span class="hidden sm:inline">Refs</span>
                                     </span>
                                 </template>
                             </button>
@@ -563,13 +571,13 @@
                     {{-- Generate Button --}}
                     @if($isGenerating)
                         <button type="button" wire:click="cancelGeneration"
-                            class="t2i-cancel-btn shrink-0 flex items-center justify-center gap-2 h-9 px-4 sm:px-5 rounded-full bg-white/5 hover:bg-red-500/20 border border-white/10 text-white font-medium text-sm active:scale-95 transition-all outline-none">
-                            <i class="fa-solid fa-stop text-[10px]"></i>
+                            class="t2i-cancel-btn shrink-0 flex items-center justify-center gap-2 h-10 px-4 sm:px-5 rounded-xl bg-white/5 hover:bg-red-500/20 border border-white/10 text-white font-medium text-sm active:scale-95 transition-all outline-none">
+                            <i class="fa-solid fa-stop text-xs"></i>
                             <span class="hidden sm:inline">Hủy</span>
                         </button>
                     @else
                         <button type="button" @click="$wire.generate()"
-                            class="t2i-generate-btn shrink-0 flex items-center justify-center gap-1 h-9 px-4 sm:px-5 rounded-full text-white font-semibold text-sm shadow-[0_0_15px_rgba(147,51,234,0.3)] hover:shadow-[0_0_20px_rgba(147,51,234,0.5)] active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-gradient-to-r from-purple-600 to-indigo-600 relative overflow-hidden group outline-none"
+                            class="t2i-generate-btn shrink-0 flex items-center justify-center gap-1.5 h-10 px-4 sm:px-6 rounded-xl text-white font-semibold text-sm shadow-[0_0_20px_rgba(147,51,234,0.3)] hover:shadow-[0_0_25px_rgba(147,51,234,0.5)] active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-gradient-to-r from-purple-600 to-indigo-600 relative overflow-hidden group outline-none"
                             :disabled="!$wire.prompt?.trim() || uiMode === 'generating'" wire:loading.attr="disabled"
                             wire:loading.class="opacity-50 pointer-events-none" wire:target="generate">
 
@@ -579,11 +587,11 @@
                             </div>
 
                             {{-- Core Button Label (Combines states to fix overlapping icons) --}}
-                            <div class="relative z-10 flex items-center justify-center gap-1.5 min-w-[40px]">
+                            <div class="relative z-10 flex items-center justify-center gap-1.5 min-w-[50px]">
                                 {{-- Hide in Loading state completely --}}
                                 <div wire:loading.remove wire:target="generate" class="flex items-center gap-1.5">
-                                    <i class="fa-solid fa-arrow-up text-[11px] relative -top-[0.5px]"></i>
-                                    <span class="hidden sm:inline">Tạo</span>
+                                    <i class="fa-solid fa-paper-plane text-xs relative -top-[1px]"></i>
+                                    <span>Tạo</span>
                                 </div>
 
                                 {{-- Show ONLY in Loading state --}}
@@ -596,9 +604,9 @@
 
                             {{-- Credit Tag --}}
                             <span
-                                class="relative z-10 text-white text-[10px] font-medium ml-1 bg-black/20 px-1.5 py-0.5 rounded-md flex items-center gap-0.5">
+                                class="relative z-10 text-white text-[11px] font-medium ml-1 bg-black/25 px-1.5 py-0.5 rounded flex items-center gap-1">
                                 <span x-text="$wire.creditCost * $wire.batchSize"></span><i
-                                    class="fa-solid fa-bolt text-[8px] text-yellow-400"></i>
+                                    class="fa-solid fa-bolt text-[9px] text-yellow-400"></i>
                             </span>
                         </button>
                     @endif
