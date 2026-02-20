@@ -826,7 +826,7 @@
     <!-- ========== MOBILE HEADER ========== -->
     @persist('mobile-header')
     <header id="header"
-        class="md:hidden fixed top-0 left-0 right-0 z-50 bg-[#0a0a0f]/95 backdrop-blur-xl border-b border-white/10">
+        class="md:hidden fixed top-0 left-0 right-0 z-50 bg-[#0a0a0f] border-b border-white/10">
         <div class="flex items-center justify-between h-14 px-4">
             <!-- Logo -->
             <a href="{{ route('home') }}" wire:navigate class="flex items-center gap-2">

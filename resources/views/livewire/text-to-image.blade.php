@@ -131,10 +131,16 @@
         }
 
         .t2i-filter-wrap .t2i-topbar {
-            background: rgba(11, 13, 18, 0.94);
+            background: #0b0d12;
             border-bottom: 1px solid var(--line-1);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
+        }
+
+        @media (min-width: 640px) {
+            .t2i-filter-wrap .t2i-topbar {
+                background: rgba(11, 13, 18, 0.94);
+                backdrop-filter: blur(10px);
+                -webkit-backdrop-filter: blur(10px);
+            }
         }
 
         .t2i-gallery-shell #gallery-feed {
