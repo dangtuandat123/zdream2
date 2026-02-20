@@ -245,26 +245,7 @@
                                                     class="fa-solid fa-chevron-right text-white/20 text-xs shrink-0 pl-2"></i>
                                             </button>
 
-                                            {{-- Menu Item: Ref Images --}}
-                                            <button type="button"
-                                                @click="if (maxImages > 0) { showSettingsSheet = false; setTimeout(() => showRefPicker = true, 150); if(showRefPicker) loadRecentImages(); }"
-                                                class="w-full flex items-center justify-between p-3.5 rounded-2xl border transition-all text-left"
-                                                :class="maxImages === 0 ? 'bg-white/[0.01] border-transparent opacity-50 cursor-not-allowed' : 'bg-white/[0.03] active:bg-white/[0.06] border-white/5 shadow-sm'">
-                                                <div class="flex items-center gap-3.5 min-w-0">
-                                                    <div class="w-10 h-10 rounded-full flex items-center justify-center shrink-0"
-                                                        :class="maxImages === 0 ? 'bg-gray-500/20 text-gray-400' : 'bg-amber-500/20 text-amber-400'">
-                                                        <i class="fa-solid fa-images text-base"></i>
-                                                    </div>
-                                                    <div class="min-w-0">
-                                                        <div class="text-white font-medium text-sm">Ảnh tham chiếu</div>
-                                                        <div class="text-white/50 text-xs mt-0.5 truncate pr-2"
-                                                            x-text="maxImages === 0 ? 'Không hỗ trợ' : (selectedImages.length > 0 ? selectedImages.length + '/' + maxImages + ' ảnh đã chọn' : 'Chưa chọn ảnh')">
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <i class="fa-solid fa-chevron-right text-white/20 text-xs shrink-0 pl-2"
-                                                    x-show="maxImages > 0"></i>
-                                            </button>
+
 
                                         </div>
                                     </div>
@@ -538,7 +519,7 @@
                         </div>
 
                         {{-- ===== REFS CHIP ===== --}}
-                        <div class="relative hidden sm:block">
+                        <div class="relative">
                             <button type="button"
                                 @click="if (maxImages > 0) { showRefPicker = !showRefPicker; showModelSheet = false; showRatioSheet = false; showBatchSheet = false; if(showRefPicker) loadRecentImages(); }"
                                 class="glass-chip shrink-0 flex items-center gap-1.5 h-8 px-2.5 rounded-lg text-xs font-medium transition-all duration-200"
@@ -653,10 +634,9 @@
                                             <span class="text-white font-semibold text-base">Ảnh tham chiếu <span
                                                     x-text="selectedImages.length + '/' + maxImages"
                                                     class="text-purple-300 text-sm"></span></span>
-                                            <button type="button"
-                                                @click="showRefPicker = false; setTimeout(() => showSettingsSheet = true, 150)"
+                                            <button type="button" @click="showRefPicker = false"
                                                 class="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 text-white/60 active:scale-95 transition-transform">
-                                                <i class="fa-solid fa-chevron-left"></i>
+                                                <i class="fa-solid fa-xmark"></i>
                                             </button>
                                         </div>
                                         <div class="p-4 overflow-y-auto">
