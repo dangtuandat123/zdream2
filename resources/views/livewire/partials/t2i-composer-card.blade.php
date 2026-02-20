@@ -97,8 +97,7 @@
                  ]">
 
                 {{-- Prompt textarea --}}
-                <div class="relative flex items-end gap-2 w-full z-20"
-                    x-data="{ 
+                <div class="relative flex items-end gap-2 w-full z-20" x-data="{ 
                         promptHeight: 'auto', 
                         bannedWords: ['nude', 'naked', 'nsfw', 'porn', 'sex', 'blood', 'gore', 'kill', 'murder', 'rape', 'pedophile', 'loli'],
                         isBanned: false,
@@ -108,8 +107,7 @@
                             this.$refs.promptInput.style.height = h; 
                             this.promptHeight = h; 
                         } 
-                    }"
-                    x-init="
+                    }" x-init="
                         $watch('$wire.prompt', val => { 
                             const lower = (val || '').toLowerCase(); 
                             isBanned = bannedWords.some(w => lower.includes(w)); 
@@ -158,12 +156,16 @@
                     {{-- Counter + Banned Words Warning (Attached to the textarea wrapper) --}}
                     <div class="absolute right-2 -bottom-5 flex items-center justify-end gap-3 transition-all duration-300 z-30 pointer-events-none"
                         x-show="(isAtBottom || isFocused || uiMode !== 'idle') && $wire.prompt?.length > 0" x-cloak>
-                        
-                        <div x-show="uiMode === 'generating'" class="text-purple-400 text-[10px] font-bold tracking-widest uppercase flex items-center gap-1.5 animate-pulse" x-cloak>
+
+                        <div x-show="uiMode === 'generating'"
+                            class="text-purple-400 text-[10px] font-bold tracking-widest uppercase flex items-center gap-1.5 animate-pulse"
+                            x-cloak>
                             <i class="fa-solid fa-wand-magic-sparkles"></i> AI Đang vẽ...
                         </div>
-                        
-                        <div x-show="isBanned" class="text-red-400 text-[10px] font-bold tracking-widest uppercase flex items-center gap-1" x-cloak>
+
+                        <div x-show="isBanned"
+                            class="text-red-400 text-[10px] font-bold tracking-widest uppercase flex items-center gap-1"
+                            x-cloak>
                             <i class="fa-solid fa-triangle-exclamation"></i> Có từ khóa cấm
                         </div>
 
@@ -281,7 +283,7 @@
                             </template>
                         </div>
                         {{-- ===== MODEL CHIP (DESKTOP) ===== --}}
-                        <div class="relative hidden sm:block">
+                        <div class="relative hidden sm:block" @click.away="showModelSheet = false">
                             <button type="button"
                                 @click="showModelSheet = !showModelSheet; showRatioSheet = false; showBatchSheet = false; showRefPicker = false"
                                 class="glass-chip shrink-0 flex items-center gap-1.5 h-8 px-2.5 rounded-lg text-xs font-medium transition-all duration-200 cursor-pointer"
@@ -295,7 +297,7 @@
 
                             {{-- Model Dropdown Desktop --}}
                             <div x-show="showModelSheet" x-cloak x-transition:enter="transition ease-out duration-200"
-                                @click.away="showModelSheet = false" x-transition:enter-start="opacity-0 translate-y-2"
+                                x-transition:enter-start="opacity-0 translate-y-2"
                                 x-transition:enter-end="opacity-100 translate-y-0"
                                 class="glass-popover hidden sm:block absolute bottom-full left-0 mb-2 w-72 p-2 rounded-xl z-[100]"
                                 @click.stop>
@@ -384,7 +386,7 @@
                         </div>
 
                         {{-- ===== RATIO CHIP (DESKTOP) ===== --}}
-                        <div class="relative hidden sm:block">
+                        <div class="relative hidden sm:block" @click.away="showRatioSheet = false">
                             <button type="button"
                                 @click="showRatioSheet = !showRatioSheet; showModelSheet = false; showBatchSheet = false; showRefPicker = false"
                                 class="glass-chip shrink-0 flex items-center gap-1.5 h-8 px-2.5 rounded-lg text-xs font-medium transition-all duration-200 cursor-pointer"
@@ -395,7 +397,7 @@
 
                             {{-- Ratio Dropdown Desktop --}}
                             <div x-show="showRatioSheet" x-cloak x-transition:enter="transition ease-out duration-200"
-                                @click.away="showRatioSheet = false" x-transition:enter-start="opacity-0 translate-y-2"
+                                x-transition:enter-start="opacity-0 translate-y-2"
                                 x-transition:enter-end="opacity-100 translate-y-0"
                                 class="glass-popover hidden sm:block absolute bottom-full left-0 mb-2 w-80 p-3 rounded-xl z-[100]"
                                 @click.stop>
@@ -477,7 +479,7 @@
                         </div>
 
                         {{-- ===== BATCH CHIP (DESKTOP) ===== --}}
-                        <div class="relative hidden sm:block">
+                        <div class="relative hidden sm:block" @click.away="showBatchSheet = false">
                             <button type="button"
                                 @click="showBatchSheet = !showBatchSheet; showRatioSheet = false; showModelSheet = false; showRefPicker = false"
                                 class="glass-chip shrink-0 flex items-center gap-1.5 h-8 px-2.5 rounded-lg text-xs font-medium transition-all duration-200 cursor-pointer"
@@ -488,7 +490,7 @@
 
                             {{-- Batch Dropdown Desktop --}}
                             <div x-show="showBatchSheet" x-cloak x-transition:enter="transition ease-out duration-200"
-                                @click.away="showBatchSheet = false" x-transition:enter-start="opacity-0 translate-y-2"
+                                x-transition:enter-start="opacity-0 translate-y-2"
                                 x-transition:enter-end="opacity-100 translate-y-0"
                                 class="glass-popover hidden sm:block absolute bottom-full left-0 mb-2 w-36 p-1.5 rounded-xl z-[100]"
                                 @click.stop>
