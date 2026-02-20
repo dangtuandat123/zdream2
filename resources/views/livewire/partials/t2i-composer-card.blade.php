@@ -97,7 +97,7 @@
 
                 {{-- Prompt textarea --}}
                 <div class="relative flex items-end gap-2 w-full z-20"
-                    x-data="{ promptHeight: 'auto', resize() { this.promptHeight = 'auto'; this.$nextTick(() => { this.promptHeight = Math.min(this.$refs.promptInput.scrollHeight, 144) + 'px' }); } }">
+                    x-data="{ promptHeight: 'auto', resize() { this.$refs.promptInput.style.height = 'auto'; let h = Math.min(this.$refs.promptInput.scrollHeight, 144) + 'px'; this.$refs.promptInput.style.height = h; this.promptHeight = h; } }">
                     {{-- Shrunk State View (Read-only, Truncated text) --}}
                     <div x-show="!isAtBottom && !isFocused && !$wire.isGenerating"
                         @click="isFocused = true; $nextTick(() => $refs.promptInput.focus())"
@@ -116,10 +116,10 @@
                         @input="resize()" placeholder="Mô tả ý tưởng của bạn..." :style="{ height: promptHeight }"
                         class="t2i-prompt-input relative z-10 flex-1 bg-transparent border-none outline-none ring-0 focus:ring-0 focus:outline-none text-sm sm:text-base resize-none transition-all leading-relaxed min-h-[44px] max-h-[144px] px-2 py-1.5 text-white placeholder:text-white/40 caret-white overflow-y-auto whitespace-pre-wrap break-words"
                         x-init="
-                            $watch('isFocused', () => { if (isFocused || isAtBottom || uiMode !== 'idle') $nextTick(() => resize()) });
-                            $watch('isAtBottom', () => { if (isFocused || isAtBottom || uiMode !== 'idle') $nextTick(() => resize()) });
-                            $watch('uiMode', () => { if (isFocused || isAtBottom || uiMode !== 'idle') $nextTick(() => resize()) });
-                            $watch('$wire.prompt', () => { if (isFocused || isAtBottom || uiMode !== 'idle') $nextTick(() => resize()) });
+                            $watch('isFocused', () => { if (isFocused || isAtBottom || uiMode !== 'idle') resize() });
+                            $watch('isAtBottom', () => { if (isFocused || isAtBottom || uiMode !== 'idle') resize() });
+                            $watch('uiMode', () => { if (isFocused || isAtBottom || uiMode !== 'idle') resize() });
+                            $watch('$wire.prompt', () => { if (isFocused || isAtBottom || uiMode !== 'idle') resize() });
                             setTimeout(() => resize(), 100);
                             $wire.on('imageGenerated', () => { setTimeout(() => resize(), 150); });
                         "
