@@ -98,7 +98,7 @@
                 {{-- Prompt textarea --}}
                 <div class="relative flex items-end gap-2 w-full z-20">
                     {{-- Shrunk State View (Read-only, Truncated text) --}}
-                    <div x-show="!isAtBottom && !isFocused"
+                    <div x-show="!isAtBottom && !isFocused && !$wire.isGenerating"
                         @click="isFocused = true; $nextTick(() => $refs.promptInput.focus())"
                         class="flex-1 h-[44px] px-2 py-2.5 text-white/70 text-sm sm:text-base truncate cursor-text transition-colors flex items-center group">
                         <div class="w-full truncate pr-10 group-hover:text-white transition-colors">
@@ -108,7 +108,7 @@
                     </div>
 
                     {{-- Expanded textarea (Interactive) --}}
-                    <textarea x-show="isAtBottom || isFocused" x-ref="promptInput"
+                    <textarea x-show="isAtBottom || isFocused || $wire.isGenerating" x-ref="promptInput"
                         wire:model.live.debounce.500ms="prompt" rows="1"
                         @focus="isFocused = true; focusLock = true; setTimeout(() => focusLock = false, 600)"
                         @blur="isFocused = false" @input="resize()" placeholder="Mô tả ý tưởng của bạn..."
@@ -118,29 +118,30 @@
                                 $el.style.height = 'auto'; 
                                 $el.style.height = Math.min($el.scrollHeight, 144) + 'px';
                             };
-                            $watch('isFocused', () => { if (isFocused || isAtBottom) $nextTick(() => resize()) });
-                            $watch('isAtBottom', () => { if (isFocused || isAtBottom) $nextTick(() => resize()) });
-                            $watch('$wire.prompt', () => { if (isFocused || isAtBottom) $nextTick(() => resize()) });
+                            $watch('isFocused', () => { if (isFocused || isAtBottom || $wire.isGenerating) $nextTick(() => resize()) });
+                            $watch('isAtBottom', () => { if (isFocused || isAtBottom || $wire.isGenerating) $nextTick(() => resize()) });
+                            $watch('$wire.prompt', () => { if (isFocused || isAtBottom || $wire.isGenerating) $nextTick(() => resize()) });
                             setTimeout(() => resize(), 100);
                         "
                         @keydown.enter.prevent="if(!$event.shiftKey) { $wire.generate(); } else { $el.value += '\n'; $el.dispatchEvent(new Event('input')) }"
-                        {{ $isGenerating ? 'disabled' : '' }}></textarea>
+                        :disabled="$wire.isGenerating"></textarea>
 
                     {{-- Mini Send Button (Shrunk only) --}}
-                    <div x-show="!isAtBottom && !isFocused" class="absolute right-2 top-1/2 -translate-y-1/2 z-20"
+                    <div x-show="!isAtBottom && !isFocused && !$wire.isGenerating"
+                        class="absolute right-2 top-1/2 -translate-y-1/2 z-20"
                         x-transition:enter="transition ease-out duration-200"
                         x-transition:enter-start="opacity-0 scale-75" x-transition:enter-end="opacity-100 scale-100">
                         <button type="button" @click="$wire.generate()"
                             :disabled="!$wire.prompt || $wire.prompt.length === 0"
                             class="w-9 h-9 rounded-full bg-gradient-to-tr from-purple-600 to-indigo-600 shadow-lg shadow-purple-900/40 text-white flex items-center justify-center hover:shadow-purple-500/50 hover:brightness-110 active:scale-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
-                            <i class="fa-solid fa-paper-plane text-xs relative -mt-0.5 -ml-0.5"></i>
+                            <i class="fa-solid fa-paper-plane text-xs relative -top-[0.5px] -ml-[0.5px]"></i>
                         </button>
                     </div>
                 </div>
 
                 {{-- Counter (Minimal) --}}
                 <div class="flex items-center justify-end -mt-1 px-2 mb-1 transition-all duration-300"
-                    x-show="(isAtBottom || isFocused) && $wire.prompt?.length > 0" x-cloak>
+                    x-show="(isAtBottom || isFocused || $wire.isGenerating) && $wire.prompt?.length > 0" x-cloak>
                     <span class="text-[11px] font-medium"
                         :class="$wire.prompt?.length > 1800 ? 'text-amber-400' : 'text-white/30'"
                         x-text="($wire.prompt?.length || 0) + ' / 2000'"></span>
@@ -585,21 +586,23 @@
                                 class="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover:block hidden group-hover:transition-transform group-hover:duration-500 group-hover:translate-x-[100%] skew-x-12">
                             </div>
 
-                            <span x-show="uiMode !== 'generating'" wire:loading.remove wire:target="generate"
-                                class="relative z-10 hidden sm:flex items-center gap-1.5">
-                                <i class="fa-solid fa-paper-plane text-xs relative -top-[1px]"></i>Tạo
-                            </span>
-                            <span x-show="uiMode === 'generating'" wire:loading wire:target="generate"
-                                class="relative z-10 hidden sm:flex items-center gap-1.5">
-                                <i class="fa-solid fa-spinner fa-spin text-xs"></i>Đang tạo
-                            </span>
+                            {{-- Core Button Label (Combines states to fix overlapping icons) --}}
+                            <div class="relative z-10 flex items-center justify-center gap-1.5 min-w-[50px]">
+                                {{-- Hide in Loading state completely --}}
+                                <div wire:loading.remove wire:target="generate" class="flex items-center gap-1.5">
+                                    <i class="fa-solid fa-paper-plane text-xs relative -top-[1px]"></i>
+                                    <span>Tạo</span>
+                                </div>
 
-                            {{-- Mobile only icon --}}
-                            <i x-show="uiMode !== 'generating'" wire:loading.remove wire:target="generate"
-                                class="fa-solid fa-paper-plane text-xs sm:hidden relative z-10 -ml-1"></i>
-                            <i x-show="uiMode === 'generating'" wire:loading wire:target="generate"
-                                class="fa-solid fa-spinner fa-spin text-xs sm:hidden relative z-10"></i>
+                                {{-- Show ONLY in Loading state --}}
+                                <div wire:loading.flex wire:target="generate" class="items-center gap-1.5"
+                                    style="display: none;">
+                                    <i class="fa-solid fa-spinner fa-spin text-xs"></i>
+                                    <span class="hidden sm:inline">Đang tạo</span>
+                                </div>
+                            </div>
 
+                            {{-- Credit Tag --}}
                             <span
                                 class="relative z-10 text-white text-[11px] font-medium ml-1 bg-black/25 px-1.5 py-0.5 rounded flex items-center gap-1">
                                 <span x-text="$wire.creditCost * $wire.batchSize"></span><i
