@@ -158,7 +158,7 @@
                             <button type="button"
                                 @click="showSettingsSheet = !showSettingsSheet; showRatioSheet = false; showModelSheet = false; showBatchSheet = false; showRefPicker = false"
                                 class="glass-chip shrink-0 flex items-center gap-1.5 h-8 px-2.5 rounded-lg text-xs font-medium transition-all duration-200 cursor-pointer"
-                                :class="showSettingsSheet ? 'glass-chip-active' : ''">
+                                :class="(showSettingsSheet || showModelSheet || showRatioSheet || showBatchSheet || showRefPicker) ? 'glass-chip-active' : ''">
                                 <i class="fa-solid fa-sliders text-[11px]"></i>
                                 <span>Tùy chỉnh</span>
                             </button>
@@ -184,93 +184,88 @@
                                                 <i class="fa-solid fa-xmark"></i>
                                             </button>
                                         </div>
-                                        <div class="p-4 overflow-y-auto space-y-6">
+                                        <div class="p-4 overflow-y-auto space-y-2.5">
 
-                                            {{-- Unified: Model Selection --}}
-                                            <div>
-                                                <div
-                                                    class="text-white/50 text-xs font-medium mb-3 uppercase tracking-wider">
-                                                    Chọn Model AI</div>
-                                                <div class="space-y-2">
-                                                    <template x-for="model in models" :key="model.id">
-                                                        <button type="button" @click="selectModel(model.id)"
-                                                            class="w-full flex items-center gap-3 p-3 rounded-xl transition-all text-left"
-                                                            :class="selectedModel === model.id ? 'bg-purple-500/30 border border-purple-500/50 shadow-inner shadow-purple-500/20' : 'bg-white/5 active:bg-white/10 border border-transparent'">
-                                                            <span class="text-2xl" x-text="model.icon"></span>
-                                                            <div class="flex-1 min-w-0">
-                                                                <div class="text-white font-semibold text-sm"
-                                                                    x-text="model.name"></div>
-                                                                <div class="flex items-center gap-2 mt-0.5">
-                                                                    <span class="text-white/50 text-[11px] truncate"
-                                                                        x-text="model.desc"></span>
-                                                                    <template x-if="model.supportsImageInput">
-                                                                        <span
-                                                                            class="text-[9px] px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-300 font-medium shrink-0"
-                                                                            x-text="'Ref ×' + model.maxImages"></span>
-                                                                    </template>
-                                                                </div>
-                                                            </div>
-                                                            <div class="w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0"
-                                                                :class="selectedModel === model.id ? 'border-purple-400 bg-purple-500' : 'border-white/20'">
-                                                                <i x-show="selectedModel === model.id"
-                                                                    class="fa-solid fa-check text-white text-[10px]"></i>
-                                                            </div>
-                                                        </button>
-                                                    </template>
+                                            {{-- Menu Item: Model --}}
+                                            <button type="button"
+                                                @click="showSettingsSheet = false; setTimeout(() => showModelSheet = true, 150)"
+                                                class="w-full flex items-center justify-between p-3.5 rounded-2xl bg-white/[0.03] active:bg-white/[0.06] border border-white/5 transition-all text-left shadow-sm">
+                                                <div class="flex items-center gap-3.5 min-w-0">
+                                                    <div
+                                                        class="w-10 h-10 rounded-full bg-purple-500/20 flex items-center justify-center shrink-0">
+                                                        <span class="text-lg" x-text="getSelectedModel()?.icon"></span>
+                                                    </div>
+                                                    <div class="min-w-0">
+                                                        <div class="text-white font-medium text-sm">Model AI</div>
+                                                        <div class="text-white/50 text-xs mt-0.5 truncate pr-2"
+                                                            x-text="getSelectedModel()?.name"></div>
+                                                    </div>
                                                 </div>
-                                            </div>
+                                                <i
+                                                    class="fa-solid fa-chevron-right text-white/20 text-xs shrink-0 pl-2"></i>
+                                            </button>
 
-                                            <hr class="border-white/5">
-
-                                            {{-- Unified: Ratio Selection --}}
-                                            <div>
-                                                <div
-                                                    class="text-white/50 text-xs font-medium mb-3 uppercase tracking-wider">
-                                                    Tỉ lệ khung hình</div>
-                                                <div class="grid grid-cols-4 gap-2">
-                                                    <template x-for="ratio in ratios" :key="ratio.id">
-                                                        <button type="button" @click="selectRatio(ratio.id)"
-                                                            class="flex flex-col items-center gap-2 p-3 rounded-xl transition-all"
-                                                            :class="selectedRatio === ratio.id ? 'bg-purple-500/30 border border-purple-500/50 shadow-inner shadow-purple-500/20' : 'bg-white/5 active:bg-white/10 border border-transparent'">
-                                                            <div class="w-8 h-8 flex items-center justify-center">
-                                                                <template x-if="ratio.icon">
-                                                                    <i :class="'fa-solid ' + ratio.icon"
-                                                                        class="text-white/60 text-lg"></i>
-                                                                </template>
-                                                                <template x-if="!ratio.icon">
-                                                                    <div class="border-2 border-white/40 rounded-sm"
-                                                                        :style="{
-                                                                        width: ratio.id.split(':')[0] > ratio.id.split(':')[1] ? '28px' : (ratio.id.split(':')[0] == ratio.id.split(':')[1] ? '24px' : '16px'),
-                                                                        height: ratio.id.split(':')[1] > ratio.id.split(':')[0] ? '28px' : (ratio.id.split(':')[0] == ratio.id.split(':')[1] ? '24px' : '16px')
-                                                                    }"></div>
-                                                                </template>
-                                                            </div>
-                                                            <span class="text-white/70 text-[11px] font-medium"
-                                                                x-text="ratio.label"></span>
-                                                        </button>
-                                                    </template>
+                                            {{-- Menu Item: Ratio --}}
+                                            <button type="button"
+                                                @click="showSettingsSheet = false; setTimeout(() => showRatioSheet = true, 150)"
+                                                class="w-full flex items-center justify-between p-3.5 rounded-2xl bg-white/[0.03] active:bg-white/[0.06] border border-white/5 transition-all text-left shadow-sm">
+                                                <div class="flex items-center gap-3.5 min-w-0">
+                                                    <div
+                                                        class="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400 shrink-0">
+                                                        <i class="fa-solid fa-crop-simple text-base"></i>
+                                                    </div>
+                                                    <div class="min-w-0">
+                                                        <div class="text-white font-medium text-sm">Tỉ lệ khung hình
+                                                        </div>
+                                                        <div class="text-white/50 text-xs mt-0.5 truncate pr-2"
+                                                            x-text="(ratios.find(r => r.id === selectedRatio) || {}).label || selectedRatio">
+                                                        </div>
+                                                    </div>
                                                 </div>
-                                            </div>
+                                                <i
+                                                    class="fa-solid fa-chevron-right text-white/20 text-xs shrink-0 pl-2"></i>
+                                            </button>
 
-                                            <hr class="border-white/5">
-
-                                            {{-- Unified: Batch Selection --}}
-                                            <div class="pb-2">
-                                                <div
-                                                    class="text-white/50 text-xs font-medium mb-3 uppercase tracking-wider">
-                                                    Số lượng ảnh/lần tạo</div>
-                                                <div class="grid grid-cols-4 gap-2">
-                                                    @foreach([1, 2, 3, 4] as $n)
-                                                        <button type="button" @click="$wire.$set('batchSize', {{ $n }})"
-                                                            class="flex flex-col items-center gap-1 p-3 rounded-xl transition-all"
-                                                            :class="$wire.batchSize === {{ $n }} ? 'bg-purple-500/30 border border-purple-500/50 shadow-inner shadow-purple-500/20' : 'bg-white/5 active:bg-white/10 border border-transparent'">
-                                                            <span
-                                                                class="text-white text-lg font-bold leading-none">{{ $n }}</span>
-                                                            <span class="text-white/50 text-[10px]">ảnh</span>
-                                                        </button>
-                                                    @endforeach
+                                            {{-- Menu Item: Batch Size --}}
+                                            <button type="button"
+                                                @click="showSettingsSheet = false; setTimeout(() => showBatchSheet = true, 150)"
+                                                class="w-full flex items-center justify-between p-3.5 rounded-2xl bg-white/[0.03] active:bg-white/[0.06] border border-white/5 transition-all text-left shadow-sm">
+                                                <div class="flex items-center gap-3.5 min-w-0">
+                                                    <div
+                                                        class="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-400 shrink-0">
+                                                        <i class="fa-solid fa-layer-group text-base"></i>
+                                                    </div>
+                                                    <div class="min-w-0">
+                                                        <div class="text-white font-medium text-sm">Số lượng ảnh/lần tạo
+                                                        </div>
+                                                        <div class="text-white/50 text-xs mt-0.5 truncate pr-2"
+                                                            x-text="$wire.batchSize + ' ảnh'"></div>
+                                                    </div>
                                                 </div>
-                                            </div>
+                                                <i
+                                                    class="fa-solid fa-chevron-right text-white/20 text-xs shrink-0 pl-2"></i>
+                                            </button>
+
+                                            {{-- Menu Item: Ref Images --}}
+                                            <button type="button"
+                                                @click="if (maxImages > 0) { showSettingsSheet = false; setTimeout(() => showRefPicker = true, 150); if(showRefPicker) loadRecentImages(); }"
+                                                class="w-full flex items-center justify-between p-3.5 rounded-2xl border transition-all text-left"
+                                                :class="maxImages === 0 ? 'bg-white/[0.01] border-transparent opacity-50 cursor-not-allowed' : 'bg-white/[0.03] active:bg-white/[0.06] border-white/5 shadow-sm'">
+                                                <div class="flex items-center gap-3.5 min-w-0">
+                                                    <div class="w-10 h-10 rounded-full flex items-center justify-center shrink-0"
+                                                        :class="maxImages === 0 ? 'bg-gray-500/20 text-gray-400' : 'bg-amber-500/20 text-amber-400'">
+                                                        <i class="fa-solid fa-images text-base"></i>
+                                                    </div>
+                                                    <div class="min-w-0">
+                                                        <div class="text-white font-medium text-sm">Ảnh tham chiếu</div>
+                                                        <div class="text-white/50 text-xs mt-0.5 truncate pr-2"
+                                                            x-text="maxImages === 0 ? 'Không hỗ trợ' : (selectedImages.length > 0 ? selectedImages.length + '/' + maxImages + ' ảnh đã chọn' : 'Chưa chọn ảnh')">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <i class="fa-solid fa-chevron-right text-white/20 text-xs shrink-0 pl-2"
+                                                    x-show="maxImages > 0"></i>
+                                            </button>
 
                                         </div>
                                     </div>
