@@ -96,7 +96,8 @@
                  ]">
 
                 {{-- Prompt textarea --}}
-                <div class="relative flex items-end gap-2 w-full z-20">
+                <div class="relative flex items-end gap-2 w-full z-20"
+                    x-data="{ promptHeight: 'auto', resize() { this.promptHeight = 'auto'; this.$nextTick(() => { this.promptHeight = Math.min(this.$refs.promptInput.scrollHeight, 144) + 'px' }); } }">
                     {{-- Shrunk State View (Read-only, Truncated text) --}}
                     <div x-show="!isAtBottom && !isFocused && !$wire.isGenerating"
                         @click="isFocused = true; $nextTick(() => $refs.promptInput.focus())"
@@ -112,18 +113,15 @@
                         wire:model.live.debounce.500ms="prompt" rows="1"
                         @focus="isFocused = true; focusLock = true; setTimeout(() => focusLock = false, 600)"
                         @blur="setTimeout(() => { if (!document.activeElement?.closest('.t2i-composer-wrap')) { isFocused = false; } }, 150)"
-                        @input="resize()" placeholder="Mô tả ý tưởng của bạn..."
-                        class="t2i-prompt-input relative z-10 flex-1 bg-transparent border-none outline-none ring-0 focus:ring-0 focus:outline-none text-sm sm:text-base resize-none transition-all leading-relaxed min-h-[44px] max-h-[144px] px-2 py-2.5 text-white placeholder:text-white/40 caret-white overflow-y-auto whitespace-pre-wrap break-words"
+                        @input="resize()" placeholder="Mô tả ý tưởng của bạn..." :style="{ height: promptHeight }"
+                        class="t2i-prompt-input relative z-10 flex-1 bg-transparent border-none outline-none ring-0 focus:ring-0 focus:outline-none text-sm sm:text-base resize-none transition-all leading-relaxed min-h-[44px] max-h-[144px] px-2 py-1.5 text-white placeholder:text-white/40 caret-white overflow-y-auto whitespace-pre-wrap break-words"
                         x-init="
-                            resize = () => {
-                                $el.style.height = 'auto'; 
-                                $el.style.height = Math.min($el.scrollHeight, 144) + 'px';
-                            };
                             $watch('isFocused', () => { if (isFocused || isAtBottom || uiMode !== 'idle') $nextTick(() => resize()) });
                             $watch('isAtBottom', () => { if (isFocused || isAtBottom || uiMode !== 'idle') $nextTick(() => resize()) });
                             $watch('uiMode', () => { if (isFocused || isAtBottom || uiMode !== 'idle') $nextTick(() => resize()) });
                             $watch('$wire.prompt', () => { if (isFocused || isAtBottom || uiMode !== 'idle') $nextTick(() => resize()) });
                             setTimeout(() => resize(), 100);
+                            $wire.on('imageGenerated', () => { setTimeout(() => resize(), 150); });
                         "
                         @keydown.enter.prevent="if(!$event.shiftKey) { $wire.generate(); } else { $el.value += '\n'; $el.dispatchEvent(new Event('input')) }"
                         :disabled="uiMode === 'generating'"></textarea>
@@ -142,16 +140,16 @@
                 </div>
 
                 {{-- Counter (Minimal) --}}
-                <div class="flex items-center justify-end -mt-1 px-2 mb-1 transition-all duration-300"
+                <div class="flex items-center justify-end px-2 pt-1 transition-all duration-300 relative z-30"
                     x-show="(isAtBottom || isFocused || uiMode !== 'idle') && $wire.prompt?.length > 0" x-cloak>
-                    <span class="text-[11px] font-medium"
-                        :class="$wire.prompt?.length > 1800 ? 'text-amber-400' : 'text-white/30'"
+                    <span class="text-[10px] uppercase font-bold tracking-widest"
+                        :class="$wire.prompt?.length > 1800 ? 'text-amber-400' : 'text-white/20'"
                         x-text="($wire.prompt?.length || 0) + ' / 2000'"></span>
                 </div>
 
                 {{-- Quick Settings Row + Generate --}}
-                <div class="flex items-end justify-between gap-2 relative z-20 transition-all duration-300 overflow-hidden"
-                    :class="!isAtBottom && !isFocused ? 'max-h-0 opacity-0 mt-0 pt-0' : 'max-h-[80px] opacity-100 mt-1'">
+                <div class="flex items-end justify-between gap-2 relative z-20 transition-all duration-300"
+                    :class="!isAtBottom && !isFocused && uiMode === 'idle' ? 'max-h-0 opacity-0 mt-0 pt-0 overflow-hidden' : 'max-h-[80px] opacity-100 mt-1 overflow-visible'">
                     <div class="flex items-center gap-1.5 flex-wrap"
                         @click.away="showRatioSheet = false; showModelSheet = false; showBatchSheet = false; showRefPicker = false">
 
