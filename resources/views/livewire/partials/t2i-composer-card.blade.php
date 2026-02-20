@@ -122,7 +122,8 @@
                             $watch('isAtBottom', () => { if (isFocused || isAtBottom) $nextTick(() => resize()) });
                             $watch('$wire.prompt', () => { if (isFocused || isAtBottom) $nextTick(() => resize()) });
                             setTimeout(() => resize(), 100);
-                        " @keydown.ctrl.enter.prevent="$wire.generate()" @keydown.meta.enter.prevent="$wire.generate()"
+                        "
+                        @keydown.enter.prevent="if(!$event.shiftKey) { $wire.generate(); } else { $el.value += '\n'; $el.dispatchEvent(new Event('input')) }"
                         {{ $isGenerating ? 'disabled' : '' }}></textarea>
 
                     {{-- Mini Send Button (Shrunk only) --}}
@@ -132,25 +133,17 @@
                         <button type="button" @click="$wire.generate()"
                             :disabled="!$wire.prompt || $wire.prompt.length === 0"
                             class="w-9 h-9 rounded-full bg-gradient-to-tr from-purple-600 to-indigo-600 shadow-lg shadow-purple-900/40 text-white flex items-center justify-center hover:shadow-purple-500/50 hover:brightness-110 active:scale-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
-                            <i class="fa-solid fa-arrow-up text-sm"></i>
+                            <i class="fa-solid fa-paper-plane text-xs relative -mt-0.5 -ml-0.5"></i>
                         </button>
                     </div>
                 </div>
 
-                {{-- Counter + hint --}}
-                <div class="flex items-center justify-between -mt-1 px-2 mb-1 transition-all duration-300"
+                {{-- Counter (Minimal) --}}
+                <div class="flex items-center justify-end -mt-1 px-2 mb-1 transition-all duration-300"
                     x-show="(isAtBottom || isFocused) && $wire.prompt?.length > 0" x-cloak>
                     <span class="text-[11px] font-medium"
                         :class="$wire.prompt?.length > 1800 ? 'text-amber-400' : 'text-white/30'"
                         x-text="($wire.prompt?.length || 0) + ' / 2000'"></span>
-                    <span class="text-[11px] text-white/30 hidden sm:inline font-medium tracking-wide">
-                        <kbd
-                            class="px-1.5 py-0.5 rounded-md bg-white/10 border border-white/20 text-[10px] shadow-sm">Ctrl</kbd>
-                        +
-                        <kbd
-                            class="px-1.5 py-0.5 rounded-md bg-white/10 border border-white/20 text-[10px] shadow-sm">Enter</kbd>
-                        để tạo
-                    </span>
                 </div>
 
                 {{-- Quick Settings Row + Generate --}}
@@ -583,7 +576,7 @@
                         </button>
                     @else
                         <button type="button" @click="$wire.generate()"
-                            class="t2i-generate-btn shrink-0 flex items-center justify-center gap-2 h-[42px] px-4 sm:px-6 rounded-xl text-white font-bold text-sm shadow-[0_0_20px_rgba(147,51,234,0.4)] hover:shadow-[0_0_25px_rgba(147,51,234,0.6)] active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-gradient-to-r from-purple-600 to-indigo-600 relative overflow-hidden group outline-none"
+                            class="t2i-generate-btn shrink-0 flex items-center justify-center gap-1.5 h-[42px] px-4 sm:px-6 rounded-xl text-white font-bold text-sm shadow-[0_0_20px_rgba(147,51,234,0.4)] hover:shadow-[0_0_25px_rgba(147,51,234,0.6)] active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-gradient-to-r from-purple-600 to-indigo-600 relative overflow-hidden group outline-none"
                             :disabled="!$wire.prompt?.trim() || uiMode === 'generating'" wire:loading.attr="disabled"
                             wire:loading.class="opacity-50 pointer-events-none" wire:target="generate">
 
@@ -593,22 +586,25 @@
                             </div>
 
                             <span x-show="uiMode !== 'generating'" wire:loading.remove wire:target="generate"
-                                class="relative z-10 hidden sm:inline"><i
-                                    class="fa-solid fa-wand-magic-sparkles text-xs mr-1.5"></i>Tạo</span>
+                                class="relative z-10 hidden sm:flex items-center gap-1.5">
+                                <i class="fa-solid fa-paper-plane text-xs relative -top-[1px]"></i>Tạo
+                            </span>
                             <span x-show="uiMode === 'generating'" wire:loading wire:target="generate"
-                                class="relative z-10 hidden sm:inline"><i
-                                    class="fa-solid fa-spinner fa-spin text-xs mr-1.5"></i>Đang tạo</span>
+                                class="relative z-10 hidden sm:flex items-center gap-1.5">
+                                <i class="fa-solid fa-spinner fa-spin text-xs"></i>Đang tạo
+                            </span>
 
                             {{-- Mobile only icon --}}
                             <i x-show="uiMode !== 'generating'" wire:loading.remove wire:target="generate"
-                                class="fa-solid fa-wand-magic-sparkles text-xs sm:hidden relative z-10"></i>
+                                class="fa-solid fa-paper-plane text-xs sm:hidden relative z-10 -ml-1"></i>
                             <i x-show="uiMode === 'generating'" wire:loading wire:target="generate"
                                 class="fa-solid fa-spinner fa-spin text-xs sm:hidden relative z-10"></i>
 
                             <span
-                                class="relative z-10 text-white/80 text-[11px] font-medium ml-1 bg-black/20 px-1.5 py-0.5 rounded-md"><span
-                                    x-text="$wire.creditCost * $wire.batchSize"></span> <i
-                                    class="fa-solid fa-bolt text-[9px] text-yellow-400"></i></span>
+                                class="relative z-10 text-white text-[11px] font-medium ml-1 bg-black/25 px-1.5 py-0.5 rounded flex items-center gap-1">
+                                <span x-text="$wire.creditCost * $wire.batchSize"></span><i
+                                    class="fa-solid fa-bolt text-[9px] text-yellow-400"></i>
+                            </span>
                         </button>
                     @endif
                 </div>
