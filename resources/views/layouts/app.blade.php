@@ -987,8 +987,30 @@
     <!-- ========== MOBILE BOTTOM TAB BAR ========== -->
     @persist('mobile-bottom-nav')
     <nav class="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-[#0a0a0f]/95 backdrop-blur-xl border-t border-white/10 safe-area-bottom"
-        x-data="{ currentPath: window.location.pathname }" @popstate.window="currentPath = window.location.pathname"
-        x-init="document.addEventListener('livewire:navigated', () => { currentPath = window.location.pathname })">
+        x-data="{ 
+            currentPath: window.location.pathname,
+            keyboardOpen: false,
+            detectKeyboard(e) {
+                if (e.type === 'focusin') {
+                    if (['INPUT', 'TEXTAREA'].includes(e.target.tagName)) {
+                        this.keyboardOpen = true;
+                    }
+                } else if (e.type === 'focusout') {
+                    this.keyboardOpen = false;
+                }
+            }
+        }" 
+        @popstate.window="currentPath = window.location.pathname"
+        @focusin.window="detectKeyboard($event)"
+        @focusout.window="detectKeyboard($event)"
+        x-init="document.addEventListener('livewire:navigated', () => { currentPath = window.location.pathname })"
+        x-show="!keyboardOpen"
+        x-transition:enter="transition ease-out duration-200"
+        x-transition:enter-start="opacity-0 translate-y-full"
+        x-transition:enter-end="opacity-100 translate-y-0"
+        x-transition:leave="transition ease-in duration-200"
+        x-transition:leave-start="opacity-100 translate-y-0"
+        x-transition:leave-end="opacity-0 translate-y-full">
         <div class="flex items-center justify-around h-14 px-1 max-w-lg mx-auto">
             <!-- Home -->
             <a href="{{ route('home') }}" wire:navigate
