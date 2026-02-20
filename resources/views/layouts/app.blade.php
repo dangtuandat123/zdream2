@@ -986,7 +986,7 @@
 
     <!-- ========== MOBILE BOTTOM TAB BAR ========== -->
     @persist('mobile-bottom-nav')
-    <nav class="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-[#0a0a0f]/95 backdrop-blur-xl border-t border-white/10 safe-area-bottom"
+    <nav class="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-[#0a0a0f] border-t border-white/10 safe-area-bottom"
         x-data="{ 
             currentPath: window.location.pathname,
             keyboardOpen: false,
