@@ -478,26 +478,12 @@
                         this._scrollHandler = () => {
                             const currentY = window.scrollY || document.documentElement.scrollTop || 0;
                             // Update isAtBottom state
-                            // Update isAtBottom state
                             this.isAtBottom = this.isNearBottom(300);
 
-                            // Auto-blur prompt logic
-                            // DEBUG: Trace scroll events
-                            // console.log(`Scroll: Y=${currentY} Last=${this.lastScrollY} Delta=${currentY - this.lastScrollY} System=${this.isSystemScrolling} Focused=${this.isFocused}`);
-
-                            // FIX: Added focusLock and isSystemScrolling check
-                            if (!this.isAtBottom && this.isFocused && !this.focusLock && !this.isSystemScrolling) {
-                                // Blur if user scrolled significantly (>10px) in EITHER direction
-                                // But ignore system-initiated scrolls (isSystemScrolling)
-                                const delta = currentY - this.lastScrollY;
-                                if (Math.abs(delta) > 10) {
-                                    console.log('BLUR TRIGGERED:', { delta, isSystemScrolling: this.isSystemScrolling });
-                                    this.isFocused = false;
-                                    if (document.activeElement && document.activeElement.tagName === 'TEXTAREA') {
-                                        document.activeElement.blur();
-                                    }
-                                }
-                            }
+                            // Bỏ logic tự động giật focus khi cuộn trang
+                            // Thay vì đánh mất bàn phím của user khi họ cuộn để xem lại hình cũ,
+                            // ta ưu tiên giữ nguyên textarea đang active. User phải tự blur bằng cách
+                            // bấm ra ngoài hoặc thu phím trên mobile.
 
                             this.lastScrollY = currentY;
 

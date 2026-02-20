@@ -84,72 +84,53 @@
         </template>
 
         {{-- Composer main card --}}
-        <div class="relative transition-all duration-500 ease-in-out z-50 flex justify-center w-full"
+        <div class="relative transition-all duration-300 ease-in-out z-50 flex justify-center w-full"
             :class="isFocused ? 'px-0 sm:px-4 mb-0 sm:mb-4' : (isAtBottom ? 'px-3 sm:px-4 mb-3 sm:mb-4' : 'px-4 mb-4')">
-            <div class="relative flex flex-col w-full transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] shadow-2xl"
+
+            <div class="relative flex flex-col w-full transition-all duration-300 shadow-2xl glass-popover bg-[#0f0f13]/95 backdrop-blur-3xl border border-white/10"
                 :class="[
                      isFocused 
-                        ? 'p-3 sm:p-4 rounded-t-3xl sm:rounded-2xl glass-popover bg-[#0f0f13]/95 backdrop-blur-3xl border border-white/10' 
-                        : (isAtBottom 
-                            ? 'p-3 sm:p-4 rounded-3xl max-w-3xl mx-auto glass-panel bg-black/40 border border-white/10' 
-                            : 'p-2 rounded-[2rem] max-w-lg mx-auto glass-panel border border-white/10'),
-                     isFocused ? 'max-w-none sm:max-w-4xl' : ''
+                        ? 'p-3 sm:p-4 rounded-t-3xl sm:rounded-2xl' 
+                        : 'p-3 rounded-3xl max-w-4xl mx-auto',
+                     (!isFocused && !isAtBottom) ? 'opacity-70 hover:opacity-100 scale-[0.98] hover:scale-100' : 'opacity-100 scale-100'
                  ]">
-                {{-- Prompt textarea --}} <div class="relative flex items-end gap-2 w-full z-20">
-                    {{-- Shrunk State Overlay (Visual Only - Pointer Events None) --}}
-                    <div x-show="!isAtBottom && !isFocused"
-                        class="absolute inset-0 z-0 flex items-center px-4 py-3 pr-12 text-white/70 text-sm sm:text-base pointer-events-none truncate select-none border border-transparent">
-                        <span x-text="$wire.prompt || 'Mô tả ý tưởng...'"
-                            :class="!$wire.prompt ? 'text-white/40' : ''"></span>
-                    </div>
 
-                    {{-- Prompt textarea (Always interactive) --}}
+                {{-- Prompt textarea --}}
+                <div class="relative flex items-end gap-2 w-full z-20">
                     <textarea x-ref="promptInput" wire:model.live.debounce.500ms="prompt" rows="1"
                         @focus="isFocused = true; focusLock = true; setTimeout(() => focusLock = false, 600)"
                         @blur="isFocused = false" @input="resize()" placeholder="Mô tả ý tưởng của bạn..."
-                        class="t2i-prompt-input relative z-10 flex-1 bg-transparent border-none outline-none ring-0 focus:ring-0 focus:outline-none text-sm sm:text-base resize-none transition-all leading-relaxed"
-                        :class="!isAtBottom && !isFocused ? 'h-[44px] px-4 py-2.5 text-transparent placeholder:text-transparent caret-transparent overflow-hidden' : 'min-h-[48px] max-h-[144px] px-2 py-3 text-white placeholder:text-white/40 caret-white overflow-y-auto whitespace-pre-wrap break-words'"
+                        class="t2i-prompt-input relative z-10 flex-1 bg-transparent border-none outline-none ring-0 focus:ring-0 focus:outline-none text-sm sm:text-base resize-none transition-all leading-relaxed min-h-[48px] max-h-[144px] px-2 py-3 text-white placeholder:text-white/40 caret-white overflow-y-auto whitespace-pre-wrap break-words"
                         x-init="
                             resize = () => {
-                                if (!isAtBottom && !isFocused) {
-                                    $el.style.height = '40px';
-                                    return;
-                                }
                                 $el.style.height = 'auto'; 
                                 $el.style.height = Math.min($el.scrollHeight, 144) + 'px';
                             };
                             $watch('isFocused', () => resize());
-                            $watch('isAtBottom', () => resize());
                             $watch('$wire.prompt', () => $nextTick(() => resize()));
+                            setTimeout(() => resize(), 100);
                         " @keydown.ctrl.enter.prevent="$wire.generate()" @keydown.meta.enter.prevent="$wire.generate()"
                         {{ $isGenerating ? 'disabled' : '' }}></textarea>
-
-                    {{-- Mini Send Button (Shrunk only) --}}
-                    <button type="button" x-show="!isAtBottom && !isFocused"
-                        x-transition:enter="transition ease-out duration-200"
-                        x-transition:enter-start="opacity-0 scale-75" x-transition:enter-end="opacity-100 scale-100"
-                        @click="$wire.generate()" :disabled="$wire.prompt?.length === 0"
-                        class="shrink-0 w-11 h-11 rounded-full bg-purple-600 shadow-[0_0_15px_rgba(147,51,234,0.4)] text-white flex items-center justify-center hover:bg-purple-500 hover:shadow-[0_0_20px_rgba(147,51,234,0.6)] transition-all disabled:hidden">
-                        <i class="fa-solid fa-arrow-up text-base"></i>
-                    </button>
                 </div>
 
                 {{-- Counter + hint --}}
-                <div class="flex items-center justify-between -mt-1" x-show="$wire.prompt?.length > 0" x-cloak>
-                    <span class="text-[11px] text-white/30"
-                        :class="{ 'text-amber-400/70': $wire.prompt?.length > 1800, 'text-red-400/70': $wire.prompt?.length > 2000 }"
+                <div class="flex items-center justify-between -mt-1 px-2 mb-1" x-show="$wire.prompt?.length > 0"
+                    x-cloak>
+                    <span class="text-[11px] font-medium"
+                        :class="$wire.prompt?.length > 1800 ? 'text-amber-400' : 'text-white/30'"
                         x-text="($wire.prompt?.length || 0) + ' / 2000'"></span>
-                    <span class="text-[11px] text-white/20 hidden sm:inline">
-                        <kbd class="px-1 py-0.5 rounded bg-white/5 border border-white/10 text-[10px]">Ctrl</kbd>
+                    <span class="text-[11px] text-white/30 hidden sm:inline font-medium tracking-wide">
+                        <kbd
+                            class="px-1.5 py-0.5 rounded-md bg-white/10 border border-white/20 text-[10px] shadow-sm">Ctrl</kbd>
                         +
-                        <kbd class="px-1 py-0.5 rounded bg-white/5 border border-white/10 text-[10px]">Enter</kbd>
+                        <kbd
+                            class="px-1.5 py-0.5 rounded-md bg-white/10 border border-white/20 text-[10px] shadow-sm">Enter</kbd>
                         để tạo
                     </span>
                 </div>
 
                 {{-- Quick Settings Row + Generate --}}
-                <div class="flex items-end justify-between gap-2 transition-all duration-500 relative z-20"
-                    :class="!isAtBottom && !isFocused ? 'max-h-0 opacity-0 -mt-1 overflow-hidden' : 'max-h-[60px] opacity-100 overflow-visible mt-2'">
+                <div class="flex items-end justify-between gap-2 relative z-20 mt-1">
                     <div class="flex items-center gap-1.5 flex-wrap"
                         @click.away="showRatioSheet = false; showModelSheet = false; showBatchSheet = false; showRefPicker = false">
 
@@ -578,21 +559,31 @@
                     @else
                         <button type="button" @click="$wire.generate()"
                             class="t2i-generate-btn shrink-0 flex items-center justify-center gap-2 h-[42px] px-4 sm:px-6 rounded-xl text-white font-bold text-sm shadow-[0_0_20px_rgba(147,51,234,0.4)] hover:shadow-[0_0_25px_rgba(147,51,234,0.6)] active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-gradient-to-r from-purple-600 to-indigo-600 relative overflow-hidden group outline-none"
-                            :disabled="!$wire.prompt?.trim() || uiMode === 'generating'"
-                            wire:loading.attr="disabled" wire:loading.class="opacity-50 pointer-events-none"
-                            wire:target="generate">
-                            
-                            {{-- Glow sweep effect --}}
-                            <div class="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover:block hidden group-hover:transition-transform group-hover:duration-500 group-hover:translate-x-[100%] skew-x-12"></div>
-                            
-                            <span x-show="uiMode !== 'generating'" wire:loading.remove wire:target="generate" class="relative z-10 hidden sm:inline"><i class="fa-solid fa-wand-magic-sparkles text-xs mr-1.5"></i>Tạo</span>
-                            <span x-show="uiMode === 'generating'" wire:loading wire:target="generate" class="relative z-10 hidden sm:inline"><i class="fa-solid fa-spinner fa-spin text-xs mr-1.5"></i>Đang tạo</span>
-                            
-                            {{-- Mobile only icon --}}
-                            <i x-show="uiMode !== 'generating'" wire:loading.remove wire:target="generate" class="fa-solid fa-wand-magic-sparkles text-xs sm:hidden relative z-10"></i>
-                            <i x-show="uiMode === 'generating'" wire:loading wire:target="generate" class="fa-solid fa-spinner fa-spin text-xs sm:hidden relative z-10"></i>
+                            :disabled="!$wire.prompt?.trim() || uiMode === 'generating'" wire:loading.attr="disabled"
+                            wire:loading.class="opacity-50 pointer-events-none" wire:target="generate">
 
-                            <span class="relative z-10 text-white/80 text-[11px] font-medium ml-1 bg-black/20 px-1.5 py-0.5 rounded-md"><span x-text="$wire.creditCost * $wire.batchSize"></span> <i class="fa-solid fa-bolt text-[9px] text-yellow-400"></i></span>
+                            {{-- Glow sweep effect --}}
+                            <div
+                                class="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover:block hidden group-hover:transition-transform group-hover:duration-500 group-hover:translate-x-[100%] skew-x-12">
+                            </div>
+
+                            <span x-show="uiMode !== 'generating'" wire:loading.remove wire:target="generate"
+                                class="relative z-10 hidden sm:inline"><i
+                                    class="fa-solid fa-wand-magic-sparkles text-xs mr-1.5"></i>Tạo</span>
+                            <span x-show="uiMode === 'generating'" wire:loading wire:target="generate"
+                                class="relative z-10 hidden sm:inline"><i
+                                    class="fa-solid fa-spinner fa-spin text-xs mr-1.5"></i>Đang tạo</span>
+
+                            {{-- Mobile only icon --}}
+                            <i x-show="uiMode !== 'generating'" wire:loading.remove wire:target="generate"
+                                class="fa-solid fa-wand-magic-sparkles text-xs sm:hidden relative z-10"></i>
+                            <i x-show="uiMode === 'generating'" wire:loading wire:target="generate"
+                                class="fa-solid fa-spinner fa-spin text-xs sm:hidden relative z-10"></i>
+
+                            <span
+                                class="relative z-10 text-white/80 text-[11px] font-medium ml-1 bg-black/20 px-1.5 py-0.5 rounded-md"><span
+                                    x-text="$wire.creditCost * $wire.batchSize"></span> <i
+                                    class="fa-solid fa-bolt text-[9px] text-yellow-400"></i></span>
                         </button>
                     @endif
                 </div>
