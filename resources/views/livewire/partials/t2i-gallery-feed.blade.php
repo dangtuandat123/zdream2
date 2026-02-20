@@ -17,7 +17,7 @@
         <div class="h-1 w-full bg-gradient-to-r from-transparent via-purple-500/80 to-transparent animate-pulse"></div>
         {{-- Floating pill --}}
         <div class="flex justify-center mt-3">
-            <div class="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-black/80 border border-white/10">
+            <div class="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-black/60 backdrop-blur-md border border-white/10 shadow-lg">
                 <svg class="w-3.5 h-3.5 animate-spin text-purple-400" viewBox="0 0 24 24" fill="none">
                     <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2.5" opacity="0.25"/>
                     <path d="M22 12a10 10 0 01-10 10" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
@@ -180,13 +180,13 @@
                                             {{-- Unified Actions Overlay --}}
                                             <div class="absolute top-2 right-2 flex gap-1.5 z-10 sm:opacity-0 sm:group-hover/img:opacity-100 transition-all duration-200">
                                                 <button @click.stop="downloadImage('{{ $image->image_url }}')" 
-                                                    class="h-8 w-8 rounded-full bg-black/80 text-white/90 hover:text-white hover:bg-white/20 flex items-center justify-center transition-all duration-200 border border-white/10 active:scale-90" 
+                                                    class="h-8 w-8 rounded-full bg-black/60 backdrop-blur-md text-white/90 hover:text-white hover:bg-white/20 flex items-center justify-center transition-all duration-200 border border-white/10 active:scale-90 shadow-sm" 
                                                     title="Tải xuống">
                                                     <i class="fa-solid fa-download text-[13px]"></i>
                                                 </button>
                                                 <button wire:click="deleteImage({{ $image->id }})" @click.stop 
                                                     wire:confirm="Bạn có chắc muốn xóa ảnh này?"
-                                                    class="h-8 w-8 rounded-full bg-black/80 text-white/90 hover:text-white hover:bg-red-500/80 flex items-center justify-center transition-all duration-200 border border-white/10 active:scale-90" 
+                                                    class="h-8 w-8 rounded-full bg-black/60 backdrop-blur-md text-white/90 hover:text-white hover:bg-red-500/80 flex items-center justify-center transition-all duration-200 border border-white/10 active:scale-90 shadow-sm" 
                                                     title="Xóa">
                                                     <i class="fa-solid fa-trash text-[13px]"></i>
                                                 </button>
@@ -223,7 +223,8 @@
                                                 this.prompts = shuffled.slice(0, 3);
                                             }
                                         }">
-                                class="w-16 h-16 mx-auto rounded-2xl bg-white/[0.05] border border-white/[0.08] flex items-center justify-center mb-4">
+                            <div
+                                class="w-16 h-16 mx-auto rounded-2xl bg-white/[0.05] border border-white/[0.08] flex items-center justify-center mb-4 shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]">
                                 <i class="fa-solid fa-image text-3xl text-white/20"></i>
                             </div>
                             <h3 class="text-white/95 font-medium text-lg mb-2">Chưa có hình ảnh nào</h3>

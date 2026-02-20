@@ -171,7 +171,7 @@
     {{-- MOBILE MASTER FILTER BOTTOM SHEET --}}
     <template x-teleport="body">
         <div x-show="openFilter === 'mobile_sheet'" x-cloak
-            class="sm:hidden fixed inset-0 z-[9999] flex items-end justify-center bg-black/95"
+            class="sm:hidden fixed inset-0 z-[9999] flex items-end justify-center bg-black/80 backdrop-blur-sm"
             @click.self="openFilter = null">
             <div x-show="openFilter === 'mobile_sheet'" @click.stop
                 x-transition:enter="transition ease-out duration-300" x-transition:enter-start="translate-y-full"

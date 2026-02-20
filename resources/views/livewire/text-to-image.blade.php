@@ -109,6 +109,7 @@
         .glass-popover {
             background: #12151d;
             border: 1px solid var(--line-2);
+            box-shadow: 0 10px 24px rgba(0, 0, 0, 0.35);
         }
 
         .glass-chip {
@@ -136,7 +137,9 @@
 
         @media (min-width: 640px) {
             .t2i-filter-wrap .t2i-topbar {
-                background: rgba(11, 13, 18, 0.98);
+                background: rgba(11, 13, 18, 0.94);
+                backdrop-filter: blur(10px);
+                -webkit-backdrop-filter: blur(10px);
             }
         }
 
@@ -163,6 +166,7 @@
             background: rgba(30, 64, 175, 0.92);
             border: 1px solid rgba(96, 165, 250, 0.5);
             color: #eff6ff;
+            box-shadow: 0 8px 20px rgba(30, 64, 175, 0.28);
         }
 
         .t2i-jump-newest:hover {
@@ -171,7 +175,8 @@
 
         .t2i-composer-wrap .t2i-composer-card {
             border: 1px solid var(--line-2);
-            background: rgba(16, 19, 27, 0.98);
+            background: rgba(16, 19, 27, 0.96);
+            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.32);
         }
 
         .t2i-prompt-input {
@@ -185,6 +190,7 @@
         .t2i-generate-btn {
             background: #2563eb;
             border: 1px solid #3b82f6;
+            box-shadow: 0 8px 18px rgba(37, 99, 235, 0.3);
         }
 
         .t2i-generate-btn:hover {
@@ -194,6 +200,7 @@
         .t2i-cancel-btn {
             background: #b91c1c;
             border: 1px solid #ef4444;
+            box-shadow: 0 8px 18px rgba(185, 28, 28, 0.3);
         }
 
         .t2i-cancel-btn:hover {
@@ -201,7 +208,7 @@
         }
 
         .t2i-preview {
-            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(2px);
         }
 
         .safe-area-bottom {
@@ -229,8 +236,9 @@
         }
 
         .new-batch-glow {
-            border: 1px solid rgba(59, 130, 246, 0.5);
+            box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.28) inset;
             border-radius: 0.55rem;
+            transition: box-shadow 0.8s ease-out;
         }
 
         @keyframes shimmer {
@@ -319,7 +327,6 @@
                     showBatchSheet: false,
                     showRefPicker: false,
                     showSettingsSheet: false,
-                    isUploadingRefs: false,
 
                     selectedRatio: @js($aspectRatio),
                     selectedModel: @js($modelId),
@@ -1360,7 +1367,6 @@
                     },
 
                     processFiles(files) {
-                        this.isUploadingRefs = true;
                         const remaining = this.maxImages - this.selectedImages.length;
                         const toProcess = files.slice(0, remaining);
                         const skipped = files.length - toProcess.length;
@@ -1369,7 +1375,6 @@
 
                         if (total === 0 && skipped > 0) {
                             this.notify(`Đã đạt giới hạn ${this.maxImages} ảnh`, 'warning');
-                            this.isUploadingRefs = false;
                             return;
                         }
 
@@ -1377,7 +1382,6 @@
                             if (file.size > 10 * 1024 * 1024) {
                                 this.notify('Ảnh quá lớn (tối đa 10MB)', 'error');
                                 processed++;
-                                if (processed >= total) this.isUploadingRefs = false;
                                 return;
                             }
                             const reader = new FileReader();
@@ -1395,15 +1399,10 @@
                                     if (skipped > 0) {
                                         this.notify(`Đã thêm ${total} ảnh, bỏ ${skipped} (vượt giới hạn ${this.maxImages})`, 'warning');
                                     }
-                                    setTimeout(() => this.isUploadingRefs = false, 300); // Thêm delay nhỏ để UI không chớp
                                 }
                             };
                             reader.readAsDataURL(file);
                         });
-
-                        if (total === 0) {
-                            this.isUploadingRefs = false;
-                        }
                     },
 
                     addFromUrl() {

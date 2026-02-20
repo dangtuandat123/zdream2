@@ -87,7 +87,7 @@
         <div class="relative transition-all duration-300 ease-in-out z-50 flex justify-center w-full"
             :class="isFocused ? 'px-0 sm:px-4 mb-0 sm:mb-4' : (isAtBottom ? 'px-2 sm:px-4 mb-2 sm:mb-4' : 'px-4 mb-4')">
 
-            <div class="relative flex flex-col w-full transition-all duration-300 glass-popover bg-[#0a0a0c]/95 border border-white/10"
+            <div class="relative flex flex-col w-full transition-all duration-300 shadow-2xl glass-popover bg-[#0a0a0c]/95 backdrop-blur-3xl border border-white/10"
                 :class="[
                      isFocused 
                         ? 'p-2.5 sm:p-3.5 rounded-t-3xl sm:rounded-2xl' 
@@ -133,7 +133,7 @@
                         x-transition:enter-start="opacity-0 scale-75" x-transition:enter-end="opacity-100 scale-100">
                         <button type="button" @click="$wire.generate()"
                             :disabled="!$wire.prompt || $wire.prompt.length === 0"
-                            class="w-9 h-9 rounded-full bg-gradient-to-tr from-purple-600 to-indigo-600 text-white flex items-center justify-center hover:brightness-110 active:scale-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                            class="w-9 h-9 rounded-full bg-gradient-to-tr from-purple-600 to-indigo-600 shadow-lg shadow-purple-900/40 text-white flex items-center justify-center hover:shadow-purple-500/50 hover:brightness-110 active:scale-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
                             <i class="fa-solid fa-paper-plane text-xs relative -top-[0.5px] -ml-[0.5px]"></i>
                         </button>
                     </div>
@@ -165,7 +165,7 @@
                             {{-- Unified Settings Bottom Sheet Mobile --}}
                             <template x-teleport="body">
                                 <div x-show="showSettingsSheet" x-cloak
-                                    class="sm:hidden fixed inset-0 z-[9999] flex items-end justify-center bg-black/95"
+                                    class="sm:hidden fixed inset-0 z-[9999] flex items-end justify-center bg-black/80 backdrop-blur-md"
                                     @click.self="showSettingsSheet = false">
                                     <div x-show="showSettingsSheet" @click.stop
                                         x-transition:enter="transition ease-out duration-300"
@@ -188,7 +188,7 @@
                                             {{-- Menu Item: Model --}}
                                             <button type="button"
                                                 @click="showSettingsSheet = false; setTimeout(() => showModelSheet = true, 150)"
-                                                class="w-full flex items-center justify-between p-3.5 rounded-2xl bg-white/[0.03] active:bg-white/[0.06] border border-white/5 transition-all text-left">
+                                                class="w-full flex items-center justify-between p-3.5 rounded-2xl bg-white/[0.03] active:bg-white/[0.06] border border-white/5 transition-all text-left shadow-sm">
                                                 <div class="flex items-center gap-3.5 min-w-0">
                                                     <div
                                                         class="w-10 h-10 rounded-full bg-purple-500/20 flex items-center justify-center shrink-0">
@@ -207,7 +207,7 @@
                                             {{-- Menu Item: Ratio --}}
                                             <button type="button"
                                                 @click="showSettingsSheet = false; setTimeout(() => showRatioSheet = true, 150)"
-                                                class="w-full flex items-center justify-between p-3.5 rounded-2xl bg-white/[0.03] active:bg-white/[0.06] border border-white/5 transition-all text-left">
+                                                class="w-full flex items-center justify-between p-3.5 rounded-2xl bg-white/[0.03] active:bg-white/[0.06] border border-white/5 transition-all text-left shadow-sm">
                                                 <div class="flex items-center gap-3.5 min-w-0">
                                                     <div
                                                         class="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400 shrink-0">
@@ -228,7 +228,7 @@
                                             {{-- Menu Item: Batch Size --}}
                                             <button type="button"
                                                 @click="showSettingsSheet = false; setTimeout(() => showBatchSheet = true, 150)"
-                                                class="w-full flex items-center justify-between p-3.5 rounded-2xl bg-white/[0.03] active:bg-white/[0.06] border border-white/5 transition-all text-left">
+                                                class="w-full flex items-center justify-between p-3.5 rounded-2xl bg-white/[0.03] active:bg-white/[0.06] border border-white/5 transition-all text-left shadow-sm">
                                                 <div class="flex items-center gap-3.5 min-w-0">
                                                     <div
                                                         class="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-400 shrink-0">
@@ -300,7 +300,7 @@
                             {{-- Model Bottom Sheet Mobile --}}
                             <template x-teleport="body">
                                 <div x-show="showModelSheet" x-cloak
-                                    class="sm:hidden fixed inset-0 z-[9999] flex items-end justify-center bg-black/95"
+                                    class="sm:hidden fixed inset-0 z-[9999] flex items-end justify-center bg-black/80 backdrop-blur-md"
                                     @click.self="showModelSheet = false">
                                     <div x-show="showModelSheet" @click.stop
                                         x-transition:enter="transition ease-out duration-300"
@@ -399,7 +399,7 @@
                             {{-- Ratio Bottom Sheet Mobile --}}
                             <template x-teleport="body">
                                 <div x-show="showRatioSheet" x-cloak
-                                    class="sm:hidden fixed inset-0 z-[9999] flex items-end justify-center bg-black/95"
+                                    class="sm:hidden fixed inset-0 z-[9999] flex items-end justify-center bg-black/80 backdrop-blur-md"
                                     @click.self="showRatioSheet = false">
                                     <div x-show="showRatioSheet" @click.stop
                                         x-transition:enter="transition ease-out duration-300"
@@ -482,7 +482,7 @@
                             {{-- Batch Bottom Sheet Mobile --}}
                             <template x-teleport="body">
                                 <div x-show="showBatchSheet" x-cloak
-                                    class="sm:hidden fixed inset-0 z-[9999] flex items-end justify-center bg-black/95"
+                                    class="sm:hidden fixed inset-0 z-[9999] flex items-end justify-center bg-black/80 backdrop-blur-md"
                                     @click.self="showBatchSheet = false" @click.stop>
                                     <div x-show="showBatchSheet" x-transition:enter="transition ease-out duration-300"
                                         x-transition:enter-start="translate-y-full"
@@ -569,18 +569,11 @@
 
                                 {{-- Upload zone --}}
                                 <label
-                                    class="flex items-center justify-center gap-2 p-3 rounded-lg border-2 border-dashed border-white/[0.1] text-white/50 text-xs transition-all mb-2"
-                                    :class="isUploadingRefs ? 'cursor-not-allowed opacity-70' : 'cursor-pointer hover:border-purple-500/40 hover:text-purple-300'">
-                                    <template x-if="isUploadingRefs">
-                                        <i class="fa-solid fa-spinner fa-spin text-purple-400"></i>
-                                    </template>
-                                    <template x-if="!isUploadingRefs">
-                                        <i class="fa-solid fa-cloud-arrow-up"></i>
-                                    </template>
-                                    <span
-                                        x-text="isUploadingRefs ? 'Đang xử lý ảnh...' : 'Chọn hoặc kéo thả ảnh'"></span>
+                                    class="flex items-center justify-center gap-2 p-3 rounded-lg border-2 border-dashed border-white/[0.1] hover:border-purple-500/40 text-white/50 hover:text-purple-300 text-xs cursor-pointer transition-all mb-2">
+                                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                                    <span>Chọn hoặc kéo thả ảnh</span>
                                     <input type="file" accept="image/*" multiple class="hidden"
-                                        @change="handleFileSelect($event)" :disabled="isUploadingRefs">
+                                        @change="handleFileSelect($event)">
                                 </label>
 
                                 {{-- URL input --}}
@@ -611,33 +604,23 @@
                                 </div>
 
                                 {{-- Selected preview --}}
-                                <div x-show="selectedImages.length > 0" class="mt-2 text-left">
-                                    <div class="flex items-center justify-between mb-1.5">
-                                        <div class="text-white/40 text-[10px] font-medium">Đã chọn</div>
-                                        <button @click.stop="clearAll()"
-                                            class="text-red-400 hover:text-red-300 text-[10px] transition-colors">
-                                            Xóa tất cả
-                                        </button>
-                                    </div>
-                                    <div class="flex gap-1.5 flex-wrap">
-                                        <template x-for="img in selectedImages" :key="img.id">
-                                            <div
-                                                class="relative w-10 h-10 rounded-lg overflow-hidden group border border-purple-500/30">
-                                                <img :src="img.url" class="w-full h-full object-cover">
-                                                <button @click="removeImage(img.id)"
-                                                    class="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                                    <i class="fa-solid fa-xmark text-white text-xs"></i>
-                                                </button>
-                                            </div>
-                                        </template>
-                                    </div>
+                                <div x-show="selectedImages.length > 0" class="mt-2 flex gap-1.5 flex-wrap">
+                                    <template x-for="img in selectedImages" :key="img.id">
+                                        <div class="relative w-10 h-10 rounded-lg overflow-hidden group">
+                                            <img :src="img.url" class="w-full h-full object-cover">
+                                            <button @click="removeImage(img.id)"
+                                                class="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <i class="fa-solid fa-xmark text-white text-xs"></i>
+                                            </button>
+                                        </div>
+                                    </template>
                                 </div>
                             </div>
 
                             {{-- Mobile Ref Sheet --}}
                             <template x-teleport="body">
                                 <div x-show="showRefPicker && maxImages > 0" x-cloak
-                                    class="sm:hidden fixed inset-0 z-[9999] flex items-end justify-center bg-black/95"
+                                    class="sm:hidden fixed inset-0 z-[9999] flex items-end justify-center bg-black/80 backdrop-blur-md"
                                     @click.self="showRefPicker = false" @click.stop>
                                     <div x-show="showRefPicker" x-transition:enter="transition ease-out duration-300"
                                         x-transition:enter-start="translate-y-full"
@@ -659,18 +642,11 @@
                                         <div class="p-4 overflow-y-auto">
                                             {{-- Upload --}}
                                             <label
-                                                class="flex items-center justify-center gap-2 p-4 rounded-xl border-2 border-dashed border-white/[0.1] text-white/50 text-sm transition-all mb-3"
-                                                :class="isUploadingRefs ? 'cursor-not-allowed opacity-70 bg-white/[0.02]' : 'cursor-pointer active:border-purple-500/40'">
-                                                <template x-if="isUploadingRefs">
-                                                    <i class="fa-solid fa-spinner fa-spin text-purple-400 text-lg"></i>
-                                                </template>
-                                                <template x-if="!isUploadingRefs">
-                                                    <i class="fa-solid fa-cloud-arrow-up text-lg"></i>
-                                                </template>
-                                                <span
-                                                    x-text="isUploadingRefs ? 'Đang xử lý ảnh...' : 'Chọn ảnh từ thiết bị'"></span>
+                                                class="flex items-center justify-center gap-2 p-4 rounded-xl border-2 border-dashed border-white/[0.1] active:border-purple-500/40 text-white/50 text-sm cursor-pointer transition-all mb-3">
+                                                <i class="fa-solid fa-cloud-arrow-up text-lg"></i>
+                                                <span>Chọn ảnh từ thiết bị</span>
                                                 <input type="file" accept="image/*" multiple class="hidden"
-                                                    @change="handleFileSelect($event)" :disabled="isUploadingRefs">
+                                                    @change="handleFileSelect($event)">
                                             </label>
 
                                             {{-- URL --}}
@@ -703,20 +679,13 @@
 
                                             {{-- Selected --}}
                                             <div x-show="selectedImages.length > 0" class="mt-3">
-                                                <div class="flex items-center justify-between mb-2">
-                                                    <div class="text-white/40 text-xs font-medium">Đã chọn</div>
-                                                    <button @click.stop="clearAll()"
-                                                        class="text-red-400 hover:text-red-300 text-xs transition-colors py-1">
-                                                        Xóa tất cả
-                                                    </button>
-                                                </div>
-                                                <div class="flex gap-2 flex-wrap max-h-48 overflow-y-auto">
+                                                <div class="text-white/40 text-xs font-medium mb-2">Đã chọn</div>
+                                                <div class="flex gap-2 flex-wrap">
                                                     <template x-for="img in selectedImages" :key="img.id">
-                                                        <div
-                                                            class="relative w-14 h-14 rounded-xl overflow-hidden border border-purple-500/30">
+                                                        <div class="relative w-14 h-14 rounded-xl overflow-hidden">
                                                             <img :src="img.url" class="w-full h-full object-cover">
                                                             <button @click="removeImage(img.id)"
-                                                                class="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/70 flex items-center justify-center hover:bg-black/90 active:scale-95 transition-all">
+                                                                class="absolute top-0.5 right-0.5 w-5 h-5 rounded-full bg-black/70 flex items-center justify-center">
                                                                 <i class="fa-solid fa-xmark text-white text-[10px]"></i>
                                                             </button>
                                                         </div>
@@ -739,7 +708,7 @@
                         </button>
                     @else
                         <button type="button" @click="$wire.generate()"
-                            class="t2i-generate-btn shrink-0 flex items-center justify-center gap-1.5 h-10 px-4 sm:px-6 rounded-xl text-white font-semibold text-sm active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-gradient-to-r from-purple-600 to-indigo-600 relative overflow-hidden group outline-none"
+                            class="t2i-generate-btn shrink-0 flex items-center justify-center gap-1.5 h-10 px-4 sm:px-6 rounded-xl text-white font-semibold text-sm shadow-[0_0_20px_rgba(147,51,234,0.3)] hover:shadow-[0_0_25px_rgba(147,51,234,0.5)] active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-gradient-to-r from-purple-600 to-indigo-600 relative overflow-hidden group outline-none"
                             :disabled="!$wire.prompt?.trim() || uiMode === 'generating'" wire:loading.attr="disabled"
                             wire:loading.class="opacity-50 pointer-events-none" wire:target="generate">
 

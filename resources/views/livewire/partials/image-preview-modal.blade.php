@@ -13,7 +13,7 @@
     x-effect="if (showPreview) { $nextTick(() => { const btn = $refs.previewModal?.querySelector('[aria-label]'); if (btn) btn.focus(); }); }">
 
     {{-- Backdrop --}}
-    <div class="absolute inset-0 bg-black/95" @click="closePreview()" x-show="showPreview"
+    <div class="absolute inset-0 bg-black/90 backdrop-blur-sm" @click="closePreview()" x-show="showPreview"
         x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0"
         x-transition:enter-end="opacity-100" x-transition:leave="transition ease-in duration-150"
         x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"></div>
@@ -27,13 +27,13 @@
 
         {{-- Close button --}}
         <button @click="closePreview()" aria-label="Đóng xem trước"
-            class="absolute top-4 right-4 z-20 w-10 h-10 rounded-full bg-black/80 hover:bg-black/90 text-white flex items-center justify-center transition-all duration-200 border border-white/[0.1]">
+            class="absolute top-4 right-4 z-20 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-[8px] text-white flex items-center justify-center transition-all duration-200 border border-white/[0.1]">
             <i class="fa-solid fa-xmark text-xl"></i>
         </button>
 
         {{-- Prev Arrow --}}
         <button @click="prevImage()" x-show="previewIndex > 0" aria-label="Ảnh trước"
-            class="shrink-0 w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-all duration-200 border border-white/[0.1]">
+            class="shrink-0 w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-[8px] text-white flex items-center justify-center transition-all duration-200 border border-white/[0.1]">
             <i class="fa-solid fa-chevron-left text-lg"></i>
         </button>
         <div x-show="previewIndex === 0" class="shrink-0 w-12"></div>
@@ -43,7 +43,7 @@
             {{-- Image --}}
             <div class="relative w-full flex items-center justify-center" style="max-height: 68vh;">
                 <img :src="previewImage?.url" :key="'preview-' + previewIndex"
-                    class="max-w-full max-h-[80vh] object-contain rounded-xl transition-opacity duration-200"
+                    class="max-w-full max-h-[80vh] object-contain rounded-xl shadow-2xl transition-opacity duration-200"
                     :alt="previewImage?.prompt || 'Preview'"
                     onerror="this.onerror=null; this.src='/images/placeholder.svg'">
             </div>
@@ -127,7 +127,7 @@
 
         {{-- Next Arrow --}}
         <button @click="nextImage()" x-show="previewIndex < historyData.length - 1" aria-label="Ảnh tiếp"
-            class="shrink-0 w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-all duration-200 border border-white/[0.1]">
+            class="shrink-0 w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-[8px] text-white flex items-center justify-center transition-all duration-200 border border-white/[0.1]">
             <i class="fa-solid fa-chevron-right text-lg"></i>
         </button>
         <div x-show="previewIndex >= historyData.length - 1" class="shrink-0 w-12"></div>
