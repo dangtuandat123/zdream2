@@ -91,13 +91,25 @@
                 :class="[
                      isFocused 
                         ? 'p-3 sm:p-4 rounded-t-3xl sm:rounded-2xl' 
-                        : 'p-3 rounded-3xl max-w-4xl mx-auto',
-                     (!isFocused && !isAtBottom) ? 'opacity-70 hover:opacity-100 scale-[0.98] hover:scale-100' : 'opacity-100 scale-100'
+                        : (isAtBottom ? 'p-3 sm:p-4 rounded-3xl max-w-4xl mx-auto' : 'p-2 rounded-[2rem] max-w-2xl mx-auto'),
+                     (!isFocused && !isAtBottom) ? 'opacity-80 hover:opacity-100' : 'opacity-100'
                  ]">
 
                 {{-- Prompt textarea --}}
                 <div class="relative flex items-end gap-2 w-full z-20">
-                    <textarea x-ref="promptInput" wire:model.live.debounce.500ms="prompt" rows="1"
+                    {{-- Shrunk State View (Read-only, Truncated text) --}}
+                    <div x-show="!isAtBottom && !isFocused"
+                        @click="isFocused = true; $nextTick(() => $refs.promptInput.focus())"
+                        class="flex-1 h-[44px] px-2 py-2.5 text-white/70 text-sm sm:text-base truncate cursor-text transition-colors flex items-center group">
+                        <div class="w-full truncate pr-10 group-hover:text-white transition-colors">
+                            <span x-text="$wire.prompt || 'Mô tả ý tưởng...'"
+                                :class="!$wire.prompt ? 'text-white/40' : ''"></span>
+                        </div>
+                    </div>
+
+                    {{-- Expanded textarea (Interactive) --}}
+                    <textarea x-show="isAtBottom || isFocused" x-ref="promptInput"
+                        wire:model.live.debounce.500ms="prompt" rows="1"
                         @focus="isFocused = true; focusLock = true; setTimeout(() => focusLock = false, 600)"
                         @blur="isFocused = false" @input="resize()" placeholder="Mô tả ý tưởng của bạn..."
                         class="t2i-prompt-input relative z-10 flex-1 bg-transparent border-none outline-none ring-0 focus:ring-0 focus:outline-none text-sm sm:text-base resize-none transition-all leading-relaxed min-h-[48px] max-h-[144px] px-2 py-3 text-white placeholder:text-white/40 caret-white overflow-y-auto whitespace-pre-wrap break-words"
@@ -106,16 +118,28 @@
                                 $el.style.height = 'auto'; 
                                 $el.style.height = Math.min($el.scrollHeight, 144) + 'px';
                             };
-                            $watch('isFocused', () => resize());
-                            $watch('$wire.prompt', () => $nextTick(() => resize()));
+                            $watch('isFocused', () => { if (isFocused || isAtBottom) $nextTick(() => resize()) });
+                            $watch('isAtBottom', () => { if (isFocused || isAtBottom) $nextTick(() => resize()) });
+                            $watch('$wire.prompt', () => { if (isFocused || isAtBottom) $nextTick(() => resize()) });
                             setTimeout(() => resize(), 100);
                         " @keydown.ctrl.enter.prevent="$wire.generate()" @keydown.meta.enter.prevent="$wire.generate()"
                         {{ $isGenerating ? 'disabled' : '' }}></textarea>
+
+                    {{-- Mini Send Button (Shrunk only) --}}
+                    <div x-show="!isAtBottom && !isFocused" class="absolute right-2 top-1/2 -translate-y-1/2 z-20"
+                        x-transition:enter="transition ease-out duration-200"
+                        x-transition:enter-start="opacity-0 scale-75" x-transition:enter-end="opacity-100 scale-100">
+                        <button type="button" @click="$wire.generate()"
+                            :disabled="!$wire.prompt || $wire.prompt.length === 0"
+                            class="w-9 h-9 rounded-full bg-gradient-to-tr from-purple-600 to-indigo-600 shadow-lg shadow-purple-900/40 text-white flex items-center justify-center hover:shadow-purple-500/50 hover:brightness-110 active:scale-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                            <i class="fa-solid fa-arrow-up text-sm"></i>
+                        </button>
+                    </div>
                 </div>
 
                 {{-- Counter + hint --}}
-                <div class="flex items-center justify-between -mt-1 px-2 mb-1" x-show="$wire.prompt?.length > 0"
-                    x-cloak>
+                <div class="flex items-center justify-between -mt-1 px-2 mb-1 transition-all duration-300"
+                    x-show="(isAtBottom || isFocused) && $wire.prompt?.length > 0" x-cloak>
                     <span class="text-[11px] font-medium"
                         :class="$wire.prompt?.length > 1800 ? 'text-amber-400' : 'text-white/30'"
                         x-text="($wire.prompt?.length || 0) + ' / 2000'"></span>
@@ -130,7 +154,8 @@
                 </div>
 
                 {{-- Quick Settings Row + Generate --}}
-                <div class="flex items-end justify-between gap-2 relative z-20 mt-1">
+                <div class="flex items-end justify-between gap-2 relative z-20 transition-all duration-300 overflow-hidden"
+                    :class="!isAtBottom && !isFocused ? 'max-h-0 opacity-0 mt-0 pt-0' : 'max-h-[80px] opacity-100 mt-1'">
                     <div class="flex items-center gap-1.5 flex-wrap"
                         @click.away="showRatioSheet = false; showModelSheet = false; showBatchSheet = false; showRefPicker = false">
 
