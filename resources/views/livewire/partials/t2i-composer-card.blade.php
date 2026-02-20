@@ -1,8 +1,8 @@
 {{-- ============================================================ --}}
 {{-- COMPOSER CARD — Core-first prompt + quick settings + status --}}
 {{-- ============================================================ --}}
-<div class="fixed left-0 right-0 md:left-[72px] z-[60] safe-area-bottom composer-fixed t2i-composer-wrap"
-    style="bottom: calc(60px + env(safe-area-inset-bottom, 0px));"
+<div class="fixed left-0 right-0 md:left-[72px] z-[60] composer-fixed t2i-composer-wrap transition-all duration-300 md:!bottom-0"
+    :style="isFocused ? 'bottom: 0px' : 'bottom: calc(56px + env(safe-area-inset-bottom, 0px))'"
     @click.away="showRatioSheet = false; showModelSheet = false; showBatchSheet = false; showRefPicker = false"
     x-ref="composerCard" x-init="
         const bar = $refs.composerCard;
