@@ -11,7 +11,7 @@
         x-transition:leave="transition ease-in duration-150"
         x-transition:leave-start="opacity-100"
         x-transition:leave-end="opacity-0"
-        class="fixed top-14 md:top-0 left-0 right-0 md:left-[72px] z-[60] pointer-events-none"
+        class="fixed top-[57px] md:top-0 left-0 right-0 md:left-[72px] z-[60] pointer-events-none"
         style="display:none; margin-top: var(--filter-bar-h, 2.5rem);">
         {{-- Shimmer bar --}}
         <div class="h-1 w-full bg-gradient-to-r from-transparent via-purple-500/80 to-transparent animate-pulse"></div>
