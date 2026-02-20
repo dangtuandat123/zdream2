@@ -463,6 +463,21 @@
                             }
                         });
 
+                        // Watchers to lock document scroll when any mobile bottom sheet is open
+                        const toggleBodyOverflow = () => {
+                            if (window.innerWidth < 640 && (this.showModelSheet || this.showRatioSheet || this.showBatchSheet || this.showRefPicker)) {
+                                document.body.style.overflow = 'hidden';
+                                document.documentElement.style.overflow = 'hidden';
+                            } else {
+                                document.body.style.overflow = '';
+                                document.documentElement.style.overflow = '';
+                            }
+                        };
+                        this.$watch('showModelSheet', toggleBodyOverflow);
+                        this.$watch('showRatioSheet', toggleBodyOverflow);
+                        this.$watch('showBatchSheet', toggleBodyOverflow);
+                        this.$watch('showRefPicker', toggleBodyOverflow);
+
                         if ('scrollRestoration' in history) {
                             this._scrollRestoration = history.scrollRestoration;
                             history.scrollRestoration = 'manual';
