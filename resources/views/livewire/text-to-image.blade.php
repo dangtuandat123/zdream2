@@ -109,7 +109,6 @@
         .glass-popover {
             background: #12151d;
             border: 1px solid var(--line-2);
-            box-shadow: 0 10px 24px rgba(0, 0, 0, 0.35);
         }
 
         .glass-chip {
@@ -137,9 +136,7 @@
 
         @media (min-width: 640px) {
             .t2i-filter-wrap .t2i-topbar {
-                background: rgba(11, 13, 18, 0.94);
-                backdrop-filter: blur(10px);
-                -webkit-backdrop-filter: blur(10px);
+                background: rgba(11, 13, 18, 0.98);
             }
         }
 
@@ -166,7 +163,6 @@
             background: rgba(30, 64, 175, 0.92);
             border: 1px solid rgba(96, 165, 250, 0.5);
             color: #eff6ff;
-            box-shadow: 0 8px 20px rgba(30, 64, 175, 0.28);
         }
 
         .t2i-jump-newest:hover {
@@ -175,8 +171,7 @@
 
         .t2i-composer-wrap .t2i-composer-card {
             border: 1px solid var(--line-2);
-            background: rgba(16, 19, 27, 0.96);
-            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.32);
+            background: rgba(16, 19, 27, 0.98);
         }
 
         .t2i-prompt-input {
@@ -190,7 +185,6 @@
         .t2i-generate-btn {
             background: #2563eb;
             border: 1px solid #3b82f6;
-            box-shadow: 0 8px 18px rgba(37, 99, 235, 0.3);
         }
 
         .t2i-generate-btn:hover {
@@ -200,7 +194,6 @@
         .t2i-cancel-btn {
             background: #b91c1c;
             border: 1px solid #ef4444;
-            box-shadow: 0 8px 18px rgba(185, 28, 28, 0.3);
         }
 
         .t2i-cancel-btn:hover {
@@ -208,7 +201,7 @@
         }
 
         .t2i-preview {
-            backdrop-filter: blur(2px);
+            background: rgba(0, 0, 0, 0.8);
         }
 
         .safe-area-bottom {
@@ -236,9 +229,8 @@
         }
 
         .new-batch-glow {
-            box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.28) inset;
+            border: 1px solid rgba(59, 130, 246, 0.5);
             border-radius: 0.55rem;
-            transition: box-shadow 0.8s ease-out;
         }
 
         @keyframes shimmer {

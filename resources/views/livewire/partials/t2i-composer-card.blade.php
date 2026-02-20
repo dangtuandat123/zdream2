@@ -87,7 +87,7 @@
         <div class="relative transition-all duration-300 ease-in-out z-50 flex justify-center w-full"
             :class="isFocused ? 'px-0 sm:px-4 mb-0 sm:mb-4' : (isAtBottom ? 'px-2 sm:px-4 mb-2 sm:mb-4' : 'px-4 mb-4')">
 
-            <div class="relative flex flex-col w-full transition-all duration-300 shadow-2xl glass-popover bg-[#0a0a0c]/95 backdrop-blur-3xl border border-white/10"
+            <div class="relative flex flex-col w-full transition-all duration-300 glass-popover bg-[#0a0a0c]/95 border border-white/10"
                 :class="[
                      isFocused 
                         ? 'p-2.5 sm:p-3.5 rounded-t-3xl sm:rounded-2xl' 
@@ -133,7 +133,7 @@
                         x-transition:enter-start="opacity-0 scale-75" x-transition:enter-end="opacity-100 scale-100">
                         <button type="button" @click="$wire.generate()"
                             :disabled="!$wire.prompt || $wire.prompt.length === 0"
-                            class="w-9 h-9 rounded-full bg-gradient-to-tr from-purple-600 to-indigo-600 shadow-lg shadow-purple-900/40 text-white flex items-center justify-center hover:shadow-purple-500/50 hover:brightness-110 active:scale-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                            class="w-9 h-9 rounded-full bg-gradient-to-tr from-purple-600 to-indigo-600 text-white flex items-center justify-center hover:brightness-110 active:scale-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
                             <i class="fa-solid fa-paper-plane text-xs relative -top-[0.5px] -ml-[0.5px]"></i>
                         </button>
                     </div>
@@ -165,7 +165,7 @@
                             {{-- Unified Settings Bottom Sheet Mobile --}}
                             <template x-teleport="body">
                                 <div x-show="showSettingsSheet" x-cloak
-                                    class="sm:hidden fixed inset-0 z-[9999] flex items-end justify-center bg-black/80 backdrop-blur-md"
+                                    class="sm:hidden fixed inset-0 z-[9999] flex items-end justify-center bg-black/95"
                                     @click.self="showSettingsSheet = false">
                                     <div x-show="showSettingsSheet" @click.stop
                                         x-transition:enter="transition ease-out duration-300"
@@ -188,7 +188,7 @@
                                             {{-- Menu Item: Model --}}
                                             <button type="button"
                                                 @click="showSettingsSheet = false; setTimeout(() => showModelSheet = true, 150)"
-                                                class="w-full flex items-center justify-between p-3.5 rounded-2xl bg-white/[0.03] active:bg-white/[0.06] border border-white/5 transition-all text-left shadow-sm">
+                                                class="w-full flex items-center justify-between p-3.5 rounded-2xl bg-white/[0.03] active:bg-white/[0.06] border border-white/5 transition-all text-left">
                                                 <div class="flex items-center gap-3.5 min-w-0">
                                                     <div
                                                         class="w-10 h-10 rounded-full bg-purple-500/20 flex items-center justify-center shrink-0">
@@ -207,7 +207,7 @@
                                             {{-- Menu Item: Ratio --}}
                                             <button type="button"
                                                 @click="showSettingsSheet = false; setTimeout(() => showRatioSheet = true, 150)"
-                                                class="w-full flex items-center justify-between p-3.5 rounded-2xl bg-white/[0.03] active:bg-white/[0.06] border border-white/5 transition-all text-left shadow-sm">
+                                                class="w-full flex items-center justify-between p-3.5 rounded-2xl bg-white/[0.03] active:bg-white/[0.06] border border-white/5 transition-all text-left">
                                                 <div class="flex items-center gap-3.5 min-w-0">
                                                     <div
                                                         class="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400 shrink-0">
@@ -228,7 +228,7 @@
                                             {{-- Menu Item: Batch Size --}}
                                             <button type="button"
                                                 @click="showSettingsSheet = false; setTimeout(() => showBatchSheet = true, 150)"
-                                                class="w-full flex items-center justify-between p-3.5 rounded-2xl bg-white/[0.03] active:bg-white/[0.06] border border-white/5 transition-all text-left shadow-sm">
+                                                class="w-full flex items-center justify-between p-3.5 rounded-2xl bg-white/[0.03] active:bg-white/[0.06] border border-white/5 transition-all text-left">
                                                 <div class="flex items-center gap-3.5 min-w-0">
                                                     <div
                                                         class="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-400 shrink-0">
@@ -300,7 +300,7 @@
                             {{-- Model Bottom Sheet Mobile --}}
                             <template x-teleport="body">
                                 <div x-show="showModelSheet" x-cloak
-                                    class="sm:hidden fixed inset-0 z-[9999] flex items-end justify-center bg-black/80 backdrop-blur-md"
+                                    class="sm:hidden fixed inset-0 z-[9999] flex items-end justify-center bg-black/95"
                                     @click.self="showModelSheet = false">
                                     <div x-show="showModelSheet" @click.stop
                                         x-transition:enter="transition ease-out duration-300"
@@ -399,7 +399,7 @@
                             {{-- Ratio Bottom Sheet Mobile --}}
                             <template x-teleport="body">
                                 <div x-show="showRatioSheet" x-cloak
-                                    class="sm:hidden fixed inset-0 z-[9999] flex items-end justify-center bg-black/80 backdrop-blur-md"
+                                    class="sm:hidden fixed inset-0 z-[9999] flex items-end justify-center bg-black/95"
                                     @click.self="showRatioSheet = false">
                                     <div x-show="showRatioSheet" @click.stop
                                         x-transition:enter="transition ease-out duration-300"
@@ -482,7 +482,7 @@
                             {{-- Batch Bottom Sheet Mobile --}}
                             <template x-teleport="body">
                                 <div x-show="showBatchSheet" x-cloak
-                                    class="sm:hidden fixed inset-0 z-[9999] flex items-end justify-center bg-black/80 backdrop-blur-md"
+                                    class="sm:hidden fixed inset-0 z-[9999] flex items-end justify-center bg-black/95"
                                     @click.self="showBatchSheet = false" @click.stop>
                                     <div x-show="showBatchSheet" x-transition:enter="transition ease-out duration-300"
                                         x-transition:enter-start="translate-y-full"
@@ -577,7 +577,8 @@
                                     <template x-if="!isUploadingRefs">
                                         <i class="fa-solid fa-cloud-arrow-up"></i>
                                     </template>
-                                    <span x-text="isUploadingRefs ? 'Đang xử lý ảnh...' : 'Chọn hoặc kéo thả ảnh'"></span>
+                                    <span
+                                        x-text="isUploadingRefs ? 'Đang xử lý ảnh...' : 'Chọn hoặc kéo thả ảnh'"></span>
                                     <input type="file" accept="image/*" multiple class="hidden"
                                         @change="handleFileSelect($event)" :disabled="isUploadingRefs">
                                 </label>
@@ -636,7 +637,7 @@
                             {{-- Mobile Ref Sheet --}}
                             <template x-teleport="body">
                                 <div x-show="showRefPicker && maxImages > 0" x-cloak
-                                    class="sm:hidden fixed inset-0 z-[9999] flex items-end justify-center bg-black/80 backdrop-blur-md"
+                                    class="sm:hidden fixed inset-0 z-[9999] flex items-end justify-center bg-black/95"
                                     @click.self="showRefPicker = false" @click.stop>
                                     <div x-show="showRefPicker" x-transition:enter="transition ease-out duration-300"
                                         x-transition:enter-start="translate-y-full"
@@ -666,7 +667,8 @@
                                                 <template x-if="!isUploadingRefs">
                                                     <i class="fa-solid fa-cloud-arrow-up text-lg"></i>
                                                 </template>
-                                                <span x-text="isUploadingRefs ? 'Đang xử lý ảnh...' : 'Chọn ảnh từ thiết bị'"></span>
+                                                <span
+                                                    x-text="isUploadingRefs ? 'Đang xử lý ảnh...' : 'Chọn ảnh từ thiết bị'"></span>
                                                 <input type="file" accept="image/*" multiple class="hidden"
                                                     @change="handleFileSelect($event)" :disabled="isUploadingRefs">
                                             </label>
@@ -737,7 +739,7 @@
                         </button>
                     @else
                         <button type="button" @click="$wire.generate()"
-                            class="t2i-generate-btn shrink-0 flex items-center justify-center gap-1.5 h-10 px-4 sm:px-6 rounded-xl text-white font-semibold text-sm shadow-[0_0_20px_rgba(147,51,234,0.3)] hover:shadow-[0_0_25px_rgba(147,51,234,0.5)] active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-gradient-to-r from-purple-600 to-indigo-600 relative overflow-hidden group outline-none"
+                            class="t2i-generate-btn shrink-0 flex items-center justify-center gap-1.5 h-10 px-4 sm:px-6 rounded-xl text-white font-semibold text-sm active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-gradient-to-r from-purple-600 to-indigo-600 relative overflow-hidden group outline-none"
                             :disabled="!$wire.prompt?.trim() || uiMode === 'generating'" wire:loading.attr="disabled"
                             wire:loading.class="opacity-50 pointer-events-none" wire:target="generate">
 
