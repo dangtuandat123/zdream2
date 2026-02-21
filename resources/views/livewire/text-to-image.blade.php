@@ -94,53 +94,53 @@
     {{-- ============================================================ --}}
     <style>
         .t2i-shell {
-            --surface-1: #1f2937;
-            /* gray-800 */
-            --surface-2: #374151;
-            /* gray-700 */
-            --surface-3: #4b5563;
-            /* gray-600 */
-            --line-1: #374151;
-            --line-2: #4b5563;
-            --text-strong: #f9fafb;
-            /* gray-50 */
-            --text-normal: #d1d5db;
-            /* gray-300 */
-            --text-muted: #9ca3af;
-            /* gray-400 */
-            background: #111827;
-            /* gray-900 */
+            --surface-1: rgba(255, 255, 255, 0.03);
+            --surface-2: rgba(255, 255, 255, 0.05);
+            --surface-3: rgba(255, 255, 255, 0.08);
+            --line-1: rgba(255, 255, 255, 0.08);
+            --line-2: rgba(255, 255, 255, 0.12);
+            --text-strong: rgba(255, 255, 255, 0.95);
+            --text-normal: rgba(255, 255, 255, 0.74);
+            --text-muted: rgba(255, 255, 255, 0.5);
+            background: #0b0d12;
             color: var(--text-strong);
         }
 
-        .mat-surface {
-            background: #1f2937;
+        .glass-popover {
+            background: #12151d;
+            border: 1px solid var(--line-2);
+            box-shadow: 0 10px 24px rgba(0, 0, 0, 0.35);
+        }
+
+        .glass-chip {
+            background: #141821;
             border: 1px solid var(--line-1);
-            box-shadow: none;
-        }
-
-        .mat-chip {
-            background: #1f2937;
-            border: none;
             color: var(--text-normal);
-            border-radius: 9999px;
-            padding: 0.375rem 1rem;
         }
 
-        .mat-chip:hover {
-            background: #374151;
+        .glass-chip:hover {
+            background: #1a1f2a;
             color: var(--text-strong);
+            border-color: var(--line-2);
         }
 
-        .mat-chip-active {
-            background: #7c3aed;
-            /* violet-600 */
-            color: #ffffff;
+        .glass-chip-active {
+            background: rgba(59, 130, 246, 0.18);
+            border-color: rgba(59, 130, 246, 0.45);
+            color: rgba(219, 234, 254, 0.96);
         }
 
         .t2i-filter-wrap .t2i-topbar {
-            background: #111827;
+            background: #0a0a0f;
             border-bottom: 1px solid var(--line-1);
+        }
+
+        @media (min-width: 640px) {
+            .t2i-filter-wrap .t2i-topbar {
+                background: rgba(11, 13, 18, 0.94);
+                backdrop-filter: blur(10px);
+                -webkit-backdrop-filter: blur(10px);
+            }
         }
 
         .t2i-gallery-shell #gallery-feed {
@@ -208,7 +208,7 @@
         }
 
         .t2i-preview {
-            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(2px);
         }
 
         .safe-area-bottom {
