@@ -126,7 +126,7 @@
                             @focus="isFocused = true;"
                             @blur="setTimeout(() => { if (!document.activeElement?.closest('.t2i-composer-wrap')) { isFocused = false; } }, 150)"
                             @input="resize()" placeholder="Mô tả ý tưởng của bạn..." :style="{ height: promptHeight }"
-                            class="t2i-prompt-input relative z-10 w-full bg-transparent border-none outline-none ring-0 focus:ring-0 focus:outline-none text-sm sm:text-base resize-none transition-all leading-relaxed min-h-[44px] max-h-[260px] px-2 py-2.5 sm:py-1.5 pr-12 text-white placeholder:text-white/40 caret-white overflow-y-auto whitespace-pre-wrap break-words"
+                            class="t2i-prompt-input relative z-10 w-full bg-transparent border-none outline-none ring-0 focus:ring-0 focus:outline-none text-sm sm:text-base resize-none transition-all leading-relaxed min-h-[44px] max-h-[260px] px-3 py-[10px] sm:py-[9px] pr-12 text-white placeholder:text-white/40 caret-white overflow-y-auto whitespace-pre-wrap break-words"
                             x-init="
                                 $watch('isFocused', () => { $nextTick(() => resize()) });
                                 $watch('isAtBottom', () => { $nextTick(() => resize()) });
