@@ -180,7 +180,8 @@
                 {{-- Quick Settings Row + Generate --}}
                 <div class="flex items-end justify-between gap-2 relative z-20 transition-all duration-300"
                     :class="!isAtBottom && !isFocused && uiMode === 'idle' ? 'max-h-0 opacity-0 mt-0 pt-0 overflow-hidden' : 'max-h-[80px] opacity-100 mt-1 overflow-visible'">
-                    <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar whitespace-nowrap w-full pb-1">
+                    <div
+                        class="flex items-center gap-1.5 overflow-x-auto sm:overflow-visible no-scrollbar whitespace-nowrap w-full pb-1">
 
                         {{-- ===== UNIFIED SETTINGS CHIP (MOBILE ONLY) ===== --}}
                         <div class="relative sm:hidden">
@@ -283,9 +284,9 @@
                             </template>
                         </div>
                         {{-- ===== MODEL CHIP (DESKTOP) ===== --}}
-                        <div class="relative hidden sm:block">
+                        <div class="relative hidden sm:block" @click.outside="showModelSheet = false">
                             <button type="button"
-                                @click.stop="showModelSheet = !showModelSheet; showRatioSheet = false; showBatchSheet = false; showRefPicker = false"
+                                @click="showModelSheet = !showModelSheet; showRatioSheet = false; showBatchSheet = false; showRefPicker = false"
                                 class="glass-chip shrink-0 flex items-center gap-1.5 h-8 px-2.5 rounded-lg text-xs font-medium transition-all duration-200 cursor-pointer"
                                 :class="showModelSheet ? 'glass-chip-active' : ''">
                                 <span x-text="getSelectedModel().icon" class="text-sm"></span>
@@ -299,9 +300,7 @@
                             <div x-show="showModelSheet" x-cloak x-transition:enter="transition ease-out duration-200"
                                 x-transition:enter-start="opacity-0 translate-y-2"
                                 x-transition:enter-end="opacity-100 translate-y-0"
-                                @click.outside="showModelSheet = false"
-                                class="glass-popover hidden sm:block absolute bottom-full left-0 mb-2 w-72 p-2 rounded-xl z-[100]"
-                                @click.stop>
+                                class="glass-popover hidden sm:block absolute bottom-full left-0 mb-2 w-72 p-2 rounded-xl z-[100]">
                                 <div class="space-y-1">
                                     <template x-for="model in models" :key="model.id">
                                         <button type="button" @click="selectModel(model.id)"
@@ -387,9 +386,9 @@
                         </div>
 
                         {{-- ===== RATIO CHIP (DESKTOP) ===== --}}
-                        <div class="relative hidden sm:block">
+                        <div class="relative hidden sm:block" @click.outside="showRatioSheet = false">
                             <button type="button"
-                                @click.stop="showRatioSheet = !showRatioSheet; showModelSheet = false; showBatchSheet = false; showRefPicker = false"
+                                @click="showRatioSheet = !showRatioSheet; showModelSheet = false; showBatchSheet = false; showRefPicker = false"
                                 class="glass-chip shrink-0 flex items-center gap-1.5 h-8 px-2.5 rounded-lg text-xs font-medium transition-all duration-200 cursor-pointer"
                                 :class="showRatioSheet ? 'glass-chip-active' : ''">
                                 <i class="fa-solid fa-crop text-[11px]"></i>
@@ -400,9 +399,7 @@
                             <div x-show="showRatioSheet" x-cloak x-transition:enter="transition ease-out duration-200"
                                 x-transition:enter-start="opacity-0 translate-y-2"
                                 x-transition:enter-end="opacity-100 translate-y-0"
-                                @click.outside="showRatioSheet = false"
-                                class="glass-popover hidden sm:block absolute bottom-full left-0 mb-2 w-80 p-3 rounded-xl z-[100]"
-                                @click.stop>
+                                class="glass-popover hidden sm:block absolute bottom-full left-0 mb-2 w-80 p-3 rounded-xl z-[100]">
                                 <div class="text-white/50 text-xs font-medium mb-2">Tỉ lệ khung hình</div>
                                 <div class="grid grid-cols-5 gap-1.5">
                                     <template x-for="ratio in ratios" :key="ratio.id">
@@ -481,9 +478,9 @@
                         </div>
 
                         {{-- ===== BATCH CHIP (DESKTOP) ===== --}}
-                        <div class="relative hidden sm:block">
+                        <div class="relative hidden sm:block" @click.outside="showBatchSheet = false">
                             <button type="button"
-                                @click.stop="showBatchSheet = !showBatchSheet; showRatioSheet = false; showModelSheet = false; showRefPicker = false"
+                                @click="showBatchSheet = !showBatchSheet; showRatioSheet = false; showModelSheet = false; showRefPicker = false"
                                 class="glass-chip shrink-0 flex items-center gap-1.5 h-8 px-2.5 rounded-lg text-xs font-medium transition-all duration-200 cursor-pointer"
                                 :class="showBatchSheet ? 'glass-chip-active' : ''">
                                 <i class="fa-solid fa-layer-group text-[11px]"></i>
@@ -494,9 +491,7 @@
                             <div x-show="showBatchSheet" x-cloak x-transition:enter="transition ease-out duration-200"
                                 x-transition:enter-start="opacity-0 translate-y-2"
                                 x-transition:enter-end="opacity-100 translate-y-0"
-                                @click.outside="showBatchSheet = false"
-                                class="glass-popover hidden sm:block absolute bottom-full left-0 mb-2 w-36 p-1.5 rounded-xl z-[100]"
-                                @click.stop>
+                                class="glass-popover hidden sm:block absolute bottom-full left-0 mb-2 w-36 p-1.5 rounded-xl z-[100]">
                                 <div class="text-white/50 text-xs font-medium mb-1.5 px-2">Số lượng ảnh</div>
                                 <div class="space-y-0.5">
                                     @foreach([1, 2, 3, 4] as $n)
