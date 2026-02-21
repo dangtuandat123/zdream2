@@ -270,20 +270,20 @@
                 </div>
 
                 {{-- Status Header --}}
-                <div class="px-4 py-3 border-b border-white/[0.05] flex items-center justify-between bg-white/[0.01]">
+                <div class="p-3 sm:px-4 sm:py-3 border-b border-white/[0.05] flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-0 bg-white/[0.01]">
                     <div class="flex items-center gap-3">
-                        <div class="relative flex items-center justify-center w-8 h-8">
+                        <div class="relative flex items-center justify-center w-8 h-8 shrink-0">
                             <i class="fa-solid fa-wand-magic-sparkles text-purple-400 absolute text-sm animate-pulse"></i>
                             <svg class="w-full h-full text-purple-500/30 animate-[spin_3s_linear_infinite]" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" stroke-dasharray="15 85"/></svg>
                         </div>
-                        <div>
-                            <p class="text-[14px] font-semibold text-white tracking-wide" x-text="loadingMessages[currentLoadingMessage] || 'Đang khởi tạo AI...'"></p>
-                            <p class="text-xs text-white/50 font-medium">Đang xử lý <span x-text="$wire.batchSize"></span> ảnh • <span class="text-purple-300" x-text="(Math.floor(elapsed / 60) > 0 ? Math.floor(elapsed / 60) + ' phút ' : '') + (elapsed % 60) + ' giây'"></span></p>
+                        <div class="min-w-0">
+                            <p class="text-[13px] sm:text-[14px] font-semibold text-white tracking-wide truncate" x-text="loadingMessages[currentLoadingMessage] || 'Đang khởi tạo AI...'"></p>
+                            <p class="text-[11px] sm:text-xs text-white/50 font-medium mt-0.5">Đang xử lý <span x-text="$wire.batchSize"></span> ảnh • <span class="text-purple-300" x-text="(Math.floor(elapsed / 60) > 0 ? Math.floor(elapsed / 60) + ' phút ' : '') + (elapsed % 60) + ' giây'"></span></p>
                         </div>
                     </div>
-                    <div class="flex items-center gap-2">
-                        <span class="px-2.5 py-1 rounded-md bg-purple-500/10 text-purple-300 text-[11px] font-bold tracking-wider uppercase flex items-center gap-1.5 border border-purple-500/20">
-                            <span class="w-1.5 h-1.5 rounded-full bg-purple-400 animate-ping"></span> Đang quá trình
+                    <div class="flex items-center">
+                        <span class="px-2.5 py-1 rounded-md bg-purple-500/10 text-purple-300 text-[10px] sm:text-[11px] font-bold tracking-wider uppercase flex items-center gap-1.5 border border-purple-500/20 shadow-inner">
+                            <span class="w-1.5 h-1.5 rounded-full bg-purple-400 animate-ping"></span> AI Đang vẽ
                         </span>
                     </div>
                 </div>

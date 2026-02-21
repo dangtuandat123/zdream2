@@ -16,13 +16,13 @@
 
 
 
-    <div class="max-w-4xl mx-auto px-3 sm:px-4 pb-3 sm:pb-4 pt-2 relative">
+    <div class="max-w-4xl mx-auto px-3 sm:px-6 pb-3 sm:pb-6 pt-2 relative w-full">
         {{-- Scroll To Bottom Button (Mobile: Docked Top-Right / Desktop: Fixed Bottom-Right) --}}
         <button x-show="showScrollToBottom && !isFocused" x-cloak x-transition:enter="transition ease-out duration-300"
             x-transition:enter-start="opacity-0 translate-y-4" x-transition:enter-end="opacity-100 translate-y-0"
             x-transition:leave="transition ease-in duration-200" x-transition:leave-end="opacity-0 translate-y-4"
-            @click="scrollToBottom(true)" @click="scrollToBottom(true)"
-            class="absolute -top-14 right-2 sm:fixed sm:top-auto sm:bottom-8 sm:right-8 z-[50] w-10 h-10 rounded-full glass-panel hover:bg-white/10 text-white/80 hover:text-white flex items-center justify-center transition-all active:scale-95 group"
+            @click="scrollToBottom(true)"
+            class="absolute -top-14 right-2 sm:fixed sm:top-auto sm:bottom-8 sm:right-8 z-[50] w-10 h-10 rounded-full glass-panel hover:bg-white/10 text-white/80 hover:text-white flex items-center justify-center transition-all active:scale-95 group shadow-lg"
             title="Cuộn xuống mới nhất">
             <i class="fa-solid fa-arrow-down group-hover:animate-bounce"></i>
         </button>
@@ -89,15 +89,15 @@
 
         {{-- Composer main card --}}
         <div class="relative transition-all duration-300 ease-in-out z-50 flex justify-center w-full"
-            :class="isFocused ? 'px-0 sm:px-4 mb-0 sm:mb-4' : (isAtBottom ? 'px-2 sm:px-4 mb-2 sm:mb-4' : 'px-4 mb-4')">
+            :class="isFocused ? 'px-0 mb-0' : 'px-0 mb-0 sm:mb-2'">
 
             <div class="relative flex flex-col w-full transition-all duration-300 shadow-2xl glass-popover bg-[#0a0a0c]/95 backdrop-blur-3xl"
                 :class="[
                      isFocused 
                         ? 'p-2.5 sm:p-3.5 rounded-t-3xl sm:rounded-2xl' 
-                        : (isAtBottom ? 'p-2.5 sm:p-3.5 rounded-[1.5rem] max-w-4xl mx-auto' : 'p-2 rounded-[2rem] max-w-2xl mx-auto'),
-                     (!isFocused && !isAtBottom) ? 'opacity-85 hover:opacity-100' : 'opacity-100',
-                     uiMode === 'generating' ? 'ring-2 ring-purple-500/60 shadow-[0_0_40px_rgba(168,85,247,0.3)] border-purple-500/50' : 'border border-white/10'
+                        : 'p-2.5 sm:p-3.5 rounded-[1.5rem] sm:rounded-2xl',
+                     (!isFocused && !isAtBottom) ? 'opacity-90 hover:opacity-100' : 'opacity-100',
+                     uiMode === 'generating' || isLocallyGenerating || $wire.isGenerating ? 'ring-2 ring-purple-500/60 shadow-[0_0_40px_rgba(168,85,247,0.3)] border-purple-500/50' : 'border border-white/10'
                  ]">
 
                 {{-- Prompt textarea --}}

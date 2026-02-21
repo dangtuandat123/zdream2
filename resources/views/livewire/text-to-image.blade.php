@@ -1172,13 +1172,15 @@
                             this.showComposerMobile = false;
                         }
 
-                        // Thu nhỏ khung chat để giải phóng màn hình và cuộn xuống Skeleton
+                        // Thu nhỏ khung chat để giải phóng màn hình và nhường chỗ cuộn
                         if (document.activeElement) document.activeElement.blur();
                         if (typeof this.isFocused !== 'undefined') this.isFocused = false;
 
-                        this.$nextTick(() => {
+                        // Độ trễ 300ms đợi bàn phím Mobile đóng hẳn trước khi đo độ dài trang để Scroll
+                        setTimeout(() => {
+                            console.log('[T2I] Thực thi lệnh tự động cuộn (auto-scroll) xuống dưới cùng để hiện Skeleton');
                             this.scrollToBottom(true);
-                        });
+                        }, 300);
 
                         // Fire Livewire method
                         console.log('[T2I] Gửi request lên Livewire ($wire.generate())...');
