@@ -202,7 +202,8 @@
                     </div>
                 </div>
 
-                <div class="h-4 sm:hidden"></div> {{-- Spacer for absolute mobile counter --}}
+                <div class="h-4 sm:hidden" x-show="isAtBottom || isFocused || uiMode !== 'idle'" x-cloak></div> {{--
+                Spacer for absolute mobile counter --}}
 
                 {{-- Quick Settings Row + Generate --}}
                 <div class="flex items-end justify-between gap-2 relative z-20 transition-all duration-300"
