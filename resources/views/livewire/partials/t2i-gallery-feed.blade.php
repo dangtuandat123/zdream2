@@ -26,8 +26,11 @@
             </div>
         </div>
     </div>
+    @php
+        $totalFeedCount = ($history instanceof \Illuminate\Pagination\LengthAwarePaginator) ? $history->total() : collect($history)->count();
+    @endphp
     <div class="max-w-4xl mx-auto px-4"
-        style="padding-top: calc(var(--filter-bar-h, 3.5rem) + 1.5rem); padding-bottom: 128px;">
+        style="padding-top: calc(var(--filter-bar-h, 3.5rem) + 1.5rem); padding-bottom: {{ $totalFeedCount <= 1 ? '32px' : '128px' }};">
 
         {{-- Error Banner --}}
         @if($errorMessage)
@@ -153,8 +156,7 @@
                         <div class="px-0">
                             @php
                                 $imgCount = $groupItems->count();
-                                // Thiết kế "Cinematic Canvas" cho 1 ảnh (độ cao bằng hệt phần màn hình khả dụng)
-                                $gridClass = $imgCount === 1 ? 'grid-cols-1 w-full mx-auto' : ($imgCount === 2 ? 'grid-cols-2 max-w-xl mx-auto w-full' : 'grid-cols-2 sm:grid-cols-4 w-full');
+                                $gridClass = $imgCount === 1 ? 'grid-cols-1 max-w-sm mx-auto' : ($imgCount === 2 ? 'grid-cols-2 max-w-xl mx-auto' : 'grid-cols-2 sm:grid-cols-4');
                             @endphp
                             <div class="grid gap-3 {{ $gridClass }}">
                                 @foreach($groupItems as $image)
@@ -166,9 +168,7 @@
                                         @click="openPreview(null, {{ $absoluteIndex }})"
                                         x-data="{ loaded: false }"
                                         x-init="$nextTick(() => { if ($refs.imgElem && $refs.imgElem.complete) loaded = true; })">
-                                        {{-- Tính toán div ảnh: Nếu 1 ảnh thì chiếm toàn bộ chiều cao (Cinematic Mode) cho khít màn hình --}}
-                                        <div class="relative overflow-hidden bg-black/40 rounded-xl border border-white/[0.04] shadow-inner {{ $imgCount === 1 ? '' : 'aspect-square' }}"
-                                            style="{{ $imgCount === 1 ? 'height: calc(100dvh - 280px); min-height: 400px;' : '' }}">
+                                        <div class="relative overflow-hidden bg-[#222] rounded-lg aspect-square">
                                             {{-- Shimmer --}}
                                             <div class="img-shimmer absolute inset-0 bg-[#333] overflow-hidden transition-opacity duration-300"
                                                  :class="loaded ? 'opacity-0 pointer-events-none' : 'opacity-100'">
@@ -300,11 +300,10 @@
 
                 {{-- Grid Display --}}
                 <div class="px-0 pt-2 border-t border-white/5 relative z-10">
-                    <div class="grid gap-3 w-full" :class="parseInt($wire.batchSize) === 1 ? 'grid-cols-1 w-full mx-auto' : (parseInt($wire.batchSize) === 2 ? 'grid-cols-2 max-w-xl mx-auto w-full' : 'grid-cols-2 sm:grid-cols-4 w-full')">
+                    <div class="grid gap-3" :class="parseInt($wire.batchSize) === 1 ? 'grid-cols-1 max-w-sm mx-auto' : (parseInt($wire.batchSize) === 2 ? 'grid-cols-2 max-w-xl mx-auto' : 'grid-cols-2 sm:grid-cols-4')">
                         <template x-for="i in Array.from({length: parseInt($wire.batchSize)})" :key="'skel-' + i">
-                            <div class="relative bg-black/40 rounded-xl overflow-hidden border border-white/[0.04] shadow-inner"
-                                 :class="parseInt($wire.batchSize) === 1 ? '' : 'aspect-square'"
-                                 :style="parseInt($wire.batchSize) === 1 ? 'height: calc(100dvh - 280px); min-height: 400px;' : ''">
+                            <div class="relative bg-white/[0.02] rounded-xl overflow-hidden border border-white/[0.05] shadow-inner"
+                                 :style="`aspect-ratio: ${$wire.aspectRatio !== 'auto' && typeof $wire.aspectRatio === 'string' && $wire.aspectRatio.includes(':') ? $wire.aspectRatio.replace(':', ' / ') : '1 / 1'};`">
                                  
                                  {{-- Shimmer Effect --}}
                                  <div class="absolute inset-0 bg-gradient-to-tr from-transparent via-white/[0.03] to-transparent w-[200%] animate-[shimmer_2s_infinite]"></div>
