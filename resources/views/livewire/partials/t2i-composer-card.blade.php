@@ -283,9 +283,9 @@
                             </template>
                         </div>
                         {{-- ===== MODEL CHIP (DESKTOP) ===== --}}
-                        <div class="relative hidden sm:block" @click.away="showModelSheet = false">
+                        <div class="relative hidden sm:block">
                             <button type="button"
-                                @click="showModelSheet = !showModelSheet; showRatioSheet = false; showBatchSheet = false; showRefPicker = false"
+                                @click.stop="showModelSheet = !showModelSheet; showRatioSheet = false; showBatchSheet = false; showRefPicker = false"
                                 class="glass-chip shrink-0 flex items-center gap-1.5 h-8 px-2.5 rounded-lg text-xs font-medium transition-all duration-200 cursor-pointer"
                                 :class="showModelSheet ? 'glass-chip-active' : ''">
                                 <span x-text="getSelectedModel().icon" class="text-sm"></span>
@@ -299,6 +299,7 @@
                             <div x-show="showModelSheet" x-cloak x-transition:enter="transition ease-out duration-200"
                                 x-transition:enter-start="opacity-0 translate-y-2"
                                 x-transition:enter-end="opacity-100 translate-y-0"
+                                @click.outside="showModelSheet = false"
                                 class="glass-popover hidden sm:block absolute bottom-full left-0 mb-2 w-72 p-2 rounded-xl z-[100]"
                                 @click.stop>
                                 <div class="space-y-1">
@@ -386,9 +387,9 @@
                         </div>
 
                         {{-- ===== RATIO CHIP (DESKTOP) ===== --}}
-                        <div class="relative hidden sm:block" @click.away="showRatioSheet = false">
+                        <div class="relative hidden sm:block">
                             <button type="button"
-                                @click="showRatioSheet = !showRatioSheet; showModelSheet = false; showBatchSheet = false; showRefPicker = false"
+                                @click.stop="showRatioSheet = !showRatioSheet; showModelSheet = false; showBatchSheet = false; showRefPicker = false"
                                 class="glass-chip shrink-0 flex items-center gap-1.5 h-8 px-2.5 rounded-lg text-xs font-medium transition-all duration-200 cursor-pointer"
                                 :class="showRatioSheet ? 'glass-chip-active' : ''">
                                 <i class="fa-solid fa-crop text-[11px]"></i>
@@ -399,6 +400,7 @@
                             <div x-show="showRatioSheet" x-cloak x-transition:enter="transition ease-out duration-200"
                                 x-transition:enter-start="opacity-0 translate-y-2"
                                 x-transition:enter-end="opacity-100 translate-y-0"
+                                @click.outside="showRatioSheet = false"
                                 class="glass-popover hidden sm:block absolute bottom-full left-0 mb-2 w-80 p-3 rounded-xl z-[100]"
                                 @click.stop>
                                 <div class="text-white/50 text-xs font-medium mb-2">Tỉ lệ khung hình</div>
@@ -479,9 +481,9 @@
                         </div>
 
                         {{-- ===== BATCH CHIP (DESKTOP) ===== --}}
-                        <div class="relative hidden sm:block" @click.away="showBatchSheet = false">
+                        <div class="relative hidden sm:block">
                             <button type="button"
-                                @click="showBatchSheet = !showBatchSheet; showRatioSheet = false; showModelSheet = false; showRefPicker = false"
+                                @click.stop="showBatchSheet = !showBatchSheet; showRatioSheet = false; showModelSheet = false; showRefPicker = false"
                                 class="glass-chip shrink-0 flex items-center gap-1.5 h-8 px-2.5 rounded-lg text-xs font-medium transition-all duration-200 cursor-pointer"
                                 :class="showBatchSheet ? 'glass-chip-active' : ''">
                                 <i class="fa-solid fa-layer-group text-[11px]"></i>
@@ -492,6 +494,7 @@
                             <div x-show="showBatchSheet" x-cloak x-transition:enter="transition ease-out duration-200"
                                 x-transition:enter-start="opacity-0 translate-y-2"
                                 x-transition:enter-end="opacity-100 translate-y-0"
+                                @click.outside="showBatchSheet = false"
                                 class="glass-popover hidden sm:block absolute bottom-full left-0 mb-2 w-36 p-1.5 rounded-xl z-[100]"
                                 @click.stop>
                                 <div class="text-white/50 text-xs font-medium mb-1.5 px-2">Số lượng ảnh</div>

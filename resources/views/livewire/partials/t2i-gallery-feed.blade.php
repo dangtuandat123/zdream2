@@ -159,36 +159,40 @@
                                         $isNewestGroup = $groupIdx === $totalGroups - 1;
                                         $isPriorityImage = $isNewestGroup && $loop->index < 2;
                                     @endphp
-                                    <div class="block group/img cursor-pointer relative" wire:key="img-{{ $image->id }}"
-                                        @click="openPreview(null, {{ $absoluteIndex }})">
-                                        <div class="relative overflow-hidden bg-[#222] rounded-lg aspect-square">
+                                    <div class="relative bg-[#1b1c21] border border-[#2a2b30] rounded-xl overflow-hidden hover:border-purple-500/30 transition-all" wire:key="img-{{ $image->id }}">
+                                        <!-- Image Container -->
+                                        <div class="aspect-square relative overflow-hidden image-card-hover">
                                             {{-- Shimmer --}}
                                             <div class="img-shimmer absolute inset-0 bg-white/[0.04] overflow-hidden">
                                                 <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.06] to-transparent"></div>
                                             </div>
                                             {{-- Image --}}
-                                            <img src="{{ $image->image_url }}" alt="Preview"
-                                                class="gallery-img w-full h-full object-contain transition-all duration-500 group-hover/img:scale-[1.05]"
-                                                draggable="false"
-                                                onload="this.previousElementSibling && (this.previousElementSibling.style.display='none')"
-                                                onerror="this.previousElementSibling && (this.previousElementSibling.style.display='none'); this.onerror=null; this.src='/images/placeholder.svg'"
-                                                {{ $isPriorityImage ? 'loading=eager fetchpriority=high decoding=async' : 'loading=lazy fetchpriority=low decoding=async' }}>
-
-                                            {{-- Actions Overlay (Desktop: Hover / Mobile: Tap or Always visible?) --}}
-                                            {{-- Decision: Top-Right for better standard. Mobile: Always visible but subtle. Desktop: Hover. --}}
+                                            <button @click="openPreview(null, {{ $absoluteIndex }})" class="w-full h-full cursor-pointer block">
+                                                <img src="{{ $image->image_url }}" alt="Preview"
+                                                    class="gallery-img w-full h-full object-contain transition-transform duration-500"
+                                                    draggable="false"
+                                                    onload="this.previousElementSibling.previousElementSibling && (this.previousElementSibling.previousElementSibling.style.display='none')"
+                                                    onerror="this.previousElementSibling.previousElementSibling && (this.previousElementSibling.previousElementSibling.style.display='none'); this.onerror=null; this.src='/images/placeholder.svg'"
+                                                    {{ $isPriorityImage ? 'loading=eager fetchpriority=high decoding=async' : 'loading=lazy fetchpriority=low decoding=async' }}>
+                                            </button>
                                             
-                                            {{-- Unified Actions Overlay --}}
-                                            <div class="absolute top-2 right-2 flex gap-1.5 z-10 sm:opacity-0 sm:group-hover/img:opacity-100 transition-all duration-200">
-                                                <button @click.stop="downloadImage('{{ $image->image_url }}')" 
-                                                    class="h-8 w-8 rounded-full bg-black/60 backdrop-blur-md text-white/90 hover:text-white hover:bg-white/20 flex items-center justify-center transition-all duration-200 border border-white/10 active:scale-90 shadow-sm" 
-                                                    title="Tải xuống">
-                                                    <i class="fa-solid fa-download text-[13px]"></i>
+                                            <!-- Hover overlay với icon mắt -->
+                                            <div class="hover-overlay pointer-events-none absolute inset-0 bg-black/50 flex flex-col items-center justify-center opacity-0 transition-opacity duration-300">
+                                                <i class="fa-solid fa-eye text-[#d3d6db] text-3xl"></i>
+                                            </div>
+                                        </div>
+
+                                        <!-- Info & Actions -->
+                                        <div class="p-2 sm:p-2.5 bg-[#1b1c21]">
+                                            <div class="flex gap-2">
+                                                <button @click.stop="downloadImage('{{ $image->image_url }}')"
+                                                    class="flex-1 py-1.5 sm:py-2 rounded-lg bg-purple-500/20 text-purple-300 text-[10px] sm:text-xs font-medium text-center hover:bg-purple-500/30 transition-colors inline-flex items-center justify-center gap-1 active:scale-95">
+                                                    <i class="fa-solid fa-download"></i> <span class="hidden sm:inline">Tải</span>
                                                 </button>
-                                                <button wire:click="deleteImage({{ $image->id }})" @click.stop 
+                                                <button wire:click="deleteImage({{ $image->id }})" @click.stop
                                                     wire:confirm="Bạn có chắc muốn xóa ảnh này?"
-                                                    class="h-8 w-8 rounded-full bg-black/60 backdrop-blur-md text-white/90 hover:text-white hover:bg-red-500/80 flex items-center justify-center transition-all duration-200 border border-white/10 active:scale-90 shadow-sm" 
-                                                    title="Xóa">
-                                                    <i class="fa-solid fa-trash text-[13px]"></i>
+                                                    class="flex-1 py-1.5 sm:py-2 rounded-lg bg-red-500/20 text-red-300 text-[10px] sm:text-xs font-medium hover:bg-red-500/30 transition-colors inline-flex items-center justify-center gap-1 active:scale-95">
+                                                    <i class="fa-solid fa-trash"></i> <span class="hidden sm:inline">Xóa</span>
                                                 </button>
                                             </div>
                                         </div>
@@ -245,7 +249,7 @@
             </div>
 
             {{-- ═══════════════════════════════════════════ --}}
-            {{-- GENERATING SKELETON --}}
+            {{-- CHẾ ĐỘ HIỆN TẠI: ĐANG TẠO ẢNH (GENERATING) --}}
             {{-- ═══════════════════════════════════════════ --}}
             @if($isGenerating && !$generatedImageUrl)
                 <div x-data="{ elapsed: 0, timer: null }" x-init="
@@ -259,36 +263,43 @@
                                     clearInterval(guard);
                                 }
                             }, 1500);
-                        ">
-                    <div class="bg-[#11141c] border border-white/[0.08] rounded-xl overflow-hidden">
-                        <div class="h-0.5 bg-white/[0.03] overflow-hidden">
-                            <div class="h-full bg-blue-500/70"
+                        " class="mb-5">
+                    <div class="relative bg-[#1b1c21] border border-purple-500/30 rounded-xl overflow-hidden shadow-[0_0_15px_rgba(168,85,247,0.15)] transition-all">
+                        {{-- Thanh Process Bar chạy liên tục ở trên cùng --}}
+                        <div class="h-1 w-full bg-[#11141c] overflow-hidden">
+                            <div class="h-full bg-gradient-to-r from-purple-500/20 via-purple-400 to-purple-500/20"
                                 style="width: 100%; animation: progress-slide 2s ease-in-out infinite;"></div>
                         </div>
-                        <div class="p-4">
-                            <div class="flex items-center gap-3 mb-3">
-                                <div class="w-8 h-8 rounded-lg bg-blue-500/15 flex items-center justify-center">
-                                    <div
-                                        class="w-5 h-5 border-2 border-blue-300 border-t-transparent rounded-full animate-spin">
+                        
+                        {{-- Tiêu đề & Trạng thái --}}
+                        <div class="px-0 pb-2 p-4 border-b border-white/[0.05]">
+                            <div class="flex flex-col sm:flex-row sm:items-start gap-3 sm:gap-4">
+                                {{-- Tiêu đề prompt --}}
+                                <div class="flex-1 min-w-0">
+                                    <div class="text-[15px] font-semibold leading-snug text-white/90 line-clamp-2 break-words break-all">
+                                        {{ $prompt ? $prompt : 'Đang xử lý yêu cầu...' }}
+                                    </div>
+                                    <div class="flex items-center gap-3 text-[12px] text-purple-300 font-medium mt-1.5 shrink-0">
+                                        <div class="flex items-center gap-1.5 bg-purple-500/10 px-2 py-0.5 rounded-md border border-purple-500/20">
+                                            <i class="fa-solid fa-wand-magic-sparkles text-[10px]"></i>
+                                            <span x-text="loadingMessages[currentLoadingMessage] || 'Đang vẽ ảnh...'">Đang vẽ ảnh...</span>
+                                            <span class="ml-1 opacity-70">
+                                                (<span x-text="Math.floor(elapsed / 60) > 0 ? Math.floor(elapsed / 60) + ' phút ' : ''"></span><span x-text="(elapsed % 60) + 's'"></span>)
+                                            </span>
+                                        </div>
                                     </div>
                                 </div>
-                                <div class="flex-1">
-                                    <p class="text-white/90 text-sm font-medium"
-                                        x-text="loadingMessages[currentLoadingMessage] || 'Đang tạo ảnh...'">Đang tạo ảnh...
-                                    </p>
-                                    <p class="text-white/40 text-xs mt-0.5">
-                                        <span
-                                            x-text="Math.floor(elapsed / 60) > 0 ? Math.floor(elapsed / 60) + ' phút ' : ''"></span>
-                                        <span x-text="(elapsed % 60) + ' giây'"></span>
-                                    </p>
-                                </div>
                             </div>
-                            <div class="grid grid-cols-2 gap-2 rounded-lg overflow-hidden">
+                        </div>
+
+                        {{-- Lưới Skeleton (Preview Grid) --}}
+                        <div class="p-4 bg-black/20">
+                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
                                 @for ($i = 0; $i < $batchSize; $i++)
-                                    <div class="bg-white/[0.03] rounded-md flex items-center justify-center {{ $batchSize == 1 ? 'col-span-2 max-w-sm' : '' }}"
-                                        style="aspect-ratio: {{ $aspectRatio !== 'auto' && strpos($aspectRatio, ':') !== false ? str_replace(':', ' / ', $aspectRatio) : '1 / 1' }};">
-                                        <div
-                                            class="w-6 h-6 border-2 border-blue-300/50 border-t-transparent rounded-full animate-spin">
+                                    <div class="relative overflow-hidden bg-[#222] rounded-lg aspect-square border border-white/[0.05] flex items-center justify-center animate-pulse">
+                                        <div class="absolute inset-0 bg-gradient-to-tr from-purple-900/10 via-transparent to-purple-900/10"></div>
+                                        <div class="w-8 h-8 rounded-full bg-purple-500/10 flex items-center justify-center border border-purple-500/20 backdrop-blur-sm z-10 shadow-[0_0_15px_rgba(168,85,247,0.2)]">
+                                            <i class="fa-solid fa-spinner fa-spin text-purple-400 text-sm"></i>
                                         </div>
                                     </div>
                                 @endfor
