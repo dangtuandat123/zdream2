@@ -103,7 +103,8 @@
                  ]">
 
                 {{-- Prompt textarea --}}
-                <div class="relative flex items-end gap-2 w-full z-20" x-data="{ 
+                <div class="relative flex items-end gap-2 w-full z-20 transition-all duration-300"
+                    :class="(isAtBottom || isFocused || uiMode !== 'idle') ? 'mb-4 sm:mb-0' : 'mb-0'" x-data="{ 
                         promptHeight: 'auto', 
                         bannedWords: ['nude', 'naked', 'nsfw', 'porn', 'sex', 'blood', 'gore', 'kill', 'murder', 'rape', 'pedophile', 'loli'],
                         isBanned: false,
@@ -201,9 +202,6 @@
                             x-text="($wire.prompt?.length || 0) + ' / 2000'"></span>
                     </div>
                 </div>
-
-                <div class="h-4 sm:hidden" x-show="isAtBottom || isFocused || uiMode !== 'idle'" x-cloak></div> {{--
-                Spacer for absolute mobile counter --}}
 
                 {{-- Quick Settings Row + Generate --}}
                 <div class="flex items-end justify-between gap-2 relative z-20 transition-all duration-300"
