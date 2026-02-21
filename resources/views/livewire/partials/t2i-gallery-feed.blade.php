@@ -245,58 +245,68 @@
             </div>
 
             {{-- ═══════════════════════════════════════════ --}}
-            {{-- GENERATING SKELETON --}}
+            {{-- GENERATING SKELETON (0ms Alpine Reactivity) --}}
             {{-- ═══════════════════════════════════════════ --}}
-            @if($isGenerating && !$generatedImageUrl)
-                <div x-data="{ elapsed: 0, timer: null }" x-init="
-                            timer = setInterval(() => elapsed++, 1000);
-                            const stopTimer = () => clearInterval(timer);
-                            window.addEventListener('livewire:navigating', stopTimer, { once: true });
-                            const self = $el;
-                            const guard = setInterval(() => {
-                                if (!document.body.contains(self)) {
-                                    clearInterval(timer);
-                                    clearInterval(guard);
-                                }
-                            }, 1500);
-                        ">
-                    <div class="bg-[#11141c] border border-white/[0.08] rounded-xl overflow-hidden">
-                        <div class="h-0.5 bg-white/[0.03] overflow-hidden">
-                            <div class="h-full bg-blue-500/70"
-                                style="width: 100%; animation: progress-slide 2s ease-in-out infinite;"></div>
+            <div x-show="isLocallyGenerating || $wire.isGenerating" x-cloak
+                x-transition:enter="transition-all ease-out duration-300"
+                x-transition:enter-start="opacity-0 translate-y-4 scale-95"
+                x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                x-transition:leave="transition-all ease-in duration-200"
+                x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+                x-transition:leave-end="opacity-0 translate-y-4 scale-95"
+                x-data="{ elapsed: 0, timer: null }"
+                x-effect="
+                    if (isLocallyGenerating || $wire.isGenerating) {
+                        if (!timer) { elapsed = 0; timer = setInterval(() => elapsed++, 1000); }
+                    } else {
+                        if (timer) { clearInterval(timer); timer = null; }
+                    }
+                "
+                class="group-batch relative mb-5 rounded-2xl border border-purple-500/30 bg-[#12151e] shadow-[0_0_40px_rgba(147,51,234,0.1)] overflow-hidden">
+                
+                {{-- Top Progress Bar --}}
+                <div class="absolute top-0 left-0 right-0 h-1 bg-white/[0.03] overflow-hidden z-10">
+                    <div class="h-full bg-gradient-to-r from-purple-500 via-indigo-500 to-purple-500 w-[200%] animate-[progress-slide_2s_linear_infinite]"></div>
+                </div>
+
+                {{-- Status Header --}}
+                <div class="px-4 py-3 border-b border-white/[0.05] flex items-center justify-between bg-white/[0.01]">
+                    <div class="flex items-center gap-3">
+                        <div class="relative flex items-center justify-center w-8 h-8">
+                            <i class="fa-solid fa-wand-magic-sparkles text-purple-400 absolute text-sm animate-pulse"></i>
+                            <svg class="w-full h-full text-purple-500/30 animate-[spin_3s_linear_infinite]" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" stroke-dasharray="15 85"/></svg>
                         </div>
-                        <div class="p-4">
-                            <div class="flex items-center gap-3 mb-3">
-                                <div class="w-8 h-8 rounded-lg bg-blue-500/15 flex items-center justify-center">
-                                    <div
-                                        class="w-5 h-5 border-2 border-blue-300 border-t-transparent rounded-full animate-spin">
-                                    </div>
-                                </div>
-                                <div class="flex-1">
-                                    <p class="text-white/90 text-sm font-medium"
-                                        x-text="loadingMessages[currentLoadingMessage] || 'Đang tạo ảnh...'">Đang tạo ảnh...
-                                    </p>
-                                    <p class="text-white/40 text-xs mt-0.5">
-                                        <span
-                                            x-text="Math.floor(elapsed / 60) > 0 ? Math.floor(elapsed / 60) + ' phút ' : ''"></span>
-                                        <span x-text="(elapsed % 60) + ' giây'"></span>
-                                    </p>
-                                </div>
-                            </div>
-                            <div class="grid grid-cols-2 gap-2 rounded-lg overflow-hidden">
-                                @for ($i = 0; $i < $batchSize; $i++)
-                                    <div class="bg-white/[0.03] rounded-md flex items-center justify-center {{ $batchSize == 1 ? 'col-span-2 max-w-sm' : '' }}"
-                                        style="aspect-ratio: {{ $aspectRatio !== 'auto' && strpos($aspectRatio, ':') !== false ? str_replace(':', ' / ', $aspectRatio) : '1 / 1' }};">
-                                        <div
-                                            class="w-6 h-6 border-2 border-blue-300/50 border-t-transparent rounded-full animate-spin">
-                                        </div>
-                                    </div>
-                                @endfor
-                            </div>
+                        <div>
+                            <p class="text-[14px] font-semibold text-white tracking-wide" x-text="loadingMessages[currentLoadingMessage] || 'Đang khởi tạo AI...'"></p>
+                            <p class="text-xs text-white/50 font-medium">Đang xử lý <span x-text="$wire.batchSize"></span> ảnh • <span class="text-purple-300" x-text="(Math.floor(elapsed / 60) > 0 ? Math.floor(elapsed / 60) + ' phút ' : '') + (elapsed % 60) + ' giây'"></span></p>
                         </div>
                     </div>
+                    <div class="flex items-center gap-2">
+                        <span class="px-2.5 py-1 rounded-md bg-purple-500/10 text-purple-300 text-[11px] font-bold tracking-wider uppercase flex items-center gap-1.5 border border-purple-500/20">
+                            <span class="w-1.5 h-1.5 rounded-full bg-purple-400 animate-ping"></span> Đang quá trình
+                        </span>
+                    </div>
                 </div>
-            @endif
+
+                {{-- Grid Display --}}
+                <div class="p-4">
+                    <div class="grid gap-3" :class="parseInt($wire.batchSize) === 1 ? 'grid-cols-1 max-w-sm mx-auto' : (parseInt($wire.batchSize) === 2 ? 'grid-cols-2 max-w-xl mx-auto' : 'grid-cols-2 sm:grid-cols-4')">
+                        <template x-for="i in Array.from({length: parseInt($wire.batchSize)})">
+                            <div class="relative bg-white/[0.02] rounded-xl overflow-hidden border border-white/[0.05] shadow-inner"
+                                 :style="`aspect-ratio: ${$wire.aspectRatio !== 'auto' && typeof $wire.aspectRatio === 'string' && $wire.aspectRatio.includes(':') ? $wire.aspectRatio.replace(':', ' / ') : '1 / 1'};`">
+                                 
+                                 {{-- Shimmer Effect --}}
+                                 <div class="absolute inset-0 bg-gradient-to-tr from-transparent via-white/[0.03] to-transparent w-[200%] animate-[shimmer_2s_infinite]"></div>
+                                 
+                                 {{-- Center Spinner --}}
+                                 <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                                     <div class="w-8 h-8 rounded-full border-2 border-purple-500/20 border-t-purple-500 animate-[spin_1s_linear_infinite] shadow-[0_0_15px_rgba(168,85,247,0.3)]"></div>
+                                 </div>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            </div>
         </div>
 
     </div>

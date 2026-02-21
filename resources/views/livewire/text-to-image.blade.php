@@ -552,6 +552,8 @@
 
                         // Image generated → scroll + celebrate
                         const offGenerated = this.$wire.$on('imageGenerated', (params) => {
+                            console.log('[T2I] Sự kiện imageGenerated nhận được. Tắt Skeleton Local.');
+                            this.isLocallyGenerating = false;
                             const { successCount, failedCount } = Array.isArray(params) ? params[0] || {} : params || {};
                             // Protect focus during new image insertion (Long lock for safety)
                             this.lockSystemScrolling(5000);
@@ -592,6 +594,8 @@
 
                         // Generation failed (all images)
                         const offFailed = this.$wire.$on('imageGenerationFailed', () => {
+                            console.log('[T2I] Sự kiện imageGenerationFailed nhận được');
+                            this.isLocallyGenerating = false;
                             this.uiMode = 'failed';
                             this.statusMessage = '❌ Tạo ảnh thất bại. Vui lòng thử lại.';
                             this.stopStatusTimer();
@@ -844,6 +848,12 @@
                     },
 
                     // ============================================================
+                    // State
+                    // ============================================================
+                    isLocallyGenerating: false,
+                    showToast: false,
+
+                    // ============================================================
                     // Status Timer
                     // ============================================================
                     startStatusTimer() {
@@ -1048,21 +1058,8 @@
                         // Target the first image in the batch for centering
                         const firstImg = latest.querySelector('img');
                         const target = firstImg || latest;
-                        const rect = target.getBoundingClientRect();
-                        const currentY = window.scrollY || document.documentElement.scrollTop || 0;
 
-                        // Center the first image vertically in the viewport
-                        const fitsViewport = rect.height < window.innerHeight;
-                        const desiredTop = fitsViewport
-                            ? currentY + rect.top - ((window.innerHeight - rect.height) / 2)
-                            : currentY + rect.top - 24;
-
-                        const top = Math.max(0, Math.round(desiredTop));
-                        if (smooth) {
-                            window.scrollTo({ top, behavior: 'smooth' });
-                        } else {
-                            window.scrollTo(0, top);
-                        }
+                        target.scrollIntoView({ behavior: 'smooth', block: 'end' });
                         return true;
                     },
                     centerLatestBatchWhenReady() {
@@ -1152,6 +1149,39 @@
                         this.showToast = true;
                         clearTimeout(this.toastTimer);
                         this.toastTimer = setTimeout(() => this.showToast = false, 3000);
+                    },
+
+                    // ============================================================
+                    // Local Quick Submit
+                    // ============================================================
+                    async submitGenerate() {
+                        if (this.isLocallyGenerating || this.$wire.isGenerating) return;
+
+                        if (!this.$wire.prompt || this.$wire.prompt.trim() === '') {
+                            this.notify('Vui lòng nhập mô tả hình ảnh.', 'warning');
+                            return;
+                        }
+
+                        console.log('[T2I] Vừa bấm nút Tạo ảnh - Đã kích hoạt Skeleton Local (0ms delay)');
+                        this.isLocallyGenerating = true;
+
+                        // Smoothly scroll to the feed top so they see the skeleton
+                        this.$nextTick(() => {
+                            const feed = document.getElementById('gallery-feed');
+                            if (feed) {
+                                feed.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                            }
+                        });
+
+                        // Fire Livewire method
+                        console.log('[T2I] Gửi request lên Livewire ($wire.generate())...');
+                        await this.$wire.generate();
+
+                        // If generation threw an error synchronously, check here
+                        if (this.$wire.errorMessage) {
+                            console.log('[T2I] Lỗi Livewire phát hiện sớm:', this.$wire.errorMessage);
+                            this.isLocallyGenerating = false;
+                        }
                     },
 
                     // ============================================================

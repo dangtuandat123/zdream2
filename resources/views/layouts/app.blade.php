@@ -1457,34 +1457,34 @@
 
         // Simple lightbox (just images)
         function openLightbox(index, images) {
+            console.log('[Lightbox] Opening simple lightbox', index);
             lightboxImages = images;
             lightboxImageData = [];
             lightboxIndex = index;
             lightboxOpen = true;
             lightboxHasActions = false;
             renderLightbox();
-            document.documentElement.classList.add('overflow-hidden');
-            document.body.classList.add('overflow-hidden');
+            document.body.style.overflow = 'hidden';
         }
 
         // Lightbox with actions (download, delete)
         function openLightboxWithActions(index, imageData) {
+            console.log('[Lightbox] Opening lightbox with actions', index);
             lightboxImageData = imageData;
             lightboxImages = imageData.map(d => d.url);
             lightboxIndex = index;
             lightboxOpen = true;
             lightboxHasActions = true;
             renderLightbox();
-            document.documentElement.classList.add('overflow-hidden');
-            document.body.classList.add('overflow-hidden');
+            document.body.style.overflow = 'hidden';
         }
 
         function closeLightbox() {
+            console.log('[Lightbox] Closing lightbox');
             lightboxOpen = false;
             const el = document.getElementById('global-lightbox');
             if (el) el.remove();
-            document.documentElement.classList.remove('overflow-hidden');
-            document.body.classList.remove('overflow-hidden');
+            document.body.style.overflow = '';
             document.removeEventListener('keydown', handleLightboxKeydown);
         }
 

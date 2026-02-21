@@ -741,10 +741,10 @@
                             <span class="hidden sm:inline">Hủy</span>
                         </button>
                     @else
-                        <button type="button" @click="$wire.generate()"
-                            class="t2i-generate-btn shrink-0 flex items-center justify-center gap-1.5 h-10 px-4 sm:px-6 rounded-xl text-white font-semibold text-sm shadow-[0_0_20px_rgba(147,51,234,0.3)] hover:shadow-[0_0_25px_rgba(147,51,234,0.5)] active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-gradient-to-r from-purple-600 to-indigo-600 relative overflow-hidden group outline-none"
-                            :disabled="!$wire.prompt?.trim() || uiMode === 'generating'" wire:loading.attr="disabled"
-                            wire:loading.class="opacity-50 pointer-events-none" wire:target="generate">
+                        <button type="button" @click="submitGenerate()"
+                            class="t2i-generate-btn shrink-0 flex items-center justify-center gap-1.5 h-10 px-4 sm:px-6 rounded-xl text-white font-semibold text-sm shadow-[0_0_20px_rgba(147,51,234,0.3)] hover:shadow-[0_0_25px_rgba(147,51,234,0.5)] active:scale-95 transition-all bg-gradient-to-r from-purple-600 to-indigo-600 relative overflow-hidden group outline-none"
+                            :disabled="!$wire.prompt?.trim() || isLocallyGenerating || $wire.isGenerating"
+                            :class="(isLocallyGenerating || $wire.isGenerating) ? 'opacity-50 pointer-events-none' : ''">
 
                             {{-- Glow sweep effect --}}
                             <div
@@ -754,14 +754,15 @@
                             {{-- Core Button Label (Combines states to fix overlapping icons) --}}
                             <div class="relative z-10 flex items-center justify-center gap-1.5 min-w-[50px]">
                                 {{-- Hide in Loading state completely --}}
-                                <div wire:loading.remove wire:target="generate" class="flex items-center gap-1.5">
+                                <div x-show="!(isLocallyGenerating || $wire.isGenerating)"
+                                    class="flex items-center gap-1.5">
                                     <i class="fa-solid fa-paper-plane text-xs relative -top-[1px]"></i>
                                     <span>Tạo</span>
                                 </div>
 
                                 {{-- Show ONLY in Loading state --}}
-                                <div wire:loading.flex wire:target="generate" class="items-center gap-1.5"
-                                    style="display: none;">
+                                <div x-show="isLocallyGenerating || $wire.isGenerating" x-cloak
+                                    class="flex items-center gap-1.5">
                                     <i class="fa-solid fa-spinner fa-spin text-xs"></i>
                                     <span class="hidden sm:inline">Đang tạo</span>
                                 </div>
