@@ -1057,11 +1057,10 @@
                         const latest = batches[batches.length - 1];
                         if (!latest) return false;
 
-                        // Target the first image in the batch for centering
-                        const firstImg = latest.querySelector('img');
-                        const target = firstImg || latest;
-
-                        target.scrollIntoView({ behavior: 'smooth', block: 'end' });
+                        // Simply scroll to the absolute bottom of the document.
+                        // This allows the container's padding-bottom (which clears the composer)
+                        // to take effect and provide a gap below the final image.
+                        window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
                         return true;
                     },
                     centerLatestBatchWhenReady() {
