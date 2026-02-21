@@ -975,12 +975,12 @@
                         console.log('scrollToBottom called');
                         this.lockSystemScrolling(1500); // 1.5s for smooth scroll to finish
 
-                        // Add an extra 500px offset to ensure we clear any bottom paddings or fixed UI areas.
-                        const targetTop = document.documentElement.scrollHeight + 500;
-                        if (smooth) {
-                            window.scrollTo({ top: targetTop, behavior: 'smooth' });
+                        const batches = Array.from(document.querySelectorAll('#gallery-feed .group-batch'));
+                        const latest = batches[batches.length - 1];
+                        if (latest) {
+                            this.centerLatestBatch(smooth);
                         } else {
-                            window.scrollTo(0, targetTop);
+                            window.scrollTo({ top: document.documentElement.scrollHeight, behavior: smooth ? 'smooth' : 'auto' });
                         }
                         this.showScrollToBottom = false;
                     },
@@ -1057,11 +1057,23 @@
                         const latest = batches[batches.length - 1];
                         if (!latest) return false;
 
-                        // Target the first image in the batch for centering
-                        const firstImg = latest.querySelector('img');
-                        const target = firstImg || latest;
+                        // Tính vùng hiển thị an toàn giữa Header và Form dưới
+                        const topOffset = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--filter-bar-h')) || 60;
+                        const composerEl = document.querySelector('.t2i-composer-wrap');
+                        const bottomOffset = composerEl ? composerEl.getBoundingClientRect().height : 160;
 
-                        target.scrollIntoView({ behavior: 'smooth', block: 'end' });
+                        const visibleH = window.innerHeight - topOffset - bottomOffset;
+                        const rect = latest.getBoundingClientRect();
+                        const elementH = rect.height;
+                        const defaultTargetY = window.scrollY + rect.top;
+
+                        // Tâm của màn hình an toàn
+                        let targetY = defaultTargetY - topOffset - (visibleH / 2) + (elementH / 2);
+
+                        // Đè bảo hiểm cho mượt
+                        targetY = Math.max(0, targetY);
+
+                        window.scrollTo({ top: targetY, behavior: smooth ? 'smooth' : 'auto' });
                         return true;
                     },
                     centerLatestBatchWhenReady() {
