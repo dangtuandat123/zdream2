@@ -91,7 +91,7 @@
 
         {{-- Composer main card --}}
         <div class="relative transition-all duration-300 ease-in-out z-50 flex justify-center w-full"
-            :class="isFocused ? 'px-0 mb-0' : 'px-0 mb-0 sm:mb-2'">
+            :class="isFocused ? 'px-0 mb-0' : (isAtBottom ? 'px-0 mb-0 sm:mb-2' : 'px-4 mb-4 sm:mb-2')">
 
             <div class="relative flex flex-col w-full transition-all duration-300 shadow-2xl glass-popover bg-[#0a0a0c]/95 backdrop-blur-3xl"
                 :class="[
@@ -205,8 +205,9 @@
 
                 {{-- Quick Settings Row + Generate --}}
                 <div class="flex items-end justify-between gap-2 relative z-20 transition-all duration-300"
-                    :class="!isAtBottom && !isFocused && uiMode === 'idle' ? 'max-h-0 opacity-0 mt-0 pt-0 overflow-hidden' : 'max-h-[80px] opacity-100 mt-1 overflow-visible'">
-                    <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar whitespace-nowrap w-full pb-1">
+                    :class="!isAtBottom && !isFocused && uiMode === 'idle' ? 'max-h-0 opacity-0 mt-0 pt-0 overflow-hidden' : 'max-h-[120px] sm:max-h-[80px] opacity-100 mt-1 overflow-visible'">
+                    <div
+                        class="flex items-center gap-1.5 overflow-x-auto sm:overflow-visible no-scrollbar whitespace-nowrap sm:whitespace-normal sm:flex-wrap w-full pb-1">
 
                         {{-- ===== UNIFIED SETTINGS CHIP (MOBILE ONLY) ===== --}}
                         <div class="relative sm:hidden">
