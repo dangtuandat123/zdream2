@@ -1136,8 +1136,8 @@
                             this.isPrependingHistory = false;
                             this._morphCaptured = false;
                             this._loadMoreFailSafeTimer = null;
-                            this.notify('Quá trình tải lịch sử bị gián đoạn do mạng chậm', 'error');
-                        }, 12000); // Tăng timeout lên 12s và thêm thông báo
+                            console.warn('[T2I] Quá trình tải lịch sử vượt quá 12s (Do mạng chậm hoặc xung đột Request)');
+                        }, 12000); // Tăng timeout lên 12s
                     },
 
                     // ============================================================
@@ -1165,13 +1165,12 @@
                         console.log('[T2I] Vừa bấm nút Tạo ảnh - Đã kích hoạt Skeleton Local (0ms delay)');
                         this.isLocallyGenerating = true;
 
-                        // Smoothly scroll to the feed top so they see the skeleton
-                        this.$nextTick(() => {
-                            const feed = document.getElementById('gallery-feed');
-                            if (feed) {
-                                feed.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                            }
-                        });
+                        // Đóng Composer trên Mobile nếu đang mở (để xem Skeleton)
+                        if (typeof this.showComposerMobile !== 'undefined') {
+                            this.showComposerMobile = false;
+                        }
+
+                        // Không tự động cuộn (scrollIntoView) để tránh gây khó chịu cho User và kích hoạt nhầm Infinite Load.
 
                         // Fire Livewire method
                         console.log('[T2I] Gửi request lên Livewire ($wire.generate())...');
