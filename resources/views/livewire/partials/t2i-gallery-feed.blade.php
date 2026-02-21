@@ -115,7 +115,7 @@
                             <div class="flex flex-col sm:flex-row sm:items-baseline gap-2 sm:gap-4">
                                 {{-- Prompt --}}
                                 <!-- Prompt (Truncated) -->
-                                <button class="text-[15px] font-semibold leading-snug text-left text-white/90 hover:text-white transition-colors duration-200 cursor-pointer line-clamp-2 break-words break-all"
+                                <button class="text-[15px] font-semibold leading-snug text-left text-white/90 hover:text-white transition-colors duration-200 cursor-pointer line-clamp-2 break-words"
                                     @click="expanded = !expanded" title="Nhấn xem chi tiết">
                                     {{ $prompt }}
                                 </button>
@@ -143,17 +143,19 @@
                             x-transition:enter="transition ease-out duration-300"
                             x-transition:enter-start="opacity-0 -translate-y-2 max-h-0"
                             x-transition:enter-end="opacity-100 translate-y-0 max-h-[500px]"
-                            x-transition:enter-end="opacity-100 translate-y-0 max-h-[500px]"
                             class="px-0 pb-2">
-                            <div class="p-3 rounded-lg bg-white/[0.03] border border-white/[0.06] text-[13px] text-white/70 leading-relaxed break-words break-all">
+                            <div class="p-3 rounded-lg bg-white/[0.03] border border-white/[0.06] text-[13px] text-white/70 leading-relaxed break-words">
                                 {{ $prompt }}
                             </div>
                         </div>
 
                         {{-- ── Image Grid ── --}}
-                        {{-- ── Image Grid ── --}}
                         <div class="px-0">
-                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                            @php
+                                $imgCount = $groupItems->count();
+                                $gridClass = $imgCount === 1 ? 'grid-cols-1 max-w-sm mx-auto' : ($imgCount === 2 ? 'grid-cols-2 max-w-xl mx-auto' : 'grid-cols-2 sm:grid-cols-4');
+                            @endphp
+                            <div class="grid gap-3 {{ $gridClass }}">
                                 @foreach($groupItems as $image)
                                     @php
                                         $isNewestGroup = $groupIdx === $totalGroups - 1;
@@ -236,7 +238,7 @@
                             </p>
                             <div class="flex flex-wrap justify-center gap-2">
                                 <template x-for="p in prompts" :key="p">
-                                    <button @click="$wire.set('prompt', p)"
+                                    <button @click="$wire.set('prompt', p); setTimeout(() => { const input = document.querySelector('.t2i-prompt-input'); if(input) { input.focus(); } window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }); }, 150);"
                                         class="h-9 px-4 rounded-lg bg-white/[0.05] hover:bg-white/[0.08] border border-white/[0.08] text-xs text-white/70 hover:text-white transition-all active:scale-[0.98]">
                                         <span x-text="p"></span>
                                     </button>
@@ -283,7 +285,7 @@
 
                         <div class="flex items-center gap-3 text-[12px] text-white/40 font-medium shrink-0 flex-wrap">
                             <span class="px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 flex items-center gap-1.5 font-bold uppercase tracking-wider text-[10px] border border-purple-500/30">
-                                <span class="w-[5px] h-[5px] rounded-full bg-purple-400" x-data="{ toggle: true }" x-init="setInterval(() => toggle = !toggle, 800)" :class="toggle ? 'opacity-100' : 'opacity-20'" style="transition: opacity 0.3s ease-in-out;"></span> ĐANG VẼ
+                                <span class="w-[5px] h-[5px] rounded-full bg-purple-400" x-data="{ toggle: true, dotTimer: null }" x-init="dotTimer = setInterval(() => toggle = !toggle, 800); $cleanup(() => { if(dotTimer) clearInterval(dotTimer); })" :class="toggle ? 'opacity-100' : 'opacity-20'" style="transition: opacity 0.3s ease-in-out;"></span> ĐANG VẼ
                             </span>
                             <span class="w-[1px] h-3 bg-white/10 hidden sm:block"></span>
                             <span><span x-text="$wire.batchSize"></span> ảnh</span>
