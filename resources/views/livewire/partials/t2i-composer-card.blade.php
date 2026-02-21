@@ -16,7 +16,7 @@
 
 
 
-    <div class="max-w-4xl mx-auto px-4 pb-3 sm:pb-6 pt-2 relative w-full">
+    <div class="max-w-4xl mx-auto px-4 sm:px-[20px] pb-3 sm:pb-6 pt-2 relative w-full">
         {{-- Scroll To Bottom Button (Mobile: Docked Top-Right / Desktop: Fixed Bottom-Right) --}}
         <button x-show="showScrollToBottom && !isFocused" x-cloak x-transition:enter="transition ease-out duration-300"
             x-transition:enter-start="opacity-0 translate-y-4" x-transition:enter-end="opacity-100 translate-y-0"
