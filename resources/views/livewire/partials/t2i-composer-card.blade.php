@@ -94,8 +94,8 @@
             <div class="relative flex flex-col w-full transition-all duration-300 shadow-2xl glass-popover bg-[#0a0a0c]/95 backdrop-blur-3xl"
                 :class="[
                      isFocused 
-                        ? 'p-2.5 sm:p-3.5 rounded-t-3xl sm:rounded-2xl' 
-                        : 'p-2.5 sm:p-3.5 rounded-[1.5rem] sm:rounded-2xl',
+                        ? 'p-2.5 sm:p-3.5 rounded-t-3xl sm:rounded-2xl w-full' 
+                        : (isAtBottom ? 'p-2.5 sm:p-3.5 rounded-[1.5rem] sm:rounded-2xl w-full' : 'p-2 rounded-[2rem] max-w-2xl mx-auto'),
                      (!isFocused && !isAtBottom) ? 'opacity-90 hover:opacity-100' : 'opacity-100',
                      uiMode === 'generating' || isLocallyGenerating || $wire.isGenerating ? 'ring-2 ring-purple-500/60 shadow-[0_0_40px_rgba(168,85,247,0.3)] border-purple-500/50' : 'border border-white/10'
                  ]">
@@ -128,22 +128,43 @@
                     </div>
 
                     {{-- Expanded textarea (Interactive) --}}
-                    <textarea x-show="isAtBottom || isFocused || uiMode !== 'idle'" x-ref="promptInput"
-                        wire:model.live.debounce.500ms="prompt" rows="1"
-                        @focus="isFocused = true; focusLock = true; setTimeout(() => focusLock = false, 600)"
-                        @blur="setTimeout(() => { if (!document.activeElement?.closest('.t2i-composer-wrap')) { isFocused = false; } }, 150)"
-                        @input="resize()" placeholder="Mô tả ý tưởng của bạn..." :style="{ height: promptHeight }"
-                        class="t2i-prompt-input relative z-10 flex-1 bg-transparent border-none outline-none ring-0 focus:ring-0 focus:outline-none text-sm sm:text-base resize-none transition-all leading-relaxed min-h-[44px] max-h-[50vh] px-2 py-1.5 text-white placeholder:text-white/40 caret-white overflow-y-auto whitespace-pre-wrap break-words"
-                        x-init="
-                            $watch('isFocused', () => { if (isFocused || isAtBottom || uiMode !== 'idle') resize() });
-                            $watch('isAtBottom', () => { if (isFocused || isAtBottom || uiMode !== 'idle') resize() });
-                            $watch('uiMode', () => { if (isFocused || isAtBottom || uiMode !== 'idle') resize() });
-                            $watch('$wire.prompt', () => { if (isFocused || isAtBottom || uiMode !== 'idle') resize() });
-                            setTimeout(() => resize(), 100);
-                            $wire.on('imageGenerated', () => { setTimeout(() => resize(), 150); });
-                        "
-                        @keydown.enter.prevent="if(!$event.shiftKey) { $wire.generate(); } else { $el.value += '\n'; $el.dispatchEvent(new Event('input')) }"
-                        :disabled="uiMode === 'generating'"></textarea>
+                    <div x-show="isAtBottom || isFocused || uiMode !== 'idle'"
+                        class="relative flex-1 flex items-start gap-1">
+                        <textarea x-ref="promptInput" wire:model.live.debounce.500ms="prompt" rows="1"
+                            @focus="isFocused = true; focusLock = true; setTimeout(() => focusLock = false, 600)"
+                            @blur="setTimeout(() => { if (!document.activeElement?.closest('.t2i-composer-wrap')) { isFocused = false; } }, 150)"
+                            @input="resize()" placeholder="Mô tả ý tưởng của bạn..." :style="{ height: promptHeight }"
+                            class="t2i-prompt-input relative z-10 w-full bg-transparent border-none outline-none ring-0 focus:ring-0 focus:outline-none text-sm sm:text-base resize-none transition-all leading-relaxed min-h-[44px] max-h-[50vh] px-2 py-1.5 pr-8 text-white placeholder:text-white/40 caret-white overflow-y-auto whitespace-pre-wrap break-words"
+                            x-init="
+                                $watch('isFocused', () => { if (isFocused || isAtBottom || uiMode !== 'idle') resize() });
+                                $watch('isAtBottom', () => { if (isFocused || isAtBottom || uiMode !== 'idle') resize() });
+                                $watch('uiMode', () => { if (isFocused || isAtBottom || uiMode !== 'idle') resize() });
+                                $watch('$wire.prompt', () => { if (isFocused || isAtBottom || uiMode !== 'idle') resize() });
+                                setTimeout(() => resize(), 100);
+                                $wire.on('imageGenerated', () => { setTimeout(() => resize(), 150); });
+                            "
+                            @keydown.enter.prevent="if(!$event.shiftKey) { $wire.generate(); } else { $el.value += '\n'; $el.dispatchEvent(new Event('input')) }"
+                            :disabled="uiMode === 'generating'"></textarea>
+
+                        {{-- Clear Prompt Button --}}
+                        <button type="button" x-show="$wire.prompt && $wire.prompt.length > 0" x-cloak
+                            @click="$wire.set('prompt', ''); setTimeout(() => { $refs.promptInput.focus(); resize(); }, 50)"
+                            class="absolute right-1 top-2.5 z-20 w-6 h-6 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center text-white/50 hover:text-white/90 transition-all active:scale-95"
+                            title="Xóa nội dung">
+                            <i class="fa-solid fa-xmark text-xs"></i>
+                        </button>
+                    </div>
+
+                    {{-- Mobile "Done/Collapse" Button (Visible only when focused) --}}
+                    <div x-show="isFocused" x-cloak x-transition:enter="transition ease-out duration-200"
+                        x-transition:enter-start="opacity-0 scale-90" x-transition:enter-end="opacity-100 scale-100"
+                        class="shrink-0 flex items-center pb-1 z-20">
+                        <button type="button" @click="isFocused = false; $refs.promptInput.blur()"
+                            class="h-[36px] px-3.5 rounded-xl bg-[#2a2b36] hover:bg-[#343541] border border-white/10 text-white/90 text-sm font-medium transition-all active:scale-95 flex items-center gap-1.5 shadow-sm">
+                            <i class="fa-solid fa-compress text-xs opacity-70"></i>
+                            Thu gọn
+                        </button>
+                    </div>
 
                     {{-- Mini Send Button (Shrunk only) --}}
                     <div x-show="!isAtBottom && !isFocused && uiMode === 'idle'"
