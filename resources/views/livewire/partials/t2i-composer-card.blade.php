@@ -170,7 +170,7 @@
                         x-transition:enter-start="opacity-0 scale-75" x-transition:enter-end="opacity-100 scale-100">
                         <button type="button" @click="$wire.generate()"
                             :disabled="!$wire.prompt || $wire.prompt.length === 0 || isBanned"
-                            class="w-9 h-9 rounded-full bg-gradient-to-tr from-purple-600 to-indigo-600 shadow-lg shadow-purple-900/40 text-white flex items-center justify-center hover:shadow-purple-500/50 hover:brightness-110 active:scale-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer">
+                            class="w-9 h-9 rounded-full bg-gradient-to-tr from-purple-600 to-indigo-600 text-white flex items-center justify-center hover:brightness-110 active:scale-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer">
                             <i class="fa-solid fa-paper-plane text-xs relative -top-[0.5px] -ml-[0.5px]"></i>
                         </button>
                     </div>
@@ -239,7 +239,7 @@
                                             {{-- Menu Item: Model --}}
                                             <button type="button"
                                                 @click="showSettingsSheet = false; setTimeout(() => showModelSheet = true, 150)"
-                                                class="w-full flex items-center justify-between p-3.5 rounded-2xl bg-white/[0.03] active:bg-white/[0.06] border border-white/5 transition-all text-left shadow-sm">
+                                                class="w-full flex items-center justify-between p-3.5 rounded-2xl bg-white/[0.03] active:bg-white/[0.06] border border-white/5 transition-all text-left">
                                                 <div class="flex items-center gap-3.5 min-w-0">
                                                     <div
                                                         class="w-10 h-10 rounded-full bg-purple-500/20 flex items-center justify-center shrink-0">
@@ -258,7 +258,7 @@
                                             {{-- Menu Item: Ratio --}}
                                             <button type="button"
                                                 @click="showSettingsSheet = false; setTimeout(() => showRatioSheet = true, 150)"
-                                                class="w-full flex items-center justify-between p-3.5 rounded-2xl bg-white/[0.03] active:bg-white/[0.06] border border-white/5 transition-all text-left shadow-sm">
+                                                class="w-full flex items-center justify-between p-3.5 rounded-2xl bg-white/[0.03] active:bg-white/[0.06] border border-white/5 transition-all text-left">
                                                 <div class="flex items-center gap-3.5 min-w-0">
                                                     <div
                                                         class="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400 shrink-0">
@@ -279,7 +279,7 @@
                                             {{-- Menu Item: Batch Size --}}
                                             <button type="button"
                                                 @click="showSettingsSheet = false; setTimeout(() => showBatchSheet = true, 150)"
-                                                class="w-full flex items-center justify-between p-3.5 rounded-2xl bg-white/[0.03] active:bg-white/[0.06] border border-white/5 transition-all text-left shadow-sm">
+                                                class="w-full flex items-center justify-between p-3.5 rounded-2xl bg-white/[0.03] active:bg-white/[0.06] border border-white/5 transition-all text-left">
                                                 <div class="flex items-center gap-3.5 min-w-0">
                                                     <div
                                                         class="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-400 shrink-0">
@@ -763,7 +763,7 @@
                         </button>
                     @else
                         <button type="button" @click="submitGenerate()"
-                            class="t2i-generate-btn shrink-0 flex items-center justify-center gap-1.5 h-10 px-4 sm:px-6 rounded-xl text-white font-semibold text-sm shadow-[0_0_20px_rgba(147,51,234,0.3)] hover:shadow-[0_0_25px_rgba(147,51,234,0.5)] active:scale-95 transition-all bg-gradient-to-r from-purple-600 to-indigo-600 relative overflow-hidden group outline-none"
+                            class="t2i-generate-btn shrink-0 flex items-center justify-center gap-1.5 h-10 px-4 sm:px-6 rounded-xl text-white font-semibold text-sm active:scale-95 transition-all bg-gradient-to-r from-purple-600 to-indigo-600 relative overflow-hidden group outline-none"
                             :disabled="!$wire.prompt?.trim() || isLocallyGenerating || $wire.isGenerating"
                             :class="(isLocallyGenerating || $wire.isGenerating) ? 'opacity-50 pointer-events-none' : ''">
 
