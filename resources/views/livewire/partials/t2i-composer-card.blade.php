@@ -283,7 +283,7 @@
                             </template>
                         </div>
                         {{-- ===== MODEL CHIP (DESKTOP) ===== --}}
-                        <div class="relative hidden sm:block" @click.away="showModelSheet = false">
+                        <div class="relative hidden sm:block">
                             <button type="button"
                                 @click="showModelSheet = !showModelSheet; showRatioSheet = false; showBatchSheet = false; showRefPicker = false"
                                 class="glass-chip shrink-0 flex items-center gap-1.5 h-8 px-2.5 rounded-lg text-xs font-medium transition-all duration-200 cursor-pointer"
@@ -297,7 +297,7 @@
 
                             {{-- Model Dropdown Desktop --}}
                             <div x-show="showModelSheet" x-cloak x-transition:enter="transition ease-out duration-200"
-                                x-transition:enter-start="opacity-0 translate-y-2"
+                                @click.away="showModelSheet = false" x-transition:enter-start="opacity-0 translate-y-2"
                                 x-transition:enter-end="opacity-100 translate-y-0"
                                 class="glass-popover hidden sm:block absolute bottom-full left-0 mb-2 w-72 p-2 rounded-xl z-[100]"
                                 @click.stop>
@@ -386,7 +386,7 @@
                         </div>
 
                         {{-- ===== RATIO CHIP (DESKTOP) ===== --}}
-                        <div class="relative hidden sm:block" @click.away="showRatioSheet = false">
+                        <div class="relative hidden sm:block">
                             <button type="button"
                                 @click="showRatioSheet = !showRatioSheet; showModelSheet = false; showBatchSheet = false; showRefPicker = false"
                                 class="glass-chip shrink-0 flex items-center gap-1.5 h-8 px-2.5 rounded-lg text-xs font-medium transition-all duration-200 cursor-pointer"
@@ -397,7 +397,7 @@
 
                             {{-- Ratio Dropdown Desktop --}}
                             <div x-show="showRatioSheet" x-cloak x-transition:enter="transition ease-out duration-200"
-                                x-transition:enter-start="opacity-0 translate-y-2"
+                                @click.away="showRatioSheet = false" x-transition:enter-start="opacity-0 translate-y-2"
                                 x-transition:enter-end="opacity-100 translate-y-0"
                                 class="glass-popover hidden sm:block absolute bottom-full left-0 mb-2 w-80 p-3 rounded-xl z-[100]"
                                 @click.stop>
@@ -479,7 +479,7 @@
                         </div>
 
                         {{-- ===== BATCH CHIP (DESKTOP) ===== --}}
-                        <div class="relative hidden sm:block" @click.away="showBatchSheet = false">
+                        <div class="relative hidden sm:block">
                             <button type="button"
                                 @click="showBatchSheet = !showBatchSheet; showRatioSheet = false; showModelSheet = false; showRefPicker = false"
                                 class="glass-chip shrink-0 flex items-center gap-1.5 h-8 px-2.5 rounded-lg text-xs font-medium transition-all duration-200 cursor-pointer"
@@ -490,7 +490,7 @@
 
                             {{-- Batch Dropdown Desktop --}}
                             <div x-show="showBatchSheet" x-cloak x-transition:enter="transition ease-out duration-200"
-                                x-transition:enter-start="opacity-0 translate-y-2"
+                                @click.away="showBatchSheet = false" x-transition:enter-start="opacity-0 translate-y-2"
                                 x-transition:enter-end="opacity-100 translate-y-0"
                                 class="glass-popover hidden sm:block absolute bottom-full left-0 mb-2 w-36 p-1.5 rounded-xl z-[100]"
                                 @click.stop>

@@ -75,6 +75,8 @@
             'model' => $modelMap[$img->generation_params['model_id'] ?? ''] ?? ($img->generation_params['model_id'] ?? null),
             'ratio' => $img->generation_params['aspect_ratio_user'] ?? $img->generation_params['aspect_ratio'] ?? 'Auto',
             'created_at' => $img->created_at->diffForHumans(),
+            'download' => route('history.download', ltrim((string) $img->id, 'legacy-')),
+            'delete' => route('history.destroy', ltrim((string) $img->id, 'legacy-')),
         ])->values()->toArray();
     @endphp
 
@@ -87,7 +89,7 @@
     @include('livewire.partials.t2i-composer-card')
 
     {{-- MODALS --}}
-    @include('livewire.partials.image-preview-modal')
+    {{-- Global lightbox is handled via app.blade.php / openLightboxWithActions --}}
 
     {{-- ============================================================ --}}
     {{-- STYLES --}}
@@ -1168,24 +1170,28 @@
                     },
 
                     // ============================================================
-                    // Preview
+                    // Preview (Bridged to Global Lightbox)
                     // ============================================================
                     openPreview(url, index) {
                         if (index !== null && index !== undefined && this.historyData[index]) {
-                            this.previewIndex = index;
-                            this.previewImage = this.historyData[index];
+                            if (typeof openLightboxWithActions === 'function') {
+                                const globalImageData = this.historyData.map(img => ({
+                                    url: img.url,
+                                    download: img.download || '#',
+                                    delete: img.delete || '#'
+                                }));
+                                openLightboxWithActions(index, globalImageData);
+                            }
                         } else if (url) {
-                            this.previewImage = { url: url, prompt: '' };
-                            this.previewIndex = 0;
+                            if (typeof openLightbox === 'function') {
+                                openLightbox(0, [url]);
+                            }
                         }
-                        this.showPreview = true;
-                        document.body.style.overflow = 'hidden';
-                        document.documentElement.style.overflow = 'hidden';
                     },
                     closePreview() {
-                        this.showPreview = false;
-                        document.body.style.overflow = '';
-                        document.documentElement.style.overflow = '';
+                        if (typeof closeLightbox === 'function') {
+                            closeLightbox();
+                        }
                     },
                     nextImage() {
                         if (this.previewIndex < this.historyData.length - 1) {

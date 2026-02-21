@@ -44,8 +44,7 @@
                 <div class="flex items-center gap-2">
 
                     {{-- DESKTOP FILTER CONTROLS --}}
-                    <div class="hidden sm:flex items-center gap-1.5"
-                        @click.away="if(openFilter !== 'mobile_sheet') openFilter = null">
+                    <div class="hidden sm:flex items-center gap-1.5">
                         {{-- Date Filter Desktop --}}
                         <div class="relative shrink-0">
                             <button @click="openFilter = openFilter === 'date' ? null : 'date'"
@@ -61,7 +60,7 @@
                                         :class="openFilter === 'date' ? 'rotate-180' : ''"></i>
                                 @endif
                             </button>
-                            <div x-show="openFilter === 'date'" x-cloak
+                            <div x-show="openFilter === 'date'" x-cloak @click.away="openFilter = null"
                                 x-transition:enter="transition ease-out duration-150"
                                 x-transition:enter-start="opacity-0 -translate-y-1"
                                 x-transition:enter-end="opacity-100 translate-y-0"
@@ -69,7 +68,7 @@
                                 @foreach(['all' => 'Tất cả', 'week' => 'Tuần qua', 'month' => 'Tháng qua', '3months' => '3 tháng qua'] as $val => $lbl)
                                     <button wire:click="$set('filterDate', '{{ $val }}')" @click="openFilter = null"
                                         class="w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs transition-colors duration-150
-                                                                {{ $filterDate === $val ? 'text-white/95 bg-white/[0.06]' : 'text-white/70 hover:bg-white/[0.06] hover:text-white' }}">
+                                                                    {{ $filterDate === $val ? 'text-white/95 bg-white/[0.06]' : 'text-white/70 hover:bg-white/[0.06] hover:text-white' }}">
                                         <span>{{ $lbl }}</span>
                                         @if($filterDate === $val)
                                             <i class="fa-solid fa-check text-purple-400 text-[10px]"></i>
@@ -95,7 +94,7 @@
                                         :class="openFilter === 'model' ? 'rotate-180' : ''"></i>
                                 @endif
                             </button>
-                            <div x-show="openFilter === 'model'" x-cloak
+                            <div x-show="openFilter === 'model'" x-cloak @click.away="openFilter = null"
                                 x-transition:enter="transition ease-out duration-150"
                                 x-transition:enter-start="opacity-0 -translate-y-1"
                                 x-transition:enter-end="opacity-100 translate-y-0"
@@ -112,7 +111,7 @@
                                     <button wire:click="$set('filterModel', '{{ $model['id'] }}')"
                                         @click="openFilter = null"
                                         class="w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs transition-colors duration-150
-                                                                {{ $filterModel === $model['id'] ? 'text-white/95 bg-white/[0.06]' : 'text-white/70 hover:bg-white/[0.06] hover:text-white' }}">
+                                                                    {{ $filterModel === $model['id'] ? 'text-white/95 bg-white/[0.06]' : 'text-white/70 hover:bg-white/[0.06] hover:text-white' }}">
                                         <span class="truncate pr-2">{{ $model['name'] }}</span>
                                         @if($filterModel === $model['id'])
                                             <i class="fa-solid fa-check text-purple-400 text-[10px]"></i>
@@ -137,7 +136,7 @@
                                         :class="openFilter === 'ratio' ? 'rotate-180' : ''"></i>
                                 @endif
                             </button>
-                            <div x-show="openFilter === 'ratio'" x-cloak
+                            <div x-show="openFilter === 'ratio'" x-cloak @click.away="openFilter = null"
                                 x-transition:enter="transition ease-out duration-150"
                                 x-transition:enter-start="opacity-0 -translate-y-1"
                                 x-transition:enter-end="opacity-100 translate-y-0"
@@ -145,7 +144,7 @@
                                 @foreach(['all' => 'Tất cả', 'auto' => 'Auto', '1:1' => '1:1', '16:9' => '16:9', '9:16' => '9:16', '4:3' => '4:3', '3:4' => '3:4', '3:2' => '3:2', '2:3' => '2:3', '5:4' => '5:4', '4:5' => '4:5', '21:9' => '21:9'] as $val => $lbl)
                                     <button wire:click="$set('filterRatio', '{{ $val }}')" @click="openFilter = null"
                                         class="w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs transition-colors duration-150
-                                                                {{ $filterRatio === $val ? 'text-white/95 bg-white/[0.06]' : 'text-white/70 hover:bg-white/[0.06] hover:text-white' }}">
+                                                                    {{ $filterRatio === $val ? 'text-white/95 bg-white/[0.06]' : 'text-white/70 hover:bg-white/[0.06] hover:text-white' }}">
                                         <span>{{ $lbl }}</span>
                                         @if($filterRatio === $val)
                                             <i class="fa-solid fa-check text-purple-400 text-[10px]"></i>
@@ -200,7 +199,7 @@
                             @foreach(['all' => 'Tất cả', 'week' => 'Tuần qua', 'month' => 'Tháng qua', '3months' => '3 tháng qua'] as $val => $lbl)
                                 <button wire:click="$set('filterDate', '{{ $val }}')"
                                     class="flex items-center justify-center p-2.5 rounded-xl transition-all text-sm
-                                                            {{ $filterDate === $val ? 'bg-purple-500/20 text-white border border-purple-500/30 font-medium' : 'bg-white/5 border border-transparent text-white/70 active:bg-white/10' }}">
+                                                                {{ $filterDate === $val ? 'bg-purple-500/20 text-white border border-purple-500/30 font-medium' : 'bg-white/5 border border-transparent text-white/70 active:bg-white/10' }}">
                                     {{ $lbl }}
                                 </button>
                             @endforeach
@@ -215,7 +214,7 @@
                             @foreach(['all' => 'Tất cả', 'auto' => 'Auto', '1:1' => '1:1', '16:9' => '16:9', '9:16' => '9:16', '4:3' => '4:3', '3:4' => '3:4', '3:2' => '3:2', '2:3' => '2:3', '5:4' => '5:4', '4:5' => '4:5', '21:9' => '21:9'] as $val => $lbl)
                                 <button type="button" wire:click="$set('filterRatio', '{{ $val }}')"
                                     class="flex items-center justify-center py-2 rounded-xl transition-all text-[11px]
-                                                        {{ $filterRatio === $val ? 'bg-purple-500/20 text-white border border-purple-500/30 font-medium' : 'bg-white/5 border border-transparent text-white/70 active:bg-white/10' }}">
+                                                            {{ $filterRatio === $val ? 'bg-purple-500/20 text-white border border-purple-500/30 font-medium' : 'bg-white/5 border border-transparent text-white/70 active:bg-white/10' }}">
                                     {{ $lbl }}
                                 </button>
                             @endforeach
@@ -241,7 +240,7 @@
                             @foreach($availableModels as $model)
                                 <button wire:click="$set('filterModel', '{{ $model['id'] }}')"
                                     class="w-full flex items-center justify-between p-3 rounded-xl transition-all
-                                                            {{ $filterModel === $model['id'] ? 'bg-purple-500/20 text-white border border-purple-500/30' : 'bg-white/5 text-white/70 active:bg-white/10 border border-transparent' }}">
+                                                                {{ $filterModel === $model['id'] ? 'bg-purple-500/20 text-white border border-purple-500/30' : 'bg-white/5 text-white/70 active:bg-white/10 border border-transparent' }}">
                                     <div class="flex items-center gap-3 min-w-0 pr-4">
                                         <div class="w-6 h-6 rounded-full flex items-center justify-center shrink-0"
                                             :class="$wire.filterModel === '{{ $model['id'] }}' ? 'bg-purple-500' : 'bg-white/10'">
