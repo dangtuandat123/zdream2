@@ -173,8 +173,8 @@
                                             <img x-ref="imgElem" src="{{ $image->image_url }}" alt="Preview"
                                                 class="gallery-img w-full h-full object-contain transition-transform duration-500 group-hover/img:scale-[1.05]"
                                                 draggable="false"
-                                                @load="loaded = true"
-                                                @error="loaded = true; $el.src='/images/placeholder.svg'"
+                                                x-on:load="loaded = true"
+                                                x-on:error="loaded = true; $el.src='/images/placeholder.svg'"
                                                 {{ $isPriorityImage ? 'loading=eager fetchpriority=high decoding=async' : 'loading=lazy fetchpriority=low decoding=async' }}>
 
                                             {{-- Actions Overlay (Desktop: Hover / Mobile: Tap or Always visible?) --}}
