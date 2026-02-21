@@ -50,7 +50,7 @@
         @endif
 
         {{-- Gallery Feed --}}
-        <div class="flex flex-col gap-5 sm:gap-6 px-0 sm:px-1 pt-4 sm:pt-5" id="gallery-feed"
+        <div class="flex flex-col gap-5 sm:gap-6 px-0 sm:px-1 pt-4 sm:pt-5 min-h-[calc(100dvh-240px)] justify-center" id="gallery-feed"
             data-history='@json($flatHistoryForJs)'
             data-has-more="{{ ($history instanceof \Illuminate\Pagination\LengthAwarePaginator && $history->hasMorePages()) ? '1' : '0' }}"
             wire:key="gallery-feed">
