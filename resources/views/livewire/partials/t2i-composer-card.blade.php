@@ -6,8 +6,15 @@
     @click.away="showRatioSheet = false; showModelSheet = false; showBatchSheet = false; showRefPicker = false"
     x-ref="composerCard" x-init="
         const bar = $refs.composerCard;
+        const navH = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--nav-bar-h')) || 0;
+        const updateFeedPadding = (composerH) => {
+            const feed = document.querySelector('#gallery-scroll > div:nth-child(2)');
+            if (feed) feed.style.paddingBottom = (composerH + navH + 16) + 'px';
+        };
         const ro = new ResizeObserver(() => {
-            document.documentElement.style.setProperty('--composer-h', bar.offsetHeight + 'px');
+            const h = bar.offsetHeight;
+            document.documentElement.style.setProperty('--composer-h', h + 'px');
+            updateFeedPadding(h);
         });
         ro.observe(bar);
         const stop = () => ro.disconnect();
