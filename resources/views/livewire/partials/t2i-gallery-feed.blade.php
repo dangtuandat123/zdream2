@@ -167,8 +167,9 @@
                                                 <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.06] to-transparent"></div>
                                             </div>
                                             {{-- Image --}}
-                                            <button @click="openPreview(null, {{ $absoluteIndex }})" class="w-full h-full cursor-pointer block">
+                                            <button type="button" @click="openPreview(null, {{ $absoluteIndex }})" class="w-full h-full cursor-pointer block">
                                                 <img src="{{ $image->image_url }}" alt="Preview"
+                                                    data-index="{{ $absoluteIndex }}"
                                                     class="gallery-img w-full h-full object-contain transition-transform duration-500"
                                                     draggable="false"
                                                     onload="this.previousElementSibling.previousElementSibling && (this.previousElementSibling.previousElementSibling.style.display='none')"
