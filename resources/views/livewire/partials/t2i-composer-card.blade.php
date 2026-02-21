@@ -110,7 +110,7 @@
                         isBanned: false,
                         resize() { 
                             this.$refs.promptInput.style.height = 'auto'; 
-                            let h = Math.min(this.$refs.promptInput.scrollHeight, 400) + 'px'; 
+                            let h = Math.min(this.$refs.promptInput.scrollHeight, 260) + 'px'; 
                             this.$refs.promptInput.style.height = h; 
                             this.promptHeight = h; 
                         } 
@@ -122,7 +122,7 @@
                     ">
                     {{-- Shrunk State View (Read-only, Truncated text) --}}
                     <div x-show="!isAtBottom && !isFocused && !$wire.isGenerating"
-                        @click="isFocused = true; $nextTick(() => $refs.promptInput.focus())"
+                        @click="isFocused = true; $nextTick(() => { $refs.promptInput.focus(); const len = $refs.promptInput.value.length; $refs.promptInput.setSelectionRange(len, len); })"
                         class="flex-1 h-[44px] px-2 py-2.5 text-white/70 text-sm sm:text-base truncate cursor-text transition-colors flex items-center group">
                         <div class="w-full truncate pr-10 group-hover:text-white transition-colors">
                             <span x-text="$wire.prompt || 'Mô tả ý tưởng...'"
@@ -138,25 +138,18 @@
                             @blur="setTimeout(() => { if (!document.activeElement?.closest('.t2i-composer-wrap')) { isFocused = false; } }, 150)"
                             @scroll.window.passive="if (isFocused && typeof focusLock !== 'undefined' && !focusLock) { isFocused = false; $el.blur(); }"
                             @input="resize()" placeholder="Mô tả ý tưởng của bạn..." :style="{ height: promptHeight }"
-                            class="t2i-prompt-input relative z-10 w-full bg-transparent border-none outline-none ring-0 focus:ring-0 focus:outline-none text-sm sm:text-base resize-none transition-all leading-relaxed min-h-[44px] max-h-[50vh] px-2 py-1.5 pr-8 text-white placeholder:text-white/40 caret-white overflow-y-auto whitespace-pre-wrap break-words"
+                            class="t2i-prompt-input relative z-10 w-full bg-transparent border-none outline-none ring-0 focus:ring-0 focus:outline-none text-sm sm:text-base resize-none transition-all leading-relaxed min-h-[44px] max-h-[260px] px-2 py-1.5 pr-2 text-white placeholder:text-white/40 caret-white overflow-y-auto whitespace-pre-wrap break-words"
                             x-init="
-                                $watch('isFocused', () => { if (isFocused || isAtBottom || uiMode !== 'idle') resize() });
-                                $watch('isAtBottom', () => { if (isFocused || isAtBottom || uiMode !== 'idle') resize() });
-                                $watch('uiMode', () => { if (isFocused || isAtBottom || uiMode !== 'idle') resize() });
-                                $watch('$wire.prompt', () => { if (isFocused || isAtBottom || uiMode !== 'idle') resize() });
+                                $watch('isFocused', () => { if (isFocused || isAtBottom || uiMode !== 'idle') $nextTick(() => resize()) });
+                                $watch('isAtBottom', () => { if (isFocused || isAtBottom || uiMode !== 'idle') $nextTick(() => resize()) });
+                                $watch('uiMode', () => { if (isFocused || isAtBottom || uiMode !== 'idle') $nextTick(() => resize()) });
+                                $watch('$wire.prompt', () => { if (isFocused || isAtBottom || uiMode !== 'idle') $nextTick(() => resize()) });
                                 setTimeout(() => resize(), 100);
                                 $wire.on('imageGenerated', () => { setTimeout(() => resize(), 150); });
                             "
                             @keydown.enter.prevent="if(!$event.shiftKey) { $wire.generate(); } else { $el.value += '\n'; $el.dispatchEvent(new Event('input')) }"
                             :disabled="uiMode === 'generating'"></textarea>
 
-                        {{-- Clear Prompt Button --}}
-                        <button type="button" x-show="$wire.prompt && $wire.prompt.length > 0" x-cloak
-                            @click="$wire.set('prompt', ''); setTimeout(() => { $refs.promptInput.focus(); resize(); }, 50)"
-                            class="absolute right-1 top-2.5 z-20 w-6 h-6 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center text-white/50 hover:text-white/90 transition-all active:scale-95"
-                            title="Xóa nội dung">
-                            <i class="fa-solid fa-xmark text-xs"></i>
-                        </button>
                     </div>
 
                     {{-- Mobile "Done/Collapse" Button (Visible only when focused) --}}
