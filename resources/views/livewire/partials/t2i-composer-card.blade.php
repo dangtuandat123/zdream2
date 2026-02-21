@@ -87,13 +87,12 @@
         <div class="relative transition-all duration-300 ease-in-out z-50 flex justify-center w-full"
             :class="isFocused ? 'px-0 sm:px-4 mb-0 sm:mb-4' : (isAtBottom ? 'px-2 sm:px-4 mb-2 sm:mb-4' : 'px-4 mb-4')">
 
-            <div class="relative flex flex-col w-full transition-all duration-300 shadow-2xl glass-popover bg-[#0a0a0c]/95 backdrop-blur-3xl"
-                :class="[
+            <div class="relative flex flex-col w-full transition-all duration-300 mat-surface" :class="[
                      isFocused 
-                        ? 'p-2.5 sm:p-3.5 rounded-t-3xl sm:rounded-2xl' 
-                        : (isAtBottom ? 'p-2.5 sm:p-3.5 rounded-[1.5rem] max-w-4xl mx-auto' : 'p-2 rounded-[2rem] max-w-2xl mx-auto'),
-                     (!isFocused && !isAtBottom) ? 'opacity-85 hover:opacity-100' : 'opacity-100',
-                     uiMode === 'generating' ? 'ring-2 ring-purple-500/60 shadow-[0_0_40px_rgba(168,85,247,0.3)] border-purple-500/50' : 'border border-white/10'
+                        ? 'p-2.5 sm:p-3.5 rounded-t-[28px] sm:rounded-3xl' 
+                        : (isAtBottom ? 'p-2.5 sm:p-3.5 rounded-3xl max-w-4xl mx-auto' : 'p-2 rounded-3xl max-w-2xl mx-auto'),
+                     (!isFocused && !isAtBottom) ? 'opacity-90 hover:opacity-100' : 'opacity-100',
+                     uiMode === 'generating' ? 'ring-2 ring-purple-500 border-transparent' : 'border border-gray-700'
                  ]">
 
                 {{-- Prompt textarea --}}
@@ -148,7 +147,7 @@
                         x-transition:enter-start="opacity-0 scale-75" x-transition:enter-end="opacity-100 scale-100">
                         <button type="button" @click="$wire.generate()"
                             :disabled="!$wire.prompt || $wire.prompt.length === 0 || isBanned"
-                            class="w-9 h-9 rounded-full bg-gradient-to-tr from-purple-600 to-indigo-600 shadow-lg shadow-purple-900/40 text-white flex items-center justify-center hover:shadow-purple-500/50 hover:brightness-110 active:scale-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer">
+                            class="w-9 h-9 rounded-full bg-purple-600 text-white flex items-center justify-center hover:bg-purple-700 active:scale-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer">
                             <i class="fa-solid fa-paper-plane text-xs relative -top-[0.5px] -ml-[0.5px]"></i>
                         </button>
                     </div>
@@ -186,8 +185,8 @@
                         <div class="relative sm:hidden">
                             <button type="button"
                                 @click="showSettingsSheet = !showSettingsSheet; showRatioSheet = false; showModelSheet = false; showBatchSheet = false; showRefPicker = false"
-                                class="glass-chip shrink-0 flex items-center gap-1.5 h-8 px-2.5 rounded-lg text-xs font-medium transition-all duration-200 cursor-pointer"
-                                :class="(showSettingsSheet || showModelSheet || showRatioSheet || showBatchSheet || showRefPicker) ? 'glass-chip-active' : ''">
+                                class="mat-chip shrink-0 flex items-center gap-1.5 h-8 px-2.5 text-xs font-medium transition-all duration-200 cursor-pointer"
+                                :class="(showSettingsSheet || showModelSheet || showRatioSheet || showBatchSheet || showRefPicker) ? 'mat-chip-active' : ''">
                                 <i class="fa-solid fa-sliders text-[11px]"></i>
                                 <span>Tùy chỉnh</span>
                             </button>
@@ -195,7 +194,7 @@
                             {{-- Unified Settings Bottom Sheet Mobile --}}
                             <template x-teleport="body">
                                 <div x-show="showSettingsSheet" x-cloak
-                                    class="sm:hidden fixed inset-0 z-[9999] flex items-end justify-center bg-black/80 backdrop-blur-md"
+                                    class="sm:hidden fixed inset-0 z-[9999] flex items-end justify-center bg-black/60"
                                     @click.self="showSettingsSheet = false">
                                     <div x-show="showSettingsSheet" @click.stop
                                         x-transition:enter="transition ease-out duration-300"
@@ -204,7 +203,7 @@
                                         x-transition:leave="transition ease-in duration-200"
                                         x-transition:leave-start="translate-y-0"
                                         x-transition:leave-end="translate-y-full"
-                                        class="glass-popover w-full max-w-lg rounded-t-3xl flex flex-col max-h-[85vh]">
+                                        class="mat-surface w-full max-w-lg rounded-t-[28px] flex flex-col max-h-[85vh]">
                                         <div
                                             class="flex items-center justify-between p-4 border-b border-white/5 shrink-0">
                                             <span class="text-white font-semibold text-base">Cài đặt tạo ảnh</span>
@@ -286,8 +285,8 @@
                         <div class="relative hidden sm:block" @click.away="showModelSheet = false">
                             <button type="button"
                                 @click="showModelSheet = !showModelSheet; showRatioSheet = false; showBatchSheet = false; showRefPicker = false"
-                                class="glass-chip shrink-0 flex items-center gap-1.5 h-8 px-2.5 rounded-lg text-xs font-medium transition-all duration-200 cursor-pointer"
-                                :class="showModelSheet ? 'glass-chip-active' : ''">
+                                class="mat-chip shrink-0 flex items-center gap-1.5 h-8 px-2.5 rounded-lg text-xs font-medium transition-all duration-200 cursor-pointer"
+                                :class="showModelSheet ? 'mat-chip-active' : ''">
                                 <span x-text="getSelectedModel().icon" class="text-sm"></span>
                                 <span class="hidden sm:inline max-w-[100px] truncate"
                                     x-text="getSelectedModel().name"></span>
@@ -299,7 +298,7 @@
                             <div x-show="showModelSheet" x-cloak x-transition:enter="transition ease-out duration-200"
                                 x-transition:enter-start="opacity-0 translate-y-2"
                                 x-transition:enter-end="opacity-100 translate-y-0"
-                                class="glass-popover hidden sm:block absolute bottom-full left-0 mb-2 w-72 p-2 rounded-xl z-[100]"
+                                class="mat-surface hidden sm:block absolute bottom-full left-0 mb-2 w-72 p-2 rounded-xl z-[100]"
                                 @click.stop>
                                 <div class="space-y-1">
                                     <template x-for="model in models" :key="model.id">
@@ -330,7 +329,7 @@
                             {{-- Model Bottom Sheet Mobile --}}
                             <template x-teleport="body">
                                 <div x-show="showModelSheet" x-cloak
-                                    class="sm:hidden fixed inset-0 z-[9999] flex items-end justify-center bg-black/80 backdrop-blur-md"
+                                    class="sm:hidden fixed inset-0 z-[9999] flex items-end justify-center bg-black/60"
                                     @click.self="showModelSheet = false">
                                     <div x-show="showModelSheet" @click.stop
                                         x-transition:enter="transition ease-out duration-300"
@@ -339,7 +338,7 @@
                                         x-transition:leave="transition ease-in duration-200"
                                         x-transition:leave-start="translate-y-0"
                                         x-transition:leave-end="translate-y-full"
-                                        class="glass-popover w-full max-w-lg rounded-t-3xl flex flex-col max-h-[85vh]">
+                                        class="mat-surface w-full max-w-lg rounded-t-[28px] flex flex-col max-h-[85vh]">
                                         <div
                                             class="flex items-center justify-between p-4 border-b border-white/5 shrink-0">
                                             <span class="text-white font-semibold text-base">Chọn Model AI</span>
@@ -389,8 +388,8 @@
                         <div class="relative hidden sm:block" @click.away="showRatioSheet = false">
                             <button type="button"
                                 @click="showRatioSheet = !showRatioSheet; showModelSheet = false; showBatchSheet = false; showRefPicker = false"
-                                class="glass-chip shrink-0 flex items-center gap-1.5 h-8 px-2.5 rounded-lg text-xs font-medium transition-all duration-200 cursor-pointer"
-                                :class="showRatioSheet ? 'glass-chip-active' : ''">
+                                class="mat-chip shrink-0 flex items-center gap-1.5 h-8 px-2.5 rounded-lg text-xs font-medium transition-all duration-200 cursor-pointer"
+                                :class="showRatioSheet ? 'mat-chip-active' : ''">
                                 <i class="fa-solid fa-crop text-[11px]"></i>
                                 <span x-text="selectedRatio === 'auto' ? 'Auto' : selectedRatio"></span>
                             </button>
@@ -399,7 +398,7 @@
                             <div x-show="showRatioSheet" x-cloak x-transition:enter="transition ease-out duration-200"
                                 x-transition:enter-start="opacity-0 translate-y-2"
                                 x-transition:enter-end="opacity-100 translate-y-0"
-                                class="glass-popover hidden sm:block absolute bottom-full left-0 mb-2 w-80 p-3 rounded-xl z-[100]"
+                                class="mat-surface hidden sm:block absolute bottom-full left-0 mb-2 w-80 p-3 rounded-xl z-[100]"
                                 @click.stop>
                                 <div class="text-white/50 text-xs font-medium mb-2">Tỉ lệ khung hình</div>
                                 <div class="grid grid-cols-5 gap-1.5">
@@ -429,7 +428,7 @@
                             {{-- Ratio Bottom Sheet Mobile --}}
                             <template x-teleport="body">
                                 <div x-show="showRatioSheet" x-cloak
-                                    class="sm:hidden fixed inset-0 z-[9999] flex items-end justify-center bg-black/80 backdrop-blur-md"
+                                    class="sm:hidden fixed inset-0 z-[9999] flex items-end justify-center bg-black/60"
                                     @click.self="showRatioSheet = false">
                                     <div x-show="showRatioSheet" @click.stop
                                         x-transition:enter="transition ease-out duration-300"
@@ -438,7 +437,7 @@
                                         x-transition:leave="transition ease-in duration-200"
                                         x-transition:leave-start="translate-y-0"
                                         x-transition:leave-end="translate-y-full"
-                                        class="glass-popover w-full max-w-lg rounded-t-3xl flex flex-col max-h-[85vh]">
+                                        class="mat-surface w-full max-w-lg rounded-t-[28px] flex flex-col max-h-[85vh]">
                                         <div
                                             class="flex items-center justify-between p-4 border-b border-white/5 shrink-0">
                                             <span class="text-white font-semibold text-base">Tỉ lệ khung hình</span>
@@ -482,8 +481,8 @@
                         <div class="relative hidden sm:block" @click.away="showBatchSheet = false">
                             <button type="button"
                                 @click="showBatchSheet = !showBatchSheet; showRatioSheet = false; showModelSheet = false; showRefPicker = false"
-                                class="glass-chip shrink-0 flex items-center gap-1.5 h-8 px-2.5 rounded-lg text-xs font-medium transition-all duration-200 cursor-pointer"
-                                :class="showBatchSheet ? 'glass-chip-active' : ''">
+                                class="mat-chip shrink-0 flex items-center gap-1.5 h-8 px-2.5 rounded-lg text-xs font-medium transition-all duration-200 cursor-pointer"
+                                :class="showBatchSheet ? 'mat-chip-active' : ''">
                                 <i class="fa-solid fa-layer-group text-[11px]"></i>
                                 <span x-text="'×' + $wire.batchSize"></span>
                             </button>
@@ -492,7 +491,7 @@
                             <div x-show="showBatchSheet" x-cloak x-transition:enter="transition ease-out duration-200"
                                 x-transition:enter-start="opacity-0 translate-y-2"
                                 x-transition:enter-end="opacity-100 translate-y-0"
-                                class="glass-popover hidden sm:block absolute bottom-full left-0 mb-2 w-36 p-1.5 rounded-xl z-[100]"
+                                class="mat-surface hidden sm:block absolute bottom-full left-0 mb-2 w-36 p-1.5 rounded-xl z-[100]"
                                 @click.stop>
                                 <div class="text-white/50 text-xs font-medium mb-1.5 px-2">Số lượng ảnh</div>
                                 <div class="space-y-0.5">
@@ -512,7 +511,7 @@
                             {{-- Batch Bottom Sheet Mobile --}}
                             <template x-teleport="body">
                                 <div x-show="showBatchSheet" x-cloak
-                                    class="sm:hidden fixed inset-0 z-[9999] flex items-end justify-center bg-black/80 backdrop-blur-md"
+                                    class="sm:hidden fixed inset-0 z-[9999] flex items-end justify-center bg-black/60"
                                     @click.self="showBatchSheet = false" @click.stop>
                                     <div x-show="showBatchSheet" x-transition:enter="transition ease-out duration-300"
                                         x-transition:enter-start="translate-y-full"
@@ -520,7 +519,7 @@
                                         x-transition:leave="transition ease-in duration-200"
                                         x-transition:leave-start="translate-y-0"
                                         x-transition:leave-end="translate-y-full"
-                                        class="glass-popover w-full max-w-lg rounded-t-3xl flex flex-col max-h-[85vh]">
+                                        class="mat-surface w-full max-w-lg rounded-t-[28px] flex flex-col max-h-[85vh]">
                                         <div
                                             class="flex items-center justify-between p-4 border-b border-white/5 shrink-0">
                                             <span class="text-white font-semibold text-base">Số lượng ảnh</span>
@@ -552,11 +551,11 @@
                         <div class="relative">
                             <button type="button"
                                 @click="if (maxImages > 0) { showRefPicker = !showRefPicker; showModelSheet = false; showRatioSheet = false; showBatchSheet = false; if(showRefPicker) loadRecentImages(); }"
-                                class="glass-chip shrink-0 flex items-center gap-1.5 h-8 px-2.5 rounded-lg text-xs font-medium transition-all duration-200"
+                                class="mat-chip shrink-0 flex items-center gap-1.5 h-8 px-2.5 rounded-lg text-xs font-medium transition-all duration-200"
                                 :class="maxImages === 0
                                     ? 'bg-white/[0.02] border border-white/[0.05] text-white/30 cursor-not-allowed'
                                     : (selectedImages.length > 0
-                                        ? 'glass-chip-active cursor-pointer'
+                                        ? 'mat-chip-active cursor-pointer'
                                         : 'cursor-pointer')"
                                 :title="maxImages === 0 ? 'Model này không hỗ trợ ảnh tham chiếu' : ''">
                                 <template x-if="selectedImages.length > 0">
@@ -589,7 +588,7 @@
                                 x-transition:enter="transition ease-out duration-200"
                                 x-transition:enter-start="opacity-0 translate-y-2"
                                 x-transition:enter-end="opacity-100 translate-y-0"
-                                class="glass-popover hidden sm:block absolute bottom-full right-0 mb-2 w-80 p-3 rounded-xl z-[100]"
+                                class="mat-surface hidden sm:block absolute bottom-full right-0 mb-2 w-80 p-3 rounded-xl z-[100]"
                                 @click.stop>
                                 <div class="flex items-center justify-between mb-3">
                                     <span class="text-white/50 text-xs font-medium">Ảnh tham chiếu <span
@@ -650,7 +649,7 @@
                             {{-- Mobile Ref Sheet --}}
                             <template x-teleport="body">
                                 <div x-show="showRefPicker && maxImages > 0" x-cloak
-                                    class="sm:hidden fixed inset-0 z-[9999] flex items-end justify-center bg-black/80 backdrop-blur-md"
+                                    class="sm:hidden fixed inset-0 z-[9999] flex items-end justify-center bg-black/60"
                                     @click.self="showRefPicker = false" @click.stop>
                                     <div x-show="showRefPicker" x-transition:enter="transition ease-out duration-300"
                                         x-transition:enter-start="translate-y-full"
@@ -658,7 +657,7 @@
                                         x-transition:leave="transition ease-in duration-200"
                                         x-transition:leave-start="translate-y-0"
                                         x-transition:leave-end="translate-y-full"
-                                        class="glass-popover w-full max-w-lg rounded-t-3xl flex flex-col max-h-[80vh]">
+                                        class="mat-surface w-full max-w-lg rounded-t-[28px] flex flex-col max-h-[80vh]">
                                         <div
                                             class="flex items-center justify-between p-4 border-b border-white/5 shrink-0">
                                             <span class="text-white font-semibold text-base">Ảnh tham chiếu <span
@@ -736,13 +735,13 @@
                     {{-- Generate Button --}}
                     @if($isGenerating)
                         <button type="button" wire:click="cancelGeneration"
-                            class="t2i-cancel-btn shrink-0 flex items-center justify-center gap-2 h-10 px-4 sm:px-5 rounded-xl bg-white/5 hover:bg-red-500/20 border border-white/10 text-white font-medium text-sm active:scale-95 transition-all outline-none">
+                            class="t2i-cancel-btn shrink-0 flex items-center justify-center gap-2 h-10 px-4 sm:px-5 rounded-full bg-red-600 hover:bg-red-700 text-white font-medium text-sm active:scale-95 transition-all outline-none border-none">
                             <i class="fa-solid fa-stop text-xs"></i>
                             <span class="hidden sm:inline">Hủy</span>
                         </button>
                     @else
                         <button type="button" @click="$wire.generate()"
-                            class="t2i-generate-btn shrink-0 flex items-center justify-center gap-1.5 h-10 px-4 sm:px-6 rounded-xl text-white font-semibold text-sm shadow-[0_0_20px_rgba(147,51,234,0.3)] hover:shadow-[0_0_25px_rgba(147,51,234,0.5)] active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-gradient-to-r from-purple-600 to-indigo-600 relative overflow-hidden group outline-none"
+                            class="t2i-generate-btn shrink-0 flex items-center justify-center gap-1.5 h-10 px-4 sm:px-6 rounded-full text-white font-semibold text-sm active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-purple-600 hover:bg-purple-700 relative overflow-hidden group outline-none border-none shadow-none"
                             :disabled="!$wire.prompt?.trim() || uiMode === 'generating'" wire:loading.attr="disabled"
                             wire:loading.class="opacity-50 pointer-events-none" wire:target="generate">
 
