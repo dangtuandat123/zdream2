@@ -163,32 +163,32 @@
                                         @click="openPreview(null, {{ $absoluteIndex }})">
                                         <div class="relative overflow-hidden bg-[#222] rounded-lg aspect-square">
                                             {{-- Shimmer --}}
-                                            <div class="img-shimmer absolute inset-0 bg-white/[0.04] overflow-hidden">
-                                                <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.06] to-transparent"></div>
+                                            <div class="img-shimmer absolute inset-0 bg-[#333] overflow-hidden" x-ref="shimmerPlaceholder">
+                                                <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.1] to-transparent w-[200%] animate-[progress-slide_2s_linear_infinite]" style="will-change: transform;"></div>
                                             </div>
                                             {{-- Image --}}
                                             <img src="{{ $image->image_url }}" alt="Preview"
-                                                class="gallery-img w-full h-full object-contain transition-all duration-500 group-hover/img:scale-[1.05]"
+                                                class="gallery-img w-full h-full object-contain transition-transform duration-500 group-hover/img:scale-[1.05]"
                                                 draggable="false"
-                                                onload="this.previousElementSibling && (this.previousElementSibling.style.display='none')"
-                                                onerror="this.previousElementSibling && (this.previousElementSibling.style.display='none'); this.onerror=null; this.src='/images/placeholder.svg'"
+                                                onload="this.previousElementSibling.style.opacity = '0'; setTimeout(() => this.previousElementSibling.style.display='none', 300)"
+                                                onerror="this.previousElementSibling.style.display='none'; this.onerror=null; this.src='/images/placeholder.svg'"
                                                 {{ $isPriorityImage ? 'loading=eager fetchpriority=high decoding=async' : 'loading=lazy fetchpriority=low decoding=async' }}>
 
                                             {{-- Actions Overlay (Desktop: Hover / Mobile: Tap or Always visible?) --}}
                                             {{-- Decision: Top-Right for better standard. Mobile: Always visible but subtle. Desktop: Hover. --}}
                                             
                                             {{-- Unified Actions Overlay --}}
-                                            <div class="absolute top-2 right-2 flex gap-1.5 z-10 sm:opacity-0 sm:group-hover/img:opacity-100 transition-all duration-200">
+                                            <div class="absolute top-2 right-2 flex gap-1.5 z-10 sm:opacity-0 sm:group-hover/img:opacity-100 transition-opacity duration-200">
                                                 <button @click.stop="downloadImage('{{ $image->image_url }}')" 
-                                                    class="h-8 w-8 rounded-full bg-black/60 backdrop-blur-md text-white/90 hover:text-white hover:bg-white/20 flex items-center justify-center transition-all duration-200 border border-white/10 active:scale-90 shadow-sm" 
+                                                    class="h-8 w-8 rounded-full bg-black/60 backdrop-blur-md text-white/90 hover:text-white hover:bg-white/20 flex items-center justify-center transition-colors duration-200 border border-white/10 active:scale-90 shadow-sm" 
                                                     title="Tải xuống">
-                                                    <i class="fa-solid fa-download text-[13px]"></i>
+                                                    <i class="fa-solid fa-download text-[13px] pointer-events-none"></i>
                                                 </button>
                                                 <button wire:click="deleteImage({{ $image->id }})" @click.stop 
                                                     wire:confirm="Bạn có chắc muốn xóa ảnh này?"
-                                                    class="h-8 w-8 rounded-full bg-black/60 backdrop-blur-md text-white/90 hover:text-white hover:bg-red-500/80 flex items-center justify-center transition-all duration-200 border border-white/10 active:scale-90 shadow-sm" 
+                                                    class="h-8 w-8 rounded-full bg-black/60 backdrop-blur-md text-white/90 hover:text-white hover:bg-red-500/80 flex items-center justify-center transition-colors duration-200 border border-white/10 active:scale-90 shadow-sm" 
                                                     title="Xóa">
-                                                    <i class="fa-solid fa-trash text-[13px]"></i>
+                                                    <i class="fa-solid fa-trash text-[13px] pointer-events-none"></i>
                                                 </button>
                                             </div>
                                         </div>
@@ -248,10 +248,10 @@
             {{-- GENERATING SKELETON (0ms Alpine Reactivity) --}}
             {{-- ═══════════════════════════════════════════ --}}
             <div id="gen-skeleton" x-show="isLocallyGenerating || $wire.isGenerating" x-cloak
-                x-transition:enter="transition-all ease-out duration-300"
+                x-transition:enter="transition ease-out duration-300 transform"
                 x-transition:enter-start="opacity-0 translate-y-4 scale-95"
                 x-transition:enter-end="opacity-100 translate-y-0 scale-100"
-                x-transition:leave="transition-all ease-in duration-200"
+                x-transition:leave="transition ease-in duration-200 transform"
                 x-transition:leave-start="opacity-100 translate-y-0 scale-100"
                 x-transition:leave-end="opacity-0 translate-y-4 scale-95"
                 x-data="{ elapsed: 0, timer: null }"
@@ -262,6 +262,7 @@
                         if (timer) { clearInterval(timer); timer = null; }
                     }
                 "
+                x-init="$cleanup(() => { if (timer) clearInterval(timer); timer = null; })"
                 class="group-batch t2i-batch relative mb-5 bg-[#12151e] overflow-hidden shadow-[0_0_40px_rgba(147,51,234,0.1)] border border-purple-500/30">
                 
                 {{-- Top Progress Bar --}}
@@ -279,7 +280,7 @@
 
                         <div class="flex items-center gap-3 text-[12px] text-white/40 font-medium shrink-0 flex-wrap">
                             <span class="px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 flex items-center gap-1.5 font-bold uppercase tracking-wider text-[10px] border border-purple-500/30">
-                                <span class="w-[5px] h-[5px] rounded-full bg-purple-400 animate-ping"></span> ĐANG VẼ
+                                <span class="w-[5px] h-[5px] rounded-full bg-purple-400" x-data="{ toggle: true }" x-init="setInterval(() => toggle = !toggle, 800)" :class="toggle ? 'opacity-100' : 'opacity-20'" style="transition: opacity 0.3s ease-in-out;"></span> ĐANG VẼ
                             </span>
                             <span class="w-[1px] h-3 bg-white/10 hidden sm:block"></span>
                             <span><span x-text="$wire.batchSize"></span> ảnh</span>
@@ -292,7 +293,7 @@
                 {{-- Grid Display --}}
                 <div class="px-0 pt-2 border-t border-white/5 relative z-10">
                     <div class="grid gap-3" :class="parseInt($wire.batchSize) === 1 ? 'grid-cols-1 max-w-sm mx-auto' : (parseInt($wire.batchSize) === 2 ? 'grid-cols-2 max-w-xl mx-auto' : 'grid-cols-2 sm:grid-cols-4')">
-                        <template x-for="i in Array.from({length: parseInt($wire.batchSize)})">
+                        <template x-for="i in Array.from({length: parseInt($wire.batchSize)})" :key="'skel-' + i">
                             <div class="relative bg-white/[0.02] rounded-xl overflow-hidden border border-white/[0.05] shadow-inner"
                                  :style="`aspect-ratio: ${$wire.aspectRatio !== 'auto' && typeof $wire.aspectRatio === 'string' && $wire.aspectRatio.includes(':') ? $wire.aspectRatio.replace(':', ' / ') : '1 / 1'};`">
                                  
