@@ -160,18 +160,21 @@
                                         $isPriorityImage = $isNewestGroup && $loop->index < 2;
                                     @endphp
                                     <div class="block group/img cursor-pointer relative" wire:key="img-{{ $image->id }}"
-                                        @click="openPreview(null, {{ $absoluteIndex }})">
+                                        @click="openPreview(null, {{ $absoluteIndex }})"
+                                        x-data="{ loaded: false }"
+                                        x-init="$nextTick(() => { if ($refs.imgElem && $refs.imgElem.complete) loaded = true; })">
                                         <div class="relative overflow-hidden bg-[#222] rounded-lg aspect-square">
                                             {{-- Shimmer --}}
-                                            <div class="img-shimmer absolute inset-0 bg-[#333] overflow-hidden" x-ref="shimmerPlaceholder">
+                                            <div class="img-shimmer absolute inset-0 bg-[#333] overflow-hidden transition-opacity duration-300"
+                                                 :class="loaded ? 'opacity-0 pointer-events-none' : 'opacity-100'">
                                                 <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.1] to-transparent w-[200%] animate-[progress-slide_2s_linear_infinite]" style="will-change: transform;"></div>
                                             </div>
                                             {{-- Image --}}
-                                            <img src="{{ $image->image_url }}" alt="Preview"
+                                            <img x-ref="imgElem" src="{{ $image->image_url }}" alt="Preview"
                                                 class="gallery-img w-full h-full object-contain transition-transform duration-500 group-hover/img:scale-[1.05]"
                                                 draggable="false"
-                                                onload="this.previousElementSibling.style.opacity = '0'; setTimeout(() => this.previousElementSibling.style.display='none', 300)"
-                                                onerror="this.previousElementSibling.style.display='none'; this.onerror=null; this.src='/images/placeholder.svg'"
+                                                @load="loaded = true"
+                                                @error="loaded = true; $el.src='/images/placeholder.svg'"
                                                 {{ $isPriorityImage ? 'loading=eager fetchpriority=high decoding=async' : 'loading=lazy fetchpriority=low decoding=async' }}>
 
                                             {{-- Actions Overlay (Desktop: Hover / Mobile: Tap or Always visible?) --}}
