@@ -115,13 +115,9 @@
                             <div class="flex flex-col sm:flex-row sm:items-baseline gap-2 sm:gap-4">
                                 {{-- Prompt --}}
                                 <!-- Prompt (Truncated) -->
-                                <button class="text-[15px] font-semibold leading-snug text-left text-white/90 hover:text-white transition-colors duration-200 cursor-pointer break-words break-all relative pr-6 group"
-                                    :class="expanded ? '' : 'line-clamp-2'"
-                                    @click="expanded = !expanded" title="Nhấn đánh giá chi tiết">
+                                <button class="text-[15px] font-semibold leading-snug text-left text-white/90 hover:text-white transition-colors duration-200 cursor-pointer line-clamp-2 break-words break-all"
+                                    @click="expanded = !expanded" title="Nhấn xem chi tiết">
                                     {{ $prompt }}
-                                    <i class="fa-solid fa-chevron-down absolute bottom-1 right-0 text-[10px] text-white/40 group-hover:text-white transition-transform" 
-                                       :class="expanded ? 'rotate-180' : ''"
-                                       @if(strlen($prompt) < 80) style="display:none;" @endif></i>
                                 </button>
                                 
                                 {{-- Metadata --}}
@@ -135,15 +131,9 @@
                                     <span>{{ $firstItem->created_at->diffForHumans() }}</span>
                                     
                                     {{-- Actions (Contextual) --}}
-                                    <button wire:click="reusePrompt({{ $firstItem->id }})" class="ml-2 hover:text-white/80 transition-colors" title="Tái sử dụng (Reuse) prompt và cài đặt">
+                                    <button wire:click="reusePrompt({{ $firstItem->id }})" class="ml-2 hover:text-white/80 transition-colors" title="Reuse">
                                         <i class="fa-solid fa-arrow-rotate-left"></i>
                                     </button>
-                                    @if($groupItems->count() > 1)
-                                    <button @click.stop="['{{ $groupItems->pluck('image_url')->implode('\',\'') }}'].forEach(url => downloadImage(url, '{{ \Illuminate\Support\Str::slug(substr($prompt, 0, 40)) }}'))"
-                                        class="ml-1 px-1.5 py-0.5 rounded bg-white/5 hover:bg-white/10 border border-white/10 text-white/60 hover:text-white transition-all text-[10px] flex items-center gap-1" title="Tải xuống toàn bộ">
-                                        <i class="fa-solid fa-download"></i> Tất cả
-                                    </button>
-                                    @endif
                                 </div>
                             </div>
                         </div>
@@ -171,7 +161,7 @@
                                     @endphp
                                     <div class="block group/img cursor-pointer relative" wire:key="img-{{ $image->id }}"
                                         @click="openPreview(null, {{ $absoluteIndex }})">
-                                        <div class="relative overflow-hidden bg-[#18181f] rounded-lg aspect-square shadow-sm transition-all duration-500 hover:z-10 group-hover/img:shadow-[0_10px_40px_rgba(0,0,0,0.8),0_0_15px_rgba(255,255,255,0.05)] border border-transparent group-hover/img:border-white/10">
+                                        <div class="relative overflow-hidden bg-[#222] rounded-lg aspect-square">
                                             {{-- Shimmer --}}
                                             <div class="img-shimmer absolute inset-0 bg-white/[0.04] overflow-hidden">
                                                 <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.06] to-transparent"></div>
@@ -183,11 +173,13 @@
                                                 onload="this.previousElementSibling && (this.previousElementSibling.style.display='none')"
                                                 onerror="this.previousElementSibling && (this.previousElementSibling.style.display='none'); this.onerror=null; this.src='/images/placeholder.svg'"
                                                 {{ $isPriorityImage ? 'loading=eager fetchpriority=high decoding=async' : 'loading=lazy fetchpriority=low decoding=async' }}>
+
+                                            {{-- Actions Overlay (Desktop: Hover / Mobile: Tap or Always visible?) --}}
+                                            {{-- Decision: Top-Right for better standard. Mobile: Always visible but subtle. Desktop: Hover. --}}
                                             
                                             {{-- Unified Actions Overlay --}}
-                                            {{-- Mobile: Hidden (uses preview modal instead) to fix sticky hover bug. Desktop: Show on hover. --}}
-                                            <div class="absolute top-2 right-2 hidden sm:flex gap-1.5 z-10 opacity-0 group-hover/img:opacity-100 transition-all duration-200">
-                                                <button @click.stop="downloadImage('{{ $image->image_url }}', '{{ \Illuminate\Support\Str::slug(substr($prompt, 0, 40)) }}')" 
+                                            <div class="absolute top-2 right-2 flex gap-1.5 z-10 sm:opacity-0 sm:group-hover/img:opacity-100 transition-all duration-200">
+                                                <button @click.stop="downloadImage('{{ $image->image_url }}')" 
                                                     class="h-8 w-8 rounded-full bg-black/60 backdrop-blur-md text-white/90 hover:text-white hover:bg-white/20 flex items-center justify-center transition-all duration-200 border border-white/10 active:scale-90 shadow-sm" 
                                                     title="Tải xuống">
                                                     <i class="fa-solid fa-download text-[13px]"></i>

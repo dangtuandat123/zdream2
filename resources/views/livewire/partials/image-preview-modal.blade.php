@@ -39,18 +39,18 @@
         <div x-show="previewIndex === 0" class="shrink-0 w-12"></div>
 
         {{-- Main Image + Info --}}
-        <div class="flex-1 flex flex-col h-full justify-center items-center gap-4 min-w-0 py-6">
+        <div class="flex-1 flex flex-col items-center gap-4 min-w-0">
             {{-- Image --}}
-            <div class="relative w-full flex-1 min-h-0 flex items-center justify-center">
+            <div class="relative w-full flex items-center justify-center" style="max-height: 68vh;">
                 <img :src="previewImage?.url" :key="'preview-' + previewIndex"
-                    class="max-w-full max-h-full object-contain rounded-xl shadow-2xl transition-opacity duration-200"
+                    class="max-w-full max-h-[80vh] object-contain rounded-xl shadow-2xl transition-opacity duration-200"
                     :alt="previewImage?.prompt || 'Preview'"
                     onerror="this.onerror=null; this.src='/images/placeholder.svg'">
             </div>
 
             {{-- Info panel --}}
             <div
-                class="shrink-0 w-full max-w-3xl max-h-[22vh] overflow-y-auto rounded-xl bg-black/30 border border-white/[0.08] p-3">
+                class="w-full max-w-3xl max-h-[22vh] overflow-y-auto rounded-xl bg-black/30 border border-white/[0.08] p-3">
                 {{-- Prompt --}}
                 <div x-data="{ expanded: false }" class="mb-3">
                     <p class="text-white/80 text-sm leading-relaxed" :class="expanded ? '' : 'line-clamp-2'"

@@ -1334,7 +1334,7 @@
                             else this.nextImage();
                         }
                     },
-                    async downloadImage(url, promptStr = '') {
+                    async downloadImage(url) {
                         try {
                             const res = await fetch(url);
                             const blob = await res.blob();
@@ -1343,11 +1343,7 @@
                             const ext = extMap[blob.type] || '.png';
                             const a = document.createElement('a');
                             a.href = URL.createObjectURL(blob);
-                            
-                            // Get promptSlug if passed (usually pre-slugged by Laravel, but just in case)
-                            let promptSlug = promptStr ? '-' + promptStr : '';
-                            a.download = 'zdream' + promptSlug + '-' + Date.now() + ext;
-                            
+                            a.download = 'zdream-' + Date.now() + ext;
                             a.click();
                             URL.revokeObjectURL(a.href);
                         } catch (e) {
