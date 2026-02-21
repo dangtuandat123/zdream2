@@ -973,22 +973,13 @@
 
                     scrollToBottom(smooth = true) {
                         console.log('scrollToBottom called');
-                        this.lockSystemScrolling(1500); // 1.5s for smooth scroll to finish
+                        this.lockSystemScrolling(1500);
 
-                        const batches = document.querySelectorAll('#gallery-feed .group-batch');
-                        const latest = batches.length > 0 ? batches[batches.length - 1] : null;
-
-                        if (latest) {
-                            const composerWrap = document.querySelector('.t2i-composer-wrap');
-                            const composerTop = composerWrap ? composerWrap.getBoundingClientRect().top : window.innerHeight;
-                            const targetBottom = latest.getBoundingClientRect().bottom;
-                            const delta = targetBottom - composerTop + 20; 
-                            
-                            const destScrollY = Math.max(0, window.scrollY + delta);
-                            window.scrollTo({ top: destScrollY, behavior: smooth ? 'smooth' : 'auto' });
+                        const targetTop = document.documentElement.scrollHeight + 500;
+                        if (smooth) {
+                            window.scrollTo({ top: targetTop, behavior: 'smooth' });
                         } else {
-                            const targetTop = document.documentElement.scrollHeight + 500;
-                            window.scrollTo({ top: targetTop, behavior: smooth ? 'smooth' : 'auto' });
+                            window.scrollTo(0, targetTop);
                         }
                         this.showScrollToBottom = false;
                     },
@@ -1060,20 +1051,7 @@
                     // ============================================================
                     centerLatestBatch(smooth = false) {
                         console.log('centerLatestBatch called');
-                        this.lockSystemScrolling(1500);
-                        const batches = Array.from(document.querySelectorAll('#gallery-feed .group-batch'));
-                        const latest = batches[batches.length - 1];
-                        if (!latest) return false;
-
-                        const composerWrap = document.querySelector('.t2i-composer-wrap');
-                        const composerTop = composerWrap ? composerWrap.getBoundingClientRect().top : window.innerHeight;
-                        const targetBottom = latest.getBoundingClientRect().bottom;
-                        const delta = targetBottom - composerTop + 20; // 20px extra spacing
-                        
-                        // Fallback constraint
-                        const destScrollY = Math.max(0, window.scrollY + delta);
-
-                        window.scrollTo({ top: destScrollY, behavior: smooth ? 'smooth' : 'auto' });
+                        this.scrollToBottom(smooth);
                         return true;
                     },
                     centerLatestBatchWhenReady() {
