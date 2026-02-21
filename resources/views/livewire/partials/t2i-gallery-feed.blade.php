@@ -161,24 +161,22 @@
                                     @endphp
                                     <div class="relative bg-[#1b1c21] border border-[#2a2b30] rounded-xl overflow-hidden hover:border-purple-500/30 transition-all" wire:key="img-{{ $image->id }}">
                                         <!-- Image Container -->
-                                        <div class="aspect-square relative overflow-hidden image-card-hover">
+                                        <div @click="openPreview(null, {{ $absoluteIndex }})" class="aspect-square relative overflow-hidden image-card-hover cursor-pointer block w-full h-full">
                                             {{-- Shimmer --}}
                                             <div class="img-shimmer absolute inset-0 bg-white/[0.04] overflow-hidden">
                                                 <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.06] to-transparent"></div>
                                             </div>
                                             {{-- Image --}}
-                                            <button type="button" @click="openPreview(null, {{ $absoluteIndex }})" class="w-full h-full cursor-pointer block">
-                                                <img src="{{ $image->image_url }}" alt="Preview"
-                                                    data-index="{{ $absoluteIndex }}"
-                                                    class="gallery-img w-full h-full object-contain transition-transform duration-500"
-                                                    draggable="false"
-                                                    onload="this.previousElementSibling.previousElementSibling && (this.previousElementSibling.previousElementSibling.style.display='none')"
-                                                    onerror="this.previousElementSibling.previousElementSibling && (this.previousElementSibling.previousElementSibling.style.display='none'); this.onerror=null; this.src='/images/placeholder.svg'"
-                                                    {{ $isPriorityImage ? 'loading=eager fetchpriority=high decoding=async' : 'loading=lazy fetchpriority=low decoding=async' }}>
-                                            </button>
+                                            <img src="{{ $image->image_url }}" alt="Preview"
+                                                data-index="{{ $absoluteIndex }}"
+                                                class="gallery-img w-full h-full object-contain transition-transform duration-500"
+                                                draggable="false"
+                                                onload="this.previousElementSibling.previousElementSibling && (this.previousElementSibling.previousElementSibling.style.display='none')"
+                                                onerror="this.previousElementSibling.previousElementSibling && (this.previousElementSibling.previousElementSibling.style.display='none'); this.onerror=null; this.src='/images/placeholder.svg'"
+                                                {{ $isPriorityImage ? 'loading=eager fetchpriority=high decoding=async' : 'loading=lazy fetchpriority=low decoding=async' }}>
                                             
                                             <!-- Hover overlay với icon mắt -->
-                                            <div class="hover-overlay pointer-events-none absolute inset-0 bg-black/50 flex flex-col items-center justify-center opacity-0 transition-opacity duration-300">
+                                            <div class="hover-overlay pointer-events-none absolute inset-0 bg-black/50 flex flex-col items-center justify-center opacity-0 transition-opacity duration-300 z-10">
                                                 <i class="fa-solid fa-eye text-[#d3d6db] text-3xl"></i>
                                             </div>
                                         </div>
