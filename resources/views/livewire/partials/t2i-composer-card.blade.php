@@ -160,11 +160,11 @@
                     {{-- Mobile "Done/Collapse" Button (Visible only when focused) --}}
                     <div x-show="isFocused" x-cloak x-transition:enter="transition ease-out duration-200"
                         x-transition:enter-start="opacity-0 scale-90" x-transition:enter-end="opacity-100 scale-100"
-                        class="shrink-0 flex items-center pb-1 z-20">
+                        class="shrink-0 flex items-center pb-2 z-20 pr-1">
                         <button type="button" @click="isFocused = false; $refs.promptInput.blur()"
-                            class="h-[36px] px-3.5 rounded-xl bg-[#2a2b36] hover:bg-[#343541] border border-white/10 text-white/90 text-sm font-medium transition-all active:scale-95 flex items-center gap-1.5 shadow-sm">
-                            <i class="fa-solid fa-compress text-xs opacity-70"></i>
-                            Thu gọn
+                            class="w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center text-white/50 hover:text-white/90 transition-all active:scale-95 border border-white/5"
+                            title="Đóng bàn phím">
+                            <i class="fa-solid fa-chevron-down text-sm"></i>
                         </button>
                     </div>
 
