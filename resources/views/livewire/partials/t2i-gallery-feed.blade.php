@@ -27,7 +27,7 @@
         </div>
     </div>
     <div class="max-w-4xl mx-auto px-4"
-        style="padding-top: calc(var(--filter-bar-h, 3.5rem) + 1.5rem); padding-bottom: calc(var(--composer-h, 10rem) + var(--nav-bar-h, 0px) + 1.25rem);">
+        style="padding-top: calc(var(--filter-bar-h, 3.5rem) + 1.5rem); padding-bottom: calc(var(--composer-h, 10rem) + var(--nav-bar-h, 0px));">
 
         {{-- Error Banner --}}
         @if($errorMessage)
