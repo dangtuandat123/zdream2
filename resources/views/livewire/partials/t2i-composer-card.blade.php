@@ -747,16 +747,6 @@
 
                 </div>
 
-                {{-- Mobile "Collapse" Button (Now placed next to Generate) --}}
-                <div x-show="isFocused" x-cloak x-transition:enter="transition ease-out duration-200"
-                    class="sm:hidden shrink-0 flex items-center justify-center mb-1">
-                    <button type="button" @click="isFocused = false; $refs.promptInput.blur()"
-                        class="w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center text-white/50 hover:text-white/90 transition-all active:scale-95 border border-white/5"
-                        title="Xong">
-                        <i class="fa-solid fa-chevron-down text-sm"></i>
-                    </button>
-                </div>
-
                 {{-- Generate Button --}}
                 @if($isGenerating)
                     <button type="button" wire:click="cancelGeneration"
@@ -802,6 +792,4 @@
             </div>
         </div>
     </div>
-</div>
-</div>
 </div>
