@@ -120,46 +120,30 @@
                             isBanned = bannedWords.some(w => lower.includes(w)); 
                         })
                     ">
-                    {{-- Shrunk State View (Read-only, Truncated text) --}}
-                    <div x-show="!isAtBottom && !isFocused && !$wire.isGenerating"
-                        @click="isFocused = true; $nextTick(() => { $refs.promptInput.focus(); const len = $refs.promptInput.value.length; $refs.promptInput.setSelectionRange(len, len); })"
-                        class="flex-1 h-[44px] px-2 py-2.5 text-white/70 text-sm sm:text-base truncate cursor-text transition-colors flex items-center group">
-                        <div class="w-full truncate pr-10 group-hover:text-white transition-colors">
-                            <span x-text="$wire.prompt || 'Mô tả ý tưởng...'"
-                                :class="!$wire.prompt ? 'text-white/40' : ''"></span>
-                        </div>
-                    </div>
-
-                    {{-- Expanded textarea (Interactive) --}}
-                    <div x-show="isAtBottom || isFocused || uiMode !== 'idle'"
-                        class="relative flex-1 flex items-start gap-1">
+                    {{-- Unified textarea (Responsive & Interactive) --}}
+                    <div class="relative flex-1 flex items-start gap-1">
                         <textarea x-ref="promptInput" wire:model.live.debounce.500ms="prompt" rows="1"
-                            @focus="isFocused = true; focusLock = true; setTimeout(() => focusLock = false, 600)"
+                            @focus="isFocused = true;"
                             @blur="setTimeout(() => { if (!document.activeElement?.closest('.t2i-composer-wrap')) { isFocused = false; } }, 150)"
-                            @scroll.window.passive="if (isFocused && typeof focusLock !== 'undefined' && !focusLock) { isFocused = false; $el.blur(); }"
                             @input="resize()" placeholder="Mô tả ý tưởng của bạn..." :style="{ height: promptHeight }"
-                            class="t2i-prompt-input relative z-10 w-full bg-transparent border-none outline-none ring-0 focus:ring-0 focus:outline-none text-sm sm:text-base resize-none transition-all leading-relaxed min-h-[44px] max-h-[260px] px-2 py-1.5 pr-2 text-white placeholder:text-white/40 caret-white overflow-y-auto whitespace-pre-wrap break-words"
+                            class="t2i-prompt-input relative z-10 w-full bg-transparent border-none outline-none ring-0 focus:ring-0 focus:outline-none text-sm sm:text-base resize-none transition-all leading-relaxed min-h-[44px] max-h-[260px] px-2 py-2.5 sm:py-1.5 pr-12 text-white placeholder:text-white/40 caret-white overflow-y-auto whitespace-pre-wrap break-words"
                             x-init="
-                                $watch('isFocused', () => { if (isFocused || isAtBottom || uiMode !== 'idle') $nextTick(() => resize()) });
-                                $watch('isAtBottom', () => { if (isFocused || isAtBottom || uiMode !== 'idle') $nextTick(() => resize()) });
-                                $watch('uiMode', () => { if (isFocused || isAtBottom || uiMode !== 'idle') $nextTick(() => resize()) });
-                                $watch('$wire.prompt', () => { if (isFocused || isAtBottom || uiMode !== 'idle') $nextTick(() => resize()) });
+                                $watch('isFocused', () => { $nextTick(() => resize()) });
+                                $watch('isAtBottom', () => { $nextTick(() => resize()) });
+                                $watch('$wire.prompt', () => { $nextTick(() => resize()) });
                                 setTimeout(() => resize(), 100);
                                 $wire.on('imageGenerated', () => { setTimeout(() => resize(), 150); });
                             "
-                            @keydown.enter.prevent="if(!$event.shiftKey) { $wire.generate(); } else { $el.value += '\n'; $el.dispatchEvent(new Event('input')) }"
-                            :disabled="uiMode === 'generating'"></textarea>
-
+                            @keydown.enter.prevent="if(!$event.shiftKey) { submitGenerate(); } else { $el.value += '\n'; $el.dispatchEvent(new Event('input')) }"
+                            :disabled="uiMode === 'generating' || isLocallyGenerating || $wire.isGenerating"></textarea>
                     </div>
-
-
 
                     {{-- Mini Send Button (Shrunk only) --}}
                     <div x-show="!isAtBottom && !isFocused && uiMode === 'idle'"
                         class="absolute right-2 top-1/2 -translate-y-1/2 z-20"
                         x-transition:enter="transition ease-out duration-200"
                         x-transition:enter-start="opacity-0 scale-75" x-transition:enter-end="opacity-100 scale-100">
-                        <button type="button" @click="$wire.generate()"
+                        <button type="button" @click="submitGenerate()"
                             :disabled="!$wire.prompt || $wire.prompt.length === 0 || isBanned"
                             class="w-9 h-9 rounded-full bg-gradient-to-tr from-purple-600 to-indigo-600 text-white flex items-center justify-center hover:brightness-110 active:scale-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer">
                             <i class="fa-solid fa-paper-plane text-xs relative -top-[0.5px] -ml-[0.5px]"></i>
@@ -170,7 +154,7 @@
                     <div class="absolute right-2 -bottom-5 flex items-center justify-end gap-3 transition-all duration-300 z-30 pointer-events-none"
                         x-show="(isAtBottom || isFocused || uiMode !== 'idle') && $wire.prompt?.length > 0" x-cloak>
 
-                        <div x-show="uiMode === 'generating'"
+                        <div x-show="uiMode === 'generating' || isLocallyGenerating || $wire.isGenerating"
                             class="text-purple-400 text-[10px] font-bold tracking-widest uppercase flex items-center gap-1.5 animate-pulse"
                             x-cloak>
                             <i class="fa-solid fa-wand-magic-sparkles"></i> AI Đang vẽ...
