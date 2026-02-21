@@ -96,12 +96,9 @@
                      uiMode === 'generating' ? 'ring-2 ring-purple-500/60 shadow-[0_0_30px_rgba(168,85,247,0.4)] border-purple-500/50' : 'border border-white/10'
                  ]">
 
-                {{-- Smooth animated glow inside during generation --}}
+                {{-- Smooth animated glow inside during generation (Cleaned up instead of messy conic gradient) --}}
                 <div x-show="uiMode === 'generating'" x-cloak
-                    class="absolute inset-[1px] z-0 pointer-events-none rounded-[inherit] overflow-hidden mix-blend-screen opacity-70">
-                    <div
-                        class="absolute inset-[-50%] bg-[conic-gradient(from_0deg,transparent_0_280deg,rgba(168,85,247,0.8)_360deg)] animate-[spin_2s_linear_infinite]">
-                    </div>
+                    class="absolute inset-0 z-0 pointer-events-none rounded-[inherit] overflow-hidden shadow-[inset_0_0_30px_rgba(168,85,247,0.15)] animate-pulse">
                 </div>
 
                 {{-- Prompt textarea --}}
@@ -131,7 +128,7 @@
                     {{-- Gợi Ý Lệnh (Dice Button) --}}
                     <button type="button" x-show="!$wire.isGenerating" x-cloak
                         @click="let r = randomPrompts[Math.floor(Math.random() * randomPrompts.length)]; $wire.set('prompt', r); $nextTick(() => resize())"
-                        class="absolute left-1 top-1.5 z-30 w-9 h-9 flex items-center justify-center rounded-full text-white/40 hover:text-purple-400 hover:bg-white/5 transition-all"
+                        class="absolute left-1 top-1 z-30 w-9 h-9 flex items-center justify-center rounded-full text-white/40 hover:text-purple-400 hover:bg-white/5 transition-all"
                         title="Gợi ý Prompt ngẫu nhiên">
                         <i class="fa-solid fa-dice text-sm"></i>
                     </button>
@@ -167,7 +164,7 @@
                     {{-- Nút Clear Prompt (X) --}}
                     <button type="button" x-show="$wire.prompt?.length > 0 && uiMode === 'idle'" x-cloak
                         @click="$wire.set('prompt', ''); $nextTick(() => { resize(); $refs.promptInput.focus(); })"
-                        class="absolute right-[42px] top-1.5 z-30 w-9 h-9 flex items-center justify-center rounded-full text-white/30 hover:text-white hover:bg-white/5 transition-all"
+                        class="absolute right-[42px] top-1 z-30 w-9 h-9 flex items-center justify-center rounded-full text-white/30 hover:text-white hover:bg-white/5 transition-all"
                         title="Xóa nhanh">
                         <i class="fa-solid fa-xmark text-sm"></i>
                     </button>
