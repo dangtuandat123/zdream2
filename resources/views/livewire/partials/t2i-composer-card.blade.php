@@ -21,8 +21,8 @@
         <button x-show="showScrollToBottom && !isFocused" x-cloak x-transition:enter="transition ease-out duration-300"
             x-transition:enter-start="opacity-0 translate-y-4" x-transition:enter-end="opacity-100 translate-y-0"
             x-transition:leave="transition ease-in duration-200" x-transition:leave-end="opacity-0 translate-y-4"
-            @click="scrollToBottom(true)" @click="scrollToBottom(true)"
-            class="absolute -top-14 right-2 sm:fixed sm:top-auto sm:bottom-8 sm:right-8 z-[50] w-10 h-10 rounded-full glass-panel hover:bg-white/10 text-white/80 hover:text-white flex items-center justify-center transition-all active:scale-95 group"
+            @click="scrollToBottom(true)"
+            class="absolute -top-14 right-3 sm:fixed sm:top-auto sm:bottom-8 sm:right-8 z-[40] w-10 h-10 rounded-full bg-[#0a0a0c]/80 backdrop-blur-xl border border-white/10 hover:bg-white/10 text-white/80 hover:text-white flex items-center justify-center transition-all active:scale-95 group shadow-lg"
             title="Cuộn xuống mới nhất">
             <i class="fa-solid fa-arrow-down group-hover:animate-bounce"></i>
         </button>
@@ -93,13 +93,28 @@
                         ? 'p-2.5 sm:p-3.5 rounded-t-3xl sm:rounded-2xl' 
                         : (isAtBottom ? 'p-2.5 sm:p-3.5 rounded-[1.5rem] max-w-4xl mx-auto' : 'p-2 rounded-[2rem] max-w-2xl mx-auto'),
                      (!isFocused && !isAtBottom) ? 'opacity-85 hover:opacity-100' : 'opacity-100',
-                     uiMode === 'generating' ? 'ring-2 ring-purple-500/60 shadow-[0_0_40px_rgba(168,85,247,0.3)] border-purple-500/50' : 'border border-white/10'
+                     uiMode === 'generating' ? 'ring-2 ring-purple-500/60 shadow-[0_0_30px_rgba(168,85,247,0.4)] border-purple-500/50' : 'border border-white/10'
                  ]">
+
+                {{-- Smooth animated glow inside during generation --}}
+                <div x-show="uiMode === 'generating'" x-cloak
+                    class="absolute inset-[1px] z-0 pointer-events-none rounded-[inherit] overflow-hidden mix-blend-screen opacity-70">
+                    <div
+                        class="absolute inset-[-50%] bg-[conic-gradient(from_0deg,transparent_0_280deg,rgba(168,85,247,0.8)_360deg)] animate-[spin_2s_linear_infinite]">
+                    </div>
+                </div>
 
                 {{-- Prompt textarea --}}
                 <div class="relative flex items-end gap-2 w-full z-20" x-data="{ 
                         promptHeight: 'auto', 
-                        bannedWords: ['nude', 'naked', 'nsfw', 'porn', 'sex', 'blood', 'gore', 'kill', 'murder', 'rape', 'pedophile', 'loli'],
+                        bannedWords: ['nude', 'naked', 'nsfw', 'porn', 'sex', 'blood', 'gore', 'kill', 'murder', 'rape', 'pedophile', 'loli', 'lồn', 'buồi', 'cặc', 'địt', 'chịch', 'phò', 'đĩ', 'dâm đãng', 'dam dang', 'hiếp dâm', 'lột đồ', 'ấu dâm', 'khoả thân'],
+                        randomPrompts: [
+                            'A cinematic portrait of a cyberpunk character, neon lights, 8k resolution, highly detailed',
+                            'A cute fluffy corgi floating in space, wearing a spacesuit, digital art, trending on artstation',
+                            'Minimalist architecture, brutalism, concrete building overgrown with lush green jungle plants, natural lighting',
+                            'A cozy coffee shop interior during a rainy night in Tokyo, anime style, makoto shinkai',
+                            'A futuristic sports car racing on a glowing track synthwave retro 80s style, neon purple and orange'
+                        ],
                         isBanned: false,
                         resize() { 
                             this.$refs.promptInput.style.height = 'auto'; 
@@ -113,11 +128,19 @@
                             isBanned = bannedWords.some(w => lower.includes(w)); 
                         })
                     ">
+                    {{-- Gợi Ý Lệnh (Dice Button) --}}
+                    <button type="button" x-show="!$wire.isGenerating" x-cloak
+                        @click="let r = randomPrompts[Math.floor(Math.random() * randomPrompts.length)]; $wire.set('prompt', r); $nextTick(() => resize())"
+                        class="absolute left-1 top-1.5 z-30 w-9 h-9 flex items-center justify-center rounded-full text-white/40 hover:text-purple-400 hover:bg-white/5 transition-all"
+                        title="Gợi ý Prompt ngẫu nhiên">
+                        <i class="fa-solid fa-dice text-sm"></i>
+                    </button>
+
                     {{-- Shrunk State View (Read-only, Truncated text) --}}
                     <div x-show="!isAtBottom && !isFocused && !$wire.isGenerating"
                         @click="isFocused = true; $nextTick(() => $refs.promptInput.focus())"
-                        class="flex-1 h-[44px] px-2 py-2.5 text-white/70 text-sm sm:text-base truncate cursor-text transition-colors flex items-center group">
-                        <div class="w-full truncate pr-10 group-hover:text-white transition-colors">
+                        class="flex-1 h-[44px] pl-10 pr-10 py-2.5 text-white/70 text-sm sm:text-base truncate cursor-text transition-colors flex items-center group">
+                        <div class="w-full truncate group-hover:text-white transition-colors">
                             <span x-text="$wire.prompt || 'Mô tả ý tưởng...'"
                                 :class="!$wire.prompt ? 'text-white/40' : ''"></span>
                         </div>
@@ -129,7 +152,7 @@
                         @focus="isFocused = true; focusLock = true; setTimeout(() => focusLock = false, 600)"
                         @blur="setTimeout(() => { if (!document.activeElement?.closest('.t2i-composer-wrap')) { isFocused = false; } }, 150)"
                         @input="resize()" placeholder="Mô tả ý tưởng của bạn..." :style="{ height: promptHeight }"
-                        class="t2i-prompt-input relative z-10 flex-1 bg-transparent border-none outline-none ring-0 focus:ring-0 focus:outline-none text-sm sm:text-base resize-none transition-all leading-relaxed min-h-[44px] max-h-[50vh] px-2 py-1.5 text-white placeholder:text-white/40 caret-white overflow-y-auto whitespace-pre-wrap break-words"
+                        class="t2i-prompt-input relative z-10 flex-1 bg-transparent border-none outline-none ring-0 focus:ring-0 focus:outline-none text-sm sm:text-base resize-none transition-all leading-relaxed min-h-[44px] max-h-[35vh] pl-10 pr-10 py-1.5 text-white placeholder:text-white/40 caret-white overflow-y-auto whitespace-pre-wrap break-words"
                         x-init="
                             $watch('isFocused', () => { if (isFocused || isAtBottom || uiMode !== 'idle') resize() });
                             $watch('isAtBottom', () => { if (isFocused || isAtBottom || uiMode !== 'idle') resize() });
@@ -140,6 +163,14 @@
                         "
                         @keydown.enter.prevent="if(!$event.shiftKey) { $wire.generate(); } else { $el.value += '\n'; $el.dispatchEvent(new Event('input')) }"
                         :disabled="uiMode === 'generating'"></textarea>
+
+                    {{-- Nút Clear Prompt (X) --}}
+                    <button type="button" x-show="$wire.prompt?.length > 0 && uiMode === 'idle'" x-cloak
+                        @click="$wire.set('prompt', ''); $nextTick(() => { resize(); $refs.promptInput.focus(); })"
+                        class="absolute right-[42px] top-1.5 z-30 w-9 h-9 flex items-center justify-center rounded-full text-white/30 hover:text-white hover:bg-white/5 transition-all"
+                        title="Xóa nhanh">
+                        <i class="fa-solid fa-xmark text-sm"></i>
+                    </button>
 
                     {{-- Mini Send Button (Shrunk only) --}}
                     <div x-show="!isAtBottom && !isFocused && uiMode === 'idle'"
@@ -204,7 +235,8 @@
                                         x-transition:leave="transition ease-in duration-200"
                                         x-transition:leave-start="translate-y-0"
                                         x-transition:leave-end="translate-y-full"
-                                        class="glass-popover w-full max-w-lg rounded-t-3xl flex flex-col max-h-[85vh]">
+                                        class="glass-popover w-full max-w-lg rounded-t-3xl flex flex-col max-h-[85vh]"
+                                        style="padding-bottom: env(safe-area-inset-bottom, 0)">
                                         <div
                                             class="flex items-center justify-between p-4 border-b border-white/5 shrink-0">
                                             <span class="text-white font-semibold text-base">Cài đặt tạo ảnh</span>
@@ -339,7 +371,8 @@
                                         x-transition:leave="transition ease-in duration-200"
                                         x-transition:leave-start="translate-y-0"
                                         x-transition:leave-end="translate-y-full"
-                                        class="glass-popover w-full max-w-lg rounded-t-3xl flex flex-col max-h-[85vh]">
+                                        class="glass-popover w-full max-w-lg rounded-t-3xl flex flex-col max-h-[85vh]"
+                                        style="padding-bottom: env(safe-area-inset-bottom, 0)">
                                         <div
                                             class="flex items-center justify-between p-4 border-b border-white/5 shrink-0">
                                             <span class="text-white font-semibold text-base">Chọn Model AI</span>
@@ -438,7 +471,8 @@
                                         x-transition:leave="transition ease-in duration-200"
                                         x-transition:leave-start="translate-y-0"
                                         x-transition:leave-end="translate-y-full"
-                                        class="glass-popover w-full max-w-lg rounded-t-3xl flex flex-col max-h-[85vh]">
+                                        class="glass-popover w-full max-w-lg rounded-t-3xl flex flex-col max-h-[85vh]"
+                                        style="padding-bottom: env(safe-area-inset-bottom, 0)">
                                         <div
                                             class="flex items-center justify-between p-4 border-b border-white/5 shrink-0">
                                             <span class="text-white font-semibold text-base">Tỉ lệ khung hình</span>
@@ -520,7 +554,8 @@
                                         x-transition:leave="transition ease-in duration-200"
                                         x-transition:leave-start="translate-y-0"
                                         x-transition:leave-end="translate-y-full"
-                                        class="glass-popover w-full max-w-lg rounded-t-3xl flex flex-col max-h-[85vh]">
+                                        class="glass-popover w-full max-w-lg rounded-t-3xl flex flex-col max-h-[85vh]"
+                                        style="padding-bottom: env(safe-area-inset-bottom, 0)">
                                         <div
                                             class="flex items-center justify-between p-4 border-b border-white/5 shrink-0">
                                             <span class="text-white font-semibold text-base">Số lượng ảnh</span>
@@ -577,10 +612,14 @@
                                     </span>
                                 </template>
                             </button>
-                            {{-- Clear refs badge --}}
+                            {{-- Clear refs badge (Bigger touch target for Mobile) --}}
                             <button x-show="selectedImages.length > 0" @click.stop="clearAll()"
-                                class="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-red-500 text-white text-[10px] flex items-center justify-center hover:bg-red-600 transition-colors z-10">
-                                <i class="fa-solid fa-xmark"></i>
+                                class="absolute -top-3 -right-3 w-8 h-8 flex items-center justify-center z-[15] touch-manipulation group"
+                                title="Xóa tất cả ảnh tham chiếu">
+                                <div
+                                    class="w-[18px] h-[18px] rounded-full bg-red-500 text-white flex items-center justify-center shadow-lg group-hover:bg-red-600 transition-colors pointer-events-none">
+                                    <i class="fa-solid fa-xmark text-[10px]"></i>
+                                </div>
                             </button>
 
                             {{-- Inline Ref Picker (desktop dropdown / mobile sheet) --}}
@@ -658,7 +697,8 @@
                                         x-transition:leave="transition ease-in duration-200"
                                         x-transition:leave-start="translate-y-0"
                                         x-transition:leave-end="translate-y-full"
-                                        class="glass-popover w-full max-w-lg rounded-t-3xl flex flex-col max-h-[80vh]">
+                                        class="glass-popover w-full max-w-lg rounded-t-3xl flex flex-col max-h-[80vh]"
+                                        style="padding-bottom: env(safe-area-inset-bottom, 0)">
                                         <div
                                             class="flex items-center justify-between p-4 border-b border-white/5 shrink-0">
                                             <span class="text-white font-semibold text-base">Ảnh tham chiếu <span

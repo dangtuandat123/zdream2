@@ -61,6 +61,7 @@ class TextToImage extends Component
 
     public array $referenceImages = [];
     public int $batchSize = 1; // 1-4 items
+    public ?int $seed = null; // Fix: Add seed state
 
     // For retry functionality
     public ?string $lastPrompt = null;
@@ -266,8 +267,10 @@ class TextToImage extends Component
             $creditsDeducted = false;
 
             try {
-                // Resolve auto ratio - store user choice + effective value for API
-                $effectiveRatio = $this->aspectRatio === 'auto' ? null : $this->aspectRatio;
+                // Resolve auto ratio - fallback to 1:1 if unsupported by API
+                $effectiveRatio = $this->aspectRatio === 'auto' ? '1:1' : $this->aspectRatio;
+                // Use explicitly provided seed or generate a new random one
+                $seedToUse = $this->seed ?: random_int(1, 2147483647);
 
                 $generationParams = [
                     'model_id' => $this->modelId,
@@ -276,6 +279,8 @@ class TextToImage extends Component
                     'aspect_ratio_effective' => $effectiveRatio,
                     'batch_id' => $batchId,
                     'batch_index' => $i,
+                    'seed' => $seedToUse,
+                    'reference_images' => $this->referenceImages,
                 ];
 
                 // Create GeneratedImage record
@@ -321,10 +326,10 @@ class TextToImage extends Component
                         $generatedImage,
                         [],
                         $prompt,
-                        $effectiveRatio ?? $this->aspectRatio,
+                        $effectiveRatio,
                         '1K',
                         $inputImages,
-                        ['aspect_ratio' => $effectiveRatio ?? $this->aspectRatio],
+                        ['aspect_ratio' => $effectiveRatio, 'seed' => $seedToUse],
                         $this->modelId  // P0#2: freeze model at dispatch time
                     );
                 } else {
@@ -336,10 +341,10 @@ class TextToImage extends Component
                         $syncStyle,
                         [],
                         $prompt,
-                        $effectiveRatio ?? $this->aspectRatio,
+                        $effectiveRatio,
                         null,
                         $inputImages,
-                        ['aspect_ratio' => $effectiveRatio ?? $this->aspectRatio]
+                        ['aspect_ratio' => $effectiveRatio, 'seed' => $seedToUse]
                     );
 
                     if ($result['success']) {
@@ -502,12 +507,14 @@ class TextToImage extends Component
         $this->generatedImageUrl = null;
         $this->generatingImageIds = [];
         $this->lastPolledCompletedCount = 0;
+        $this->seed = null; // Clear seed after use
     }
 
     public function resetForm(): void
     {
         $this->prompt = '';
         $this->referenceImages = [];
+        $this->seed = null;
         $this->resetState();
         $this->isGenerating = false;
     }
@@ -638,6 +645,11 @@ class TextToImage extends Component
             $this->prompt = $image->final_prompt;
             $this->modelId = $image->generation_params['model_id'] ?? $this->modelId;
             $this->aspectRatio = $image->generation_params['aspect_ratio'] ?? $this->aspectRatio;
+
+            $this->seed = $image->generation_params['seed'] ?? null;
+            $refs = $image->generation_params['reference_images'] ?? [];
+            $this->referenceImages = $refs;
+            $this->dispatch('refsRestored', $refs);
         }
     }
 
