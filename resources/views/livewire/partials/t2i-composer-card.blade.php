@@ -28,34 +28,38 @@
         </button>
 
         {{-- Status Strip (above prompt, visible when not idle) --}}
-        <template x-if="uiMode !== 'idle'">
-            <div class="mb-2 rounded-xl overflow-hidden" x-transition:enter="transition ease-out duration-300"
+        <template x-if="uiMode !== 'idle' || isLocallyGenerating || $wire.isGenerating">
+            <div class="mb-2 rounded-xl overflow-hidden shadow-lg" x-transition:enter="transition ease-out duration-300"
                 x-transition:enter-start="opacity-0 -translate-y-2" x-transition:enter-end="opacity-100 translate-y-0">
 
                 {{-- Generating --}}
-                <div x-show="uiMode === 'generating'"
-                    class="flex items-center gap-3 px-4 py-3 bg-purple-500/10 border border-purple-500/20 rounded-xl">
+                <div x-show="uiMode === 'generating' || isLocallyGenerating || $wire.isGenerating"
+                    class="flex items-center gap-3 px-4 py-3 bg-[#1e1528] border border-purple-500/40 rounded-xl shadow-[0_4px_20px_rgba(168,85,247,0.15)] relative overflow-hidden">
                     <div
-                        class="w-5 h-5 border-2 border-purple-400 border-t-transparent rounded-full animate-spin shrink-0">
+                        class="absolute inset-0 bg-gradient-to-r from-purple-500/10 via-white/5 to-purple-500/10 w-[200%] animate-[progress-slide_2s_linear_infinite]">
                     </div>
-                    <div class="flex-1 min-w-0">
-                        <p class="text-white/90 text-sm font-medium" x-text="loadingMessages[currentLoadingMessage]">
+                    <div
+                        class="w-5 h-5 border-2 border-purple-400 border-t-transparent rounded-full animate-spin shrink-0 relative z-10">
+                    </div>
+                    <div class="flex-1 min-w-0 relative z-10">
+                        <p class="text-white text-sm font-semibold tracking-wide"
+                            x-text="loadingMessages[currentLoadingMessage] || 'Đang khởi tạo AI...'">
                         </p>
-                        <p class="text-white/40 text-xs mt-0.5">
+                        <p class="text-purple-300/80 text-xs mt-0.5 font-medium">
                             <span
                                 x-text="Math.floor(statusElapsed / 60) > 0 ? Math.floor(statusElapsed / 60) + ' phút ' : ''"></span>
                             <span x-text="(statusElapsed % 60) + ' giây'"></span>
                         </p>
                     </div>
                     <button wire:click="cancelGeneration"
-                        class="shrink-0 h-8 px-3 rounded-lg bg-white/[0.05] hover:bg-red-500/20 border border-white/[0.08] text-xs text-white/50 hover:text-red-400 transition-all active:scale-[0.95]">
+                        class="relative z-10 shrink-0 h-8 px-3 rounded-lg bg-red-500/10 hover:bg-red-500/30 border border-red-500/20 text-xs text-red-300 hover:text-red-200 transition-all active:scale-[0.95] flex items-center shadow-sm">
                         <i class="fa-solid fa-xmark mr-1"></i>Hủy
                     </button>
                 </div>
 
                 {{-- Partial Success --}}
                 <div x-show="uiMode === 'partial_success'"
-                    class="flex items-center gap-3 px-4 py-3 bg-yellow-500/10 border border-yellow-500/20 rounded-xl">
+                    class="flex items-center gap-3 px-4 py-3 bg-[#2a1f10] border border-yellow-500/40 rounded-xl shadow-lg">
                     <i class="fa-solid fa-triangle-exclamation text-yellow-400 shrink-0"></i>
                     <span class="text-white/80 text-sm flex-1" x-text="statusMessage"></span>
                     <button @click="uiMode = 'idle'" class="text-white/40 hover:text-white/70 text-xs">Đóng</button>
@@ -63,10 +67,10 @@
 
                 {{-- Failed --}}
                 <div x-show="uiMode === 'failed'"
-                    class="flex items-center gap-3 px-4 py-3 bg-red-500/10 border border-red-500/20 rounded-xl">
-                    <i class="fa-solid fa-circle-exclamation text-red-400 shrink-0"></i>
-                    <span class="text-white/80 text-sm flex-1" x-text="statusMessage"></span>
-                    <button @click="$wire.retry(); uiMode = 'generating'"
+                    class="flex items-center gap-3 px-4 py-3 bg-[#241214] border border-red-500/40 rounded-xl shadow-lg">
+                    <i class="fa-solid fa-circle-exclamation text-red-500 shrink-0 text-lg"></i>
+                    <span class="text-white text-sm flex-1 font-medium" x-text="statusMessage"></span>
+                    <button @click="$wire.retry(); submitGenerate()"
                         class="shrink-0 h-8 px-3 rounded-lg bg-white/[0.05] hover:bg-white/[0.08] border border-white/[0.08] text-xs text-white/70 transition-all active:scale-[0.95]">
                         <i class="fa-solid fa-redo mr-1"></i>Thử lại
                     </button>
@@ -75,10 +79,10 @@
 
                 {{-- Done --}}
                 <div x-show="uiMode === 'done'"
-                    class="flex items-center gap-3 px-4 py-3 bg-green-500/10 border border-green-500/20 rounded-xl">
-                    <i class="fa-solid fa-check-circle text-green-400 shrink-0"></i>
-                    <span class="text-white/80 text-sm flex-1" x-text="statusMessage"></span>
-                    <button @click="uiMode = 'idle'" class="text-white/40 hover:text-white/70 text-xs">Đóng</button>
+                    class="flex items-center gap-3 px-4 py-3 bg-[#112015] border border-green-500/40 rounded-xl shadow-lg">
+                    <i class="fa-solid fa-check-circle text-green-500 shrink-0 text-lg"></i>
+                    <span class="text-white text-sm flex-1 font-medium" x-text="statusMessage"></span>
+                    <button @click="uiMode = 'idle'" class="text-white/60 hover:text-white text-xs">Đóng</button>
                 </div>
             </div>
         </template>

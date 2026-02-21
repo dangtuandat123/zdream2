@@ -974,7 +974,9 @@
                     scrollToBottom(smooth = true) {
                         console.log('scrollToBottom called');
                         this.lockSystemScrolling(1500); // 1.5s for smooth scroll to finish
-                        const targetTop = document.documentElement.scrollHeight;
+                        
+                        // Add an extra 500px offset to ensure we clear any bottom paddings or fixed UI areas.
+                        const targetTop = document.documentElement.scrollHeight + 500;
                         if (smooth) {
                             window.scrollTo({ top: targetTop, behavior: 'smooth' });
                         } else {
@@ -1170,7 +1172,13 @@
                             this.showComposerMobile = false;
                         }
 
-                        // Không tự động cuộn (scrollIntoView) để tránh gây khó chịu cho User và kích hoạt nhầm Infinite Load.
+                        // Thu nhỏ khung chat để giải phóng màn hình và cuộn xuống Skeleton
+                        if (document.activeElement) document.activeElement.blur();
+                        if (typeof this.isFocused !== 'undefined') this.isFocused = false;
+
+                        this.$nextTick(() => {
+                            this.scrollToBottom(true);
+                        });
 
                         // Fire Livewire method
                         console.log('[T2I] Gửi request lên Livewire ($wire.generate())...');
