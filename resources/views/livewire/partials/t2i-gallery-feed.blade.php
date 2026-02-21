@@ -26,11 +26,8 @@
             </div>
         </div>
     </div>
-    @php
-        $totalFeedCount = ($history instanceof \Illuminate\Pagination\LengthAwarePaginator) ? $history->total() : collect($history)->count();
-    @endphp
     <div class="max-w-4xl mx-auto px-4"
-        style="padding-top: calc(var(--filter-bar-h, 3.5rem) + 1.5rem); padding-bottom: {{ $totalFeedCount <= 1 ? '32px' : '128px' }};">
+        style="padding-top: calc(var(--filter-bar-h, 3.5rem) + 1.5rem); padding-bottom: calc(var(--composer-h, 140px) + env(safe-area-inset-bottom, 0px) + 2rem);">
 
         {{-- Error Banner --}}
         @if($errorMessage)
@@ -61,6 +58,19 @@
             @php $absoluteIndex = 0; @endphp
 
             <div class="space-y-5 sm:space-y-6 gallery-wrapper">
+
+                {{-- ═══════════════════════════════════════════ --}}
+                {{-- EMPTY STATE (0 IMAGES) --}}
+                {{-- ═══════════════════════════════════════════ --}}
+                @if($groupedHistory->isEmpty() && !$loadingMoreHistory)
+                    <div class="flex flex-col items-center justify-center min-h-[50vh] text-center px-4 animate-[image-entrance_0.6s_ease-out_forwards]">
+                        <div class="w-16 h-16 sm:w-20 sm:h-20 mb-5 sm:mb-6 rounded-full bg-white/[0.03] border border-white/10 flex items-center justify-center shadow-inner">
+                            <i class="fa-solid fa-wand-magic-sparkles text-2xl sm:text-3xl text-purple-400/80"></i>
+                        </div>
+                        <h3 class="text-lg sm:text-xl font-semibold text-white/90 mb-2">Chưa có tác phẩm nào</h3>
+                        <p class="text-[13px] text-white/40 max-w-[260px] leading-relaxed">Tất cả những hình ảnh bạn tạo sẽ xuất hiện tại đây. Hãy nhập ý tưởng vào khung bên dưới để bắt đầu!</p>
+                    </div>
+                @endif
 
                 {{-- ═══════════════════════════════════════════ --}}
                 {{-- TOP SENTINEL — auto-load older history --}}
