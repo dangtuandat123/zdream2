@@ -22,21 +22,21 @@
             x-transition:enter-start="opacity-0 translate-y-4" x-transition:enter-end="opacity-100 translate-y-0"
             x-transition:leave="transition ease-in duration-200" x-transition:leave-end="opacity-0 translate-y-4"
             @click="scrollToBottom(true)"
-            class="absolute -top-14 right-2 sm:fixed sm:top-auto sm:bottom-8 sm:right-8 z-[50] w-10 h-10 rounded-full glass-panel hover:bg-white/10 text-white/80 hover:text-white flex items-center justify-center transition-all active:scale-95 group shadow-lg"
+            class="absolute -top-14 right-2 sm:fixed sm:top-auto sm:bottom-8 sm:right-8 z-[50] w-10 h-10 rounded-full glass-panel hover:bg-white/10 text-white/80 hover:text-white flex items-center justify-center transition-all active:scale-95 group"
             title="Cuộn xuống mới nhất">
             <i class="fa-solid fa-arrow-down group-hover:animate-bounce"></i>
         </button>
 
         {{-- Status Strip (above prompt, visible when not idle) --}}
         <template x-if="uiMode !== 'idle' || isLocallyGenerating || $wire.isGenerating">
-            <div class="mb-2 rounded-xl overflow-hidden shadow-lg transition-all duration-300 mx-auto"
+            <div class="mb-2 rounded-xl overflow-hidden transition-all duration-300 mx-auto"
                 :class="(!isFocused && !isAtBottom) ? 'max-w-2xl' : 'w-full'"
                 x-transition:enter="transition ease-out duration-300"
                 x-transition:enter-start="opacity-0 -translate-y-2" x-transition:enter-end="opacity-100 translate-y-0">
 
                 {{-- Generating --}}
                 <div x-show="uiMode === 'generating' || isLocallyGenerating || $wire.isGenerating"
-                    class="flex items-center gap-3 px-4 py-3 bg-[#1e1528] border border-purple-500/40 rounded-xl shadow-[0_4px_20px_rgba(168,85,247,0.15)] relative overflow-hidden">
+                    class="flex items-center gap-3 px-4 py-3 bg-[#1e1528] border border-purple-500/40 rounded-xl relative overflow-hidden">
                     <div
                         class="absolute inset-0 bg-gradient-to-r from-purple-500/10 via-white/5 to-purple-500/10 w-[200%] animate-[progress-slide_2s_linear_infinite]">
                     </div>
@@ -54,14 +54,14 @@
                         </p>
                     </div>
                     <button wire:click="cancelGeneration"
-                        class="relative z-10 shrink-0 h-8 px-3 rounded-lg bg-red-500/10 hover:bg-red-500/30 border border-red-500/20 text-xs text-red-300 hover:text-red-200 transition-all active:scale-[0.95] flex items-center shadow-sm">
+                        class="relative z-10 shrink-0 h-8 px-3 rounded-lg bg-red-500/10 hover:bg-red-500/30 border border-red-500/20 text-xs text-red-300 hover:text-red-200 transition-all active:scale-[0.95] flex items-center">
                         <i class="fa-solid fa-xmark mr-1"></i>Hủy
                     </button>
                 </div>
 
                 {{-- Partial Success --}}
                 <div x-show="uiMode === 'partial_success'"
-                    class="flex items-center gap-3 px-4 py-3 bg-[#2a1f10] border border-yellow-500/40 rounded-xl shadow-lg">
+                    class="flex items-center gap-3 px-4 py-3 bg-[#2a1f10] border border-yellow-500/40 rounded-xl">
                     <i class="fa-solid fa-triangle-exclamation text-yellow-400 shrink-0"></i>
                     <span class="text-white/80 text-sm flex-1" x-text="statusMessage"></span>
                     <button @click="uiMode = 'idle'" class="text-white/40 hover:text-white/70 text-xs">Đóng</button>
@@ -69,7 +69,7 @@
 
                 {{-- Failed --}}
                 <div x-show="uiMode === 'failed'"
-                    class="flex items-center gap-3 px-4 py-3 bg-[#241214] border border-red-500/40 rounded-xl shadow-lg">
+                    class="flex items-center gap-3 px-4 py-3 bg-[#241214] border border-red-500/40 rounded-xl">
                     <i class="fa-solid fa-circle-exclamation text-red-500 shrink-0 text-lg"></i>
                     <span class="text-white text-sm flex-1 font-medium" x-text="statusMessage"></span>
                     <button @click="$wire.retry(); submitGenerate()"
@@ -81,7 +81,7 @@
 
                 {{-- Done --}}
                 <div x-show="uiMode === 'done'"
-                    class="flex items-center gap-3 px-4 py-3 bg-[#112015] border border-green-500/40 rounded-xl shadow-lg">
+                    class="flex items-center gap-3 px-4 py-3 bg-[#112015] border border-green-500/40 rounded-xl">
                     <i class="fa-solid fa-check-circle text-green-500 shrink-0 text-lg"></i>
                     <span class="text-white text-sm flex-1 font-medium" x-text="statusMessage"></span>
                     <button @click="uiMode = 'idle'" class="text-white/60 hover:text-white text-xs">Đóng</button>
@@ -93,13 +93,13 @@
         <div class="relative transition-all duration-300 ease-in-out z-50 flex justify-center w-full"
             :class="isFocused ? 'px-0 mb-0' : (isAtBottom ? 'px-0 mb-0 sm:mb-2' : 'px-4 mb-4 sm:mb-2')">
 
-            <div class="relative flex flex-col w-full transition-all duration-300 shadow-2xl glass-popover bg-[#0a0a0c]/95 backdrop-blur-3xl"
+            <div class="relative flex flex-col w-full transition-all duration-300 glass-popover bg-[#0a0a0c]/95 backdrop-blur-3xl"
                 :class="[
                      isFocused 
                         ? 'p-2.5 sm:p-3.5 rounded-t-3xl sm:rounded-2xl w-full' 
                         : (isAtBottom ? 'p-2.5 sm:p-3.5 rounded-[1.5rem] sm:rounded-2xl w-full' : 'p-2 rounded-[2rem] max-w-2xl mx-auto'),
                      (!isFocused && !isAtBottom) ? 'opacity-90 hover:opacity-100' : 'opacity-100',
-                     uiMode === 'generating' || isLocallyGenerating || $wire.isGenerating ? 'ring-2 ring-purple-500/60 shadow-[0_0_40px_rgba(168,85,247,0.3)] border-purple-500/50' : 'border border-white/10'
+                     uiMode === 'generating' || isLocallyGenerating || $wire.isGenerating ? 'ring-2 ring-purple-500/60 border-purple-500/50' : 'border border-white/10'
                  ]">
 
                 {{-- Prompt textarea --}}
