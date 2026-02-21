@@ -247,7 +247,7 @@
             {{-- ═══════════════════════════════════════════ --}}
             {{-- GENERATING SKELETON (0ms Alpine Reactivity) --}}
             {{-- ═══════════════════════════════════════════ --}}
-            <div x-show="isLocallyGenerating || $wire.isGenerating" x-cloak
+            <div id="gen-skeleton" x-show="isLocallyGenerating || $wire.isGenerating" x-cloak
                 x-transition:enter="transition-all ease-out duration-300"
                 x-transition:enter-start="opacity-0 translate-y-4 scale-95"
                 x-transition:enter-end="opacity-100 translate-y-0 scale-100"
