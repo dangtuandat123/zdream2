@@ -152,16 +152,6 @@
 
                     </div>
 
-                    {{-- Mobile "Done/Collapse" Button (Visible only when focused) --}}
-                    <div x-show="isFocused" x-cloak x-transition:enter="transition ease-out duration-200"
-                        x-transition:enter-start="opacity-0 scale-90" x-transition:enter-end="opacity-100 scale-100"
-                        class="shrink-0 flex items-center pb-2 z-20 pr-1">
-                        <button type="button" @click="isFocused = false; $refs.promptInput.blur()"
-                            class="w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center text-white/50 hover:text-white/90 transition-all active:scale-95 border border-white/5"
-                            title="Đóng bàn phím">
-                            <i class="fa-solid fa-chevron-down text-sm"></i>
-                        </button>
-                    </div>
 
                     {{-- Mini Send Button (Shrunk only) --}}
                     <div x-show="!isAtBottom && !isFocused && uiMode === 'idle'"
@@ -753,52 +743,62 @@
                             </template>
                         </div>
                     </div>
-
-                    {{-- Generate Button --}}
-                    @if($isGenerating)
-                        <button type="button" wire:click="cancelGeneration"
-                            class="t2i-cancel-btn shrink-0 flex items-center justify-center gap-2 h-10 px-4 sm:px-5 rounded-xl bg-white/5 hover:bg-red-500/20 border border-white/10 text-white font-medium text-sm active:scale-95 transition-all outline-none">
-                            <i class="fa-solid fa-stop text-xs"></i>
-                            <span class="hidden sm:inline">Hủy</span>
-                        </button>
-                    @else
-                        <button type="button" @click="submitGenerate()"
-                            class="t2i-generate-btn shrink-0 flex items-center justify-center gap-1.5 h-10 px-4 sm:px-6 rounded-xl text-white font-semibold text-sm active:scale-95 transition-all bg-gradient-to-r from-purple-600 to-indigo-600 relative overflow-hidden group outline-none"
-                            :disabled="!$wire.prompt?.trim() || isLocallyGenerating || $wire.isGenerating"
-                            :class="(isLocallyGenerating || $wire.isGenerating) ? 'opacity-50 pointer-events-none' : ''">
-
-                            {{-- Glow sweep effect --}}
-                            <div
-                                class="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover:block hidden group-hover:transition-transform group-hover:duration-500 group-hover:translate-x-[100%] skew-x-12">
-                            </div>
-
-                            {{-- Core Button Label (Combines states to fix overlapping icons) --}}
-                            <div class="relative z-10 flex items-center justify-center gap-1.5 min-w-[50px]">
-                                {{-- Hide in Loading state completely --}}
-                                <div x-show="!(isLocallyGenerating || $wire.isGenerating)"
-                                    class="flex items-center gap-1.5">
-                                    <i class="fa-solid fa-paper-plane text-xs relative -top-[1px]"></i>
-                                    <span>Tạo</span>
-                                </div>
-
-                                {{-- Show ONLY in Loading state --}}
-                                <div x-show="isLocallyGenerating || $wire.isGenerating" x-cloak
-                                    class="flex items-center gap-1.5">
-                                    <i class="fa-solid fa-spinner fa-spin text-xs"></i>
-                                    <span class="hidden sm:inline">Đang tạo</span>
-                                </div>
-                            </div>
-
-                            {{-- Credit Tag --}}
-                            <span
-                                class="relative z-10 text-white text-[11px] font-medium ml-1 bg-black/25 px-1.5 py-0.5 rounded flex items-center gap-1">
-                                <span x-text="$wire.creditCost * $wire.batchSize"></span><i
-                                    class="fa-solid fa-bolt text-[9px] text-yellow-400"></i>
-                            </span>
-                        </button>
-                    @endif
                 </div>
+
+                {{-- Mobile "Collapse" Button (Now placed next to Generate) --}}
+                <div x-show="isFocused" x-cloak x-transition:enter="transition ease-out duration-200"
+                    class="sm:hidden shrink-0 flex items-center justify-center mb-1">
+                    <button type="button" @click="isFocused = false; $refs.promptInput.blur()"
+                        class="w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center text-white/50 hover:text-white/90 transition-all active:scale-95 border border-white/5"
+                        title="Xong">
+                        <i class="fa-solid fa-chevron-down text-sm"></i>
+                    </button>
+                </div>
+
+                {{-- Generate Button --}}
+                @if($isGenerating)
+                    <button type="button" wire:click="cancelGeneration"
+                        class="t2i-cancel-btn shrink-0 flex items-center justify-center gap-2 h-10 px-4 sm:px-5 rounded-xl bg-white/5 hover:bg-red-500/20 border border-white/10 text-white font-medium text-sm active:scale-95 transition-all outline-none">
+                        <i class="fa-solid fa-stop text-xs"></i>
+                        <span class="hidden sm:inline">Hủy</span>
+                    </button>
+                @else
+                    <button type="button" @click="submitGenerate()"
+                        class="t2i-generate-btn shrink-0 flex items-center justify-center gap-1.5 h-10 px-4 sm:px-6 rounded-xl text-white font-semibold text-sm active:scale-95 transition-all bg-gradient-to-r from-purple-600 to-indigo-600 relative overflow-hidden group outline-none"
+                        :disabled="!$wire.prompt?.trim() || isLocallyGenerating || $wire.isGenerating"
+                        :class="(isLocallyGenerating || $wire.isGenerating) ? 'opacity-50 pointer-events-none' : ''">
+
+                        {{-- Glow sweep effect --}}
+                        <div
+                            class="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover:block hidden group-hover:transition-transform group-hover:duration-500 group-hover:translate-x-[100%] skew-x-12">
+                        </div>
+
+                        {{-- Core Button Label (Combines states to fix overlapping icons) --}}
+                        <div class="relative z-10 flex items-center justify-center gap-1.5 min-w-[50px]">
+                            {{-- Hide in Loading state completely --}}
+                            <div x-show="!(isLocallyGenerating || $wire.isGenerating)" class="flex items-center gap-1.5">
+                                <i class="fa-solid fa-paper-plane text-xs relative -top-[1px]"></i>
+                                <span>Tạo</span>
+                            </div>
+
+                            {{-- Show ONLY in Loading state --}}
+                            <div x-show="isLocallyGenerating || $wire.isGenerating" x-cloak
+                                class="flex items-center gap-1.5">
+                                <i class="fa-solid fa-spinner fa-spin text-xs"></i>
+                                <span class="hidden sm:inline">Đang tạo</span>
+                            </div>
+                        </div>
+
+                        {{-- Credit Tag --}}
+                        <span
+                            class="relative z-10 text-white text-[11px] font-medium ml-1 bg-black/25 px-1.5 py-0.5 rounded flex items-center gap-1">
+                            <span x-text="$wire.creditCost * $wire.batchSize"></span><i
+                                class="fa-solid fa-bolt text-[9px] text-yellow-400"></i>
+                        </span>
+                    </button>
+                @endif
             </div>
         </div>
     </div>
+</div>
 </div>
