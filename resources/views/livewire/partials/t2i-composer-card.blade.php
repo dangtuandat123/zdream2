@@ -6,16 +6,9 @@
     @click.away="showRatioSheet = false; showModelSheet = false; showBatchSheet = false; showRefPicker = false"
     x-ref="composerCard" x-init="
         const bar = $refs.composerCard;
-        const navH = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--nav-bar-h')) || 0;
-        const updateFeedPadding = () => {
-            const feed = document.querySelector('#gallery-scroll > div:nth-child(2)');
-            // Base 128px (như bạn thấy đẹp) + menu dưới nếu có (mobile)
-            if (feed) feed.style.paddingBottom = (128 + navH) + 'px';
-        };
         const ro = new ResizeObserver(() => {
             const h = bar.offsetHeight;
             document.documentElement.style.setProperty('--composer-h', h + 'px');
-            updateFeedPadding(h);
         });
         ro.observe(bar);
         const stop = () => ro.disconnect();
