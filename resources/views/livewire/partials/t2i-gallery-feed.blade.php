@@ -50,7 +50,7 @@
         @endif
 
         {{-- Gallery Feed --}}
-        <div class="flex flex-col gap-5 sm:gap-6 px-0 sm:px-1 pt-4 sm:pt-5 min-h-[calc(100dvh-240px)] justify-center" id="gallery-feed"
+        <div class="flex flex-col gap-5 sm:gap-6 px-0 sm:px-1 pt-4 sm:pt-5" id="gallery-feed"
             data-history='@json($flatHistoryForJs)'
             data-has-more="{{ ($history instanceof \Illuminate\Pagination\LengthAwarePaginator && $history->hasMorePages()) ? '1' : '0' }}"
             wire:key="gallery-feed">
@@ -153,8 +153,8 @@
                         <div class="px-0">
                             @php
                                 $imgCount = $groupItems->count();
-                                // Tối ưu chiều rộng cho 1 ảnh để nó to và đẹp hơn, không bị bó hẹp trong max-w-sm
-                                $gridClass = $imgCount === 1 ? 'grid-cols-1 max-w-md mx-auto w-full' : ($imgCount === 2 ? 'grid-cols-2 max-w-xl mx-auto w-full' : 'grid-cols-2 sm:grid-cols-4 w-full');
+                                // Thiết kế "Cinematic Canvas" cho 1 ảnh (độ cao bằng hệt phần màn hình khả dụng)
+                                $gridClass = $imgCount === 1 ? 'grid-cols-1 w-full mx-auto' : ($imgCount === 2 ? 'grid-cols-2 max-w-xl mx-auto w-full' : 'grid-cols-2 sm:grid-cols-4 w-full');
                             @endphp
                             <div class="grid gap-3 {{ $gridClass }}">
                                 @foreach($groupItems as $image)
@@ -166,9 +166,9 @@
                                         @click="openPreview(null, {{ $absoluteIndex }})"
                                         x-data="{ loaded: false }"
                                         x-init="$nextTick(() => { if ($refs.imgElem && $refs.imgElem.complete) loaded = true; })">
-                                        {{-- Tính toán div chứa ảnh: Nếu 1 ảnh thì lấy đúng tỷ lệ (aspect-ratio) và giới hạn chiều cao max 70vh, nhiều ảnh thì dùng aspect-square để thành lưới đều --}}
-                                        <div class="relative overflow-hidden bg-[#222] rounded-lg {{ $imgCount === 1 ? '' : 'aspect-square' }}"
-                                            style="{{ $imgCount === 1 ? 'aspect-ratio: ' . $aspectRatioCss . '; max-height: 70vh;' : '' }}">
+                                        {{-- Tính toán div ảnh: Nếu 1 ảnh thì chiếm toàn bộ chiều cao (Cinematic Mode) cho khít màn hình --}}
+                                        <div class="relative overflow-hidden bg-black/40 rounded-xl border border-white/[0.04] shadow-inner {{ $imgCount === 1 ? '' : 'aspect-square' }}"
+                                            style="{{ $imgCount === 1 ? 'height: calc(100dvh - 280px); min-height: 400px;' : '' }}">
                                             {{-- Shimmer --}}
                                             <div class="img-shimmer absolute inset-0 bg-[#333] overflow-hidden transition-opacity duration-300"
                                                  :class="loaded ? 'opacity-0 pointer-events-none' : 'opacity-100'">
@@ -300,11 +300,11 @@
 
                 {{-- Grid Display --}}
                 <div class="px-0 pt-2 border-t border-white/5 relative z-10">
-                    <div class="grid gap-3 w-full" :class="parseInt($wire.batchSize) === 1 ? 'grid-cols-1 max-w-md mx-auto' : (parseInt($wire.batchSize) === 2 ? 'grid-cols-2 max-w-xl mx-auto' : 'grid-cols-2 sm:grid-cols-4')">
+                    <div class="grid gap-3 w-full" :class="parseInt($wire.batchSize) === 1 ? 'grid-cols-1 w-full mx-auto' : (parseInt($wire.batchSize) === 2 ? 'grid-cols-2 max-w-xl mx-auto w-full' : 'grid-cols-2 sm:grid-cols-4 w-full')">
                         <template x-for="i in Array.from({length: parseInt($wire.batchSize)})" :key="'skel-' + i">
-                            <div class="relative bg-white/[0.02] rounded-xl overflow-hidden border border-white/[0.05] shadow-inner"
+                            <div class="relative bg-black/40 rounded-xl overflow-hidden border border-white/[0.04] shadow-inner"
                                  :class="parseInt($wire.batchSize) === 1 ? '' : 'aspect-square'"
-                                 :style="parseInt($wire.batchSize) === 1 ? `aspect-ratio: ${$wire.aspectRatio !== 'auto' && typeof $wire.aspectRatio === 'string' && $wire.aspectRatio.includes(':') ? $wire.aspectRatio.replace(':', ' / ') : '1 / 1'}; max-height: 70vh;` : ''">
+                                 :style="parseInt($wire.batchSize) === 1 ? 'height: calc(100dvh - 280px); min-height: 400px;' : ''">
                                  
                                  {{-- Shimmer Effect --}}
                                  <div class="absolute inset-0 bg-gradient-to-tr from-transparent via-white/[0.03] to-transparent w-[200%] animate-[shimmer_2s_infinite]"></div>
