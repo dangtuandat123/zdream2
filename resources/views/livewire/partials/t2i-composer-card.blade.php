@@ -136,6 +136,7 @@
                         <textarea x-ref="promptInput" wire:model.live.debounce.500ms="prompt" rows="1"
                             @focus="isFocused = true; focusLock = true; setTimeout(() => focusLock = false, 600)"
                             @blur="setTimeout(() => { if (!document.activeElement?.closest('.t2i-composer-wrap')) { isFocused = false; } }, 150)"
+                            @scroll.window.passive="if (isFocused && typeof focusLock !== 'undefined' && !focusLock) { isFocused = false; $el.blur(); }"
                             @input="resize()" placeholder="Mô tả ý tưởng của bạn..." :style="{ height: promptHeight }"
                             class="t2i-prompt-input relative z-10 w-full bg-transparent border-none outline-none ring-0 focus:ring-0 focus:outline-none text-sm sm:text-base resize-none transition-all leading-relaxed min-h-[44px] max-h-[50vh] px-2 py-1.5 pr-8 text-white placeholder:text-white/40 caret-white overflow-y-auto whitespace-pre-wrap break-words"
                             x-init="
