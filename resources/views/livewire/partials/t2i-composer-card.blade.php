@@ -29,7 +29,9 @@
 
         {{-- Status Strip (above prompt, visible when not idle) --}}
         <template x-if="uiMode !== 'idle' || isLocallyGenerating || $wire.isGenerating">
-            <div class="mb-2 rounded-xl overflow-hidden shadow-lg" x-transition:enter="transition ease-out duration-300"
+            <div class="mb-2 rounded-xl overflow-hidden shadow-lg transition-all duration-300 mx-auto"
+                :class="(!isFocused && !isAtBottom) ? 'max-w-2xl' : 'w-full'"
+                x-transition:enter="transition ease-out duration-300"
                 x-transition:enter-start="opacity-0 -translate-y-2" x-transition:enter-end="opacity-100 translate-y-0">
 
                 {{-- Generating --}}

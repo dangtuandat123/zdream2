@@ -262,34 +262,35 @@
                         if (timer) { clearInterval(timer); timer = null; }
                     }
                 "
-                class="group-batch relative mb-5 rounded-2xl border border-purple-500/30 bg-[#12151e] shadow-[0_0_40px_rgba(147,51,234,0.1)] overflow-hidden">
+                class="group-batch t2i-batch relative mb-5 bg-[#12151e] overflow-hidden shadow-[0_0_40px_rgba(147,51,234,0.1)] border border-purple-500/30">
                 
                 {{-- Top Progress Bar --}}
                 <div class="absolute top-0 left-0 right-0 h-1 bg-white/[0.03] overflow-hidden z-10">
                     <div class="h-full bg-gradient-to-r from-purple-500 via-indigo-500 to-purple-500 w-[200%] animate-[progress-slide_2s_linear_infinite]"></div>
                 </div>
 
-                {{-- Status Header --}}
-                <div class="p-3 sm:px-4 sm:py-3 border-b border-white/[0.05] flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-0 bg-white/[0.01]">
-                    <div class="flex items-center gap-3">
-                        <div class="relative flex items-center justify-center w-8 h-8 shrink-0">
-                            <i class="fa-solid fa-wand-magic-sparkles text-purple-400 absolute text-sm animate-pulse"></i>
-                            <svg class="w-full h-full text-purple-500/30 animate-[spin_3s_linear_infinite]" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" stroke-dasharray="15 85"/></svg>
+                <div class="px-0 pb-2 relative z-10 mt-1">
+                    <div class="flex flex-col sm:flex-row sm:items-baseline gap-2 sm:gap-4 justify-between">
+                        
+                        <div class="flex items-center gap-3 min-w-0">
+                            <i class="fa-solid fa-wand-magic-sparkles text-purple-400 text-sm animate-pulse shrink-0"></i>
+                            <p class="text-[15px] font-semibold leading-snug text-left text-white/90 truncate" x-text="loadingMessages[currentLoadingMessage] || 'Đang khởi tạo AI...'"></p>
                         </div>
-                        <div class="min-w-0">
-                            <p class="text-[13px] sm:text-[14px] font-semibold text-white tracking-wide truncate" x-text="loadingMessages[currentLoadingMessage] || 'Đang khởi tạo AI...'"></p>
-                            <p class="text-[11px] sm:text-xs text-white/50 font-medium mt-0.5">Đang xử lý <span x-text="$wire.batchSize"></span> ảnh • <span class="text-purple-300" x-text="(Math.floor(elapsed / 60) > 0 ? Math.floor(elapsed / 60) + ' phút ' : '') + (elapsed % 60) + ' giây'"></span></p>
+
+                        <div class="flex items-center gap-3 text-[12px] text-white/40 font-medium shrink-0 flex-wrap">
+                            <span class="px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 flex items-center gap-1.5 font-bold uppercase tracking-wider text-[10px] border border-purple-500/30">
+                                <span class="w-[5px] h-[5px] rounded-full bg-purple-400 animate-ping"></span> ĐANG VẼ
+                            </span>
+                            <span class="w-[1px] h-3 bg-white/10 hidden sm:block"></span>
+                            <span><span x-text="$wire.batchSize"></span> ảnh</span>
+                            <span class="w-[1px] h-3 bg-white/10"></span>
+                            <span class="text-purple-300 font-semibold" x-text="(Math.floor(elapsed / 60) > 0 ? Math.floor(elapsed / 60) + ' phút ' : '') + (elapsed % 60) + ' giây'"></span>
                         </div>
-                    </div>
-                    <div class="flex items-center">
-                        <span class="px-2.5 py-1 rounded-md bg-purple-500/10 text-purple-300 text-[10px] sm:text-[11px] font-bold tracking-wider uppercase flex items-center gap-1.5 border border-purple-500/20 shadow-inner">
-                            <span class="w-1.5 h-1.5 rounded-full bg-purple-400 animate-ping"></span> AI Đang vẽ
-                        </span>
                     </div>
                 </div>
 
                 {{-- Grid Display --}}
-                <div class="p-4">
+                <div class="px-0 pt-2 border-t border-white/5 relative z-10">
                     <div class="grid gap-3" :class="parseInt($wire.batchSize) === 1 ? 'grid-cols-1 max-w-sm mx-auto' : (parseInt($wire.batchSize) === 2 ? 'grid-cols-2 max-w-xl mx-auto' : 'grid-cols-2 sm:grid-cols-4')">
                         <template x-for="i in Array.from({length: parseInt($wire.batchSize)})">
                             <div class="relative bg-white/[0.02] rounded-xl overflow-hidden border border-white/[0.05] shadow-inner"
