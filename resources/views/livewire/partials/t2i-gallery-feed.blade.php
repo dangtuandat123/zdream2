@@ -26,7 +26,7 @@
             </div>
         </div>
     </div>
-    <div class="max-w-4xl mx-auto px-4"
+    <div class="max-w-4xl mx-auto px-4 flex flex-col min-h-[100dvh] w-full"
         style="padding-top: calc(var(--filter-bar-h, 3.5rem) + 1.5rem); padding-bottom: 128px;">
 
         {{-- Error Banner --}}
@@ -50,7 +50,7 @@
         @endif
 
         {{-- Gallery Feed --}}
-        <div class="flex flex-col gap-5 sm:gap-6 px-0 sm:px-1 pt-4 sm:pt-5" id="gallery-feed"
+        <div class="flex flex-col gap-5 sm:gap-6 px-0 sm:px-1 pt-4 sm:pt-5 w-full mt-auto" id="gallery-feed"
             data-history='@json($flatHistoryForJs)'
             data-has-more="{{ ($history instanceof \Illuminate\Pagination\LengthAwarePaginator && $history->hasMorePages()) ? '1' : '0' }}"
             wire:key="gallery-feed">
