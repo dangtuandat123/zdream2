@@ -267,7 +267,7 @@
                         if (timer) { clearInterval(timer); timer = null; }
                     }
                 "
-                x-init="$cleanup(() => { if (timer) clearInterval(timer); timer = null; })"
+                x-init="$watch('isLocallyGenerating', () => { if(!isLocallyGenerating && timer) { clearInterval(timer); timer = null; } }); $watch('$wire.isGenerating', () => { if(!$wire.isGenerating && timer) { clearInterval(timer); timer = null; } });"
                 class="group-batch t2i-batch relative mb-5 bg-[#12151e] overflow-hidden shadow-[0_0_40px_rgba(147,51,234,0.1)] border border-purple-500/30">
                 
                 {{-- Top Progress Bar --}}
@@ -285,7 +285,7 @@
 
                         <div class="flex items-center gap-3 text-[12px] text-white/40 font-medium shrink-0 flex-wrap">
                             <span class="px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 flex items-center gap-1.5 font-bold uppercase tracking-wider text-[10px] border border-purple-500/30">
-                                <span class="w-[5px] h-[5px] rounded-full bg-purple-400" x-data="{ toggle: true, dotTimer: null }" x-init="dotTimer = setInterval(() => toggle = !toggle, 800); $cleanup(() => { if(dotTimer) clearInterval(dotTimer); })" :class="toggle ? 'opacity-100' : 'opacity-20'" style="transition: opacity 0.3s ease-in-out;"></span> ĐANG VẼ
+                                <span class="w-[5px] h-[5px] rounded-full bg-purple-400" x-data="{ toggle: true, dotTimer: null }" x-init="dotTimer = setInterval(() => toggle = !toggle, 800);" @destroyed.window="if(dotTimer) clearInterval(dotTimer)" :class="toggle ? 'opacity-100' : 'opacity-20'" style="transition: opacity 0.3s ease-in-out;"></span> ĐANG VẼ
                             </span>
                             <span class="w-[1px] h-3 bg-white/10 hidden sm:block"></span>
                             <span><span x-text="$wire.batchSize"></span> ảnh</span>
