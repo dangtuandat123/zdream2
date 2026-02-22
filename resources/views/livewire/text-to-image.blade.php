@@ -96,6 +96,10 @@
     {{-- ============================================================ --}}
     <style>
         .t2i-shell {
+            /* Khoảng cách thở chuẩn giữa content và các thanh fixed (header/composer).
+               Mọi spacer, max-height, min-height trong gallery đều tham chiếu biến này.
+               Thay đổi 1 chỗ → cập nhật toàn bộ layout tự động. */
+            --gallery-gap: 12px;
             --surface-1: rgba(255, 255, 255, 0.03);
             --surface-2: rgba(255, 255, 255, 0.05);
             --surface-3: rgba(255, 255, 255, 0.08);

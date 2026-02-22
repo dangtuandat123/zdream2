@@ -26,8 +26,8 @@
             </div>
         </div>
     </div>
-    {{-- Top Spacer (Clear Header) --}}
-    <div class="w-full shrink-0 pointer-events-none" style="height: calc(var(--filter-bar-h, 3.5rem) + 0.75rem);"></div>
+    {{-- Top Spacer: filter-bar-h + gallery-gap --}}
+    <div class="w-full shrink-0 pointer-events-none" style="height: calc(var(--filter-bar-h, 3.5rem) + var(--gallery-gap, 12px));"></div>
 
     <div class="max-w-4xl mx-auto px-4 w-full relative z-10">
 
@@ -66,7 +66,7 @@
                 {{-- ═══════════════════════════════════════════ --}}
                 @if($groupedHistory->isEmpty() && !$loadingMoreHistory)
                     <div class="flex flex-col items-center justify-center text-center px-4 animate-[image-entrance_0.6s_ease-out_forwards]"
-                         style="min-height: calc(100dvh - var(--filter-bar-h, 56px) - var(--composer-h, 140px) - 3rem);">
+                         style="min-height: calc(100dvh - var(--filter-bar-h, 56px) - var(--composer-h, 140px) - var(--gallery-gap, 12px) * 2);">
                         <div class="w-16 h-16 sm:w-20 sm:h-20 mb-5 sm:mb-6 rounded-full bg-white/[0.03] border border-white/10 flex items-center justify-center shadow-inner">
                             <i class="fa-solid fa-wand-magic-sparkles text-2xl sm:text-3xl text-purple-400/80"></i>
                         </div>
@@ -189,10 +189,10 @@
                                         @click="openPreview(null, {{ $absoluteIndex }})"
                                         x-data="{ loaded: false }"
                                         x-init="$nextTick(() => { if ($refs.imgElem && $refs.imgElem.complete) loaded = true; })"
-                                        style="{{ $imgCount === 1 ? 'width: 100%; max-width: min(100%, 32rem, calc((100dvh - var(--filter-bar-h, 56px) - var(--composer-h, 140px) - 5rem) * ' . $ratioDec . '));' : 'width: 100%;' }}">
+                                        style="{{ $imgCount === 1 ? 'width: 100%; max-width: min(100%, 32rem, calc((100dvh - var(--filter-bar-h, 56px) - var(--composer-h, 140px) - var(--gallery-gap, 12px) * 2) * ' . $ratioDec . '));' : 'width: 100%;' }}">
                                         
                                         <div class="relative overflow-hidden bg-[#1c1d21] flex items-center justify-center rounded-xl border border-white/5 shadow-inner w-full"
-                                            style="{{ $imgCount === 1 ? 'aspect-ratio: ' . $aspectRatioCss . '; max-height: calc(100dvh - var(--filter-bar-h, 56px) - var(--composer-h, 140px) - 5rem);' : 'aspect-ratio: 1 / 1;' }}">
+                                            style="{{ $imgCount === 1 ? 'aspect-ratio: ' . $aspectRatioCss . '; max-height: calc(100dvh - var(--filter-bar-h, 56px) - var(--composer-h, 140px) - var(--gallery-gap, 12px) * 2);' : 'aspect-ratio: 1 / 1;' }}">
                                             {{-- Shimmer --}}
                                             <div class="img-shimmer absolute inset-0 bg-[#333] overflow-hidden transition-opacity duration-300"
                                                  :class="loaded ? 'opacity-0 pointer-events-none' : 'opacity-100'">
@@ -336,9 +336,9 @@
                 <div class="px-0 pt-2 border-t border-white/5 relative z-10">
                     <div class="gap-3" :class="parseInt($wire.batchSize) === 1 ? 'flex justify-center w-full' : (parseInt($wire.batchSize) === 2 ? 'grid grid-cols-2 w-full max-w-xl mx-auto' : 'grid grid-cols-2 sm:grid-cols-4 w-full')">
                         <template x-for="i in Array.from({length: parseInt($wire.batchSize)})" :key="'skel-' + i">
-                            <div :style="parseInt($wire.batchSize) === 1 ? `width: 100%; max-width: min(100%, 32rem, calc((100dvh - var(--filter-bar-h, 56px) - var(--composer-h, 140px) - 5rem) * ${ (() => { let r=$wire.aspectRatio; if(r==='auto'||!r)return 1; let p=r.replace(':','/').split('/'); let w=parseFloat(p[0])||1, h=parseFloat(p[1])||1; return w/h; })() }));` : 'width: 100%;'">
+                            <div :style="parseInt($wire.batchSize) === 1 ? `width: 100%; max-width: min(100%, 32rem, calc((100dvh - var(--filter-bar-h, 56px) - var(--composer-h, 140px) - var(--gallery-gap, 12px) * 2) * ${ (() => { let r=$wire.aspectRatio; if(r==='auto'||!r)return 1; let p=r.replace(':','/').split('/'); let w=parseFloat(p[0])||1, h=parseFloat(p[1])||1; return w/h; })() }));` : 'width: 100%;'">
                                 <div class="relative bg-[#1c1d21] rounded-xl overflow-hidden border border-white/5 shadow-inner w-full"
-                                     :style="parseInt($wire.batchSize) === 1 ? `aspect-ratio: ${$wire.aspectRatio !== 'auto' && typeof $wire.aspectRatio === 'string' && $wire.aspectRatio.includes(':') ? $wire.aspectRatio.replace(':', ' / ') : '1 / 1'}; max-height: calc(100dvh - var(--filter-bar-h, 56px) - var(--composer-h, 140px) - 5rem);` : 'aspect-ratio: 1 / 1;'">
+                                     :style="parseInt($wire.batchSize) === 1 ? `aspect-ratio: ${$wire.aspectRatio !== 'auto' && typeof $wire.aspectRatio === 'string' && $wire.aspectRatio.includes(':') ? $wire.aspectRatio.replace(':', ' / ') : '1 / 1'}; max-height: calc(100dvh - var(--filter-bar-h, 56px) - var(--composer-h, 140px) - var(--gallery-gap, 12px) * 2);` : 'aspect-ratio: 1 / 1;'">
                                  
                                  {{-- Shimmer Effect --}}
                                  <div class="absolute inset-0 bg-gradient-to-tr from-transparent via-white/[0.03] to-transparent w-[200%] animate-[shimmer_2s_infinite]"></div>
@@ -356,5 +356,5 @@
 
     </div>
 
-    {{-- Bottom Spacer (Clear Composer) --}}
-    <div class="w-full shrink-0 pointer-events-none" style="height: calc(var(--composer-h, 140px) + env(safe-area-inset-bottom, 0px) + 1.25rem);"></div>
+    {{-- Bottom Spacer: composer-h + safe-area + gallery-gap --}}
+    <div class="w-full shrink-0 pointer-events-none" style="height: calc(var(--composer-h, 140px) + env(safe-area-inset-bottom, 0px) + var(--gallery-gap, 12px));"></div>
