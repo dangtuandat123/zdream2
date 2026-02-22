@@ -337,13 +337,14 @@
     {{-- Bottom Spacer: composer-h + mobile-nav(56px) + safe-area + gallery-gap
          Trên md+ (desktop), composer nằm sát đáy → không cần 56px.
          Trên mobile, composer cách đáy thêm 56px (bottom nav bar). --}}
-    <div class="w-full shrink-0 pointer-events-none"
+    <div id="bottom-spacer" class="w-full shrink-0 pointer-events-none"
          style="height: calc(var(--composer-h, 140px) + env(safe-area-inset-bottom, 0px) + var(--gallery-gap, 12px) + 56px);"></div>
-    <style>
-        @media (min-width: 768px) {
-            /* Desktop: composer nằm sát đáy, không cần thêm 56px nav offset */
-            #gallery-scroll > div:last-child {
-                height: calc(var(--composer-h, 140px) + var(--gallery-gap, 12px)) !important;
-            }
+
+<style>
+    @media (min-width: 768px) {
+        /* Desktop: composer nằm sát đáy, không cần thêm 56px nav offset */
+        #bottom-spacer {
+            height: calc(var(--composer-h, 140px) + var(--gallery-gap, 12px)) !important;
         }
-    </style>
+    }
+</style>

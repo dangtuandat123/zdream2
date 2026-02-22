@@ -982,7 +982,6 @@
                     },
 
                     scrollToBottom(smooth = true) {
-                        console.log('scrollToBottom called');
                         this.lockSystemScrolling(1500);
 
                         const targetTop = document.documentElement.scrollHeight + 500;
