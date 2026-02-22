@@ -62,20 +62,6 @@
             <div class="space-y-5 sm:space-y-6 gallery-wrapper">
 
                 {{-- ═══════════════════════════════════════════ --}}
-                {{-- EMPTY STATE (0 IMAGES) --}}
-                {{-- ═══════════════════════════════════════════ --}}
-                @if($groupedHistory->isEmpty() && !$loadingMoreHistory)
-                    <div class="flex flex-col items-center justify-center text-center px-4 animate-[image-entrance_0.6s_ease-out_forwards]"
-                         style="min-height: calc(100dvh - var(--filter-bar-h, 56px) - var(--composer-h, 140px) - var(--gallery-gap, 12px) * 2);">
-                        <div class="w-16 h-16 sm:w-20 sm:h-20 mb-5 sm:mb-6 rounded-full bg-white/[0.03] border border-white/10 flex items-center justify-center shadow-inner">
-                            <i class="fa-solid fa-wand-magic-sparkles text-2xl sm:text-3xl text-purple-400/80"></i>
-                        </div>
-                        <h3 class="text-lg sm:text-xl font-semibold text-white/90 mb-2">Chưa có tác phẩm nào</h3>
-                        <p class="text-[13px] text-white/40 max-w-[260px] leading-relaxed">Tất cả những hình ảnh bạn tạo sẽ xuất hiện tại đây. Hãy nhập ý tưởng vào khung bên dưới để bắt đầu!</p>
-                    </div>
-                @endif
-
-                {{-- ═══════════════════════════════════════════ --}}
                 {{-- TOP SENTINEL — auto-load older history --}}
                 {{-- ═══════════════════════════════════════════ --}}
                 @if($history instanceof \Illuminate\Pagination\LengthAwarePaginator && $history->hasMorePages())
@@ -244,38 +230,30 @@
 
                 @empty
                     @if(!$isGenerating)
-                        <div class="py-16 sm:py-24 text-center" x-data="{
-                                            allPrompts: [
-                                                'Một chú mèo dễ thương ngủ trên mây',
-                                                'Phong cảnh núi tuyết hoàng hôn',
-                                                'Logo công nghệ gradient xanh',
-                                                'Cô gái anime với đôi cánh thiên thần',
-                                                'Thành phố cyberpunk dưới mưa neon',
-                                                'Rồng phương Đông bay trên biển mây',
-                                                'Chiếc xe cổ điển trên con đường hoa anh đào',
-                                                'Lâu đài fantasy trên ngọn núi tuyết',
-                                                'Robot dễ thương đang tưới hoa',
-                                                'Bình minh trên cánh đồng hoa lavender',
-                                                'Phi hành gia lơ lửng trong không gian đầy sao',
-                                                'Quán cà phê ấm cúng ngày mưa phong cách Ghibli'
-                                            ],
-                                            prompts: [],
-                                            init() {
-                                                const shuffled = [...this.allPrompts].sort(() => Math.random() - 0.5);
-                                                this.prompts = shuffled.slice(0, 3);
-                                            }
-                                        }">
-                            <div
-                                class="w-16 h-16 mx-auto rounded-2xl bg-white/[0.05] border border-white/[0.08] flex items-center justify-center mb-4 shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]">
-                                <i class="fa-solid fa-image text-3xl text-white/20"></i>
+                        <div class="flex flex-col items-center justify-center text-center px-4 animate-[image-entrance_0.6s_ease-out_forwards]"
+                             style="min-height: calc(100dvh - var(--filter-bar-h, 56px) - var(--composer-h, 140px) - var(--gallery-gap, 12px) * 2);">
+                            <div class="w-16 h-16 sm:w-20 sm:h-20 mb-5 sm:mb-6 rounded-full bg-white/[0.03] border border-white/10 flex items-center justify-center shadow-inner">
+                                <i class="fa-solid fa-wand-magic-sparkles text-2xl sm:text-3xl text-purple-400/80"></i>
                             </div>
-                            <h3 class="text-white/95 font-medium text-lg mb-2">Chưa có hình ảnh nào</h3>
-                            <p class="text-white/50 text-sm max-w-sm mx-auto mb-6">
-                                Hãy thử tạo một hình ảnh mới bằng cách nhập mô tả vào khung chat bên dưới.
-                            </p>
-                            <div class="flex flex-wrap justify-center gap-2">
+                            <h3 class="text-lg sm:text-xl font-semibold text-white/90 mb-2">Chưa có tác phẩm nào</h3>
+                            <p class="text-[13px] text-white/40 max-w-[260px] leading-relaxed mb-6">Tất cả những hình ảnh bạn tạo sẽ xuất hiện tại đây. Hãy nhập ý tưởng vào khung bên dưới để bắt đầu!</p>
+                            <div class="flex flex-wrap justify-center gap-2" x-data="{
+                                allPrompts: [
+                                    'Một chú mèo dễ thương ngủ trên mây',
+                                    'Phong cảnh núi tuyết hoàng hôn',
+                                    'Logo công nghệ gradient xanh',
+                                    'Cô gái anime với đôi cánh thiên thần',
+                                    'Thành phố cyberpunk dưới mưa neon',
+                                    'Rồng phương Đông bay trên biển mây'
+                                ],
+                                prompts: [],
+                                init() {
+                                    const shuffled = [...this.allPrompts].sort(() => Math.random() - 0.5);
+                                    this.prompts = shuffled.slice(0, 3);
+                                }
+                            }">
                                 <template x-for="p in prompts" :key="p">
-                                    <button @click="$wire.set('prompt', p); setTimeout(() => { const input = document.querySelector('.t2i-prompt-input'); if(input) { input.focus(); } window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }); }, 150);"
+                                    <button @click="$wire.set('prompt', p); setTimeout(() => { const input = document.querySelector('.t2i-prompt-input'); if(input) { input.focus(); } }, 150);"
                                         class="h-9 px-4 rounded-lg bg-white/[0.05] hover:bg-white/[0.08] border border-white/[0.08] text-xs text-white/70 hover:text-white transition-all active:scale-[0.98]">
                                         <span x-text="p"></span>
                                     </button>
@@ -356,5 +334,16 @@
 
     </div>
 
-    {{-- Bottom Spacer: composer-h + safe-area + gallery-gap --}}
-    <div class="w-full shrink-0 pointer-events-none" style="height: calc(var(--composer-h, 140px) + env(safe-area-inset-bottom, 0px) + var(--gallery-gap, 12px));"></div>
+    {{-- Bottom Spacer: composer-h + mobile-nav(56px) + safe-area + gallery-gap
+         Trên md+ (desktop), composer nằm sát đáy → không cần 56px.
+         Trên mobile, composer cách đáy thêm 56px (bottom nav bar). --}}
+    <div class="w-full shrink-0 pointer-events-none"
+         style="height: calc(var(--composer-h, 140px) + env(safe-area-inset-bottom, 0px) + var(--gallery-gap, 12px) + 56px);"></div>
+    <style>
+        @media (min-width: 768px) {
+            /* Desktop: composer nằm sát đáy, không cần thêm 56px nav offset */
+            #gallery-scroll > div:last-child {
+                height: calc(var(--composer-h, 140px) + var(--gallery-gap, 12px)) !important;
+            }
+        }
+    </style>
