@@ -1004,7 +1004,7 @@
                     scrollToBottom(smooth = true) {
                         this.lockSystemScrolling(1500);
 
-                        const targetTop = document.documentElement.scrollHeight + 500;
+                        const targetTop = document.documentElement.scrollHeight;
                         if (smooth) {
                             window.scrollTo({ top: targetTop, behavior: 'smooth' });
                         } else {
@@ -1197,13 +1197,8 @@
 
                         // Độ trễ 300ms đợi bàn phím Mobile đóng hẳn và Skeleton render ra DOM
                         setTimeout(() => {
-                            const skeleton = document.getElementById('gen-skeleton');
-                            console.log('[T2I] Thực thi lệnh auto-scroll đến Skeleton:', skeleton);
-                            if (skeleton) {
-                                skeleton.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                            } else {
-                                this.scrollToBottom(true);
-                            }
+                            console.log('[T2I] Thực thi lệnh auto-scroll xuống đáy xem Skeleton');
+                            this.scrollToBottom(true);
                         }, 300);
 
                         // Fire Livewire method
