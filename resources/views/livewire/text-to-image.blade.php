@@ -299,8 +299,12 @@
             }
         }
 
-        /* Bottom Spacer: desktop không cần 56px mobile nav offset */
+        /* Desktop: không cần 56px mobile nav offset cho cả Top và Bottom Spacer */
         @media (min-width: 768px) {
+            #top-spacer {
+                height: calc(var(--filter-bar-h, 3.5rem) + var(--gallery-gap, 12px)) !important;
+            }
+
             #bottom-spacer {
                 height: calc(var(--composer-h, 140px) + var(--gallery-gap, 12px)) !important;
             }

@@ -12,7 +12,7 @@
         x-transition:leave-start="opacity-100"
         x-transition:leave-end="opacity-0"
         class="fixed mobile-filter-top md:top-0 left-0 right-0 md:left-[72px] z-[60] pointer-events-none"
-        style="display:none;">
+        style="display:none; margin-top: var(--filter-bar-h, 2.5rem);">
         {{-- Shimmer bar --}}
         <div class="h-1 w-full bg-gradient-to-r from-transparent via-purple-500/80 to-transparent animate-pulse"></div>
         {{-- Floating pill --}}
@@ -26,8 +26,12 @@
             </div>
         </div>
     </div>
-    {{-- Top Spacer: filter-bar-h + gallery-gap --}}
-    <div class="w-full shrink-0 pointer-events-none" style="height: calc(var(--filter-bar-h, 3.5rem) + var(--gallery-gap, 12px));"></div>
+    {{-- Top Spacer: mobile-nav(56px) + filter-bar-h + gallery-gap
+         Trên mobile, filter bar ở top:56px (dưới mobile nav), nên content cần
+         bắt đầu ở: 56 + filter-bar-h + gap.
+         Trên desktop (md+), filter bar ở top:0, nên chỉ cần: filter-bar-h + gap. --}}
+    <div id="top-spacer" class="w-full shrink-0 pointer-events-none"
+         style="height: calc(56px + var(--filter-bar-h, 3.5rem) + var(--gallery-gap, 12px));"></div>
 
     <div class="max-w-4xl mx-auto px-4 w-full relative z-10">
 
