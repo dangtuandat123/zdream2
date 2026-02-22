@@ -3,7 +3,6 @@
 {{-- ============================================================ --}}
 <div class="relative min-h-screen t2i-shell" @if($isGenerating) wire:poll.1500ms="pollImageStatus" @endif
     x-data="textToImage" @keydown.window="handleKeydown($event)"
-    :style="{ '--keyboard-offset': isFocused ? '0px' : '56px' }"
     x-on:show-toast.window="notify($event.detail.message, $event.detail.type || 'success')">
 
     {{-- Toast --}}
@@ -97,21 +96,9 @@
     {{-- ============================================================ --}}
     <style>
         .t2i-shell {
-            /* Khoảng cách thở chuẩn giữa content và các thanh fixed (header/composer).
-               Mọi spacer, max-height, min-height trong gallery đều tham chiếu biến này.
-               Thay đổi 1 chỗ → cập nhật toàn bộ layout tự động. */
             --gallery-gap: 12px;
-            /* Chiều cao tối đa an toàn cực kì chuẩn xác cho Mobile.
-               Full màn (100dvh) trừ hao:
-               - Top Nav Header (56px)
-               - Filter Bar (--filter-bar-h)
-               - Composer Bottom (--composer-h)
-               - Bottom Nav Header (--keyboard-offset: 56px khi tắt phím)
-               - Safe Area (- env(...))
-               - Gaps (--gallery-gap * 2)
-               - Prompt Header (~4.5rem)
-             */
-            --img-safe-h: calc(100dvh - 56px - var(--filter-bar-h, 56px) - var(--composer-h, 140px) - var(--keyboard-offset, 56px) - env(safe-area-inset-bottom, 0px) - var(--gallery-gap) * 2 - 4.5rem);
+            /* Chiều cao an toàn cho ảnh: viewport trừ filter + composer + batch header */
+            --img-safe-h: calc(100dvh - 56px - var(--filter-bar-h, 44px) - var(--composer-h, 140px) - 56px - var(--gallery-gap) * 2 - 4.5rem);
             --surface-1: rgba(255, 255, 255, 0.03);
             --surface-2: rgba(255, 255, 255, 0.05);
             --surface-3: rgba(255, 255, 255, 0.08);
@@ -122,6 +109,43 @@
             --text-muted: rgba(255, 255, 255, 0.5);
             background: #0b0d12;
             color: var(--text-strong);
+        }
+
+        /* ====== CONTAINER SCROLL ARCHITECTURE ======
+           Thay vì cuộn ở cấp html/body (scroll xuyên header+nav),
+           #gallery-scroll là vùng cuộn duy nhất, nằm GIỬa Header và Bottom Nav.
+           Filter và Composer là fixed overlays phía trên.
+           padding-top/bottom bù cho filter/composer overlap.
+        */
+        #gallery-scroll {
+            position: fixed;
+            top: 56px;
+            /* dưới Mobile Header */
+            bottom: 56px;
+            /* trên Bottom Nav */
+            left: 0;
+            right: 0;
+            overflow-y: auto;
+            overflow-x: hidden;
+            -webkit-overflow-scrolling: touch;
+            overscroll-behavior-y: contain;
+            /* padding bù cho Filter (trên) và Composer (dưới) */
+            padding-top: var(--filter-bar-h, 44px);
+            padding-bottom: var(--composer-h, 140px);
+            transition: bottom 0.2s ease-out;
+        }
+
+        @media (min-width: 768px) {
+            .t2i-shell {
+                --img-safe-h: calc(100dvh - var(--filter-bar-h, 44px) - var(--composer-h, 140px) - var(--gallery-gap) * 2 - 4.5rem);
+            }
+
+            #gallery-scroll {
+                top: 0;
+                bottom: 0;
+                left: 72px;
+                /* Desktop Sidebar */
+            }
         }
 
         .glass-popover {
@@ -305,27 +329,10 @@
             }
         }
 
-        /* Top Spacer always needs filter-bar + gap. Main layout pt-14 covers mobile nav (56px) */
-        #top-spacer {
-            height: calc(var(--filter-bar-h, 56px) + var(--gallery-gap, 12px)) !important;
-        }
-
-        /* Bottom Spacer — ADAPTIVE (chiều cao do JS tính, xem updateBottomSpacer())
-           Mặc định height: 0. JS ResizeObserver sẽ override:
-           - Nếu nội dung ngắn (1-2 ảnh vừa viewport) → spacer = 0 → KHÔNG scroll
-           - Nếu nội dung tràn viewport → spacer = đủ để ảnh cuối không khuất sau Composer
-        */
+        /* Top/Bottom Spacer không cần thiết nữa với Container Scroll — padding-top/bottom trên #gallery-scroll đã thay thế */
+        #top-spacer,
         #bottom-spacer {
-            height: 0;
-            transition: height 0.15s ease-out;
-        }
-
-        /* Desktop: không bị phụ thuộc 56px mobile nav offset */
-        @media (min-width: 768px) {
-            .t2i-shell {
-                /* Layout Desktop thoải mái hơn vì Sidebar chuyển sang trái (KHÔNG CÓ Top/Bottom Nav) */
-                --img-safe-h: calc(100dvh - var(--filter-bar-h, 56px) - var(--composer-h, 140px) - var(--gallery-gap) * 2 - 4.5rem);
-            }
+            display: none !important;
         }
     </style>
 
@@ -538,15 +545,13 @@
                         this.syncHistoryData(this.historyData);
 
                         // Scroll handler: manages auto-scroll + jump button
+                        // [CONTAINER SCROLL] — Lắng nghe scroll trên #gallery-scroll, KHÔNG phải window
                         this._scrollHandler = () => {
-                            const currentY = window.scrollY || document.documentElement.scrollTop || 0;
+                            const el = this._scrollEl();
+                            if (!el) return;
+                            const currentY = el.scrollTop;
                             // Update isAtBottom state
                             this.isAtBottom = this.isNearBottom(300);
-
-                            // Bỏ logic tự động giật focus khi cuộn trang
-                            // Thay vì đánh mất bàn phím của user khi họ cuộn để xem lại hình cũ,
-                            // ta ưu tiên giữ nguyên textarea đang active. User phải tự blur bằng cách
-                            // bấm ra ngoài hoặc thu phím trên mobile.
 
                             this.lastScrollY = currentY;
 
@@ -558,27 +563,31 @@
                             }
 
                             // Backup trigger: if user is at top but Sentinel didn't fire
-                            const topThreshold = Math.min(400, window.innerHeight * 0.5);
+                            const topThreshold = Math.min(400, el.clientHeight * 0.5);
 
                             // Show/Hide Scroll-to-Bottom button
-                            const distToBottom = document.documentElement.scrollHeight - (currentY + window.innerHeight);
+                            const distToBottom = el.scrollHeight - (currentY + el.clientHeight);
                             this.showScrollToBottom = distToBottom > 400;
 
                             if (currentY < topThreshold && this.hasMoreHistory && !this.loadingMoreHistory) {
                                 clearTimeout(this._backupLoadTimer);
                                 this._backupLoadTimer = setTimeout(() => {
-                                    if (window.scrollY < topThreshold) this.requestLoadOlder(this.loadOlderStep);
+                                    const el2 = this._scrollEl();
+                                    if (el2 && el2.scrollTop < topThreshold) this.requestLoadOlder(this.loadOlderStep);
                                 }, 50);
                             }
                         };
-                        window.addEventListener('scroll', this._scrollHandler, { passive: true });
+                        // [CONTAINER SCROLL] — Bind scroll event to container, not window
+                        const scrollContainer = document.getElementById('gallery-scroll');
+                        if (scrollContainer) {
+                            scrollContainer.addEventListener('scroll', this._scrollHandler, { passive: true });
+                        }
 
                         // FIX BUG 7: observe sentinel AFTER scrollToBottom so it doesn't fire on page load
                         this.$nextTick(() => {
                             requestAnimationFrame(() => {
                                 this.scrollToBottom(false);
-                                this.updateBottomSpacer();
-                                this.lastScrollY = window.scrollY || document.documentElement.scrollTop || 0;
+                                this.lastScrollY = this._scrollEl()?.scrollTop || 0;
                                 this.maybeBootstrapHistory();
                                 this._reobserveSentinel();
                             });
@@ -586,22 +595,8 @@
 
                         this._resizeHandler = () => {
                             this.maybeBootstrapHistory();
-                            this.updateBottomSpacer();
                         };
                         window.addEventListener('resize', this._resizeHandler, { passive: true });
-
-                        // ADAPTIVE BOTTOM SPACER: Theo dõi thay đổi kích thước gallery
-                        const feedEl = document.getElementById('gallery-feed');
-                        if (feedEl) {
-                            this._feedResizeObserver = new ResizeObserver(() => {
-                                this.updateBottomSpacer();
-                            });
-                            this._feedResizeObserver.observe(feedEl);
-                        }
-                        // Cập nhật spacer khi bàn phím mở/đóng (isFocused thay đổi)
-                        this.$watch('isFocused', () => {
-                            this.$nextTick(() => this.updateBottomSpacer());
-                        });
 
                         // Image generated → scroll + celebrate
                         const offGenerated = this.$wire.$on('imageGenerated', (params) => {
@@ -1025,68 +1020,34 @@
                     },
 
                     // ============================================================
-                    // ADAPTIVE BOTTOM SPACER
-                    // Tính toán chiều cao bottom-spacer dựa trên nội dung thực tế.
-                    // Khi ít ảnh (vừa viewport) → spacer = 0 → KHÔNG có scroll.
-                    // Khi nhiều ảnh (tràn viewport) → spacer đủ lớn để ảnh cuối
-                    // không bị khuất sau Composer fixed.
+                    // CONTAINER SCROLL HELPER
+                    // Trả về #gallery-scroll element — vùng cuộn chính
                     // ============================================================
-                    updateBottomSpacer() {
-                        const spacer = document.getElementById('bottom-spacer');
-                        const feed = document.getElementById('gallery-feed');
-                        const topSpacer = document.getElementById('top-spacer');
-                        if (!spacer || !feed) return;
-
-                        const isMobile = window.innerWidth < 768;
-                        const viewportH = window.innerHeight;
-
-                        // Lấy chiều cao Composer từ CSS variable (ResizeObserver đã set)
-                        const composerH = parseFloat(
-                            getComputedStyle(document.documentElement)
-                                .getPropertyValue('--composer-h')
-                        ) || 140;
-
-                        const gap = 12; // --gallery-gap
-
-                        // Chiều cao thực cần bù cho fixed elements ở đáy viewport
-                        // Mobile: Composer (above nav) + Bottom Nav (56px) + gap
-                        // Desktop: Composer + gap (không có mobile nav)
-                        const navH = isMobile ? (this.isFocused ? 0 : 56) : 0;
-                        const mainPb = isMobile ? 80 : 0; // pb-20 trên <main> chỉ mobile
-                        const fullSpacer = Math.max(0, composerH + navH + gap - mainPb);
-
-                        // Chiều cao nội dung trong document flow (không tính bottom-spacer)
-                        const mainPt = isMobile ? 56 : 0; // pt-14 trên <main> chỉ mobile
-                        const topSpacerH = topSpacer ? topSpacer.offsetHeight : 68;
-                        const contentH = feed.offsetHeight;
-                        const docWithoutSpacer = mainPt + topSpacerH + contentH + mainPb;
-
-                        if (docWithoutSpacer + fullSpacer <= viewportH) {
-                            // Nội dung ngắn: vừa viewport → KHÔNG CẦN scroll
-                            spacer.style.height = '0px';
-                        } else {
-                            // Nội dung tràn: cần spacer đầy đủ để protect khỏi Composer
-                            spacer.style.height = fullSpacer + 'px';
-                        }
+                    _scrollEl() {
+                        return document.getElementById('gallery-scroll');
                     },
 
                     scrollToBottom(smooth = true) {
                         this.lockSystemScrolling(1500);
+                        const el = this._scrollEl();
+                        if (!el) return;
 
-                        const targetTop = document.documentElement.scrollHeight;
+                        const targetTop = el.scrollHeight;
                         if (smooth) {
-                            window.scrollTo({ top: targetTop, behavior: 'smooth' });
+                            el.scrollTo({ top: targetTop, behavior: 'smooth' });
                         } else {
-                            window.scrollTo(0, targetTop);
+                            el.scrollTop = targetTop;
                         }
                         this.showScrollToBottom = false;
                     },
                     isNearTop(threshold = 200) {
-                        return document.documentElement.scrollTop < threshold;
+                        const el = this._scrollEl();
+                        return el ? el.scrollTop < threshold : true;
                     },
                     isNearBottom(threshold = 200) {
-                        const el = document.documentElement;
-                        return (el.scrollHeight - (el.scrollTop + window.innerHeight)) < threshold;
+                        const el = this._scrollEl();
+                        if (!el) return true;
+                        return (el.scrollHeight - (el.scrollTop + el.clientHeight)) < threshold;
                     },
                     syncHistoryData(items) {
                         this.historyData = Array.isArray(items) ? items : [];
@@ -1109,7 +1070,7 @@
                                 if (this.loadingMoreHistory || !this.hasMoreHistory) return;
                                 this.requestLoadOlder(this.loadOlderStep);
                             });
-                        }, { rootMargin: '600px 0px 0px 0px', threshold: 0 });
+                        }, { root: this._scrollEl(), rootMargin: '600px 0px 0px 0px', threshold: 0 });
                         this._sentinelObserver.observe(sentinel);
                     },
 
@@ -1138,8 +1099,9 @@
                         }
 
                         // Fallback
-                        this._prevDocHeight = document.documentElement.scrollHeight;
-                        this._savedScrollY = window.scrollY;
+                        const sEl = this._scrollEl();
+                        this._prevDocHeight = sEl ? sEl.scrollHeight : 0;
+                        this._savedScrollY = sEl ? sEl.scrollTop : 0;
                         this._morphCaptured = false;
 
                     },
@@ -1201,8 +1163,9 @@
                     // ============================================================
                     maybeBootstrapHistory() {
                         if (!this.hasMoreHistory || this.loadingMoreHistory) return;
-                        const el = document.documentElement;
-                        const canScroll = (el.scrollHeight - window.innerHeight) > 8;
+                        const el = this._scrollEl();
+                        if (!el) return;
+                        const canScroll = (el.scrollHeight - el.clientHeight) > 8;
                         if (canScroll) return;
                         this.requestLoadOlder(2);
                     },
