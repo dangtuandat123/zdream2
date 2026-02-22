@@ -106,6 +106,8 @@
                             $aspectRatioCss = '1 / 1';
                         }
                         $ratioDisplay = $ratio ?: 'Auto';
+                        // Extract prompt từ batch item — KHÔNG dùng Livewire $this->prompt
+                        $prompt = $firstItem->final_prompt ?? '';
                     @endphp
 
                     <div class="group-batch t2i-batch relative mb-5"

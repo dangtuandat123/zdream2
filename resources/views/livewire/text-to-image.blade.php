@@ -289,7 +289,6 @@
 
         .gallery-img {
             opacity: 1 !important;
-            transform: none !important;
         }
 
         @media (prefers-reduced-motion: reduce) {
