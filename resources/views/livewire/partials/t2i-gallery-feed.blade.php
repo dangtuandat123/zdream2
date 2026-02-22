@@ -166,31 +166,43 @@
                         <div class="px-0">
                             @php
                                 $imgCount = $groupItems->count();
-                                $gridClass = $imgCount === 1 ? 'grid-cols-1 max-w-sm mx-auto' : ($imgCount === 2 ? 'grid-cols-2 max-w-xl mx-auto' : 'grid-cols-2 sm:grid-cols-4');
+                                $gridClass = $imgCount === 1 ? 'grid-cols-1 w-full max-w-lg mx-auto' : ($imgCount === 2 ? 'grid-cols-2 w-full max-w-xl mx-auto' : 'grid-cols-2 sm:grid-cols-4 w-full');
                             @endphp
                             <div class="grid gap-3 {{ $gridClass }}">
                                 @foreach($groupItems as $image)
                                     @php
                                         $isNewestGroup = $groupIdx === $totalGroups - 1;
                                         $isPriorityImage = $isNewestGroup && $loop->index < 2;
+                                        $itemImgUrl = $image->image_url;
                                     @endphp
                                     <div class="block group/img cursor-pointer relative" wire:key="img-{{ $image->id }}"
                                         @click="openPreview(null, {{ $absoluteIndex }})"
                                         x-data="{ loaded: false }"
                                         x-init="$nextTick(() => { if ($refs.imgElem && $refs.imgElem.complete) loaded = true; })">
-                                        <div class="relative overflow-hidden bg-[#222] rounded-lg aspect-square">
+                                        <div class="relative overflow-hidden bg-[#1c1d21] flex items-center justify-center rounded-xl border border-white/5 shadow-inner"
+                                            style="{{ $imgCount === 1 ? 'aspect-ratio: ' . $aspectRatioCss . '; max-height: 65vh;' : 'aspect-ratio: 1 / 1;' }}">
                                             {{-- Shimmer --}}
                                             <div class="img-shimmer absolute inset-0 bg-[#333] overflow-hidden transition-opacity duration-300"
                                                  :class="loaded ? 'opacity-0 pointer-events-none' : 'opacity-100'">
-                                                <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.1] to-transparent w-[200%] animate-[progress-slide_2s_linear_infinite]" style="will-change: transform;"></div>
+                                                <div class="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent animate-[shimmer_2s_infinite]"></div>
                                             </div>
+                                            
                                             {{-- Image --}}
-                                            <img x-ref="imgElem" src="{{ $image->image_url }}" alt="Preview"
-                                                class="gallery-img w-full h-full object-contain transition-transform duration-500 group-hover/img:scale-[1.05]"
-                                                draggable="false"
-                                                x-on:load="loaded = true"
-                                                x-on:error="loaded = true; $el.src='/images/placeholder.svg'"
-                                                {{ $isPriorityImage ? 'loading=eager fetchpriority=high decoding=async' : 'loading=lazy fetchpriority=low decoding=async' }}>
+                                            @if($itemImgUrl)
+                                                <img x-ref="imgElem" src="{{ $itemImgUrl }}" alt="Preview"
+                                                    class="gallery-img w-full h-full {{ $imgCount === 1 ? 'object-contain' : 'object-cover' }} rounded-xl cursor-pointer transform transition-transform duration-500 group-hover:scale-105"
+                                                    draggable="false"
+                                                    x-on:load="loaded = true"
+                                                    x-on:error="loaded = true; $el.src='/images/placeholder.svg'"
+                                                    {{ $isPriorityImage ? 'loading=eager fetchpriority=high decoding=async' : 'loading=lazy fetchpriority=low decoding=async' }}>
+                                            @else
+                                                <img x-ref="imgElem" src="/images/placeholder.svg" alt="Error"
+                                                    class="gallery-img w-full h-full object-contain rounded-xl cursor-pointer transform transition-transform duration-500 group-hover:scale-105"
+                                                    draggable="false"
+                                                    x-on:load="loaded = true"
+                                                    x-on:error="loaded = true"
+                                                    loading="lazy">
+                                            @endif
 
                                             {{-- Actions Overlay (Desktop: Hover / Mobile: Tap or Always visible?) --}}
                                             {{-- Decision: Top-Right for better standard. Mobile: Always visible but subtle. Desktop: Hover. --}}
@@ -310,10 +322,10 @@
 
                 {{-- Grid Display --}}
                 <div class="px-0 pt-2 border-t border-white/5 relative z-10">
-                    <div class="grid gap-3" :class="parseInt($wire.batchSize) === 1 ? 'grid-cols-1 max-w-sm mx-auto' : (parseInt($wire.batchSize) === 2 ? 'grid-cols-2 max-w-xl mx-auto' : 'grid-cols-2 sm:grid-cols-4')">
+                    <div class="grid gap-3" :class="parseInt($wire.batchSize) === 1 ? 'grid-cols-1 w-full max-w-lg mx-auto' : (parseInt($wire.batchSize) === 2 ? 'grid-cols-2 w-full max-w-xl mx-auto' : 'grid-cols-2 sm:grid-cols-4 w-full')">
                         <template x-for="i in Array.from({length: parseInt($wire.batchSize)})" :key="'skel-' + i">
-                            <div class="relative bg-white/[0.02] rounded-xl overflow-hidden border border-white/[0.05] shadow-inner"
-                                 :style="`aspect-ratio: ${$wire.aspectRatio !== 'auto' && typeof $wire.aspectRatio === 'string' && $wire.aspectRatio.includes(':') ? $wire.aspectRatio.replace(':', ' / ') : '1 / 1'};`">
+                            <div class="relative bg-[#1c1d21] rounded-xl overflow-hidden border border-white/5 shadow-inner"
+                                 :style="parseInt($wire.batchSize) === 1 ? `aspect-ratio: ${$wire.aspectRatio !== 'auto' && typeof $wire.aspectRatio === 'string' && $wire.aspectRatio.includes(':') ? $wire.aspectRatio.replace(':', ' / ') : '1 / 1'}; max-height: 65vh;` : 'aspect-ratio: 1 / 1;'">
                                  
                                  {{-- Shimmer Effect --}}
                                  <div class="absolute inset-0 bg-gradient-to-tr from-transparent via-white/[0.03] to-transparent w-[200%] animate-[shimmer_2s_infinite]"></div>
