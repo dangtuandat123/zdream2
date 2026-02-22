@@ -26,12 +26,8 @@
             </div>
         </div>
     </div>
-    {{-- Top Spacer: mobile-nav(56px) + filter-bar-h + gallery-gap
-         Trên mobile, filter bar ở top:56px (dưới mobile nav), nên content cần
-         bắt đầu ở: 56 + filter-bar-h + gap.
-         Trên desktop (md+), filter bar ở top:0, nên chỉ cần: filter-bar-h + gap. --}}
-    <div id="top-spacer" class="w-full shrink-0 pointer-events-none"
-         style="height: calc(56px + var(--filter-bar-h, 3.5rem) + var(--gallery-gap, 12px));"></div>
+    {{-- Top Spacer: filter-bar-h + gap. Padding pt-14(56px) của <main> tự lo đủ khoảng cho mobile nav --}}
+    <div id="top-spacer" class="w-full shrink-0 pointer-events-none"></div>
 
     <div class="max-w-4xl mx-auto px-4 w-full relative z-10">
 
@@ -341,8 +337,5 @@
 
     </div>
 
-    {{-- Bottom Spacer: composer-h + mobile-nav(56px) + safe-area + gallery-gap
-         Trên md+ (desktop), composer nằm sát đáy → không cần 56px.
-         Trên mobile, composer cách đáy thêm 56px (bottom nav bar). --}}
-    <div id="bottom-spacer" class="w-full shrink-0 pointer-events-none"
-         style="height: calc(var(--composer-h, 140px) + env(safe-area-inset-bottom, 0px) + var(--gallery-gap, 12px) + 56px);"></div>
+    {{-- Bottom Spacer: Responsive handled in text-to-image.blade.php CSS --}}
+    <div id="bottom-spacer" class="w-full shrink-0 pointer-events-none"></div>

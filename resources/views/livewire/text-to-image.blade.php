@@ -299,13 +299,23 @@
             }
         }
 
+        /* Top Spacer always needs filter-bar + gap. Main layout pt-14 covers mobile nav */
+        #top-spacer {
+            height: calc(var(--filter-bar-h, 56px) + var(--gallery-gap, 12px)) !important;
+        }
+
+        /* Bottom Spacer (Mobile)
+           Needed: composer-h + nav(56px) + safe-area + gap
+           Given by <main pb-20>: 80px
+           Math: (composer + 56 + safe + gap) - 80 = composer + safe + gap - 24px */
+        #bottom-spacer {
+            height: calc(var(--composer-h, 140px) + env(safe-area-inset-bottom, 0px) + var(--gallery-gap, 12px) - 24px) !important;
+        }
+
         /* Desktop: không cần 56px mobile nav offset cho cả Top và Bottom Spacer */
         @media (min-width: 768px) {
-            #top-spacer {
-                height: calc(var(--filter-bar-h, 3.5rem) + var(--gallery-gap, 12px)) !important;
-            }
-
             #bottom-spacer {
+                /* Given by <main pb-0>: 0px -> just composer + gap */
                 height: calc(var(--composer-h, 140px) + var(--gallery-gap, 12px)) !important;
             }
         }
