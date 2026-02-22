@@ -299,6 +299,13 @@
                 animation: none !important;
             }
         }
+
+        /* Bottom Spacer: desktop không cần 56px mobile nav offset */
+        @media (min-width: 768px) {
+            #bottom-spacer {
+                height: calc(var(--composer-h, 140px) + var(--gallery-gap, 12px)) !important;
+            }
+        }
     </style>
 
     {{-- ============================================================ --}}
