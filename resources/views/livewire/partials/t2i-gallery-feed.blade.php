@@ -12,7 +12,7 @@
         x-transition:leave-start="opacity-100"
         x-transition:leave-end="opacity-0"
         class="fixed mobile-filter-top md:top-0 left-0 right-0 md:left-[72px] z-[60] pointer-events-none"
-        style="display:none; margin-top: var(--filter-bar-h, 2.5rem);">
+        style="display:none;">
         {{-- Shimmer bar --}}
         <div class="h-1 w-full bg-gradient-to-r from-transparent via-purple-500/80 to-transparent animate-pulse"></div>
         {{-- Floating pill --}}
@@ -190,14 +190,14 @@
                                             {{-- Image --}}
                                             @if($itemImgUrl)
                                                 <img x-ref="imgElem" src="{{ $itemImgUrl }}" alt="Preview"
-                                                    class="gallery-img w-full h-full {{ $imgCount === 1 ? 'object-contain' : 'object-cover' }} rounded-xl cursor-pointer transform transition-transform duration-500 group-hover:scale-105"
+                                                    class="gallery-img w-full h-full {{ $imgCount === 1 ? 'object-contain' : 'object-cover' }} rounded-xl cursor-pointer transform transition-transform duration-500 group-hover/img:scale-105"
                                                     draggable="false"
                                                     x-on:load="loaded = true"
                                                     x-on:error="loaded = true; $el.src='/images/placeholder.svg'"
                                                     {{ $isPriorityImage ? 'loading=eager fetchpriority=high decoding=async' : 'loading=lazy fetchpriority=low decoding=async' }}>
                                             @else
                                                 <img x-ref="imgElem" src="/images/placeholder.svg" alt="Error"
-                                                    class="gallery-img w-full h-full object-contain rounded-xl cursor-pointer transform transition-transform duration-500 group-hover:scale-105"
+                                                    class="gallery-img w-full h-full object-contain rounded-xl cursor-pointer transform transition-transform duration-500 group-hover/img:scale-105"
                                                     draggable="false"
                                                     x-on:load="loaded = true"
                                                     x-on:error="loaded = true"
@@ -328,6 +328,7 @@
                                      <div class="w-8 h-8 rounded-full border-2 border-purple-500/20 border-t-purple-500 animate-[spin_1s_linear_infinite] shadow-[0_0_15px_rgba(168,85,247,0.3)]"></div>
                                  </div>
                             </div>
+                        </div>
                         </template>
                     </div>
                 </div>
