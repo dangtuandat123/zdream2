@@ -310,13 +310,14 @@
             height: calc(var(--filter-bar-h, 56px) + var(--gallery-gap, 12px)) !important;
         }
 
-        /* Bottom Spacer (Mobile)
-           Chứa sự biến hình của Bottom Nav thông qua biến --keyboard-offset.
-           - document đã có sẵn pb-20 (80px) 
-           - Vậy khoảng hụt cần bù = (Composer_H + Keyboard_Offset + Safe_Area + Gap) - 80px
+        /* Bottom Spacer — ADAPTIVE (chiều cao do JS tính, xem updateBottomSpacer())
+           Mặc định height: 0. JS ResizeObserver sẽ override:
+           - Nếu nội dung ngắn (1-2 ảnh vừa viewport) → spacer = 0 → KHÔNG scroll
+           - Nếu nội dung tràn viewport → spacer = đủ để ảnh cuối không khuất sau Composer
         */
         #bottom-spacer {
-            height: calc(var(--composer-h, 140px) + var(--keyboard-offset, 56px) + env(safe-area-inset-bottom, 0px) + var(--gallery-gap, 12px) - 80px) !important;
+            height: 0;
+            transition: height 0.15s ease-out;
         }
 
         /* Desktop: không bị phụ thuộc 56px mobile nav offset */
@@ -324,11 +325,6 @@
             .t2i-shell {
                 /* Layout Desktop thoải mái hơn vì Sidebar chuyển sang trái (KHÔNG CÓ Top/Bottom Nav) */
                 --img-safe-h: calc(100dvh - var(--filter-bar-h, 56px) - var(--composer-h, 140px) - var(--gallery-gap) * 2 - 4.5rem);
-            }
-
-            #bottom-spacer {
-                /* Given by <main pb-0>: 0px -> just composer + gap */
-                height: calc(var(--composer-h, 140px) + var(--gallery-gap, 12px)) !important;
             }
         }
     </style>
@@ -581,6 +577,7 @@
                         this.$nextTick(() => {
                             requestAnimationFrame(() => {
                                 this.scrollToBottom(false);
+                                this.updateBottomSpacer();
                                 this.lastScrollY = window.scrollY || document.documentElement.scrollTop || 0;
                                 this.maybeBootstrapHistory();
                                 this._reobserveSentinel();
@@ -589,8 +586,22 @@
 
                         this._resizeHandler = () => {
                             this.maybeBootstrapHistory();
+                            this.updateBottomSpacer();
                         };
                         window.addEventListener('resize', this._resizeHandler, { passive: true });
+
+                        // ADAPTIVE BOTTOM SPACER: Theo dõi thay đổi kích thước gallery
+                        const feedEl = document.getElementById('gallery-feed');
+                        if (feedEl) {
+                            this._feedResizeObserver = new ResizeObserver(() => {
+                                this.updateBottomSpacer();
+                            });
+                            this._feedResizeObserver.observe(feedEl);
+                        }
+                        // Cập nhật spacer khi bàn phím mở/đóng (isFocused thay đổi)
+                        this.$watch('isFocused', () => {
+                            this.$nextTick(() => this.updateBottomSpacer());
+                        });
 
                         // Image generated → scroll + celebrate
                         const offGenerated = this.$wire.$on('imageGenerated', (params) => {
@@ -1010,6 +1021,52 @@
                             console.log(`System scroll locked for ${duration}ms (extended from ${currentRemaining}ms)`);
                         } else {
                             // console.log(`Ignored shorter lock (${duration}ms), keeping remaining ${currentRemaining}ms`);
+                        }
+                    },
+
+                    // ============================================================
+                    // ADAPTIVE BOTTOM SPACER
+                    // Tính toán chiều cao bottom-spacer dựa trên nội dung thực tế.
+                    // Khi ít ảnh (vừa viewport) → spacer = 0 → KHÔNG có scroll.
+                    // Khi nhiều ảnh (tràn viewport) → spacer đủ lớn để ảnh cuối
+                    // không bị khuất sau Composer fixed.
+                    // ============================================================
+                    updateBottomSpacer() {
+                        const spacer = document.getElementById('bottom-spacer');
+                        const feed = document.getElementById('gallery-feed');
+                        const topSpacer = document.getElementById('top-spacer');
+                        if (!spacer || !feed) return;
+
+                        const isMobile = window.innerWidth < 768;
+                        const viewportH = window.innerHeight;
+
+                        // Lấy chiều cao Composer từ CSS variable (ResizeObserver đã set)
+                        const composerH = parseFloat(
+                            getComputedStyle(document.documentElement)
+                                .getPropertyValue('--composer-h')
+                        ) || 140;
+
+                        const gap = 12; // --gallery-gap
+
+                        // Chiều cao thực cần bù cho fixed elements ở đáy viewport
+                        // Mobile: Composer (above nav) + Bottom Nav (56px) + gap
+                        // Desktop: Composer + gap (không có mobile nav)
+                        const navH = isMobile ? (this.isFocused ? 0 : 56) : 0;
+                        const mainPb = isMobile ? 80 : 0; // pb-20 trên <main> chỉ mobile
+                        const fullSpacer = Math.max(0, composerH + navH + gap - mainPb);
+
+                        // Chiều cao nội dung trong document flow (không tính bottom-spacer)
+                        const mainPt = isMobile ? 56 : 0; // pt-14 trên <main> chỉ mobile
+                        const topSpacerH = topSpacer ? topSpacer.offsetHeight : 68;
+                        const contentH = feed.offsetHeight;
+                        const docWithoutSpacer = mainPt + topSpacerH + contentH + mainPb;
+
+                        if (docWithoutSpacer + fullSpacer <= viewportH) {
+                            // Nội dung ngắn: vừa viewport → KHÔNG CẦN scroll
+                            spacer.style.height = '0px';
+                        } else {
+                            // Nội dung tràn: cần spacer đầy đủ để protect khỏi Composer
+                            spacer.style.height = fullSpacer + 'px';
                         }
                     },
 
