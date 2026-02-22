@@ -26,8 +26,10 @@
             </div>
         </div>
     </div>
-    <div class="max-w-4xl mx-auto px-4"
-        style="padding-top: calc(var(--filter-bar-h, 3.5rem) + 1.5rem); padding-bottom: calc(var(--composer-h, 140px) + env(safe-area-inset-bottom, 0px) + 2rem);">
+    {{-- Top Spacer (Clear Header) --}}
+    <div class="w-full shrink-0 pointer-events-none" style="height: calc(var(--filter-bar-h, 3.5rem) + 1.25rem);"></div>
+
+    <div class="max-w-4xl mx-auto px-4 w-full relative z-10">
 
         {{-- Error Banner --}}
         @if($errorMessage)
@@ -63,7 +65,8 @@
                 {{-- EMPTY STATE (0 IMAGES) --}}
                 {{-- ═══════════════════════════════════════════ --}}
                 @if($groupedHistory->isEmpty() && !$loadingMoreHistory)
-                    <div class="flex flex-col items-center justify-center min-h-[50vh] text-center px-4 animate-[image-entrance_0.6s_ease-out_forwards]">
+                    <div class="flex flex-col items-center justify-center text-center px-4 animate-[image-entrance_0.6s_ease-out_forwards]"
+                         style="min-height: calc(100dvh - var(--filter-bar-h, 56px) - var(--composer-h, 140px) - 3rem);">
                         <div class="w-16 h-16 sm:w-20 sm:h-20 mb-5 sm:mb-6 rounded-full bg-white/[0.03] border border-white/10 flex items-center justify-center shadow-inner">
                             <i class="fa-solid fa-wand-magic-sparkles text-2xl sm:text-3xl text-purple-400/80"></i>
                         </div>
@@ -352,3 +355,6 @@
         </div>
 
     </div>
+
+    {{-- Bottom Spacer (Clear Composer) --}}
+    <div class="w-full shrink-0 pointer-events-none" style="height: calc(var(--composer-h, 140px) + env(safe-area-inset-bottom, 0px) + 1.25rem);"></div>
