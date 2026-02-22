@@ -3,6 +3,7 @@
 {{-- ============================================================ --}}
 <div class="relative min-h-screen t2i-shell" @if($isGenerating) wire:poll.1500ms="pollImageStatus" @endif
     x-data="textToImage" @keydown.window="handleKeydown($event)"
+    :style="{ '--keyboard-offset': isFocused ? '0px' : '56px' }"
     x-on:show-toast.window="notify($event.detail.message, $event.detail.type || 'success')">
 
     {{-- Toast --}}
@@ -100,12 +101,17 @@
                Mọi spacer, max-height, min-height trong gallery đều tham chiếu biến này.
                Thay đổi 1 chỗ → cập nhật toàn bộ layout tự động. */
             --gallery-gap: 12px;
-            /* Chiều cao tối đa an toàn cho 1 ảnh đơn:
-               (a) ≤ 50% viewport — không chiếm hết màn hình
-               (b) ≤ 480px — giới hạn tuyệt đối trên desktop lớn
-               (c) ≤ safe-area trừ batch header (~4rem cho tiêu đề + metadata)
-               Biến này tự động cập nhật khi --filter-bar-h hoặc --composer-h thay đổi. */
-            --img-safe-h: min(50vh, 480px, calc(100dvh - var(--filter-bar-h, 56px) - var(--composer-h, 140px) - var(--gallery-gap) * 2 - 4rem));
+            /* Chiều cao tối đa an toàn cực kì chuẩn xác cho Mobile.
+               Full màn (100dvh) trừ hao:
+               - Top Nav Header (56px)
+               - Filter Bar (--filter-bar-h)
+               - Composer Bottom (--composer-h)
+               - Bottom Nav Header (--keyboard-offset: 56px khi tắt phím)
+               - Safe Area (- env(...))
+               - Gaps (--gallery-gap * 2)
+               - Prompt Header (~4.5rem)
+             */
+            --img-safe-h: calc(100dvh - 56px - var(--filter-bar-h, 56px) - var(--composer-h, 140px) - var(--keyboard-offset, 56px) - env(safe-area-inset-bottom, 0px) - var(--gallery-gap) * 2 - 4.5rem);
             --surface-1: rgba(255, 255, 255, 0.03);
             --surface-2: rgba(255, 255, 255, 0.05);
             --surface-3: rgba(255, 255, 255, 0.08);
@@ -299,21 +305,27 @@
             }
         }
 
-        /* Top Spacer always needs filter-bar + gap. Main layout pt-14 covers mobile nav */
+        /* Top Spacer always needs filter-bar + gap. Main layout pt-14 covers mobile nav (56px) */
         #top-spacer {
             height: calc(var(--filter-bar-h, 56px) + var(--gallery-gap, 12px)) !important;
         }
 
         /* Bottom Spacer (Mobile)
-           Needed: composer-h + nav(56px) + safe-area + gap
-           Given by <main pb-20>: 80px
-           Math: (composer + 56 + safe + gap) - 80 = composer + safe + gap - 24px */
+           Chứa sự biến hình của Bottom Nav thông qua biến --keyboard-offset.
+           - document đã có sẵn pb-20 (80px) 
+           - Vậy khoảng hụt cần bù = (Composer_H + Keyboard_Offset + Safe_Area + Gap) - 80px
+        */
         #bottom-spacer {
-            height: calc(var(--composer-h, 140px) + env(safe-area-inset-bottom, 0px) + var(--gallery-gap, 12px) - 24px) !important;
+            height: calc(var(--composer-h, 140px) + var(--keyboard-offset, 56px) + env(safe-area-inset-bottom, 0px) + var(--gallery-gap, 12px) - 80px) !important;
         }
 
-        /* Desktop: không cần 56px mobile nav offset cho cả Top và Bottom Spacer */
+        /* Desktop: không bị phụ thuộc 56px mobile nav offset */
         @media (min-width: 768px) {
+            .t2i-shell {
+                /* Layout Desktop thoải mái hơn vì Sidebar chuyển sang trái (KHÔNG CÓ Top/Bottom Nav) */
+                --img-safe-h: calc(100dvh - var(--filter-bar-h, 56px) - var(--composer-h, 140px) - var(--gallery-gap) * 2 - 4.5rem);
+            }
+
             #bottom-spacer {
                 /* Given by <main pb-0>: 0px -> just composer + gap */
                 height: calc(var(--composer-h, 140px) + var(--gallery-gap, 12px)) !important;
