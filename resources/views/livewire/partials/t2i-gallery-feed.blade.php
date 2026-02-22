@@ -59,7 +59,7 @@
 
             @php $absoluteIndex = 0; @endphp
 
-            <div class="space-y-5 sm:space-y-6 gallery-wrapper">
+            <div class="flex flex-col w-full gap-5 sm:gap-6 gallery-wrapper">
 
                 {{-- ═══════════════════════════════════════════ --}}
                 {{-- TOP SENTINEL — auto-load older history --}}
@@ -110,7 +110,7 @@
                         $prompt = $firstItem->final_prompt ?? '';
                     @endphp
 
-                    <div class="group-batch t2i-batch relative mb-5"
+                    <div class="group-batch t2i-batch relative"
                         x-data="{ expanded: false }"
                         wire:key="group-{{ $wireKey }}" data-history-anchor-id="{{ $firstItem->id }}">
 
@@ -285,7 +285,7 @@
                     }
                 "
                 x-init="$watch('isLocallyGenerating', () => { if(!isLocallyGenerating && timer) { clearInterval(timer); timer = null; } }); $watch('$wire.isGenerating', () => { if(!$wire.isGenerating && timer) { clearInterval(timer); timer = null; } });"
-                class="group-batch t2i-batch relative mb-5 bg-[#12151e] overflow-hidden shadow-[0_0_40px_rgba(147,51,234,0.1)] border border-purple-500/30">
+                class="group-batch t2i-batch relative bg-[#12151e] overflow-hidden shadow-[0_0_40px_rgba(147,51,234,0.1)] border border-purple-500/30">
                 
                 {{-- Top Progress Bar --}}
                 <div class="absolute top-0 left-0 right-0 h-1 bg-white/[0.03] overflow-hidden z-10">
