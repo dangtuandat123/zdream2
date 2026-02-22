@@ -166,7 +166,8 @@
                         <div class="px-0">
                             @php
                                 $imgCount = $groupItems->count();
-                                $gridClass = $imgCount === 1 ? 'grid-cols-1 max-w-sm mx-auto' : ($imgCount === 2 ? 'grid-cols-2 max-w-xl mx-auto' : 'grid-cols-2 sm:grid-cols-4');
+                                // UX/UI Expert: 1 ảnh cần làm Showcase (To Bản), >1 ảnh mới ép vuông Grid
+                                $gridClass = $imgCount === 1 ? 'grid-cols-1 max-w-xl w-full mx-auto' : ($imgCount === 2 ? 'grid-cols-2 max-w-xl mx-auto' : 'grid-cols-2 sm:grid-cols-4');
                             @endphp
                             <div class="grid gap-3 {{ $gridClass }}">
                                 @foreach($groupItems as $image)
@@ -174,11 +175,15 @@
                                         $isNewestGroup = $groupIdx === $totalGroups - 1;
                                         $isPriorityImage = $isNewestGroup && $loop->index < 2;
                                     @endphp
-                                    <div class="block group/img cursor-pointer relative" wire:key="img-{{ $image->id }}"
-                                        @click="openPreview(null, {{ $absoluteIndex }})"
-                                        x-data="{ loaded: false }"
-                                        x-init="$nextTick(() => { if ($refs.imgElem && $refs.imgElem.complete) loaded = true; })">
-                                        <div class="relative overflow-hidden bg-[#222] rounded-lg aspect-square">
+                                    <div class="relative group/preview rounded-lg overflow-hidden cursor-pointer bg-[#222]" wire:key="img-{{ $image->id }}">
+                                        {{-- Image Container --}}
+                                        <div class="cursor-zoom-in active:scale-[0.98] transition-all duration-300"
+                                            @click="openPreview(null, {{ $absoluteIndex }})"
+                                            x-data="{ loaded: false }"
+                                            x-init="$nextTick(() => { if ($refs.imgElem && $refs.imgElem.complete) loaded = true; })">
+                                            {{-- UX/UI: Tôn trọng aspect-ratio cho Showcase, max-height 85vh để ko bị tràn lố trên thiết bị cao --}}
+                                            <div class="relative overflow-hidden bg-[#15171e] rounded-xl border border-white/[0.03] shadow-inner transition-all duration-500 {{ $imgCount === 1 ? '' : 'aspect-square' }}"
+                                                style="{{ $imgCount === 1 ? 'aspect-ratio: ' . $aspectRatioCss . '; max-height: 85vh;' : '' }}">
                                             {{-- Shimmer --}}
                                             <div class="img-shimmer absolute inset-0 bg-[#333] overflow-hidden transition-opacity duration-300"
                                                  :class="loaded ? 'opacity-0 pointer-events-none' : 'opacity-100'">
@@ -310,10 +315,11 @@
 
                 {{-- Grid Display --}}
                 <div class="px-0 pt-2 border-t border-white/5 relative z-10">
-                    <div class="grid gap-3" :class="parseInt($wire.batchSize) === 1 ? 'grid-cols-1 max-w-sm mx-auto' : (parseInt($wire.batchSize) === 2 ? 'grid-cols-2 max-w-xl mx-auto' : 'grid-cols-2 sm:grid-cols-4')">
+                    <div class="grid gap-3 w-full" :class="parseInt($wire.batchSize) === 1 ? 'grid-cols-1 max-w-xl mx-auto' : (parseInt($wire.batchSize) === 2 ? 'grid-cols-2 max-w-xl mx-auto' : 'grid-cols-2 sm:grid-cols-4')">
                         <template x-for="i in Array.from({length: parseInt($wire.batchSize)})" :key="'skel-' + i">
-                            <div class="relative bg-white/[0.02] rounded-xl overflow-hidden border border-white/[0.05] shadow-inner"
-                                 :style="`aspect-ratio: ${$wire.aspectRatio !== 'auto' && typeof $wire.aspectRatio === 'string' && $wire.aspectRatio.includes(':') ? $wire.aspectRatio.replace(':', ' / ') : '1 / 1'};`">
+                            <div class="relative bg-[#15171e] rounded-xl overflow-hidden border border-white/[0.04] shadow-inner transition-all duration-500"
+                                 :class="parseInt($wire.batchSize) === 1 ? '' : 'aspect-square'"
+                                 :style="parseInt($wire.batchSize) === 1 ? `aspect-ratio: ${$wire.aspectRatio !== 'auto' && typeof $wire.aspectRatio === 'string' && $wire.aspectRatio.includes(':') ? $wire.aspectRatio.replace(':', ' / ') : '1 / 1'}; max-height: 85vh;` : ''">
                                  
                                  {{-- Shimmer Effect --}}
                                  <div class="absolute inset-0 bg-gradient-to-tr from-transparent via-white/[0.03] to-transparent w-[200%] animate-[shimmer_2s_infinite]"></div>
