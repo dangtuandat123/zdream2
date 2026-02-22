@@ -100,6 +100,12 @@
                Mọi spacer, max-height, min-height trong gallery đều tham chiếu biến này.
                Thay đổi 1 chỗ → cập nhật toàn bộ layout tự động. */
             --gallery-gap: 12px;
+            /* Chiều cao tối đa an toàn cho 1 ảnh đơn:
+               (a) ≤ 50% viewport — không chiếm hết màn hình
+               (b) ≤ 480px — giới hạn tuyệt đối trên desktop lớn
+               (c) ≤ safe-area trừ batch header (~4rem cho tiêu đề + metadata)
+               Biến này tự động cập nhật khi --filter-bar-h hoặc --composer-h thay đổi. */
+            --img-safe-h: min(50vh, 480px, calc(100dvh - var(--filter-bar-h, 56px) - var(--composer-h, 140px) - var(--gallery-gap) * 2 - 4rem));
             --surface-1: rgba(255, 255, 255, 0.03);
             --surface-2: rgba(255, 255, 255, 0.05);
             --surface-3: rgba(255, 255, 255, 0.08);
