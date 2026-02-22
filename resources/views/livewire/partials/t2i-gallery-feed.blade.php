@@ -27,7 +27,7 @@
         </div>
     </div>
     {{-- Top Spacer (Clear Header) --}}
-    <div class="w-full shrink-0 pointer-events-none" style="height: calc(var(--filter-bar-h, 3.5rem) + 1.25rem);"></div>
+    <div class="w-full shrink-0 pointer-events-none" style="height: calc(var(--filter-bar-h, 3.5rem) + 0.75rem);"></div>
 
     <div class="max-w-4xl mx-auto px-4 w-full relative z-10">
 
@@ -52,7 +52,7 @@
         @endif
 
         {{-- Gallery Feed --}}
-        <div class="flex flex-col gap-5 sm:gap-6 px-0 sm:px-1 pt-4 sm:pt-5" id="gallery-feed"
+        <div class="flex flex-col gap-5 sm:gap-6 px-0 sm:px-1" id="gallery-feed"
             data-history='@json($flatHistoryForJs)'
             data-has-more="{{ ($history instanceof \Illuminate\Pagination\LengthAwarePaginator && $history->hasMorePages()) ? '1' : '0' }}"
             wire:key="gallery-feed">
