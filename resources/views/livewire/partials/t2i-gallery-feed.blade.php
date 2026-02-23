@@ -119,24 +119,24 @@
                             <div class="flex flex-col sm:flex-row sm:items-baseline gap-2 sm:gap-4">
                                 {{-- Prompt --}}
                                 <!-- Prompt (Truncated) -->
-                                <button class="text-[15px] font-semibold leading-snug text-left text-white/90 hover:text-white transition-colors duration-200 cursor-pointer line-clamp-2 break-words"
+                                <button class="flex-1 min-w-0 text-[15px] font-semibold leading-snug text-left text-white/90 hover:text-white transition-colors duration-200 cursor-pointer line-clamp-2 break-words"
                                     @click="expanded = !expanded" title="Nhấn xem chi tiết">
                                     {{ $prompt }}
                                 </button>
                                 
                                 {{-- Metadata --}}
-                                <div class="flex items-center gap-3 text-[12px] text-white/40 font-medium shrink-0">
+                                <div class="flex flex-wrap items-center gap-y-2 gap-x-3 text-[12px] text-white/40 font-medium shrink-0">
                                     <span>{{ $modelName }}</span>
                                     <span class="w-[1px] h-3 bg-white/10"></span>
                                     <span>{{ $ratioDisplay }}</span>
-                                    <span class="w-[1px] h-3 bg-white/10"></span>
-                                    <span>{{ $groupItems->count() }} ảnh</span>
-                                    <span class="w-[1px] h-3 bg-white/10"></span>
+                                    <span class="w-[1px] h-3 bg-white/10 shadow-sm hidden sm:inline-block"></span>
+                                    <span class="hidden sm:inline-block">{{ $groupItems->count() }} ảnh</span>
+                                    <span class="w-[1px] h-3 bg-white/10 hidden sm:inline-block"></span>
                                     <span>{{ $firstItem->created_at->diffForHumans() }}</span>
                                     
                                     {{-- Actions (Contextual) --}}
                                     <button wire:click="reusePrompt({{ $firstItem->id }})" 
-                                        class="ml-2 w-9 h-9 -my-1 inline-flex items-center justify-center rounded-lg hover:bg-white/10 hover:text-white/80 transition-all active:scale-95" 
+                                        class="ml-2 w-9 h-9 -my-1 inline-flex items-center justify-center rounded-lg hover:bg-white/10 hover:text-white/80 transition-all active:scale-95 shrink-0" 
                                         title="Sử dụng lại prompt">
                                         <i class="fa-solid fa-arrow-rotate-left text-sm"></i>
                                     </button>

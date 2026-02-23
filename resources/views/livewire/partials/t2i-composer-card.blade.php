@@ -6,9 +6,16 @@
     @click.away="showRatioSheet = false; showModelSheet = false; showBatchSheet = false; showRefPicker = false"
     x-ref="composerCard" x-init="
         const bar = $refs.composerCard;
+        let ticking = false;
         const ro = new ResizeObserver(() => {
-            const h = bar.offsetHeight;
-            document.documentElement.style.setProperty('--composer-h', h + 'px');
+            if (!ticking) {
+                window.requestAnimationFrame(() => {
+                    const h = bar.offsetHeight;
+                    document.documentElement.style.setProperty('--composer-h', h + 'px');
+                    ticking = false;
+                });
+                ticking = true;
+            }
         });
         ro.observe(bar);
         const stop = () => ro.disconnect();
@@ -130,7 +137,7 @@
                             @focus="isFocused = true;"
                             @blur="setTimeout(() => { if (!document.activeElement?.closest('.t2i-composer-wrap')) { isFocused = false; } }, 150)"
                             @input="resize()" placeholder="Mô tả ý tưởng của bạn..." :style="{ height: promptHeight }"
-                            class="t2i-prompt-input relative z-10 w-full bg-transparent border-none outline-none ring-0 focus:ring-0 focus:outline-none text-sm sm:text-base resize-none transition-all leading-relaxed min-h-[44px] max-h-[260px] px-3 py-[10px] sm:py-[9px] pr-12 text-white placeholder:text-white/40 caret-white overflow-y-auto whitespace-pre-wrap break-words"
+                            class="t2i-prompt-input relative z-10 w-full bg-transparent border-none outline-none ring-0 focus:ring-0 focus:outline-none text-base resize-none transition-colors duration-200 leading-relaxed min-h-[44px] max-h-[260px] px-3 py-[10px] sm:py-[9px] pr-12 text-white placeholder:text-white/40 caret-white overflow-y-auto whitespace-pre-wrap break-words"
                             x-init="
                                 $watch('isFocused', () => { $nextTick(() => resize()) });
                                 $watch('isAtBottom', () => { $nextTick(() => resize()) });
