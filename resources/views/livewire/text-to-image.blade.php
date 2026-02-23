@@ -148,6 +148,28 @@
             color: rgba(219, 234, 254, 0.96);
         }
 
+        /* -------------------------------------------------------------
+           [UX NATIVE APP] - Ẩn Scrollbar trên màn hình di động
+           Giúp màn hình trải dải không bị các thanh cuộn đè mất
+           vùng Layout Header + Menu. 
+        ------------------------------------------------------------- */
+        @media (max-width: 767px) {
+
+            html::-webkit-scrollbar,
+            body::-webkit-scrollbar {
+                display: none;
+                /* Chrome, Safari, Edge */
+            }
+
+            html,
+            body {
+                -ms-overflow-style: none;
+                /* IE, Edge */
+                scrollbar-width: none;
+                /* Firefox */
+            }
+        }
+
         .t2i-filter-wrap .t2i-topbar {
             background: #0a0a0f;
             border-bottom: 1px solid var(--line-1);
