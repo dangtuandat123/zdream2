@@ -210,19 +210,19 @@ class TextToImage extends Component
 
         $user = Auth::user();
         if (!$user) {
-            $this->errorMessage = 'Vui long dang nhap de tao anh.';
+            $this->errorMessage = 'Vui lòng đăng nhập để tạo ảnh.';
             return;
         }
 
         // Validate prompt
         $prompt = trim($this->prompt);
         if (empty($prompt)) {
-            $this->errorMessage = 'Vui long nhap mo ta hinh anh.';
+            $this->errorMessage = 'Vui lòng nhập mô tả hình ảnh.';
             return;
         }
 
         if (mb_strlen($prompt) > 2000) {
-            $this->errorMessage = 'Mo ta qua dai (toi da 2000 ky tu).';
+            $this->errorMessage = 'Mô tả quá dài (tối đa 2000 ký tự).';
             return;
         }
 
@@ -230,7 +230,7 @@ class TextToImage extends Component
         $this->batchSize = max(1, min($this->batchSize, 4));
         $totalCost = $this->creditCost * $this->batchSize;
         if ($totalCost > 0 && !$user->hasEnoughCredits($totalCost)) {
-            $this->errorMessage = "Ban khong du credits. Can: {$totalCost}, Hien co: {$user->credits}";
+            $this->errorMessage = "Bạn không đủ credits. Cần: {$totalCost}, Hiện có: {$user->credits}";
             return;
         }
 
@@ -248,7 +248,7 @@ class TextToImage extends Component
             ['slug' => Style::SYSTEM_T2I_SLUG],
             [
                 'name' => 'Text to Image',
-                'description' => 'Tao anh AI tu mo ta van ban.',
+                'description' => 'Tạo ảnh AI từ mô tả văn bản.',
                 'price' => $this->creditCost,
                 'openrouter_model_id' => $this->modelId,
                 'bfl_model_id' => $this->modelId,
@@ -297,7 +297,7 @@ class TextToImage extends Component
                     $walletService->deductCredits(
                         $user,
                         $this->creditCost,
-                        "Tao anh Text-to-Image (Batch " . ($i + 1) . ")",
+                        "Tạo ảnh Text-to-Image (Batch " . ($i + 1) . ")",
                         'generation',
                         (string) $generatedImage->id
                     );
@@ -585,14 +585,14 @@ class TextToImage extends Component
                     continue;
                 }
 
-                $image->markAsFailed('Da huy boi user');
+                $image->markAsFailed('Đã hủy bởi người dùng');
 
                 if ($authUser && (float) $image->credits_used > 0) {
                     try {
                         $walletService->refundCredits(
                             $authUser,
                             (float) $image->credits_used,
-                            'Huy tao anh',
+                            'Hủy tạo ảnh',
                             (string) $image->id
                         );
                     } catch (\Throwable $e) {

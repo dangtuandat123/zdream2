@@ -1035,7 +1035,7 @@
                                 this._systemScrollUnlockTime = null;
                             }, duration);
                         } else {
-                            // console.log(`Ignored shorter lock (${duration}ms), keeping remaining ${currentRemaining}ms`);
+                            // Lock ngắn hơn đang giữ: bỏ qua
                         }
                     },
 
@@ -1266,7 +1266,6 @@
                             return;
                         }
 
-
                         this.isLocallyGenerating = true;
 
                         // Đóng Composer trên Mobile nếu đang mở (để xem Skeleton)
@@ -1280,17 +1279,14 @@
 
                         // Độ trễ 300ms đợi bàn phím Mobile đóng hẳn và Skeleton render ra DOM
                         setTimeout(() => {
-
                             this.scrollToBottom(true);
                         }, 300);
 
                         // Fire Livewire method
-
                         await this.$wire.generate();
 
                         // If generation threw an error synchronously, check here
                         if (this.$wire.errorMessage) {
-
                             this.isLocallyGenerating = false;
                         }
                     },
@@ -1420,7 +1416,7 @@
                         if (this.showPreview) {
                             if (e.key === 'ArrowLeft') this.prevImage();
                             if (e.key === 'ArrowRight') this.nextImage();
-                            if (e.key === 'Escape') this.closePreview();
+                            // Escape đã được xử lý bởi @keydown.escape.window trên modal
                         }
                     },
 
@@ -1429,8 +1425,20 @@
                     // ============================================================
                     copyPrompt() {
                         if (this.previewImage?.prompt) {
-                            navigator.clipboard.writeText(this.previewImage.prompt);
-                            this.notify('Đã copy prompt');
+                            try {
+                                navigator.clipboard.writeText(this.previewImage.prompt);
+                                this.notify('Đã copy prompt');
+                            } catch (e) {
+                                // Fallback cho HTTP hoặc browser không hỗ trợ Clipboard API
+                                const ta = document.createElement('textarea');
+                                ta.value = this.previewImage.prompt;
+                                ta.style.cssText = 'position:fixed;opacity:0';
+                                document.body.appendChild(ta);
+                                ta.select();
+                                document.execCommand('copy');
+                                document.body.removeChild(ta);
+                                this.notify('Đã copy prompt');
+                            }
                         }
                     },
                     async shareImage() {

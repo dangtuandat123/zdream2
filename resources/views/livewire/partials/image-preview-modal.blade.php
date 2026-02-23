@@ -41,7 +41,7 @@
         {{-- Main Image + Info --}}
         <div class="flex-1 flex flex-col items-center gap-4 min-w-0">
             {{-- Image --}}
-            <div class="relative w-full flex items-center justify-center" style="max-height: 68vh;">
+            <div class="relative w-full flex items-center justify-center max-h-[80vh]">
                 <img :src="previewImage?.url" :key="'preview-' + previewIndex"
                     class="max-w-full max-h-[80vh] object-contain rounded-xl shadow-2xl transition-opacity duration-200"
                     :alt="previewImage?.prompt || 'Preview'"
@@ -188,6 +188,11 @@
                     class="flex flex-col items-center gap-1 py-3 px-3 min-w-[60px] rounded-xl bg-white/[0.05] border border-white/[0.08] text-white/70 active:scale-[0.95] transition-all">
                     <i class="fa-solid fa-share-nodes text-sm"></i>
                     <span class="text-[10px]">Chia sẻ</span>
+                </button>
+                <button @click="window.open(previewImage?.url, '_blank')"
+                    class="flex flex-col items-center gap-1 py-3 px-3 min-w-[60px] rounded-xl bg-white/[0.05] border border-white/[0.08] text-white/70 active:scale-[0.95] transition-all">
+                    <i class="fa-solid fa-arrow-up-right-from-square text-sm"></i>
+                    <span class="text-[10px]">Mở</span>
                 </button>
                 <button @click="useAsReference()"
                     class="flex flex-col items-center gap-1 py-3 px-3 min-w-[60px] rounded-xl bg-white/[0.05] border border-white/[0.08] text-white/70 active:scale-[0.95] transition-all">
