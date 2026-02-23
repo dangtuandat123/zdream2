@@ -144,10 +144,18 @@
             overflow-x: hidden;
             -webkit-overflow-scrolling: touch;
             overscroll-behavior-y: contain;
-            /* padding bù cho Filter (trên) và Composer (dưới + Safe Area iOS) */
-            padding-top: var(--filter-bar-h, 44px);
-            padding-bottom: calc(var(--composer-h, 140px) + env(safe-area-inset-bottom, 0px));
+            /* padding bù cho Filter (trên) và Composer (dưới + Safe Area iOS) + khoảng thở (gap) */
+            padding-top: calc(var(--filter-bar-h, 44px) + var(--gallery-gap, 12px));
+            padding-bottom: calc(var(--composer-h, 140px) + var(--gallery-gap, 12px) + env(safe-area-inset-bottom, 0px));
             transition: bottom 0.2s ease-out;
+
+            /* Ẩn thanh cuộn */
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+
+        #gallery-scroll::-webkit-scrollbar {
+            display: none;
         }
 
         @media (min-width: 768px) {
