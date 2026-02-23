@@ -135,8 +135,10 @@
                                     <span>{{ $firstItem->created_at->diffForHumans() }}</span>
                                     
                                     {{-- Actions (Contextual) --}}
-                                    <button wire:click="reusePrompt({{ $firstItem->id }})" class="ml-2 hover:text-white/80 transition-colors" title="Reuse">
-                                        <i class="fa-solid fa-arrow-rotate-left"></i>
+                                    <button wire:click="reusePrompt({{ $firstItem->id }})" 
+                                        class="ml-2 w-9 h-9 -my-1 inline-flex items-center justify-center rounded-lg hover:bg-white/10 hover:text-white/80 transition-all active:scale-95" 
+                                        title="Sử dụng lại prompt">
+                                        <i class="fa-solid fa-arrow-rotate-left text-sm"></i>
                                     </button>
                                 </div>
                             </div>
@@ -208,8 +210,8 @@
                                             {{-- Decision: Top-Right for better standard. Mobile: Always visible but subtle. Desktop: Hover. --}}
                                             
                                             {{-- Unified Actions Overlay --}}
-                                            <div class="absolute top-2 right-2 flex gap-1.5 z-10 sm:opacity-0 sm:group-hover/img:opacity-100 transition-opacity duration-200">
-                                                <button @click.stop="downloadImage('{{ $image->image_url }}')" 
+                                            <div class="absolute top-2 right-2 flex gap-1.5 z-10 opacity-0 group-hover/img:opacity-100 transition-opacity duration-200">
+                                                <button @click.stop="downloadImage('{{ $image->image_url }}')"
                                                     class="h-8 w-8 rounded-full bg-black/60 backdrop-blur-md text-white/90 hover:text-white hover:bg-white/20 flex items-center justify-center transition-colors duration-200 border border-white/10 active:scale-90 shadow-sm" 
                                                     title="Tải xuống">
                                                     <i class="fa-solid fa-download text-[13px] pointer-events-none"></i>
@@ -232,7 +234,8 @@
 
                 @empty
                     @if(!$isGenerating)
-                        <div class="flex flex-col items-center justify-center text-center px-4 animate-[image-entrance_0.6s_ease-out_forwards]"
+                        <div x-show="!isLocallyGenerating && !$wire.isGenerating" x-cloak
+                             class="flex flex-col items-center justify-center text-center px-4 animate-[image-entrance_0.6s_ease-out_forwards]"
                              style="min-height: calc(100dvh - var(--filter-bar-h, 56px) - var(--composer-h, 140px) - var(--gallery-gap, 12px) * 2);">
                             <div class="w-16 h-16 sm:w-20 sm:h-20 mb-5 sm:mb-6 rounded-full bg-white/[0.03] border border-white/10 flex items-center justify-center shadow-inner">
                                 <i class="fa-solid fa-wand-magic-sparkles text-2xl sm:text-3xl text-purple-400/80"></i>

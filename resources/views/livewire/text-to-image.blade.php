@@ -470,7 +470,6 @@
                     _loadMoreFailSafeTimer: null,
                     _resizeHandler: null,
                     _sentinelObserver: null,
-                    _sentinelObserver: null,
                     _anchorId: null,
                     _anchorTop: 0,
                     _resizeObserver: null,
@@ -496,10 +495,8 @@
                     // INIT
                     // ============================================================
                     init() {
-                        console.log('Alpine INIT called');
                         // Restore focus if re-initializing while user is typing
                         if (document.activeElement && document.activeElement.classList.contains('t2i-prompt-input')) {
-                            console.log('Restoring focus from active element');
                             this.isFocused = true;
                         }
 
@@ -627,7 +624,6 @@
 
                         // Image generated → scroll + celebrate
                         const offGenerated = this.$wire.$on('imageGenerated', (params) => {
-                            console.log('[T2I] Sự kiện imageGenerated nhận được. Tắt Skeleton Local.');
                             this.isLocallyGenerating = false;
                             const { successCount, failedCount } = Array.isArray(params) ? params[0] || {} : params || {};
                             // Protect focus during new image insertion (Long lock for safety)
@@ -669,7 +665,6 @@
 
                         // Generation failed (all images)
                         const offFailed = this.$wire.$on('imageGenerationFailed', () => {
-                            console.log('[T2I] Sự kiện imageGenerationFailed nhận được');
                             this.isLocallyGenerating = false;
                             this.uiMode = 'failed';
                             this.statusMessage = '❌ Tạo ảnh thất bại. Vui lòng thử lại.';
@@ -1038,9 +1033,7 @@
                             this._systemScrollTimer = setTimeout(() => {
                                 this.isSystemScrolling = false;
                                 this._systemScrollUnlockTime = null;
-                                console.log('System scrolling lock RELEASED');
                             }, duration);
-                            console.log(`System scroll locked for ${duration}ms (extended from ${currentRemaining}ms)`);
                         } else {
                             // console.log(`Ignored shorter lock (${duration}ms), keeping remaining ${currentRemaining}ms`);
                         }
@@ -1170,7 +1163,6 @@
                     // Center latest batch (after image generation)
                     // ============================================================
                     centerLatestBatch(smooth = false) {
-                        console.log('centerLatestBatch called');
                         this.scrollToBottom(smooth);
                         return true;
                     },
@@ -1248,7 +1240,7 @@
                             this.isPrependingHistory = false;
                             this._morphCaptured = false;
                             this._loadMoreFailSafeTimer = null;
-                            console.warn('[T2I] Quá trình tải lịch sử vượt quá 12s (Do mạng chậm hoặc xung đột Request)');
+                            // Timeout 12s: có thể do mạng chậm hoặc xung đột request
                         }, 12000); // Tăng timeout lên 12s
                     },
 
@@ -1274,7 +1266,7 @@
                             return;
                         }
 
-                        console.log('[T2I] Vừa bấm nút Tạo ảnh - Đã kích hoạt Skeleton Local (0ms delay)');
+
                         this.isLocallyGenerating = true;
 
                         // Đóng Composer trên Mobile nếu đang mở (để xem Skeleton)
@@ -1288,17 +1280,17 @@
 
                         // Độ trễ 300ms đợi bàn phím Mobile đóng hẳn và Skeleton render ra DOM
                         setTimeout(() => {
-                            console.log('[T2I] Thực thi lệnh auto-scroll xuống đáy xem Skeleton');
+
                             this.scrollToBottom(true);
                         }, 300);
 
                         // Fire Livewire method
-                        console.log('[T2I] Gửi request lên Livewire ($wire.generate())...');
+
                         await this.$wire.generate();
 
                         // If generation threw an error synchronously, check here
                         if (this.$wire.errorMessage) {
-                            console.log('[T2I] Lỗi Livewire phát hiện sớm:', this.$wire.errorMessage);
+
                             this.isLocallyGenerating = false;
                         }
                     },

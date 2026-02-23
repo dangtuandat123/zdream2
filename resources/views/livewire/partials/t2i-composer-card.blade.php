@@ -135,7 +135,7 @@
                                 setTimeout(() => resize(), 100);
                                 $wire.on('imageGenerated', () => { setTimeout(() => resize(), 150); });
                             "
-                            @keydown.enter.prevent="if(!$event.shiftKey) { submitGenerate(); } else { $el.value += '\n'; $el.dispatchEvent(new Event('input')) }"
+                            @keydown.enter.prevent="if(!$event.shiftKey && !$event.isComposing) { submitGenerate(); } else if($event.shiftKey) { $el.value += '\n'; $el.dispatchEvent(new Event('input')) }"
                             :disabled="uiMode === 'generating' || isLocallyGenerating || $wire.isGenerating"></textarea>
                     </div>
 
@@ -730,49 +730,37 @@
                         </div>
                     </div>
 
-                    {{-- Generate Button --}}
-                    @if($isGenerating)
-                        <button type="button" wire:click="cancelGeneration"
-                            class="t2i-cancel-btn shrink-0 inline-flex items-center justify-center gap-2 h-10 px-4 sm:px-5 rounded-xl bg-white/5 hover:bg-red-500/20 border border-white/10 text-white font-medium text-sm active:scale-95 transition-all outline-none">
-                            <i class="fa-solid fa-stop text-xs"></i>
-                            <span class="hidden sm:inline">Hủy</span>
-                        </button>
-                    @else
-                        <button type="button" @click="submitGenerate()"
-                            class="t2i-generate-btn shrink-0 inline-flex items-center justify-center gap-1.5 h-10 px-4 sm:px-6 rounded-xl text-white font-semibold text-sm active:scale-95 transition-all bg-gradient-to-r from-purple-600 to-indigo-600 relative overflow-hidden group outline-none"
-                            :disabled="!$wire.prompt?.trim() || isLocallyGenerating || $wire.isGenerating"
-                            :class="(isLocallyGenerating || $wire.isGenerating) ? 'opacity-50 pointer-events-none' : ''">
+                    {{-- Generate / Cancel Button (Unified Alpine state) --}}
+                    <button type="button" x-show="isLocallyGenerating || $wire.isGenerating"
+                        wire:click="cancelGeneration"
+                        class="t2i-cancel-btn shrink-0 inline-flex items-center justify-center gap-2 h-10 px-4 sm:px-5 rounded-xl bg-white/5 hover:bg-red-500/20 border border-white/10 text-white font-medium text-sm active:scale-95 transition-all outline-none">
+                        <i class="fa-solid fa-stop text-xs"></i>
+                        <span class="hidden sm:inline">Hủy</span>
+                    </button>
 
-                            {{-- Glow sweep effect --}}
-                            <div
-                                class="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover:block hidden group-hover:transition-transform group-hover:duration-500 group-hover:translate-x-[100%] skew-x-12">
-                            </div>
+                    <button type="button" @click="submitGenerate()"
+                        x-show="!(isLocallyGenerating || $wire.isGenerating)"
+                        class="t2i-generate-btn shrink-0 inline-flex items-center justify-center gap-1.5 h-10 px-4 sm:px-6 rounded-xl text-white font-semibold text-sm active:scale-95 transition-all bg-gradient-to-r from-purple-600 to-indigo-600 relative overflow-hidden group outline-none"
+                        :disabled="!$wire.prompt?.trim()">
 
-                            {{-- Core Button Label (Combines states to fix overlapping icons) --}}
-                            <div class="relative z-10 flex items-center justify-center gap-1.5 min-w-[50px]">
-                                {{-- Hide in Loading state completely --}}
-                                <div x-show="!(isLocallyGenerating || $wire.isGenerating)"
-                                    class="flex items-center gap-1.5">
-                                    <i class="fa-solid fa-paper-plane text-xs relative -top-[1px]"></i>
-                                    <span>Tạo</span>
-                                </div>
+                        {{-- Glow sweep effect — dùng opacity để transition mượt --}}
+                        <div
+                            class="absolute inset-0 bg-white/20 translate-x-[-100%] opacity-0 group-hover:opacity-100 group-hover:translate-x-[100%] transition-all duration-500 skew-x-12 pointer-events-none">
+                        </div>
 
-                                {{-- Show ONLY in Loading state --}}
-                                <div x-show="isLocallyGenerating || $wire.isGenerating" x-cloak
-                                    class="flex items-center gap-1.5">
-                                    <i class="fa-solid fa-spinner fa-spin text-xs"></i>
-                                    <span class="hidden sm:inline">Đang tạo</span>
-                                </div>
-                            </div>
+                        {{-- Core Button Label --}}
+                        <div class="relative z-10 flex items-center justify-center gap-1.5 min-w-[50px]">
+                            <i class="fa-solid fa-paper-plane text-xs relative -top-[1px]"></i>
+                            <span>Tạo</span>
+                        </div>
 
-                            {{-- Credit Tag --}}
-                            <span
-                                class="relative z-10 text-white text-[11px] font-medium ml-1 bg-black/25 px-1.5 py-0.5 rounded flex items-center gap-1">
-                                <span x-text="$wire.creditCost * $wire.batchSize"></span><i
-                                    class="fa-solid fa-bolt text-[9px] text-yellow-400"></i>
-                            </span>
-                        </button>
-                    @endif
+                        {{-- Credit Tag --}}
+                        <span
+                            class="relative z-10 text-white text-[11px] font-medium ml-1 bg-black/25 px-1.5 py-0.5 rounded flex items-center gap-1">
+                            <span x-text="$wire.creditCost * $wire.batchSize"></span><i
+                                class="fa-solid fa-bolt text-[9px] text-yellow-400"></i>
+                        </span>
+                    </button>
                 </div>
             </div>
         </div>
