@@ -613,9 +613,13 @@
                                 </div>
 
                                 {{-- Recent images --}}
-                                <div x-show="recentImages.length > 0" class="mt-2">
+                                <div x-show="isLoadingPicker" class="mt-2 text-center py-4">
+                                    <i class="fa-solid fa-circle-notch fa-spin text-purple-400 text-lg"></i>
+                                    <div class="text-white/40 text-[10px] mt-1">Đang tải ảnh...</div>
+                                </div>
+                                <div x-show="!isLoadingPicker && recentImages.length > 0" class="mt-2">
                                     <div class="text-white/40 text-[10px] font-medium mb-1.5">Ảnh gần đây</div>
-                                    <div class="grid grid-cols-5 gap-1 max-h-32 overflow-y-auto">
+                                    <div class="grid grid-cols-5 gap-1 max-h-32 overflow-y-auto pr-1 custom-scrollbar">
                                         <template x-for="img in recentImages.slice(0, 15)" :key="img.id || img.url">
                                             <button @click="selectFromRecent(img.url)"
                                                 class="relative aspect-square rounded-lg overflow-hidden border transition-all"
@@ -661,10 +665,18 @@
                                             <span class="text-white font-semibold text-base">Ảnh tham chiếu <span
                                                     x-text="selectedImages.length + '/' + maxImages"
                                                     class="text-purple-300 text-sm"></span></span>
-                                            <button type="button" @click="showRefPicker = false"
-                                                class="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 text-white/60 active:scale-95 transition-transform">
-                                                <i class="fa-solid fa-xmark"></i>
-                                            </button>
+
+                                            <div class="flex items-center gap-2">
+                                                <button type="button" x-show="selectedImages.length > 0"
+                                                    @click="clearAll()"
+                                                    class="h-8 px-3 flex items-center justify-center rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 text-xs font-medium active:scale-95 transition-transform">
+                                                    Xóa tất cả
+                                                </button>
+                                                <button type="button" @click="showRefPicker = false"
+                                                    class="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 text-white/60 active:scale-95 transition-transform">
+                                                    <i class="fa-solid fa-xmark"></i>
+                                                </button>
+                                            </div>
                                         </div>
                                         <div class="p-4 overflow-y-auto">
                                             {{-- Upload --}}
@@ -686,9 +698,15 @@
                                             </div>
 
                                             {{-- Recent --}}
-                                            <div x-show="recentImages.length > 0">
+                                            <div x-show="isLoadingPicker" class="text-center py-6">
+                                                <i
+                                                    class="fa-solid fa-circle-notch fa-spin text-purple-400 text-2xl"></i>
+                                                <div class="text-white/40 text-xs mt-2">Đang tải ảnh...</div>
+                                            </div>
+                                            <div x-show="!isLoadingPicker && recentImages.length > 0">
                                                 <div class="text-white/40 text-xs font-medium mb-2">Ảnh gần đây</div>
-                                                <div class="grid grid-cols-4 gap-1.5 max-h-40 overflow-y-auto">
+                                                <div
+                                                    class="grid grid-cols-4 gap-1.5 max-h-40 overflow-y-auto pr-1 custom-scrollbar">
                                                     <template x-for="img in recentImages.slice(0, 16)"
                                                         :key="img.id || img.url">
                                                         <button @click="selectFromRecent(img.url)"

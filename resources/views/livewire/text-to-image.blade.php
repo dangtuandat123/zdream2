@@ -1282,12 +1282,23 @@
                             this.scrollToBottom(true);
                         }, 300);
 
-                        // Fire Livewire method
-                        await this.$wire.generate();
+                        // Fire Livewire method with network error protection
+                        try {
+                            await this.$wire.generate();
 
-                        // If generation threw an error synchronously, check here
-                        if (this.$wire.errorMessage) {
+                            // If generation threw an error synchronously, check here
+                            if (this.$wire.errorMessage) {
+                                this.isLocallyGenerating = false;
+                                this.uiMode = 'failed';
+                                this.statusMessage = this.$wire.errorMessage;
+                                this.notify(this.$wire.errorMessage, 'error');
+                            }
+                        } catch (e) {
+                            console.error('Error calling generate:', e);
                             this.isLocallyGenerating = false;
+                            this.uiMode = 'failed';
+                            this.statusMessage = 'Lỗi kết nối máy chủ. Vui lòng kiểm tra lại mạng.';
+                            this.notify('Lỗi kết nối máy chủ. Vui lòng thử lại.', 'error');
                         }
                     },
 
