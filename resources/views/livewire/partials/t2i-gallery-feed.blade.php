@@ -1,9 +1,7 @@
 {{-- ============================================================ --}}
 {{-- GALLERY FEED — Clean rewrite with reliable infinite scroll --}}
 {{-- ============================================================ --}}
-<div id="gallery-scroll" class="t2i-gallery-shell"
-    :style="{ bottom: (isFocused ? '0px' : '56px') }"
-    :class="{ 'md:!bottom-0': true }">
+<div id="gallery-scroll" class="t2i-gallery-shell">
 
     {{-- Fixed loading indicator — always visible during history load --}}
     <div x-show="loadingMoreHistory" wire:ignore
@@ -13,8 +11,8 @@
         x-transition:leave="transition ease-in duration-150"
         x-transition:leave-start="opacity-100"
         x-transition:leave-end="opacity-0"
-        class="sticky top-0 left-0 right-0 z-[60] pointer-events-none"
-        style="display:none;">
+        class="fixed mobile-filter-top md:top-0 left-0 right-0 md:left-[72px] z-[60] pointer-events-none"
+        style="display:none; margin-top: var(--filter-bar-h, 2.5rem);">
         {{-- Shimmer bar --}}
         <div class="h-1 w-full bg-gradient-to-r from-transparent via-purple-500/80 to-transparent animate-pulse"></div>
         {{-- Floating pill --}}
@@ -28,6 +26,8 @@
             </div>
         </div>
     </div>
+    {{-- Top Spacer: filter-bar-h + gap. Padding pt-14(56px) của <main> tự lo đủ khoảng cho mobile nav --}}
+    <div id="top-spacer" class="w-full shrink-0 pointer-events-none"></div>
 
     <div class="max-w-4xl mx-auto px-4 w-full relative z-10">
 
@@ -336,3 +336,6 @@
         </div>
 
     </div>
+
+    {{-- Bottom Spacer: Responsive handled in text-to-image.blade.php CSS --}}
+    <div id="bottom-spacer" class="w-full shrink-0 pointer-events-none"></div>
