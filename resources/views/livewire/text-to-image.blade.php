@@ -1,8 +1,8 @@
 {{-- ============================================================ --}}
 {{-- TEXT-TO-IMAGE — Root Orchestrator (Redesigned: Core-first) --}}
 {{-- ============================================================ --}}
-<div class="relative min-h-screen t2i-shell" @if($isGenerating) wire:poll.1500ms="pollImageStatus" @endif
-    x-data="textToImage" @keydown.window="handleKeydown($event)"
+<div class="relative t2i-shell" @if($isGenerating) wire:poll.1500ms="pollImageStatus" @endif x-data="textToImage"
+    @keydown.window="handleKeydown($event)"
     x-on:show-toast.window="notify($event.detail.message, $event.detail.type || 'success')">
 
     {{-- Toast --}}
@@ -95,6 +95,21 @@
     {{-- STYLES --}}
     {{-- ============================================================ --}}
     <style>
+        /* ====== GLOBAL BODY LOCK (Only for /create) ======
+           Tiêu diệt scrollbar ảo do body > 100vh và pt-14/pb-20 trên <main> */
+        html,
+        body {
+            overflow: hidden !important;
+            height: 100dvh;
+            touch-action: none;
+            overscroll-behavior: none;
+        }
+
+        main {
+            padding-top: 0 !important;
+            padding-bottom: 0 !important;
+        }
+
         .t2i-shell {
             --gallery-gap: 12px;
             /* Chiều cao an toàn cho ảnh: viewport trừ filter + composer + batch header */
@@ -129,9 +144,9 @@
             overflow-x: hidden;
             -webkit-overflow-scrolling: touch;
             overscroll-behavior-y: contain;
-            /* padding bù cho Filter (trên) và Composer (dưới) */
+            /* padding bù cho Filter (trên) và Composer (dưới + Safe Area iOS) */
             padding-top: var(--filter-bar-h, 44px);
-            padding-bottom: var(--composer-h, 140px);
+            padding-bottom: calc(var(--composer-h, 140px) + env(safe-area-inset-bottom, 0px));
             transition: bottom 0.2s ease-out;
         }
 

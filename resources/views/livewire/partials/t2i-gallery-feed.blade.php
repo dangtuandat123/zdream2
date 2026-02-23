@@ -28,8 +28,6 @@
             </div>
         </div>
     </div>
-    {{-- Top Spacer: filter-bar-h + gap. Padding pt-14(56px) của <main> tự lo đủ khoảng cho mobile nav --}}
-    <div id="top-spacer" class="w-full shrink-0 pointer-events-none"></div>
 
     <div class="max-w-4xl mx-auto px-4 w-full relative z-10">
 
@@ -338,6 +336,3 @@
         </div>
 
     </div>
-
-    {{-- Bottom Spacer: Responsive handled in text-to-image.blade.php CSS --}}
-    <div id="bottom-spacer" class="w-full shrink-0 pointer-events-none"></div>
