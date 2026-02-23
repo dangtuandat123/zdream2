@@ -22,7 +22,7 @@
         <button x-show="showScrollToBottom && !isFocused" x-cloak x-transition:enter="transition ease-out duration-300"
             x-transition:enter-start="opacity-0 translate-y-4" x-transition:enter-end="opacity-100 translate-y-0"
             x-transition:leave="transition ease-in duration-200" x-transition:leave-end="opacity-0 translate-y-4"
-            @click="scrollToBottom(true)"
+            @click="scrollToBottom(true)" aria-label="Cuộn xuống hình ảnh mới nhất"
             class="absolute -top-14 right-2 sm:fixed sm:top-auto sm:bottom-8 sm:right-8 z-[50] w-10 h-10 rounded-full glass-panel hover:bg-white/10 text-white/80 hover:text-white flex items-center justify-center transition-all active:scale-95 group"
             title="Cuộn xuống mới nhất">
             <i class="fa-solid fa-arrow-down group-hover:animate-bounce"></i>
@@ -54,7 +54,7 @@
                             <span x-text="(statusElapsed % 60) + ' giây'"></span>
                         </p>
                     </div>
-                    <button wire:click="cancelGeneration"
+                    <button wire:click="cancelGeneration" aria-label="Hủy quá trình tạo ảnh"
                         class="relative z-10 shrink-0 h-8 px-3 rounded-lg bg-red-500/10 hover:bg-red-500/30 border border-red-500/20 text-xs text-red-300 hover:text-red-200 transition-all active:scale-[0.95] flex items-center">
                         <i class="fa-solid fa-xmark mr-1"></i>Hủy
                     </button>
@@ -65,7 +65,8 @@
                     class="flex items-center gap-3 px-4 py-3 bg-[#2a1f10] border border-yellow-500/40 rounded-xl">
                     <i class="fa-solid fa-triangle-exclamation text-yellow-400 shrink-0"></i>
                     <span class="text-white/80 text-sm flex-1" x-text="statusMessage"></span>
-                    <button @click="uiMode = 'idle'" class="text-white/40 hover:text-white/70 text-xs">Đóng</button>
+                    <button @click="uiMode = 'idle'" aria-label="Đóng thông báo"
+                        class="text-white/40 hover:text-white/70 text-xs">Đóng</button>
                 </div>
 
                 {{-- Failed --}}
@@ -73,11 +74,12 @@
                     class="flex items-center gap-3 px-4 py-3 bg-[#241214] border border-red-500/40 rounded-xl">
                     <i class="fa-solid fa-circle-exclamation text-red-500 shrink-0 text-lg"></i>
                     <span class="text-white text-sm flex-1 font-medium" x-text="statusMessage"></span>
-                    <button @click="$wire.retry(); submitGenerate()"
+                    <button @click="$wire.retry(); submitGenerate()" aria-label="Thử lại"
                         class="shrink-0 h-8 px-3 rounded-lg bg-white/[0.05] hover:bg-white/[0.08] border border-white/[0.08] text-xs text-white/70 transition-all active:scale-[0.95]">
                         <i class="fa-solid fa-redo mr-1"></i>Thử lại
                     </button>
-                    <button @click="uiMode = 'idle'" class="text-white/40 hover:text-white/70 text-xs">Đóng</button>
+                    <button @click="uiMode = 'idle'" aria-label="Đóng báo lỗi"
+                        class="text-white/40 hover:text-white/70 text-xs">Đóng</button>
                 </div>
 
                 {{-- Done --}}
@@ -85,7 +87,8 @@
                     class="flex items-center gap-3 px-4 py-3 bg-[#112015] border border-green-500/40 rounded-xl">
                     <i class="fa-solid fa-check-circle text-green-500 shrink-0 text-lg"></i>
                     <span class="text-white text-sm flex-1 font-medium" x-text="statusMessage"></span>
-                    <button @click="uiMode = 'idle'" class="text-white/60 hover:text-white text-xs">Đóng</button>
+                    <button @click="uiMode = 'idle'" aria-label="Đóng thông báo thành công"
+                        class="text-white/60 hover:text-white text-xs">Đóng</button>
                 </div>
             </div>
         </template>
@@ -144,7 +147,7 @@
                         class="absolute right-2 top-1/2 -translate-y-1/2 z-20"
                         x-transition:enter="transition ease-out duration-200"
                         x-transition:enter-start="opacity-0 scale-75" x-transition:enter-end="opacity-100 scale-100">
-                        <button type="button" @click="submitGenerate()"
+                        <button type="button" @click="submitGenerate()" aria-label="Tạo ảnh" title="Tạo ảnh nhanh"
                             :disabled="!$wire.prompt || $wire.prompt.length === 0 || isBanned"
                             class="w-9 h-9 rounded-full bg-gradient-to-tr from-purple-600 to-indigo-600 text-white flex items-center justify-center hover:brightness-110 active:scale-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer">
                             <i class="fa-solid fa-paper-plane text-xs relative -top-[0.5px] -ml-[0.5px]"></i>
@@ -206,6 +209,7 @@
                                             class="flex items-center justify-between p-4 border-b border-white/5 shrink-0">
                                             <span class="text-white font-semibold text-base">Cài đặt tạo ảnh</span>
                                             <button type="button" @click="showSettingsSheet = false"
+                                                aria-label="Đóng cài đặt"
                                                 class="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 text-white/60 active:scale-95 transition-transform">
                                                 <i class="fa-solid fa-xmark"></i>
                                             </button>
@@ -340,10 +344,10 @@
                                         <div
                                             class="flex items-center justify-between p-4 border-b border-white/5 shrink-0">
                                             <span class="text-white font-semibold text-base">Chọn Model AI</span>
-                                            <button type="button"
-                                                @click="showModelSheet = false; setTimeout(() => showSettingsSheet = true, 150)"
+                                            <button type="button" @click="showModelSheet = false"
+                                                aria-label="Đóng chọn Model"
                                                 class="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 text-white/60 active:scale-95 transition-transform">
-                                                <i class="fa-solid fa-chevron-left"></i>
+                                                <i class="fa-solid fa-xmark"></i>
                                             </button>
                                         </div>
                                         <div class="p-4 overflow-y-auto">
@@ -639,9 +643,9 @@
                                     <template x-for="img in selectedImages" :key="img.id">
                                         <div class="relative w-10 h-10 rounded-lg overflow-hidden group">
                                             <img :src="img.url" class="w-full h-full object-cover">
-                                            <button @click="removeImage(img.id)"
-                                                class="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity p-2">
-                                                <i class="fa-solid fa-xmark text-white text-sm"></i>
+                                            <button @click="removeImage(img.id)" aria-label="Xóa ảnh tham chiếu này"
+                                                class="absolute top-1 right-1 w-6 h-6 rounded-full bg-black/60 shadow-md text-white/80 hover:bg-red-500 hover:text-white flex items-center justify-center scale-90 opacity-0 group-hover:opacity-100 group-hover:scale-100 transition-all">
+                                                <i class="fa-solid fa-xmark text-xs"></i>
                                             </button>
                                         </div>
                                     </template>
@@ -673,6 +677,7 @@
                                                     Xóa tất cả
                                                 </button>
                                                 <button type="button" @click="showRefPicker = false"
+                                                    aria-label="Đóng chọn ảnh tham chiếu"
                                                     class="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 text-white/60 active:scale-95 transition-transform">
                                                     <i class="fa-solid fa-xmark"></i>
                                                 </button>

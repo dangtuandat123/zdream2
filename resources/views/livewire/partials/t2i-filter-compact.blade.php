@@ -51,12 +51,11 @@
                                 class="glass-chip inline-flex items-center gap-1 h-8 px-3 rounded-lg text-xs font-medium transition-all duration-200 active:scale-[0.98] {{ $filterDate !== 'all' ? 'glass-chip-active' : '' }}">
                                 <i class="fa-regular fa-calendar text-[10px]"></i>
                                 <span>{{ $filterDate === 'all' ? 'Ngày' : ['week' => 'Tuần', 'month' => 'Tháng', '3months' => '3T'][$filterDate] ?? 'Ngày' }}</span>
-                                @if($filterDate !== 'all')
-                                    <span @click.stop="$wire.set('filterDate', 'all')"
+                                    <span @click.stop="$wire.set('filterDate', 'all')" title="Xóa bộ lọc Ngày"
                                         class="ml-0.5 hover:text-white cursor-pointer"><i
                                             class="fa-solid fa-xmark text-[9px]"></i></span>
                                 @else
-                                    <i class="fa-solid fa-chevron-down text-[8px] ml-0.5 transition-transform"
+                                    <i class="fa-solid fa-chevron-down text-[8px] ml-0.5 transition-transform" aria-hidden="true"
                                         :class="openFilter === 'date' ? 'rotate-180' : ''"></i>
                                 @endif
                             </button>
@@ -86,11 +85,11 @@
                                 <span
                                     class="max-w-[80px] truncate">{{ $filterModel === 'all' ? 'Model' : (collect($availableModels)->firstWhere('id', $filterModel)['name'] ?? $filterModel) }}</span>
                                 @if($filterModel !== 'all')
-                                    <span @click.stop="$wire.set('filterModel', 'all')"
+                                    <span @click.stop="$wire.set('filterModel', 'all')" title="Xóa bộ lọc Model"
                                         class="ml-0.5 hover:text-white cursor-pointer"><i
                                             class="fa-solid fa-xmark text-[9px]"></i></span>
                                 @else
-                                    <i class="fa-solid fa-chevron-down text-[8px] ml-0.5 transition-transform"
+                                    <i class="fa-solid fa-chevron-down text-[8px] ml-0.5 transition-transform" aria-hidden="true"
                                         :class="openFilter === 'model' ? 'rotate-180' : ''"></i>
                                 @endif
                             </button>
@@ -128,11 +127,11 @@
                                 <i class="fa-solid fa-crop text-[10px]"></i>
                                 <span>{{ $filterRatio === 'all' ? 'Tỉ lệ' : $filterRatio }}</span>
                                 @if($filterRatio !== 'all')
-                                    <span @click.stop="$wire.set('filterRatio', 'all')"
+                                    <span @click.stop="$wire.set('filterRatio', 'all')" title="Xóa bộ lọc Tỉ lệ"
                                         class="ml-0.5 hover:text-white cursor-pointer"><i
                                             class="fa-solid fa-xmark text-[9px]"></i></span>
                                 @else
-                                    <i class="fa-solid fa-chevron-down text-[8px] ml-0.5 transition-transform"
+                                    <i class="fa-solid fa-chevron-down text-[8px] ml-0.5 transition-transform" aria-hidden="true"
                                         :class="openFilter === 'ratio' ? 'rotate-180' : ''"></i>
                                 @endif
                             </button>
@@ -182,7 +181,7 @@
                 {{-- Sheet Header --}}
                 <div class="flex items-center justify-between p-4 border-b border-white/5 shrink-0">
                     <span class="text-white font-semibold text-base">Bộ lọc hiển thị</span>
-                    <button @click="openFilter = null"
+                    <button @click="openFilter = null" aria-label="Đóng bảng lọc"
                         class="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 text-white/60 active:scale-95 transition-transform">
                         <i class="fa-solid fa-xmark"></i>
                     </button>
@@ -242,8 +241,7 @@
                                     class="w-full flex items-center justify-between p-3 rounded-xl transition-all
                                                                 {{ $filterModel === $model['id'] ? 'bg-purple-500/20 text-white border border-purple-500/30' : 'bg-white/5 text-white/70 active:bg-white/10 border border-transparent' }}">
                                     <div class="flex items-center gap-3 min-w-0 pr-4">
-                                        <div class="w-6 h-6 rounded-full flex items-center justify-center shrink-0"
-                                            :class="$wire.filterModel === '{{ $model['id'] }}' ? 'bg-purple-500' : 'bg-white/10'">
+                                        <div class="w-6 h-6 rounded-full flex items-center justify-center shrink-0 {{ $filterModel === $model['id'] ? 'bg-purple-500' : 'bg-white/10' }}">
                                             <span class="text-xs">{{ $model['icon'] ?? '⚡' }}</span>
                                         </div>
                                         <div class="text-left truncate">

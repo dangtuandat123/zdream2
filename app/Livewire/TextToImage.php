@@ -638,6 +638,10 @@ class TextToImage extends Component
             $this->prompt = $image->final_prompt;
             $this->modelId = $image->generation_params['model_id'] ?? $this->modelId;
             $this->aspectRatio = $image->generation_params['aspect_ratio'] ?? $this->aspectRatio;
+
+            // Dispatch feedback to frontend UX
+            $this->dispatch('show-toast', message: 'Đã nạp prompt và cài đặt', type: 'success');
+            $this->dispatch('focus-prompt');
         }
     }
 

@@ -4,7 +4,8 @@
 <div class="relative min-h-screen t2i-shell" @if($isGenerating) wire:poll.1500ms="pollImageStatus" @endif
     x-data="textToImage" @keydown.window="handleKeydown($event)"
     :style="{ '--keyboard-offset': isFocused ? '0px' : '56px' }"
-    x-on:show-toast.window="notify($event.detail.message, $event.detail.type || 'success')">
+    x-on:show-toast.window="notify($event.detail.message, $event.detail.type || 'success')"
+    x-on:focus-prompt.window="setTimeout(() => { const el = document.querySelector('.t2i-prompt-input'); if(el) { el.focus(); scrollToBottom(true); } }, 100)">
 
     {{-- Toast --}}
     <div x-show="showToast" x-cloak x-transition:enter="transition ease-out duration-300"

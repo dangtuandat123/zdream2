@@ -44,7 +44,7 @@
                         <i class="fa-solid fa-redo mr-1"></i>Thử lại
                     </button>
                 @endif
-                <button @click="show = false"
+                <button @click="show = false" aria-label="Đóng thông báo lỗi"
                     class="shrink-0 h-8 w-8 rounded-lg bg-white/[0.05] hover:bg-white/[0.08] border border-white/[0.08] text-white/80 flex items-center justify-center transition-all active:scale-[0.98]">
                     <i class="fa-solid fa-xmark text-xs"></i>
                 </button>
